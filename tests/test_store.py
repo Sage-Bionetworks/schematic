@@ -173,6 +173,12 @@ class TestSynapseStorage:
                 "SELECT * FROM syn23643253 WHERE projectId IN ('syn23643250', '') ;",
             ),
             (
+                None,
+                None,
+                ["projectId IN ('syn23643250')"],
+                "SELECT * FROM syn23643253 WHERE projectId IN ('syn23643250') ;",
+            ),
+            (
                 ["syn23643250"],
                 ["name", "id", "path"],
                 None,
@@ -186,7 +192,7 @@ class TestSynapseStorage:
             ),
         ],
     )
-    def test_build_query(
+    def test_view_query(
         self,
         synapse_store_special_scope: SynapseStorage,
         project_scope: list,
@@ -194,11 +200,16 @@ class TestSynapseStorage:
         where_clauses: list,
         expected: str,
     ) -> None:
+        # Ensure correct view is being utilized
         assert synapse_store_special_scope.storageFileview == "syn23643253"
-        if project_scope:
-            synapse_store_special_scope.project_scope = project_scope
-        synapse_store_special_scope._build_query(columns, where_clauses)
+
+        synapse_store_special_scope.project_scope = project_scope
+
+        synapse_store_special_scope.query_fileview(columns, where_clauses)
+        # tests ._build_query()
         assert synapse_store_special_scope.fileview_query == expected
+        # tests that the query was valid and successful, that a view subset has actually been retrived
+        assert synapse_store_special_scope.storageFileviewTable.empty is False
 
     def test_getFileAnnotations(self, synapse_store: SynapseStorage) -> None:
         expected_dict = {
