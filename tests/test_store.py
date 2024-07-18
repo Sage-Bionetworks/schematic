@@ -958,6 +958,7 @@ class TestManifestUpload:
             files_in_dataset (str): mock entityid and file name returned by getFilesInStorageDataset function
             expected_filenames (list(str)): expected list of file names
             expected_entity_ids (list(str)): expected list of entity ids
+            annotation_keys (str): class_label or display_label
         """
         with patch(
             "schematic.store.synapse.SynapseStorage.getFilesInStorageDataset",
@@ -981,6 +982,52 @@ class TestManifestUpload:
             assert "Id" in new_df.columns
             assert file_names_lst == expected_filenames
             assert entity_ids_lst == expected_entity_ids
+
+    @pytest.mark.parametrize(
+        "annotation_keys", "['class_label', 'display_label']"
+    )
+    @pytest.mark.parametrize(
+        "row",
+        [
+            pd.DataFrame.from_records(
+                [
+                    {
+                        "Filename": "TestDataset-Annotations-v3/Sample_A.txt",
+                        "author": "bruno, milen, sujay",
+                        "impact": "42.9",
+                        "confidence": "high",
+                        "FileFormat": "txt",
+                        "YearofBirth": "1980",
+                        "IsImportantBool": "True",
+                        "IsImportantText": "TRUE",
+                    },
+                    {
+                        "Filename": "TestDataset-Annotations-v3/Sample_B.txt",
+                        "confidence": "low",
+                        "FileFormat": "csv",
+                        "date": "2020-02-01",
+                    },
+                    {
+                        "Filename": "TestDataset-Annotations-v3/Sample_C.txt",
+                        "FileFormat": "fastq",
+                        "IsImportantBool": "False",
+                        "IsImportantText": "FALSE",
+                    },
+                ]
+            )
+        ]
+    )
+    def test_format_row_annotations(
+        self,
+        helpers: Helpers,
+        synapse_store: SynapseStorage,
+        dmge: DataModelGraphExplorer,
+        row,
+        annotation_keys: str
+    ) -> dict:
+        annos = synapse_store.format_row_annotations(
+            dmge, row=row, annotation_keys=annotation_keys, hideBlanks=True, entityId="syn52786042"
+        )
 
     @pytest.mark.parametrize(
         "mock_manifest_file_path",
