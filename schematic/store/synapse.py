@@ -193,6 +193,7 @@ class SynapseStorage(BaseStorage):
         access_token: Optional[str] = None,
         project_scope: Optional[list] = None,
         synapse_cache_path: Optional[str] = None,
+        perform_query: Optional[bool] = True,
     ) -> None:
         """Initializes a SynapseStorage object.
 
@@ -213,7 +214,8 @@ class SynapseStorage(BaseStorage):
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
         self.root_synapse_cache = self.syn.cache.cache_root_dir
-        self.query_fileview()
+        if perform_query:
+            self.query_fileview()
 
     def _purge_synapse_cache(
         self, maximum_storage_allowed_cache_gb: int = 1, minute_buffer: int = 15
@@ -264,14 +266,24 @@ class SynapseStorage(BaseStorage):
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
 
+        self.new_query_different = True
+
+        previous_query_built = hasattr(self, "fileview_query")
+        if previous_query_built:
+            previous_query = self.fileview_query
+
         self._build_query(columns=columns, where_clauses=where_clauses)
 
-        try:
-            self.storageFileviewTable = self.syn.tableQuery(
-                query=self.fileview_query,
-            ).asDataFrame()
-        except SynapseHTTPError:
-            raise AccessCredentialsError(self.storageFileview)
+        if previous_query_built:
+            self.new_query_different = self.fileview_query != previous_query
+
+        if self.new_query_different:
+            try:
+                self.storageFileviewTable = self.syn.tableQuery(
+                    query=self.fileview_query,
+                ).asDataFrame()
+            except SynapseHTTPError:
+                raise AccessCredentialsError(self.storageFileview)
 
     def _build_query(
         self, columns: Optional[list] = None, where_clauses: Optional[list] = None
