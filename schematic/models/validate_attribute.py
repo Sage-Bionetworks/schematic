@@ -769,16 +769,27 @@ class ValidateAttribute(object):
     def __init__(self, dmge: DataModelGraphExplorer) -> None:
         self.dmge = dmge
 
-    def _login(self, project_scope: list[str], access_token: str = None):
+    def _login(
+        self,
+        access_token: Optional[str] = None,
+        project_scope: Optional[list[str]] = None,
+        columns: Optional[list] = None,
+        where_clauses: Optional[list] = None,
+    ):
         # login
-        try:
-            self.synStore = SynapseStorage(
-                access_token=access_token, project_scope=project_scope
-            )
-        except SynapseNoCredentialsError as e:
-            raise ValueError(
-                "No Synapse credentials were provided. Credentials must be provided to utilize cross-manfiest validation functionality."
-            ) from e
+        if hasattr(self, "synStore"):
+            if self.synstore.project_scope != project_scope:
+                self.synStore.project_scope = project_scope
+            self.synStore.query_fileview(columns=columns, where_clauses=where_clauses)
+        else:
+            try:
+                self.synStore = SynapseStorage(
+                    access_token=access_token, project_scope=project_scope
+                )
+            except SynapseNoCredentialsError as e:
+                raise ValueError(
+                    "No Synapse credentials were provided. Credentials must be provided to utilize cross-manfiest validation functionality."
+                ) from e
 
     def get_no_entry(self, entry: str, node_display_name: str) -> bool:
         """Helper function to check if the entry is blank or contains a not applicable type string (and NA is permitted)
@@ -826,8 +837,7 @@ class ValidateAttribute(object):
         target_manifest_ids = []
         target_dataset_ids = []
 
-        if not hasattr(self, "synStore"):
-            self._login(project_scope=project_scope, access_token=access_token)
+        self._login(project_scope=project_scope, access_token=access_token)
 
         # Get list of all projects user has access to
         projects = self.synStore.getStorageProjects(project_scope=project_scope)
