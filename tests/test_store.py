@@ -1014,7 +1014,13 @@ class TestManifestUpload:
                         "IsImportantText": "FALSE",
                     },
                 ]
-            )
+            ),
+            pd.DataFrame.from_records([
+                {"Check List": "a,b,c"},
+                {"CheckList": "a,b,c"},
+                {"CheckListLike": "a,b,c"},
+                {"checklist": "a,b,c"},
+            ])
         ]
     )
     def test_format_row_annotations(
