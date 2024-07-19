@@ -3,6 +3,7 @@ import logging
 import networkx as nx
 from os.path import exists
 from jsonschema import ValidationError
+import pickle
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -42,12 +43,14 @@ class MetadataModel(object):
         inputMModelLocation: str,
         inputMModelLocationType: str,
         data_model_labels: str,
+        data_model_graph_pickle: Optional[str] = None,
     ) -> None:
         """Instantiates a MetadataModel object.
 
         Args:
             inputMModelLocation: local path, uri, synapse entity id (e.g. gs://, syn123, /User/x/…); present location
             inputMModelLocationType: specifier to indicate where the metadata model resource can be found (e.g. 'local' if file/JSON-LD is on local machine)
+            data_model_graph_pickle: filepath to a data model graph stored as pickle file.
         """
         # extract extension of 'inputMModelLocation'
         # ensure that it is necessarily pointing to a '.jsonld' file
@@ -60,17 +63,25 @@ class MetadataModel(object):
         self.inputMModelLocation = inputMModelLocation
         self.path_to_json_ld = inputMModelLocation
 
-        data_model_parser = DataModelParser(path_to_data_model=self.inputMModelLocation)
-        # Parse Model
-        parsed_data_model = data_model_parser.parse_model()
+        # Use graph, if provided. Otherwise parse data model for graph.
+        if data_model_graph_pickle:
+            with open(data_model_graph_pickle, "rb") as f:
+                self.graph_data_model = pickle.load(f)
+            self.dmge = DataModelGraphExplorer(self.graph_data_model)
+        else:
+            data_model_parser = DataModelParser(
+                path_to_data_model=self.inputMModelLocation
+            )
+            # Parse Model
+            parsed_data_model = data_model_parser.parse_model()
 
-        # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
+            # Instantiate DataModelGraph
+            data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
-        # Generate graph
-        self.graph_data_model = data_model_grapher.graph
+            # Generate graph
+            self.graph_data_model = data_model_grapher.graph
 
-        self.dmge = DataModelGraphExplorer(self.graph_data_model)
+            self.dmge = DataModelGraphExplorer(self.graph_data_model)
 
         # check if the type of MModel file is "local"
         # currently, the application only supports reading from local JSON-LD files
