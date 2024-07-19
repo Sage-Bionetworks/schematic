@@ -989,37 +989,11 @@ class TestManifestUpload:
     @pytest.mark.parametrize(
         "row",
         [
-            pd.DataFrame.from_records(
-                [
-                    {
-                        "Filename": "TestDataset-Annotations-v3/Sample_A.txt",
-                        "author": "bruno, milen, sujay",
-                        "impact": "42.9",
-                        "confidence": "high",
-                        "FileFormat": "txt",
-                        "YearofBirth": "1980",
-                        "IsImportantBool": "True",
-                        "IsImportantText": "TRUE",
-                    },
-                    {
-                        "Filename": "TestDataset-Annotations-v3/Sample_B.txt",
-                        "confidence": "low",
-                        "FileFormat": "csv",
-                        "date": "2020-02-01",
-                    },
-                    {
-                        "Filename": "TestDataset-Annotations-v3/Sample_C.txt",
-                        "FileFormat": "fastq",
-                        "IsImportantBool": "False",
-                        "IsImportantText": "FALSE",
-                    },
-                ]
-            ),
             pd.DataFrame.from_records([
-                {"Check List": "a,b,c"},
-                {"CheckList": "a,b,c"},
-                {"CheckListLike": "a,b,c"},
-                {"checklist": "a,b,c"},
+                {"Check List": "a,b,c",
+                "CheckList": "a,b,c",
+                "CheckListLike": "a,b,c",
+                "checklist": "a,b,c"}
             ])
         ]
     )
@@ -1034,6 +1008,7 @@ class TestManifestUpload:
         annos = synapse_store.format_row_annotations(
             dmge, row=row, annotation_keys=annotation_keys, hideBlanks=True, entityId="syn52786042"
         )
+        assert annos.get("Check List") == {0: 'a,b,c'}
 
     @pytest.mark.parametrize(
         "mock_manifest_file_path",
