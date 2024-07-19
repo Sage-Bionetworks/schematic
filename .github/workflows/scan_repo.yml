@@ -25,7 +25,7 @@ jobs:
           ignore-unfixed: true
           format: 'sarif'
           output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH,MEDIUM'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
           limit-severities-for-sarif: true
 
       - name: Upload Trivy scan results to GitHub Security tab
