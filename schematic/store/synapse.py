@@ -1367,7 +1367,7 @@ class SynapseStorage(BaseStorage):
         blacklist_chars = ["(", ")", ".", " ", "-"]
 
         for k, v in row.to_dict().items():
-            keySyn = None
+            keySyn = str(k)
             if annotation_keys == "display_label":
                 keySyn = str(k).translate({ord(x): "" for x in blacklist_chars})
             elif annotation_keys == "class_label":
