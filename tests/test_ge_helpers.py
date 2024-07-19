@@ -54,12 +54,19 @@ class TestGreatExpectationsHelpers:
         mock_ge_helpers.context.list_expectation_suite_names.return_value = [
             "Manifest_test_suite"
         ]
+        mock_ge_helpers.context.list_checkpoints.return_value = ["test_checkpoint"]
 
         # Call the method
         result = mock_ge_helpers.add_expectation_suite_if_not_exists()
 
-        # Make sure the method of getting existing suites gets called
+        # Make sure the method of deleting suites gets called
         mock_ge_helpers.context.list_expectation_suite_names.assert_called_once()
-        mock_ge_helpers.context.get_expectation_suite.assert_called_once_with(
+        mock_ge_helpers.context.delete_expectation_suite.assert_called_once_with(
+            "Manifest_test_suite"
+        )
+        mock_ge_helpers.context.add_expectation_suite.assert_called_once_with(
             expectation_suite_name="Manifest_test_suite"
+        )
+        mock_ge_helpers.context.delete_checkpoint.assert_called_once_with(
+            "test_checkpoint"
         )
