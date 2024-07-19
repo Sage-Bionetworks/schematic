@@ -784,19 +784,12 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         """
         if not node_label:
             assert node_display_name is not None
-            try:
-                node_label = self.get_node_label(node_display_name)
-            except KeyError as exc:
-                raise ValueError(
-                    f"The source node {node_label} does not exist in the graph. "
-                    "Please use a different node or check the attribute label."
-                ) from exc
+            node_label = self.get_node_label(node_display_name)
 
         if not node_label:
             return []
 
-        node = self.graph.node.get(node_label)
-        node_validation_rules = node.get("validationRules")
+        node_validation_rules = self.graph.nodes[node_label]["validationRules"]
 
         return node_validation_rules
 
