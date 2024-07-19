@@ -1402,15 +1402,14 @@ class SynapseStorage(BaseStorage):
             else:
                 if isinstance(anno_v, float) and np.isnan(anno_v):
                     annos[anno_k] = ""
-                elif (
-                    isinstance(anno_v, str)
-                    and re.fullmatch(csv_list_regex, anno_v)
-                ):
+                elif isinstance(anno_v, str) and re.fullmatch(csv_list_regex, anno_v):
                     rule_list = []
                     if annotation_keys == "class_label":
                         rule_list = dmge.get_node_validation_rules(node_label=anno_k)
                     else:
-                        rule_list = dmge.get_node_validation_rules(node_display_name=anno_k)
+                        rule_list = dmge.get_node_validation_rules(
+                            node_display_name=anno_k
+                        )
                     if rule_in_rule_list("list", rule_list):
                         annos[anno_k] = anno_v.split(",")
                 else:

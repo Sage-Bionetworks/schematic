@@ -931,13 +931,7 @@ class TestManifestUpload:
             ),
         ],
     )
-    @pytest.mark.parametrize(
-        "annotation_keys",
-        [
-          "class_label",
-          "display_label"
-        ]
-    )
+    @pytest.mark.parametrize("annotation_keys", ["class_label", "display_label"])
     def test_add_annotations_to_entities_files(
         self,
         synapse_store: SynapseStorage,
@@ -946,7 +940,7 @@ class TestManifestUpload:
         files_in_dataset: str,
         expected_filenames: list[str],
         expected_entity_ids: list[str],
-        annotation_keys: str
+        annotation_keys: str,
     ) -> None:
         """test adding annotations to entities files
 
@@ -972,7 +966,7 @@ class TestManifestUpload:
                 manifest_record_type="entity",
                 datasetId="mock id",
                 hideBlanks=True,
-                annotation_keys=annotation_keys
+                annotation_keys=annotation_keys,
             )
             file_names_lst = new_df["Filename"].tolist()
             entity_ids_lst = new_df["entityId"].tolist()
@@ -983,19 +977,21 @@ class TestManifestUpload:
             assert file_names_lst == expected_filenames
             assert entity_ids_lst == expected_entity_ids
 
-    @pytest.mark.parametrize(
-        "annotation_keys", "['class_label', 'display_label']"
-    )
+    @pytest.mark.parametrize("annotation_keys", "['class_label', 'display_label']")
     @pytest.mark.parametrize(
         "row",
         [
-            pd.DataFrame.from_records([
-                {"Check List": "a,b,c",
-                "CheckList": "a,b,c",
-                "CheckListLike": "a,b,c",
-                "checklist": "a,b,c"}
-            ])
-        ]
+            pd.DataFrame.from_records(
+                [
+                    {
+                        "Check List": "a,b,c",
+                        "CheckList": "a,b,c",
+                        "CheckListLike": "a,b,c",
+                        "checklist": "a,b,c",
+                    }
+                ]
+            )
+        ],
     )
     def test_format_row_annotations(
         self,
@@ -1003,12 +999,16 @@ class TestManifestUpload:
         synapse_store: SynapseStorage,
         dmge: DataModelGraphExplorer,
         row,
-        annotation_keys: str
+        annotation_keys: str,
     ) -> dict:
         annos = synapse_store.format_row_annotations(
-            dmge, row=row, annotation_keys=annotation_keys, hideBlanks=True, entityId="syn52786042"
+            dmge,
+            row=row,
+            annotation_keys=annotation_keys,
+            hideBlanks=True,
+            entityId="syn52786042",
         )
-        assert annos.get("Check List") == {0: 'a,b,c'}
+        assert annos.get("Check List") == {0: "a,b,c"}
 
     @pytest.mark.parametrize(
         "mock_manifest_file_path",
