@@ -152,17 +152,24 @@ class GreatExpectationsHelpers(object):
             saves expectation suite and identifier to self
         """
         self.expectation_suite_name = "Manifest_test_suite"
+        # Get a list of all expectation suites
         suite_names = self.context.list_expectation_suite_names()
-        if self.expectation_suite_name not in suite_names:
-            self.suite = self.context.add_expectation_suite(
-                expectation_suite_name=self.expectation_suite_name,
-            )
-        # in gh actions, sometimes the suite has already been added.
-        # if that's the case, get the existing one
-        else:
-            self.suite = self.context.get_expectation_suite(
-                expectation_suite_name=self.expectation_suite_name
-            )
+        # Get a list of all checkpoints
+        all_checkpoints = self.context.list_checkpoints()
+
+        # if the suite exists, delete it
+        if self.expectation_suite_name in suite_names:
+            self.context.delete_expectation_suite(self.expectation_suite_name)
+
+            # also delete all the checkpoints associated with the suite
+            if all_checkpoints:
+                for checkpoint_name in all_checkpoints:
+                    self.context.delete_checkpoint(checkpoint_name)
+
+        self.suite = self.context.add_expectation_suite(
+            expectation_suite_name=self.expectation_suite_name,
+        )
+
         return self.suite
 
     def build_expectation_suite(
