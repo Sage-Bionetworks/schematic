@@ -15,12 +15,9 @@ import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
+from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
 from synapseclient.models import Annotations
-from synapseclient.core.exceptions import SynapseHTTPError
-from pandas.testing import assert_frame_equal
-
-
 
 from schematic.configuration.configuration import Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
