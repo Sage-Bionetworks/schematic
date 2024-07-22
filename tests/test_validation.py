@@ -1069,3 +1069,26 @@ class TestManifestValidation:
             restrict_rules=False,
             project_scope=None,
         )
+
+
+class TestValidateAttributeObject:
+    def test_login(self, helpers, dmge):
+        """
+        Tests that sequential logins update the view query as necessary
+        """
+        validate_attribute = ValidateAttribute(dmge)
+        validate_attribute._login()
+
+        assert (
+            validate_attribute.synStore.fileview_query == "SELECT * FROM syn23643253 ;"
+        )
+
+        validate_attribute._login(
+            project_scope=["syn23643250"],
+            columns=["name", "id", "path"],
+            where_clauses=["parentId='syn61682648'", "type='file'"],
+        )
+        assert (
+            validate_attribute.synStore.fileview_query
+            == "SELECT name,id,path FROM syn23643253 WHERE parentId='syn61682648' AND type='file' AND projectId IN ('syn23643250', '') ;"
+        )
