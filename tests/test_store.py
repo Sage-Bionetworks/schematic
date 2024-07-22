@@ -2,19 +2,25 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import math
 import os
 import shutil
 from time import sleep
 from typing import Any, Generator
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.entity import File
+from synapseclient.models import Annotations
+from synapseclient.core.exceptions import SynapseHTTPError
+from pandas.testing import assert_frame_equal
+
+
 
 from schematic.configuration.configuration import Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
@@ -517,6 +523,47 @@ class TestSynapseStorage:
             )
             assert_frame_equal(manifest_to_return, expected_df)
 
+    @pytest.mark.parametrize(
+        "hideBlanks, annotation_keys",
+        [
+            (True, "display_label"),
+            (False, "display_label"),
+            (True, "class_label"),
+            (False, "class_label"),
+        ],
+    )
+    async def test_format_row_annotations_entity_id_trash_can(
+        self,
+        caplog: pytest.LogCaptureFixture,
+        dmge: DataModelGraph,
+        synapse_store: SynapseStorage,
+        hideBlanks: bool,
+        annotation_keys: str,
+    ) -> None:
+        """make sure that missing_entity_handler gets triggered when entity is in the trash can"""
+        with patch(
+            "schematic.store.synapse.SynapseStorage.get_async_annotation",
+            side_effect=SynapseHTTPError("entity syn123 is in the trash can"),
+            new_callable=AsyncMock,
+        ):
+            mock_row_dict = {
+                "Component": "MockComponent",
+                "Mock_id": 1,
+                "Id": "Mock_id",
+                "entityId": "mock_syn_id",
+            }
+            mock_row = pd.Series(mock_row_dict)
+            with caplog.at_level(logging.WARNING):
+                formatted_annotations = await synapse_store.format_row_annotations(
+                    dmge,
+                    mock_row,
+                    entityId="mock_syn_id",
+                    hideBlanks=hideBlanks,
+                    annotation_keys=annotation_keys,
+                )
+                assert "entity syn123 is in the trash can" in caplog.text
+                assert formatted_annotations == None
+
     def test_get_files_metadata_from_dataset(self, synapse_store):
         patch_get_children = [
             ("syn123", "parent_folder/test_A.txt"),
@@ -546,6 +593,228 @@ class TestSynapseStorage:
                     ],
                     "entityId": ["syn123", "syn456"],
                 }
+
+    async def test_get_async_annotation(self, synapse_store: SynapseStorage) -> None:
+        """test get annotation async function"""
+        mock_syn_id = "syn1234"
+
+        with patch(
+            "schematic.store.synapse.get_entity_id_bundle2",
+            new_callable=AsyncMock,
+            return_value="mock",
+        ) as mock_get_entity_id_bundle2:
+            mock_get_entity_id_bundle2.return_value = "mock"
+            result = await synapse_store.get_async_annotation(synapse_id=mock_syn_id)
+
+            mock_get_entity_id_bundle2.assert_called_once_with(
+                entity_id=mock_syn_id,
+                request={"includeAnnotations": True},
+                synapse_client=synapse_store.syn,
+            )
+            assert result == "mock"
+
+    async def test_store_async_annotation(self, synapse_store: SynapseStorage) -> None:
+        """test store annotations async function"""
+        annos_dict = {
+            "annotations": {
+                "id": "mock_syn_id",
+                "etag": "mock etag",
+                "annotations": {
+                    "Id": {"type": "STRING", "value": ["mock value"]},
+                    "EntityId": {"type": "STRING", "value": ["mock_syn_id"]},
+                    "SampleID": {"type": "STRING", "value": [""]},
+                    "Component": {"type": "STRING", "value": ["mock value"]},
+                },
+            },
+            "FileFormat": "mock format",
+            "Component": "mock component",
+            "Id": "mock_string",
+            "EntityId": "mock_id",
+        }
+        expected_dict = Annotations(
+            annotations={
+                "Id": ["mock_string"],
+                "EntityId": ["mock_syn_id"],
+                "SampleID": [""],
+                "Component": ["mock value"],
+                "FileFormat": ["mock_format"],
+            },
+            etag="mock etag",
+            id="mock syn_id",
+        )
+
+        with patch(
+            "schematic.store.synapse.Annotations.store_async",
+            new_callable=AsyncMock,
+            return_value=expected_dict,
+        ) as mock_store_async:
+            result = await synapse_store.store_async_annotation(annos_dict)
+
+            mock_store_async.assert_called_once_with(synapse_store.syn)
+            assert result == expected_dict
+            assert isinstance(result, Annotations)
+
+    async def test_process_store_annos_failure(
+        self, synapse_store: SynapseStorage
+    ) -> None:
+        """test _process_store_annos function when there's an error either getting or storing annotations"""
+
+        async def mock_failure_coro():
+            raise ValueError("sample error")
+
+        # create tasks that will fail
+        tasks = set()
+        tasks.add(asyncio.create_task(mock_failure_coro()))
+
+        synapse_store._process_store_annos
+        # make sure error message can be raised
+        with pytest.raises(RuntimeError, match="failed with"):
+            await synapse_store._process_store_annos(tasks)
+
+    async def test_process_store_annos_success_store(
+        self, synapse_store: SynapseStorage
+    ) -> None:
+        """test _process_store_annos function and make sure that annotations can be stored after successfully getting annotations."""
+        # mock annotation obtained after async_store
+        stored_annos = Annotations(
+            annotations={
+                "Id": ["mock_string"],
+                "EntityId": ["mock_syn_id"],
+                "SampleID": [""],
+                "Component": ["mock value"],
+                "FileFormat": ["mock_format"],
+            },
+            etag="mock etag",
+            id="mock_syn_id",
+        )
+
+        async def mock_success_coro():
+            return stored_annos
+
+        with patch(
+            "schematic.store.synapse.SynapseStorage.store_async_annotation",
+            new_callable=AsyncMock,
+        ) as mock_store_async1:
+            tasks = set()
+            tasks.add(asyncio.create_task(mock_success_coro()))
+            await synapse_store._process_store_annos(tasks)
+            # make sure that the if statement is working
+            mock_store_async1.assert_not_called()
+
+    async def test_process_store_annos_success_get(
+        self, synapse_store: SynapseStorage
+    ) -> None:
+        """test _process_store_annos function and make sure that task of storing annotations can be triggered"""
+        # mock annotation obtained after get_async
+        mock_annos_dict = {
+            "annotations": {
+                "id": "mock_syn_id",
+                "etag": "mock etag",
+                "annotations": {
+                    "Id": {"type": "STRING", "value": ["mock value"]},
+                    "EntityId": {"type": "STRING", "value": ["mock_syn_id"]},
+                    "SampleID": {"type": "STRING", "value": [""]},
+                    "Component": {"type": "STRING", "value": ["mock value"]},
+                },
+            },
+            "FileFormat": "mock format",
+            "Component": "mock component",
+            "Id": "mock_string",
+            "EntityId": "mock_id",
+        }
+
+        mock_stored_annos = Annotations(
+            annotations={
+                "Id": ["mock_string"],
+                "EntityId": ["mock_syn_id"],
+            },
+            etag="mock etag",
+            id="mock_syn_id",
+        )
+
+        async def mock_success_coro():
+            return mock_annos_dict
+
+        # make sure that the else statement is working
+        new_tasks = set()
+        with patch(
+            "schematic.store.synapse.SynapseStorage.store_async_annotation",
+            new_callable=AsyncMock,
+            return_value=mock_stored_annos,
+        ) as mock_store_async2:
+            new_tasks.add(asyncio.create_task(mock_success_coro()))
+            await synapse_store._process_store_annos(new_tasks)
+            mock_store_async2.assert_called_once()
+
+    async def test_process_store_annos_success_get_entity_id_variants(
+        self, synapse_store: SynapseStorage
+    ) -> None:
+        "mock annotations obtained after gettinng annotations have different annotations and formatting"
+        annotations_variants = [
+            {"EntityId": ["mock_syn_id"], "Id": ["mock_string"]},
+            {"entityId": ["mock_syn_id"], "id": ["mock_string"]},
+            {"entityid": ["mock_syn_id"], "id": ["mock_string"]},
+            {"ENTITYID": ["mock_syn_id"], "ID": ["mock_string"]},
+        ]
+        for anno_variant in annotations_variants:
+            mock_annos_dict = {
+                "annotations": {
+                    "id": "mock_syn_id",
+                    "etag": "mock etag",
+                    "annotations": {
+                        "Id": {"type": "STRING", "value": ["mock value"]},
+                        "EntityId": {"type": "STRING", "value": ["mock_syn_id"]},
+                        "SampleID": {"type": "STRING", "value": [""]},
+                        "Component": {"type": "STRING", "value": ["mock value"]},
+                    },
+                },
+                "FileFormat": "mock format",
+                "Component": "mock component",
+                **anno_variant,
+            }
+            mock_stored_annos = Annotations(
+                annotations={
+                    **anno_variant,
+                    "SampleID": [""],
+                    "Component": ["mock value"],
+                    "FileFormat": ["mock_format"],
+                },
+                etag="mock etag",
+                id="mock syn_id",
+            )
+
+            async def mock_success_coro() -> dict[str, Any]:
+                return mock_annos_dict
+
+            # make sure that the else statement is working
+            new_tasks = set()
+            with patch(
+                "schematic.store.synapse.SynapseStorage.store_async_annotation",
+                new_callable=AsyncMock,
+                return_value=mock_stored_annos,
+            ) as mock_store_async2:
+                new_tasks.add(asyncio.create_task(mock_success_coro()))
+                await synapse_store._process_store_annos(new_tasks)
+                mock_store_async2.assert_called_once()
+
+    async def test_process_store_annos_get_annos_empty(
+        self, synapse_store: SynapseStorage
+    ) -> None:
+        """ "test _process_store_annos function and make sure that task of storing annotations wont be triggered when annotations are empty"""
+
+        # make sure that the else statement is working
+        # and that the task of storing annotations is not triggered when annotations are empty
+        async def mock_success_coro() -> None:
+            return None
+
+        with patch(
+            "schematic.store.synapse.SynapseStorage.store_async_annotation",
+            new_callable=AsyncMock,
+        ) as mock_store_async:
+            new_tasks = set()
+            new_tasks.add(asyncio.create_task(mock_success_coro()))
+            await synapse_store._process_store_annos(new_tasks)
+            mock_store_async.assert_not_called()
 
 
 class TestDatasetFileView:
@@ -1000,7 +1269,7 @@ class TestManifestUpload:
             ),
         ],
     )
-    def test_add_annotations_to_entities_files(
+    async def test_add_annotations_to_entities_files(
         self,
         synapse_store: SynapseStorage,
         dmge: DataModelGraphExplorer,
@@ -1020,27 +1289,49 @@ class TestManifestUpload:
             expected_filenames (list(str)): expected list of file names
             expected_entity_ids (list(str)): expected list of entity ids
         """
+
+        async def mock_format_row_annos():
+            return
+
+        async def mock_process_store_annos(requests):
+            return
+
         with patch(
             "schematic.store.synapse.SynapseStorage.getFilesInStorageDataset",
             return_value=files_in_dataset,
         ):
-            manifest_df = pd.DataFrame(original_manifest)
+            with patch(
+                "schematic.store.synapse.SynapseStorage.format_row_annotations",
+                return_value=mock_format_row_annos,
+                new_callable=AsyncMock,
+            ) as mock_format_row:
+                with patch(
+                    "schematic.store.synapse.SynapseStorage._process_store_annos",
+                    return_value=mock_process_store_annos,
+                    new_callable=AsyncMock,
+                ) as mock_process_store:
+                    manifest_df = pd.DataFrame(original_manifest)
 
-            new_df = synapse_store.add_annotations_to_entities_files(
-                dmge,
-                manifest_df,
-                manifest_record_type="entity",
-                datasetId="mock id",
-                hideBlanks=True,
-            )
-            file_names_lst = new_df["Filename"].tolist()
-            entity_ids_lst = new_df["entityId"].tolist()
+                    new_df = await synapse_store.add_annotations_to_entities_files(
+                        dmge,
+                        manifest_df,
+                        manifest_record_type="entity",
+                        datasetId="mock id",
+                        hideBlanks=True,
+                    )
 
-            # test entityId and Id columns get added
-            assert "entityId" in new_df.columns
-            assert "Id" in new_df.columns
-            assert file_names_lst == expected_filenames
-            assert entity_ids_lst == expected_entity_ids
+                    file_names_lst = new_df["Filename"].tolist()
+                    entity_ids_lst = new_df["entityId"].tolist()
+
+                    # test entityId and Id columns get added
+                    assert "entityId" in new_df.columns
+                    assert "Id" in new_df.columns
+                    assert file_names_lst == expected_filenames
+                    assert entity_ids_lst == expected_entity_ids
+
+                    # make sure async function gets called as expected
+                    assert mock_format_row.call_count == len(expected_entity_ids)
+                    assert mock_process_store.call_count == 1
 
     @pytest.mark.parametrize(
         "mock_manifest_file_path",
@@ -1124,9 +1415,14 @@ class TestManifestUpload:
         hide_blanks: bool,
         restrict: bool,
     ) -> None:
+        async def mock_add_annotations_to_entities_files():
+            return
+
         with (
             patch(
-                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files"
+                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files",
+                return_value=mock_add_annotations_to_entities_files,
+                new_callable=AsyncMock,
             ) as add_anno_mock,
             patch(
                 "schematic.store.synapse.SynapseStorage.upload_manifest_file",
@@ -1174,13 +1470,19 @@ class TestManifestUpload:
         manifest_record_type: str,
     ) -> None:
         mock_df = pd.DataFrame()
+
+        async def mock_add_annotations_to_entities_files():
+            return
+
         with (
             patch(
                 "schematic.store.synapse.SynapseStorage.uploadDB",
                 return_value=["mock_table_id", mock_df, "mock_table_manifest"],
             ) as update_db_mock,
             patch(
-                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files"
+                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files",
+                return_value=mock_add_annotations_to_entities_files,
+                new_callable=AsyncMock,
             ) as add_anno_mock,
             patch(
                 "schematic.store.synapse.SynapseStorage.upload_manifest_file",
@@ -1234,13 +1536,19 @@ class TestManifestUpload:
         mock_df = pd.DataFrame()
         manifest_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
         manifest_df = helpers.get_data_frame(manifest_path)
+
+        async def mock_add_annotations_to_entities_files():
+            return
+
         with (
             patch(
                 "schematic.store.synapse.SynapseStorage.uploadDB",
                 return_value=["mock_table_id", mock_df, "mock_table_manifest"],
             ) as update_db_mock,
             patch(
-                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files"
+                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files",
+                return_value=mock_add_annotations_to_entities_files,
+                new_callable=AsyncMock,
             ) as add_anno_mock,
             patch(
                 "schematic.store.synapse.SynapseStorage.upload_manifest_file",

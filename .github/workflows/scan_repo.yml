@@ -1,0 +1,35 @@
+# Modified from mono repo: https://github.com/Sage-Bionetworks/sage-monorepo/blob/main/.github/workflows/scan-repo.yml
+# Also, reference: https://github.com/aquasecurity/trivy-action?tab=readme-ov-file#using-trivy-to-scan-your-git-repo
+name: Scan Git repo
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+  workflow_dispatch: 
+
+jobs:
+  trivy:
+    name: Trivy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          # the scan targets the file system.
+          scan-type: 'fs'
+          # it will ignore vulnerabilities without a fix.
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+          limit-severities-for-sarif: true
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: Git Repository
