@@ -33,14 +33,12 @@ from synapseclient import (
     as_table_columns,
 )
 from synapseclient.api import get_entity_id_bundle2
-
 from synapseclient.core.exceptions import (
     SynapseAuthenticationError,
     SynapseHTTPError,
     SynapseUnmetAccessRestrictions,
 )
 from synapseclient.entity import File
-
 from synapseclient.models.annotations import Annotations
 from synapseclient.table import CsvFileTable, Schema, build_table
 from tenacity import (
