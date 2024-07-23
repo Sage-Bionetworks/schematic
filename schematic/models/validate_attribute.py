@@ -2048,6 +2048,9 @@ class ValidateAttribute(object):
         joined_df = manifest.merge(
             fileview, how="outer", left_on="Filename", right_on="path"
         )
+        # cover case where there are more files in dataset than in manifest
+        joined_df = joined_df.loc[~joined_df["Component"].isna()].reset_index(drop=True)
+
         entity_id_match = joined_df["id"] == joined_df["entityId"]
 
         manifest_with_errors = deepcopy(manifest)
