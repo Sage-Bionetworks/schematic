@@ -730,6 +730,9 @@ class TestManifestValidation:
             in errors
         )
 
+        assert len(errors) == 2
+        assert len(warnings) == 0
+
     def test_missing_column(self, helpers, dmge: DataModelGraph):
         """Test that a manifest missing a column returns the proper error."""
         model_name = "example.model.csv"
