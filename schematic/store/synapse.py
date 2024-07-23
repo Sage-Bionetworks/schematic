@@ -210,6 +210,8 @@ class SynapseStorage(BaseStorage):
             synapse_cache_path (Optional[str], optional):
               Location of synapse cache.
               Defaults to None.
+        TODO:
+            Consider necessity of adding "columns" and "where_clauses" params to the constructor. Currently with how `query_fileview` is implemented, these params are not needed at this step but could be useful in the future if the need for more scoped querys expands.
         """
         self.syn = self.login(synapse_cache_path, token, access_token)
         self.project_scope = project_scope
@@ -268,17 +270,20 @@ class SynapseStorage(BaseStorage):
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
 
+        # Initialize to assume that the new fileview query will be different from what may already be stored. Initializes to True because generally one will not have already been performed
         self.new_query_different = True
 
+        # If a query has already been performed, store the query
         previous_query_built = hasattr(self, "fileview_query")
         if previous_query_built:
             previous_query = self.fileview_query
 
+        # Build a query with the current given parameters and check to see if it is different from the previous
         self._build_query(columns=columns, where_clauses=where_clauses)
-
         if previous_query_built:
             self.new_query_different = self.fileview_query != previous_query
 
+        # Only perform the query if it is different from the previous query
         if self.new_query_different:
             try:
                 self.storageFileviewTable = self.syn.tableQuery(
