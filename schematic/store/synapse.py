@@ -10,7 +10,7 @@ import shutil
 import uuid  # used to generate unique names for entities
 from copy import deepcopy
 from dataclasses import asdict, dataclass
-from time import perf_counter, sleep
+from time import sleep
 
 # allows specifying explicit variable types
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
