@@ -2053,12 +2053,13 @@ class ValidateAttribute(object):
 
         entity_id_match = joined_df["id"] == joined_df["entityId"]
 
+        # update manifest with types of errors identified
         manifest_with_errors = deepcopy(manifest)
         manifest_with_errors["Error"] = pd.NA
-
         manifest_with_errors.loc[~entity_id_match, "Error"] = "mismatched entityId"
         manifest_with_errors.loc[~files_in_view, "Error"] = "path does not exist"
 
+        # Generate errors
         invalid_entries = manifest_with_errors.loc[
             manifest_with_errors["Error"].notna()
         ]
