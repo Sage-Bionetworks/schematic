@@ -763,7 +763,7 @@ class ValidateAttribute(object):
     See functions for more details.
     TODO:
         - Add year validator
-        - Add string length validatorn
+        - Add string length validator
     """
 
     def __init__(self, dmge: DataModelGraphExplorer) -> None:
