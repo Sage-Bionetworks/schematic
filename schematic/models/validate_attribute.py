@@ -776,7 +776,7 @@ class ValidateAttribute(object):
         columns: Optional[list] = None,
         where_clauses: Optional[list] = None,
     ):
-        # login
+        # if the ValidateAttribute object already has a SynapseStorage object, just requery the fileview, if not then login
         if hasattr(self, "synStore"):
             if self.synStore.project_scope != project_scope:
                 self.synStore.project_scope = project_scope
@@ -784,7 +784,10 @@ class ValidateAttribute(object):
         else:
             try:
                 self.synStore = SynapseStorage(
-                    access_token=access_token, project_scope=project_scope
+                    access_token=access_token,
+                    project_scope=project_scope,
+                    columns=columns,
+                    where_clauses=where_clauses,
                 )
             except SynapseNoCredentialsError as e:
                 raise ValueError(
@@ -2026,15 +2029,18 @@ class ValidateAttribute(object):
         warnings = []
 
         where_clauses = []
-        self._login(project_scope=project_scope, access_token=access_token)
         rule_parts = val_rule.split(" ")
 
         dataset_clause = f"parentId='{rule_parts[1]}'"
         where_clauses.append(dataset_clause)
 
-        self.synStore.query_fileview(
-            columns=["id", "path"], where_clauses=where_clauses
+        self._login(
+            project_scope=project_scope,
+            access_token=access_token,
+            columns=["id", "path"],
+            where_clauses=where_clauses,
         )
+
         fileview = self.synStore.storageFileviewTable.reset_index(drop=True)
         # filename in dataset?
         files_in_view = manifest["Filename"].isin(fileview["path"])

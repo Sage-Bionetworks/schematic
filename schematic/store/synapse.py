@@ -196,6 +196,8 @@ class SynapseStorage(BaseStorage):
         project_scope: Optional[list] = None,
         synapse_cache_path: Optional[str] = None,
         perform_query: Optional[bool] = True,
+        columns: Optional[list] = None,
+        where_clauses: Optional[list] = None,
     ) -> None:
         """Initializes a SynapseStorage object.
 
@@ -219,7 +221,7 @@ class SynapseStorage(BaseStorage):
         self.manifest = CONFIG.synapse_manifest_basename
         self.root_synapse_cache = self.syn.cache.cache_root_dir
         if perform_query:
-            self.query_fileview()
+            self.query_fileview(columns=columns, where_clauses=where_clauses)
 
     def _purge_synapse_cache(
         self, maximum_storage_allowed_cache_gb: int = 1, minute_buffer: int = 15
