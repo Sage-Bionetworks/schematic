@@ -1017,6 +1017,7 @@ class TestManifestUpload:
             "mock_manifests/test_mock_manifest_censored.csv",
         ],
     )
+
     def test_upload_manifest_file(
         self,
         helpers: Helpers,
