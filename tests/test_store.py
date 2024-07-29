@@ -15,11 +15,9 @@ import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
+from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
 from synapseclient.models import Annotations
-from synapseclient.core.exceptions import SynapseHTTPError
-from pandas.testing import assert_frame_equal
-
 
 from schematic.configuration.configuration import Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
@@ -118,6 +116,17 @@ def dmge(
     yield dmge
 
 
+@pytest.fixture
+def synapse_store_special_scope(request):
+    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    if access_token:
+        synapse_store = SynapseStorage(access_token=access_token, perform_query=False)
+    else:
+        synapse_store = SynapseStorage(perform_query=False)
+
+    yield synapse_store
+
+
 def raise_final_error(retry_state):
     return retry_state.outcome.result()
 
@@ -155,6 +164,55 @@ class TestSynapseStorage:
         synapse_client = SynapseStorage.login("test_cache_dir")
         assert synapse_client.cache.cache_root_dir == "test_cache_dir"
         shutil.rmtree("test_cache_dir")
+
+    @pytest.mark.parametrize(
+        "project_scope,columns,where_clauses,expected",
+        [
+            (None, None, None, "SELECT * FROM syn23643253 ;"),
+            (
+                ["syn23643250"],
+                None,
+                None,
+                "SELECT * FROM syn23643253 WHERE projectId IN ('syn23643250', '') ;",
+            ),
+            (
+                None,
+                None,
+                ["projectId IN ('syn23643250')"],
+                "SELECT * FROM syn23643253 WHERE projectId IN ('syn23643250') ;",
+            ),
+            (
+                ["syn23643250"],
+                ["name", "id", "path"],
+                None,
+                "SELECT name,id,path FROM syn23643253 WHERE projectId IN ('syn23643250', '') ;",
+            ),
+            (
+                ["syn23643250"],
+                ["name", "id", "path"],
+                ["parentId='syn61682648'", "type='file'"],
+                "SELECT name,id,path FROM syn23643253 WHERE parentId='syn61682648' AND type='file' AND projectId IN ('syn23643250', '') ;",
+            ),
+        ],
+    )
+    def test_view_query(
+        self,
+        synapse_store_special_scope: SynapseStorage,
+        project_scope: list,
+        columns: list,
+        where_clauses: list,
+        expected: str,
+    ) -> None:
+        # Ensure correct view is being utilized
+        assert synapse_store_special_scope.storageFileview == "syn23643253"
+
+        synapse_store_special_scope.project_scope = project_scope
+
+        synapse_store_special_scope.query_fileview(columns, where_clauses)
+        # tests ._build_query()
+        assert synapse_store_special_scope.fileview_query == expected
+        # tests that the query was valid and successful, that a view subset has actually been retrived
+        assert synapse_store_special_scope.storageFileviewTable.empty is False
 
     def test_getFileAnnotations(self, synapse_store: SynapseStorage) -> None:
         expected_dict = {
@@ -271,7 +329,7 @@ class TestSynapseStorage:
         expected_df = pd.DataFrame.from_records(
             [
                 {
-                    "Filename": "TestDataset-Annotations-v3/Sample_A.txt",
+                    "Filename": "schematic - main/TestDataset-Annotations-v3/Sample_A.txt",
                     "author": "bruno, milen, sujay",
                     "impact": "42.9",
                     "confidence": "high",
@@ -281,13 +339,13 @@ class TestSynapseStorage:
                     "IsImportantText": "TRUE",
                 },
                 {
-                    "Filename": "TestDataset-Annotations-v3/Sample_B.txt",
+                    "Filename": "schematic - main/TestDataset-Annotations-v3/Sample_B.txt",
                     "confidence": "low",
                     "FileFormat": "csv",
                     "date": "2020-02-01",
                 },
                 {
-                    "Filename": "TestDataset-Annotations-v3/Sample_C.txt",
+                    "Filename": "schematic - main/TestDataset-Annotations-v3/Sample_C.txt",
                     "FileFormat": "fastq",
                     "IsImportantBool": "False",
                     "IsImportantText": "FALSE",
@@ -322,8 +380,11 @@ class TestSynapseStorage:
             (
                 True,
                 [
-                    ("syn126", "parent_folder/test_file"),
-                    ("syn125", "parent_folder/test_folder/test_file_2"),
+                    ("syn126", "schematic - main/parent_folder/test_file"),
+                    (
+                        "syn125",
+                        "schematic - main/parent_folder/test_folder/test_file_2",
+                    ),
                 ],
             ),
             (False, [("syn126", "test_file"), ("syn125", "test_file_2")]),
@@ -342,11 +403,18 @@ class TestSynapseStorage:
                 [("test_file_2", "syn125")],
             ),
         ]
-        with patch("synapseutils.walk_functions._help_walk", return_value=mock_return):
+        with patch(
+            "synapseutils.walk_functions._help_walk", return_value=mock_return
+        ) as mock_walk_patch, patch(
+            "schematic.store.synapse.SynapseStorage.getDatasetProject",
+            return_value="syn23643250",
+        ) as mock_project_id_patch, patch(
+            "synapseclient.entity.Entity.__getattr__", return_value="schematic - main"
+        ) as mock_project_name_patch:
             file_list = synapse_store.getFilesInStorageDataset(
                 datasetId="syn_mock", fileNames=None, fullpath=full_path
             )
-            assert file_list == expected
+        assert file_list == expected
 
     @pytest.mark.parametrize("downloadFile", [True, False])
     def test_getDatasetManifest(self, synapse_store, downloadFile):

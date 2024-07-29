@@ -1,21 +1,20 @@
-import os
-import logging
-import re
-import networkx as nx
-import jsonschema
-import pytest
-from pathlib import Path
 import itertools
+import logging
+import os
+import re
+from pathlib import Path
 
-from schematic.models.validate_attribute import ValidateAttribute, GenerateError
-from schematic.models.validate_manifest import ValidateManifest
+import jsonschema
+import networkx as nx
+import pytest
+
 from schematic.models.metadata import MetadataModel
-from schematic.store.synapse import SynapseStorage
-
-from schematic.schemas.data_model_parser import DataModelParser
+from schematic.models.validate_attribute import GenerateError, ValidateAttribute
+from schematic.models.validate_manifest import ValidateManifest
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
-
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_rules_utils import validation_rule_info
 
 logging.basicConfig(level=logging.DEBUG)
@@ -692,6 +691,48 @@ class TestManifestValidation:
             in warnings
         )
 
+    def test_filename_manifest(self, helpers, dmge):
+        metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
+
+        manifestPath = helpers.get_data_path(
+            "mock_manifests/InvalidFilenameManifest.csv"
+        )
+        rootNode = "MockFilename"
+
+        errors, warnings = metadataModel.validateModelManifest(
+            manifestPath=manifestPath,
+            rootNode=rootNode,
+            project_scope=["syn23643250"],
+        )
+
+        # Check errors
+        assert (
+            GenerateError.generate_filename_error(
+                val_rule="filenameExists syn61682648",
+                attribute_name="Filename",
+                row_num="3",
+                invalid_entry="schematic - main/MockFilenameComponent/txt4.txt",
+                error_type="mismatched entityId",
+                dmge=dmge,
+            )[0]
+            in errors
+        )
+
+        assert (
+            GenerateError.generate_filename_error(
+                val_rule="filenameExists syn61682648",
+                attribute_name="Filename",
+                row_num="4",
+                invalid_entry="schematic - main/MockFilenameComponent/txt5.txt",
+                error_type="path does not exist",
+                dmge=dmge,
+            )[0]
+            in errors
+        )
+
+        assert len(errors) == 2
+        assert len(warnings) == 0
+
     def test_missing_column(self, helpers, dmge: DataModelGraph):
         """Test that a manifest missing a column returns the proper error."""
         model_name = "example.model.csv"
@@ -1030,4 +1071,27 @@ class TestManifestValidation:
             dmge=dmge,
             restrict_rules=False,
             project_scope=None,
+        )
+
+
+class TestValidateAttributeObject:
+    def test_login(self, helpers, dmge):
+        """
+        Tests that sequential logins update the view query as necessary
+        """
+        validate_attribute = ValidateAttribute(dmge)
+        validate_attribute._login()
+
+        assert (
+            validate_attribute.synStore.fileview_query == "SELECT * FROM syn23643253 ;"
+        )
+
+        validate_attribute._login(
+            project_scope=["syn23643250"],
+            columns=["name", "id", "path"],
+            where_clauses=["parentId='syn61682648'", "type='file'"],
+        )
+        assert (
+            validate_attribute.synStore.fileview_query
+            == "SELECT name,id,path FROM syn23643253 WHERE parentId='syn61682648' AND type='file' AND projectId IN ('syn23643250', '') ;"
         )

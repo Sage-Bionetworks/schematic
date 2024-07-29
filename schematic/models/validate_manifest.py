@@ -1,35 +1,33 @@
 import json
-from statistics import mode
-from tabnanny import check
-from jsonschema import Draft7Validator, exceptions, ValidationError
 import logging
-
-import numpy as np
 import os
-import pandas as pd
 import re
 import sys
-from time import perf_counter
 from numbers import Number
+from statistics import mode
+from tabnanny import check
+from time import perf_counter
 
 # allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text, List
-from urllib.parse import urlparse
-from urllib.request import urlopen, OpenerDirector, HTTPDefaultErrorHandler
-from urllib.request import Request
+from typing import Any, Dict, List, Optional, Text
 from urllib import error
+from urllib.parse import urlparse
+from urllib.request import HTTPDefaultErrorHandler, OpenerDirector, Request, urlopen
 
-from schematic.models.validate_attribute import ValidateAttribute, GenerateError
+import numpy as np
+import pandas as pd
+from jsonschema import Draft7Validator, ValidationError, exceptions
 
+from schematic.models.GE_Helpers import GreatExpectationsHelpers
+from schematic.models.validate_attribute import GenerateError, ValidateAttribute
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
-from schematic.models.GE_Helpers import GreatExpectationsHelpers
+from schematic.utils.schema_utils import extract_component_validation_rules
 from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import (
-    rule_in_rule_list,
     convert_nan_entries_to_empty_strings,
+    rule_in_rule_list,
 )
-from schematic.utils.schema_utils import extract_component_validation_rules
 
 logger = logging.getLogger(__name__)
 
@@ -153,6 +151,7 @@ class ValidateManifest(object):
             "matchAtLeastOne.*",
             "matchExactlyOne.*",
             "matchNone.*",
+            "filenameExists",
         ]
 
         in_house_rules = [
@@ -166,6 +165,7 @@ class ValidateManifest(object):
             "matchAtLeastOne.*",
             "matchExactlyOne.*",
             "matchNone.*",
+            "filenameExists",
         ]
 
         # initialize error and warning handling lists.
@@ -269,6 +269,10 @@ class ValidateManifest(object):
                     elif validation_type.lower().startswith("match"):
                         vr_errors, vr_warnings = validation_method(
                             rule, manifest[col], project_scope, access_token
+                        )
+                    elif validation_type == "filenameExists":
+                        vr_errors, vr_warnings = validation_method(
+                            rule, manifest, access_token, project_scope
                         )
                     else:
                         vr_errors, vr_warnings = validation_method(

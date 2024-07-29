@@ -195,6 +195,9 @@ class SynapseStorage(BaseStorage):
         access_token: Optional[str] = None,
         project_scope: Optional[list] = None,
         synapse_cache_path: Optional[str] = None,
+        perform_query: Optional[bool] = True,
+        columns: Optional[list] = None,
+        where_clauses: Optional[list] = None,
     ) -> None:
         """Initializes a SynapseStorage object.
 
@@ -209,13 +212,16 @@ class SynapseStorage(BaseStorage):
             synapse_cache_path (Optional[str], optional):
               Location of synapse cache.
               Defaults to None.
+        TODO:
+            Consider necessity of adding "columns" and "where_clauses" params to the constructor. Currently with how `query_fileview` is implemented, these params are not needed at this step but could be useful in the future if the need for more scoped querys expands.
         """
         self.syn = self.login(synapse_cache_path, token, access_token)
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
         self.root_synapse_cache = self.syn.cache.cache_root_dir
-        self._query_fileview()
+        if perform_query:
+            self.query_fileview(columns=columns, where_clauses=where_clauses)
 
     def _purge_synapse_cache(
         self, maximum_storage_allowed_cache_gb: int = 1, minute_buffer: int = 15
@@ -248,23 +254,83 @@ class SynapseStorage(BaseStorage):
                 # instead of guessing how much space that we left, print out .synapseCache here
                 logger.info(f"the total size of .synapseCache is: {nbytes} bytes")
 
-    @tracer.start_as_current_span("SynapseStorage::_query_fileview")
-    def _query_fileview(self):
+    @tracer.start_as_current_span("SynapseStorage::query_fileview")
+    def query_fileview(
+        self,
+        columns: Optional[list] = None,
+        where_clauses: Optional[list] = None,
+    ) -> None:
+        """
+        Method to query the Synapse FileView and store the results in a pandas DataFrame. The results are stored in the storageFileviewTable attribute.
+        Is called once during initialization of the SynapseStorage object and can be called again later to specify a specific, more limited scope for validation purposes.
+        Args:
+            columns (Optional[list], optional): List of columns to be selected from the table. Defaults behavior is to request all columns.
+            where_clauses (Optional[list], optional): List of where clauses to be used to scope the query. Defaults to None.
+        """
         self._purge_synapse_cache()
-        try:
-            self.storageFileview = CONFIG.synapse_master_fileview_id
-            self.manifest = CONFIG.synapse_manifest_basename
-            if self.project_scope:
+
+        self.storageFileview = CONFIG.synapse_master_fileview_id
+        self.manifest = CONFIG.synapse_manifest_basename
+
+        # Initialize to assume that the new fileview query will be different from what may already be stored. Initializes to True because generally one will not have already been performed
+        self.new_query_different = True
+
+        # If a query has already been performed, store the query
+        previous_query_built = hasattr(self, "fileview_query")
+        if previous_query_built:
+            previous_query = self.fileview_query
+
+        # Build a query with the current given parameters and check to see if it is different from the previous
+        self._build_query(columns=columns, where_clauses=where_clauses)
+        if previous_query_built:
+            self.new_query_different = self.fileview_query != previous_query
+
+        # Only perform the query if it is different from the previous query
+        if self.new_query_different:
+            try:
                 self.storageFileviewTable = self.syn.tableQuery(
-                    f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(self.project_scope + [''])}"
+                    query=self.fileview_query,
                 ).asDataFrame()
-            else:
-                # get data in administrative fileview for this pipeline
-                self.storageFileviewTable = self.syn.tableQuery(
-                    "SELECT * FROM " + self.storageFileview
-                ).asDataFrame()
-        except SynapseHTTPError:
-            raise AccessCredentialsError(self.storageFileview)
+            except SynapseHTTPError:
+                raise AccessCredentialsError(self.storageFileview)
+
+    def _build_query(
+        self, columns: Optional[list] = None, where_clauses: Optional[list] = None
+    ):
+        """
+        Method to build a query for Synapse FileViews
+        Args:
+            columns (Optional[list], optional): List of columns to be selected from the table. Defaults behavior is to request all columns.
+            where_clauses (Optional[list], optional): List of where clauses to be used to scope the query. Defaults to None.
+            self.storageFileview (str): Synapse FileView ID
+            self.project_scope (Optional[list], optional): List of project IDs to be used to scope the query. Defaults to None.
+                Gets added to where_clauses, more included for backwards compatability and as a more user friendly way of subsetting the view in a simple way.
+        """
+        if columns is None:
+            columns = []
+        if where_clauses is None:
+            where_clauses = []
+
+        if self.project_scope:
+            project_scope_clause = f"projectId IN {tuple(self.project_scope + [''])}"
+            where_clauses.append(project_scope_clause)
+
+        if where_clauses:
+            where_clauses = " AND ".join(where_clauses)
+            where_clauses = f"WHERE {where_clauses} ;"
+        else:
+            where_clauses = ";"
+
+        if columns:
+            columns = ",".join(columns)
+        else:
+            columns = "*"
+
+        self.fileview_query = (
+            f"SELECT {columns} FROM {self.storageFileview} {where_clauses}"
+        )
+
+        return
 
     @staticmethod
     def login(
@@ -497,6 +563,8 @@ class SynapseStorage(BaseStorage):
             self.syn, datasetId, includeTypes=["folder", "file"]
         )
 
+        project = self.getDatasetProject(datasetId)
+        project_name = self.syn.get(project, downloadFile=False).name
         file_list = []
 
         # iterate over all results
@@ -512,7 +580,10 @@ class SynapseStorage(BaseStorage):
 
                     if fullpath:
                         # append directory path to filename
-                        filename = (dirpath[0] + "/" + filename[0], filename[1])
+                        filename = (
+                            project_name + "/" + dirpath[0] + "/" + filename[0],
+                            filename[1],
+                        )
 
                     # add file name file id tuple, rearranged so that id is first and name follows
                     file_list.append(filename[::-1])
@@ -2382,7 +2453,7 @@ class SynapseStorage(BaseStorage):
         # re-query if no datasets found
         if dataset_row.empty:
             sleep(5)
-            self._query_fileview()
+            self.query_fileview()
             # Subset main file view
             dataset_index = self.storageFileviewTable["id"] == datasetId
             dataset_row = self.storageFileviewTable[dataset_index]
