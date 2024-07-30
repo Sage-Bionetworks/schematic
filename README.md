@@ -5,7 +5,7 @@
 - [Introduction](#introduction)
 - [Installation](#installation)
   - [Installation Requirements](#installation-requirements)
-  - [Installation guide for data curator app](#installation-guide-for-data-curator-app)
+  - [Installation guide for Schematic CLI users](#installation-guide-for-schematic-cli-users)
   - [Installation guide for developers/contributors](#installation-guide-for-developerscontributors)
 - [Other Contribution Guidelines](#other-contribution-guidelines)
     - [Update readthedocs documentation](#update-readthedocs-documentation)
@@ -25,19 +25,32 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 
 Note: Our credential policy for Google credentials in order to create Google sheet files from Schematic, see tutorial ['HERE'](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA). If you plan to use `config.yml`, please ensure that the path of `schematic_service_account_creds.json` is indicated there (see `google_sheets > service_account_creds` section)
 
+## Installation guide for Schematic CLI users
+1. **Verifying Python Version Compatibility**
 
-## Installation guide for data curator app
+To ensure compatibility with Schematic, please follow these steps:
 
-Create and activate a virtual environment within which you can install the package:
+Check your own Python version:
+```
+python3 --version
+```
 
+Check the Supported Python Version: Open the pyproject.toml file in the Schematic repository to find the version of Python that is supported. You can view this file directly on GitHub [here](https://github.com/Sage-Bionetworks/schematic/blob/main/pyproject.toml#L39).
+
+Switching Python Versions: If your current Python version is not supported by Schematic, you can switch to the supported version using tools like [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#switch-between-python-versions). Follow the instructions in the pyenv documentation to install and switch between Python versions easily.
+
+2. **Setting Up the Virtual Environment**
+
+After switching to the version of Python supported by Schematic, please activate a virtual environment within which you can install the package:
 ```
 python3 -m venv .venv
 source .venv/bin/activate
 ```
+Note: Python 3 has built-in support for virtual environments with the venv module, so you no longer need to install virtualenv.
 
-Note: Python 3 has a built-in support for virtual environment [venv](https://docs.python.org/3/library/venv.html#module-venv) so you no longer need to install virtualenv.
+3. **Installing Schematic**
 
-Install and update the package using [pip](https://pip.pypa.io/en/stable/quickstart/):
+Install the package using [pip](https://pip.pypa.io/en/stable/quickstart/):
 
 ```
 python3 -m pip install schematicpy
@@ -68,21 +81,10 @@ poetry shell
 ```
 4. Install the dependencies by doing: 
 ```
-poetry install
+poetry install --all-extras
 ```
 This command will install the dependencies based on what we specify in poetry.lock. If this step is taking a long time, try to go back to step 2 and check your version of poetry. Alternatively, you could also try deleting the lock file and regenerate it by doing `poetry install` (Please note this method should be used as a last resort because this would force other developers to change their development environment)
 
-If you want to install the API you will need to install those dependencies as well:
-
-```
-poetry install --extras "api"
-```
-
-If you want to install the uwsgi:
-
-```
-poetry install --extras "api"
-```
 
 5. Fill in credential files: 
 *Note*: If you won't interact with Synapse, please ignore this section.
@@ -219,19 +221,6 @@ For new features, bugs, enhancements
 
 *Note*: Make sure you have the latest version of the `develop` branch on your local machine.
 
-## Installation Guide - Docker 
-
-1. Install docker from https://www.docker.com/ . <br>
-2.  Identify docker image of interest from [Schematic DockerHub](https://hub.docker.com/r/sagebionetworks/schematic/tags) <br>
-    Ex `docker pull sagebionetworks/schematic:latest` from the CLI or, run `docker compose up` after cloning the schematic github repo <br>
-    in this case, `sagebionetworks/schematic:latest` is the name of the image chosen
-3. Run Schematic Command with `docker run <flags> <schematic command and args>`. <br>
-<t> - For more information on flags for `docker run` and what they do, visit the [Docker Documentation](https://docs.docker.com/engine/reference/commandline/run/) <br>
-<t> - These example commands assume that you have navigated to the directory you want to run schematic from. To specify your working directory, use `$(pwd)` on MacOS/Linux or `%cd%` on Windows.  <br>
-<t> - If not using the latest image, then the full name should be specified: ie `sagebionetworks/schematic:commit-e611e4a` <br>
-<t> - If using local image created by `docker compose up`, then the docker image name should be changed: i.e. `schematic_schematic` <br>
-<t> - Using the `--name` flag sets the name of the container running locally on your machine <br>
-
 ### Example For REST API <br>
 
 #### Use file path of `config.yml` to run API endpoints: 
@@ -311,7 +300,31 @@ You can **create bug and feature requests** through [Sage Bionetwork's FAIR Data
 - **Provide screenshots of the expected or actual behaviour** where applicable.
 
 # Command Line Usage
-Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html)
+1. Generate a new manifest as a google sheet
+
+```
+schematic manifest -c /path/to/config.yml get -dt <your data type> -s
+```
+
+2. Grab an existing manifest from synapse 
+
+```
+schematic manifest -c /path/to/config.yml get -dt <your data type> -d <your synapse dataset folder id> -s
+```
+
+3. Validate a manifest
+
+```
+schematic model -c /path/to/config.yml validate -dt <your data type> -mp <your csv manifest path>
+```
+
+4. Submit a manifest as a file
+
+```
+schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse dataset folder id> -vc <your data type> -mrt file_only
+```
+
+Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html) for more information. 
 
 
 
