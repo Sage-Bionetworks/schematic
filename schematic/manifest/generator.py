@@ -1440,19 +1440,6 @@ class ManifestGenerator(object):
         Returns:
             Tuple[ps.Spreadsheet, pd.DataFrame]: Both the Google Sheet
             URL and the corresponding data frame is returned.
-
-        ```Mermaid
-        flowchart TD
-            A[Start] --> B[Map Annotation Names to Display Names]
-            B --> C[Convert Annotations to Dictionary]
-            C --> D[Set Additional Metadata]
-            D --> E[Generate Empty Manifest]
-            E --> F[Get DataFrame by URL]
-            F --> G[Update DataFrame]
-            G --> H[Set DataFrame by URL]
-            H --> I[Return Values]
-            I --> J[End]
-        ```
         """
         # Map annotation labels to display names to match manifest columns
         annotations = self.map_annotation_names_to_display_names(annotations)
