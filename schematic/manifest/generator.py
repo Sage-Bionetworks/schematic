@@ -1658,29 +1658,29 @@ class ManifestGenerator(object):
         Returns:
             Union[List[str], List[pd.DataFrame]]: a list of Googlesheet URLs, a list of pandas dataframes or excel file paths
 
-        ::: mermaid
+        ```mermaid
         sequenceDiagram
-        participant User
-        participant Function
-        participant DataModelParser
-        participant DataModelGraph
-        participant ManifestGenerator
-        User->>Function: call create_manifests
-        Function->>Function: check dataset_ids and validate inputs
-        Function->>DataModelParser: parse data model
-        DataModelParser-->>Function: return parsed data model
-        Function->>DataModelGraph: generate graph
-        DataModelGraph-->>Function: return graph data model
-        alt data_types == "all manifests"
-            Function->>ManifestGenerator: create manifests for all components
-        else
-            loop for each data_type
-                Function->>ManifestGenerator: create single manifest
+            participant User
+            participant Function
+            participant DataModelParser
+            participant DataModelGraph
+            participant ManifestGenerator
+            User->>Function: call create_manifests
+            Function->>Function: check dataset_ids and validate inputs
+            Function->>DataModelParser: parse data model
+            DataModelParser-->>Function: return parsed data model
+            Function->>DataModelGraph: generate graph
+            DataModelGraph-->>Function: return graph data model
+            alt data_types == "all manifests"
+                Function->>ManifestGenerator: create manifests for all components
+            else
+                loop for each data_type
+                    Function->>ManifestGenerator: create single manifest
+                end
             end
-        end
-        ManifestGenerator-->>Function: return results
-        Function-->>User: return manifests based on output_format
-        :::
+            ManifestGenerator-->>Function: return results
+            Function-->>User: return manifests based on output_format
+        ```
         """
         if dataset_ids:
             # Check that the number of submitted data_types matches
@@ -1807,6 +1807,32 @@ class ManifestGenerator(object):
 
         Returns:
             Googlesheet URL, pandas dataframe, or an Excel spreadsheet
+
+        ```mermaid
+        flowchart TD
+            A[Start] --> B{Dataset ID provided?}
+            B -- No --> C[Get Empty Manifest]
+            C --> D{Output Format is 'excel'?}
+            D -- Yes --> E[Export to Excel]
+            D -- No --> F[Return Manifest URL]
+            B -- Yes --> G[Instantiate SynapseStorage]
+            G --> H[Update Dataset Manifest Files]
+            H --> I[Get Empty Manifest URL]
+            I --> J{Manifest Record exists?}
+            J -- Yes --> K[Update Dataframe]
+            K --> L[Handle Output Format Logic]
+            L --> M[Return Result]
+            J -- No --> N[Get Annotations]
+            N --> O{Annotations Empty?}
+            O -- Yes --> P[Get Empty Manifest Dataframe]
+            P --> Q[Update Dataframe]
+            O -- No --> R[Get Manifest with Annotations]
+            R --> S[Update Dataframe]
+            S --> L
+            M --> T[End]
+            F --> T
+            E --> T
+        ```
         """
         # Handle case when no dataset ID is provided
         if not dataset_id:
