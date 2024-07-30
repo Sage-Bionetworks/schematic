@@ -1367,16 +1367,16 @@ class SynapseStorage(BaseStorage):
         blacklist_chars = ["(", ")", ".", " ", "-"]
 
         for k, v in row.to_dict().items():
-            keySyn = str(k)
+            keysyn = str(k)
             if annotation_keys == "display_label":
-                keySyn = str(k).translate({ord(x): "" for x in blacklist_chars})
+                kesSyn = str(k).translate({ord(x): "" for x in blacklist_chars})
             elif annotation_keys == "class_label":
-                keySyn = get_class_label_from_display_name(str(k)).translate(
+                keysyn = get_class_label_from_display_name(str(k)).translate(
                     {ord(x): "" for x in blacklist_chars}
                 )
 
             # Skip `Filename` and `ETag` columns when setting annotations
-            if keySyn in ["Filename", "ETag", "eTag"]:
+            if keysyn in ["Filename", "ETag", "eTag"]:
                 continue
 
             # truncate annotation values to 500 characters if the
@@ -1387,7 +1387,7 @@ class SynapseStorage(BaseStorage):
             if isinstance(v, str) and len(v) >= 500:
                 v = v[0:472] + "[truncatedByDataCuratorApp]"
 
-            metadataSyn[keySyn] = v
+            metadataSyn[keysyn] = v
         # set annotation(s) for the various objects/items in a dataset on Synapse
         annos = self.syn.get_annotations(entityId)
         csv_list_regex = comma_separated_list_regex()
@@ -1642,9 +1642,11 @@ class SynapseStorage(BaseStorage):
             dmge: DataModelGraphExplorer object,
             row: current row of manifest being processed
             entityId (str): synapseId of entity to add annotations to
-            hideBlanks: Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
-            annotation_keys:  (str) display_label/class_label(default), Determines labeling syle for annotation keys. class_label will format the display
-                name as upper camelcase, and strip blacklisted characters, display_label will strip blacklisted characters including spaces, to retain
+            hideBlanks: Boolean flag that does not upload annotation keys with blank values when true.
+                Uploads Annotation keys with empty string values when false.
+            annotation_keys:  (str) display_label/class_label(default), Determines labeling syle for annotation keys.
+                class_label will format the display name as upper camelcase, and strip blacklisted characters,
+                display_label will strip blacklisted characters including spaces, to retain
                 display label formatting while ensuring the label is formatted properly for Synapse annotations.
         Returns:
             Annotations are added to entities in Synapse, no return.
@@ -1693,19 +1695,23 @@ class SynapseStorage(BaseStorage):
         Args:
             dmge: DataModelGraphExplorer Object
             manifest (pd.DataFrame): loaded df containing user supplied data.
-            manifest_record_type: valid values are 'entity', 'table' or 'both'. Specifies whether to create entity ids and folders for each row in a manifest, a Synapse table to house the entire manifest or do both.
+            manifest_record_type: valid values are 'entity', 'table' or 'both'. Specifies whether to create entity ids
+            and folders for each row in a manifest, a Synapse table to house the entire manifest or do both.
             datasetId (str): synapse ID of folder containing the dataset
-            hideBlanks (bool): Default is false -Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
+            hideBlanks (bool): Default is false -Boolean flag that does not upload annotation keys with blank values
+                when true. Uploads Annotation keys with empty string values when false.
             manifest_synapse_table_id (str): Default is an empty string ''.
-            annotation_keys: (str) display_label/class_label(default), Determines labeling syle for annotation keys. class_label will format the display
-                name as upper camelcase, and strip blacklisted characters, display_label will strip blacklisted characters including spaces, to retain
+            annotation_keys: (str) display_label/class_label(default), Determines labeling syle for annotation keys.
+                class_label will format the display name as upper camelcase, and strip blacklisted characters,
+                display_label will strip blacklisted characters including spaces, to retain
                 display label formatting while ensuring the label is formatted properly for Synapse annotations.
         Returns:
             manifest (pd.DataFrame): modified to add entitiyId as appropriate
 
         """
 
-        # Expected behavior is to annotate files if `Filename` is present and if file_annotations_upload is set to True regardless of `-mrt` setting
+        # Expected behavior is to annotate files if `Filename` is present and if file_annotations_upload is set
+        # to True regardless of `-mrt` setting
         if "filename" in [col.lower() for col in manifest.columns]:
             # get current list of files and store as dataframe
             dataset_files = self.getFilesInStorageDataset(datasetId)
