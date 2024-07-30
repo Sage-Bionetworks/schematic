@@ -1,38 +1,38 @@
-from collections import OrderedDict
 import json
 import logging
-import networkx as nx
-from openpyxl.styles import Font, Alignment, PatternFill
-from openpyxl import load_workbook
-from openpyxl.utils.dataframe import dataframe_to_rows
 import os
-import pandas as pd
+from collections import OrderedDict
 from pathlib import Path
-import pygsheets as ps
 from tempfile import NamedTemporaryFile
-from typing import Any, Dict, List, Optional, Tuple, Union, BinaryIO, Literal
+from typing import Any, BinaryIO, Dict, List, Literal, Optional, Tuple, Union
 
+import networkx as nx
+import pandas as pd
+import pygsheets as ps
+from openpyxl import load_workbook
+from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils.dataframe import dataframe_to_rows
+from opentelemetry import trace
+
+from schematic.configuration.configuration import CONFIG
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
-
-from schematic.utils.google_api_utils import (
-    execute_google_api_requests,
-    build_service_account_creds,
-)
-from schematic.utils.df_utils import update_df, load_df
-from schematic.utils.schema_utils import extract_component_validation_rules
-from schematic.utils.validate_utils import rule_in_rule_list
-from schematic.utils.schema_utils import DisplayLabelType
+from schematic.schemas.data_model_parser import DataModelParser
 
 # TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
-
-from schematic.configuration.configuration import CONFIG
-from schematic.utils.google_api_utils import export_manifest_drive_service
-
-from opentelemetry import trace
+from schematic.utils.df_utils import load_df, update_df
+from schematic.utils.google_api_utils import (
+    build_service_account_creds,
+    execute_google_api_requests,
+    export_manifest_drive_service,
+)
+from schematic.utils.schema_utils import (
+    DisplayLabelType,
+    extract_component_validation_rules,
+)
+from schematic.utils.validate_utils import rule_in_rule_list
 
 logger = logging.getLogger(__name__)
 tracer = trace.get_tracer("Schematic")
@@ -1657,6 +1657,30 @@ class ManifestGenerator(object):
 
         Returns:
             Union[List[str], List[pd.DataFrame]]: a list of Googlesheet URLs, a list of pandas dataframes or excel file paths
+
+        ::: mermaid
+        sequenceDiagram
+        participant User
+        participant Function
+        participant DataModelParser
+        participant DataModelGraph
+        participant ManifestGenerator
+        User->>Function: call create_manifests
+        Function->>Function: check dataset_ids and validate inputs
+        Function->>DataModelParser: parse data model
+        DataModelParser-->>Function: return parsed data model
+        Function->>DataModelGraph: generate graph
+        DataModelGraph-->>Function: return graph data model
+        alt data_types == "all manifests"
+            Function->>ManifestGenerator: create manifests for all components
+        else
+            loop for each data_type
+                Function->>ManifestGenerator: create single manifest
+            end
+        end
+        ManifestGenerator-->>Function: return results
+        Function-->>User: return manifests based on output_format
+        :::
         """
         if dataset_ids:
             # Check that the number of submitted data_types matches

@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - develop
+      - develop-add-mermaid
   workflow_dispatch:  # Allow manually triggering the workflow
 
 # security: restrict permissions for CI jobs.
