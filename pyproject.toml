@@ -62,7 +62,7 @@ sphinx-click = "^4.0.0"
 itsdangerous = "^2.0.0"
 openpyxl = "^3.0.9"
 "backports.zoneinfo" = {markers = "python_version < \"3.9\"", version = "^0.2.1"}
-pdoc = "^12.2.0"
+pdoc = "^14.0.0"
 dateparser = "^1.1.4"
 pandarallel = "^1.6.4"
 schematic-db = {version = "0.0.41", extras = ["synapse"]}
