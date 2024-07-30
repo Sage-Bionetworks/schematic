@@ -39,8 +39,6 @@ Check the Supported Python Version: Open the pyproject.toml file in the Schemati
 
 Switching Python Versions: If your current Python version is not supported by Schematic, you can switch to the supported version using tools like [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#switch-between-python-versions). Follow the instructions in the pyenv documentation to install and switch between Python versions easily.
 
-Please check pyproject.toml file to see what version of Python that schematic supports (See [here](https://github.com/Sage-Bionetworks/schematic/blob/main/pyproject.toml#L39)). If the version of Python that you are using is not supported by Schematic, please use tools such as [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#switch-between-python-versions) to switch to the Python version supported by Schematic.
-
 2. **Setting Up the Virtual Environment**
 
 After switching to the version of Python supported by Schematic, please activate a virtual environment within which you can install the package:
