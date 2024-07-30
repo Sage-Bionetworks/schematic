@@ -302,7 +302,31 @@ You can **create bug and feature requests** through [Sage Bionetwork's FAIR Data
 - **Provide screenshots of the expected or actual behaviour** where applicable.
 
 # Command Line Usage
-Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html)
+1. Generate a new manifest as a google sheet
+
+```
+schematic manifest -c /path/to/config.yml get -dt <your data type> -s
+```
+
+2. Grab an existing manifest from synapse 
+
+```
+schematic manifest -c /path/to/config.yml get -dt <your data type> -d <your synapse dataset folder id> -s
+```
+
+3. Validate a manifest
+
+```
+schematic model -c /path/to/config.yml validate -dt <your data type> -mp <your csv manifest path>
+```
+
+4. Submit a manifest as a file
+
+```
+schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse dataset folder id> -vc <your data type> -mrt file_only
+```
+
+Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html) for more information. 
 
 
 
