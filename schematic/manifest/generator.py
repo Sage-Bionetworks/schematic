@@ -1440,6 +1440,19 @@ class ManifestGenerator(object):
         Returns:
             Tuple[ps.Spreadsheet, pd.DataFrame]: Both the Google Sheet
             URL and the corresponding data frame is returned.
+
+        ```Mermaid
+        flowchart TD
+            A[Start] --> B[Map Annotation Names to Display Names]
+            B --> C[Convert Annotations to Dictionary]
+            C --> D[Set Additional Metadata]
+            D --> E[Generate Empty Manifest]
+            E --> F[Get DataFrame by URL]
+            F --> G[Update DataFrame]
+            G --> H[Set DataFrame by URL]
+            H --> I[Return Values]
+            I --> J[End]
+        ```
         """
         # Map annotation labels to display names to match manifest columns
         annotations = self.map_annotation_names_to_display_names(annotations)
@@ -1543,6 +1556,24 @@ class ManifestGenerator(object):
             a pandas dataframe, file path of an excel spreadsheet, or a google sheet URL
         TODO:
             Depreciate sheet URL and add google_sheet as an output_format choice.
+
+        ```Mermaid
+        flowchart TD
+            A[Start] --> B{Output Format is 'dataframe'?}
+            B -- Yes --> C[Return DataFrame]
+            B -- No --> D{Output Format is 'excel'?}
+            D -- Yes --> E[Export to Excel]
+            E --> F[Populate Excel]
+            F --> G[Return Excel Path]
+            D -- No --> H{Sheet URL is set?}
+            H -- Yes --> I[Set DataFrame by URL]
+            I --> J[Return Sheet URL]
+            H -- No --> K[Default Return DataFrame]
+            C --> L[End]
+            G --> L
+            J --> L
+            K --> L
+        ```
         """
 
         # if the output type gets set to "dataframe", return a data frame
