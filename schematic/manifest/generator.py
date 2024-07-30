@@ -1544,7 +1544,7 @@ class ManifestGenerator(object):
         TODO:
             Depreciate sheet URL and add google_sheet as an output_format choice.
 
-        ```Mermaid
+        ```mermaid
         flowchart TD
             A[Start] --> B{Output Format is 'dataframe'?}
             B -- Yes --> C[Return DataFrame]
