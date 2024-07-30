@@ -26,7 +26,8 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 Note: Our credential policy for Google credentials in order to create Google sheet files from Schematic, see tutorial ['HERE'](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA). If you plan to use `config.yml`, please ensure that the path of `schematic_service_account_creds.json` is indicated there (see `google_sheets > service_account_creds` section)
 
 ## Installation guide for Schematic CLI users
-1. Verifying Python Version Compatibility
+1. **Verifying Python Version Compatibility**
+
 To ensure compatibility with Schematic, please follow these steps:
 
 Check your own Python version:
@@ -40,7 +41,7 @@ Switching Python Versions: If your current Python version is not supported by Sc
 
 Please check pyproject.toml file to see what version of Python that schematic supports (See [here](https://github.com/Sage-Bionetworks/schematic/blob/main/pyproject.toml#L39)). If the version of Python that you are using is not supported by Schematic, please use tools such as [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#switch-between-python-versions) to switch to the Python version supported by Schematic.
 
-2. Setting Up the Virtual Environment
+2. **Setting Up the Virtual Environment**
 After switching to the version of Python supported by Schematic, please activate a virtual environment within which you can install the package:
 ```
 python3 -m venv .venv
@@ -48,7 +49,7 @@ source .venv/bin/activate
 ```
 Note: Python 3 has built-in support for virtual environments with the venv module, so you no longer need to install virtualenv.
 
-3. Installing Schematic
+3. **Installing Schematic**
 Install the package using [pip](https://pip.pypa.io/en/stable/quickstart/):
 
 ```
