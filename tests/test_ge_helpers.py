@@ -16,7 +16,7 @@ def mock_ge_helpers(
     dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
     unimplemented_expectations = ["url"]
     test_manifest_path = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
-    manifest = pd.read_csv(test_manifest_path)
+    manifest = helpers.get_data_frame(test_manifest_path)
 
     ge_helpers = GreatExpectationsHelpers(
         dmge=dmge,
