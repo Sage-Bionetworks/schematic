@@ -75,11 +75,12 @@ def test_manifest_json(helpers):
     )
     yield test_manifest_path
 
-
-@pytest.fixture(scope="class")
-def data_model_jsonld():
-    data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
-    yield data_model_jsonld
+@pytest.fixture(scope="class",
+                params=["example.model.jsonld",
+                        "example.model.csv"])
+def data_model_url(request):
+    data_model_url = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/" + request.param
+    yield data_model_url
 
 
 @pytest.fixture(scope="class")
@@ -320,9 +321,9 @@ class TestSynapseStorage:
 @pytest.mark.schematic_api
 class TestMetadataModelOperation:
     @pytest.mark.parametrize("as_graph", [True, False])
-    def test_component_requirement(self, client, data_model_jsonld, as_graph):
+    def test_component_requirement(self, client, data_model_url, as_graph):
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "source_component": "BulkRNA-seqAssay",
             "as_graph": as_graph,
         }
@@ -369,8 +370,8 @@ class TestUtilsOperation:
 
 @pytest.mark.schematic_api
 class TestDataModelGraphExplorerOperation:
-    def test_get_schema(self, client, data_model_jsonld):
-        params = {"schema_url": data_model_jsonld, "data_model_labels": "class_label"}
+    def test_get_schema(self, client, data_model_url):
+        params = {"schema_url": data_model_url, "data_model_labels": "class_label"}
         response = client.get(
             "http://localhost:3001/v1/schemas/get/schema", query_string=params
         )
@@ -383,9 +384,9 @@ class TestDataModelGraphExplorerOperation:
         if os.path.exists(response_dt):
             os.remove(response_dt)
 
-    def test_if_node_required(test, client, data_model_jsonld):
+    def test_if_node_required(test, client, data_model_url):
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "node_display_name": "FamilyHistory",
             "data_model_labels": "class_label",
         }
@@ -397,9 +398,9 @@ class TestDataModelGraphExplorerOperation:
         assert response.status_code == 200
         assert response_dta == True
 
-    def test_get_node_validation_rules(test, client, data_model_jsonld):
+    def test_get_node_validation_rules(test, client, data_model_url):
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "node_display_name": "CheckRegexList",
         }
         response = client.get(
@@ -411,9 +412,9 @@ class TestDataModelGraphExplorerOperation:
         assert "list" in response_dta
         assert "regex match [a-f]" in response_dta
 
-    def test_get_nodes_display_names(test, client, data_model_jsonld):
+    def test_get_nodes_display_names(test, client, data_model_url):
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "node_list": ["FamilyHistory", "Biospecimen"],
         }
         response = client.get(
@@ -427,8 +428,8 @@ class TestDataModelGraphExplorerOperation:
     @pytest.mark.parametrize(
         "relationship", ["parentOf", "requiresDependency", "rangeValue", "domainValue"]
     )
-    def test_get_subgraph_by_edge(self, client, data_model_jsonld, relationship):
-        params = {"schema_url": data_model_jsonld, "relationship": relationship}
+    def test_get_subgraph_by_edge(self, client, data_model_url, relationship):
+        params = {"schema_url": data_model_url, "relationship": relationship}
 
         response = client.get(
             "http://localhost:3001/v1/schemas/get/graph_by_edge_type",
@@ -439,10 +440,10 @@ class TestDataModelGraphExplorerOperation:
     @pytest.mark.parametrize("return_display_names", [True, False])
     @pytest.mark.parametrize("node_label", ["FamilyHistory", "TissueStatus"])
     def test_get_node_range(
-        self, client, data_model_jsonld, return_display_names, node_label
+        self, client, data_model_url, return_display_names, node_label
     ):
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "return_display_names": return_display_names,
             "node_label": node_label,
         }
@@ -467,7 +468,7 @@ class TestDataModelGraphExplorerOperation:
     def test_node_dependencies(
         self,
         client,
-        data_model_jsonld,
+        data_model_url,
         source_node,
         return_display_names,
         return_schema_ordered,
@@ -476,7 +477,7 @@ class TestDataModelGraphExplorerOperation:
         return_schema_ordered = False
 
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "source_node": source_node,
             "return_display_names": return_display_names,
             "return_schema_ordered": return_schema_ordered,
@@ -544,7 +545,7 @@ class TestManifestOperation:
     def test_generate_existing_manifest(
         self,
         client,
-        data_model_jsonld,
+        data_model_url,
         data_type,
         output_format,
         caplog,
@@ -561,7 +562,7 @@ class TestManifestOperation:
             dataset_id = None  # if "all manifests", dataset id is None
 
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "asset_view": "syn23643253",
             "title": "Example",
             "data_type": data_type,
@@ -629,13 +630,13 @@ class TestManifestOperation:
         self,
         caplog,
         client,
-        data_model_jsonld,
+        data_model_url,
         data_type,
         output_format,
         request_headers,
     ):
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "asset_view": "syn23643253",
             "title": "Example",
             "data_type": data_type,
@@ -731,10 +732,10 @@ class TestManifestOperation:
         ],
     )
     def test_generate_manifest_file_based_annotations(
-        self, client, use_annotations, expected, data_model_jsonld
+        self, client, use_annotations, expected, data_model_url
     ):
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "data_type": "BulkRNA-seqAssay",
             "dataset_id": "syn25614635",
             "asset_view": "syn51707141",
@@ -781,10 +782,10 @@ class TestManifestOperation:
     # test case: generate a manifest with annotations when use_annotations is set to True for a component that is not file-based
     # the dataset folder does not contain an existing manifest
     def test_generate_manifest_not_file_based_with_annotations(
-        self, client, data_model_jsonld
+        self, client, data_model_url
     ):
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "data_type": "Patient",
             "dataset_id": "syn25614635",
             "asset_view": "syn51707141",
@@ -816,9 +817,9 @@ class TestManifestOperation:
             ]
         )
 
-    def test_generate_manifest_data_type_not_found(self, client, data_model_jsonld):
+    def test_generate_manifest_data_type_not_found(self, client, data_model_url):
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "data_type": "wrong data type",
             "use_annotations": False,
         }
@@ -829,13 +830,13 @@ class TestManifestOperation:
         assert response.status_code == 500
         assert "LookupError" in str(response.data)
 
-    def test_populate_manifest(self, client, data_model_jsonld, test_manifest_csv):
+    def test_populate_manifest(self, client, data_model_url, test_manifest_csv):
         # test manifest
         test_manifest_data = open(test_manifest_csv, "rb")
 
         params = {
             "data_type": "MockComponent",
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "title": "Example",
             "csv_file": test_manifest_data,
         }
@@ -861,14 +862,14 @@ class TestManifestOperation:
     )
     def test_validate_manifest(
         self,
-        data_model_jsonld,
+        data_model_url,
         client,
         json_str,
         restrict_rules,
         test_manifest_csv,
         request_headers,
     ):
-        params = {"schema_url": data_model_jsonld, "restrict_rules": restrict_rules}
+        params = {"schema_url": data_model_url, "restrict_rules": restrict_rules}
 
         if json_str:
             params["json_str"] = json_str
@@ -1056,11 +1057,11 @@ class TestManifestOperation:
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
     def test_submit_manifest_table_and_file_replace(
-        self, client, request_headers, data_model_jsonld, test_manifest_submit
+        self, client, request_headers, data_model_url, test_manifest_submit
     ):
         """Testing submit manifest in a csv format as a table and a file. Only replace the table"""
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "data_type": "Biospecimen",
             "restrict_rules": False,
             "hide_blanks": False,
@@ -1094,14 +1095,14 @@ class TestManifestOperation:
         helpers,
         client,
         request_headers,
-        data_model_jsonld,
+        data_model_url,
         data_type,
         manifest_path_fixture,
         request,
     ):
         """Testing submit manifest in a csv format as a file"""
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "data_type": data_type,
             "restrict_rules": False,
             "manifest_record_type": "file_only",
@@ -1144,12 +1145,12 @@ class TestManifestOperation:
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
     def test_submit_manifest_json_str_replace(
-        self, client, request_headers, data_model_jsonld
+        self, client, request_headers, data_model_url
     ):
         """Submit json str as a file"""
         json_str = '[{"Sample ID": 123, "Patient ID": 1,"Tissue Status": "Healthy","Component": "Biospecimen"}]'
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "data_type": "Biospecimen",
             "json_str": json_str,
             "restrict_rules": False,
@@ -1172,10 +1173,10 @@ class TestManifestOperation:
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
     def test_submit_manifest_w_file_and_entities(
-        self, client, request_headers, data_model_jsonld, test_manifest_submit
+        self, client, request_headers, data_model_url, test_manifest_submit
     ):
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "data_type": "Biospecimen",
             "restrict_rules": False,
             "manifest_record_type": "file_and_entities",
@@ -1202,11 +1203,11 @@ class TestManifestOperation:
         self,
         client,
         request_headers,
-        data_model_jsonld,
+        data_model_url,
         test_upsert_manifest_csv,
     ):
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "data_type": "MockRDB",
             "restrict_rules": False,
             "manifest_record_type": "table_and_file",
@@ -1229,8 +1230,8 @@ class TestManifestOperation:
 
 @pytest.mark.schematic_api
 class TestSchemaVisualization:
-    def test_visualize_attributes(self, client, data_model_jsonld):
-        params = {"schema_url": data_model_jsonld}
+    def test_visualize_attributes(self, client, data_model_url):
+        params = {"schema_url": data_model_url}
 
         response = client.get(
             "http://localhost:3001/v1/visualize/attributes", query_string=params
@@ -1240,10 +1241,10 @@ class TestSchemaVisualization:
 
     @pytest.mark.parametrize("figure_type", ["component", "dependency"])
     def test_visualize_tangled_tree_layers(
-        self, client, figure_type, data_model_jsonld
+        self, client, figure_type, data_model_url
     ):
         # TODO: Determine a 2nd data model to use for this test, test both models sequentially, add checks for content of response
-        params = {"schema_url": data_model_jsonld, "figure_type": figure_type}
+        params = {"schema_url": data_model_url, "figure_type": figure_type}
 
         response = client.get(
             "http://localhost:3001/v1/visualize/tangled_tree/layers",
@@ -1260,10 +1261,10 @@ class TestSchemaVisualization:
         ],
     )
     def test_visualize_component(
-        self, client, data_model_jsonld, component, response_text
+        self, client, data_model_url, component, response_text
     ):
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": data_model_url,
             "component": component,
             "include_index": False,
             "data_model_labels": "class_label",
@@ -1288,7 +1289,7 @@ class TestValidationBenchmark:
     def test_validation_performance(
         self,
         helpers,
-        benchmark_data_model_jsonld,
+        benchmark_data_model_url,
         client,
         test_invalid_manifest,
         MockComponent_attribute,
@@ -1309,7 +1310,7 @@ class TestValidationBenchmark:
 
         # Set paramters for endpoint
         params = {
-            "schema_url": benchmark_data_model_jsonld,
+            "schema_url": benchmark_data_model_url,
             "data_type": "MockComponent",
         }
         headers = {"Content-Type": "multipart/form-data", "Accept": "application/json"}
