@@ -1829,7 +1829,7 @@ class ManifestGenerator(object):
         ```mermaid
         flowchart TD
             A[Start] --> B{Dataset ID provided?}
-            B -- No --> C[Get Empty Manifest]
+            B -- No --> C[Get Empty Manifest URL]
             C --> D{Output Format is 'excel'?}
             D -- Yes --> E[Export to Excel]
             D -- No --> F[Return Manifest URL]
@@ -1840,13 +1840,25 @@ class ManifestGenerator(object):
             J -- Yes --> K[Update Dataframe]
             K --> L[Handle Output Format Logic]
             L --> M[Return Result]
-            J -- No --> N[Get Annotations]
-            N --> O{Annotations Empty?}
-            O -- Yes --> P[Get Empty Manifest Dataframe]
-            P --> Q[Update Dataframe]
-            O -- No --> R[Get Manifest with Annotations]
-            R --> S[Update Dataframe]
-            S --> L
+            J -- No --> AN{Use Annotations?}
+
+            AN -- No --> Q[Create dataframe from empty manifest on Google]
+            Q --> AJ{Manifest file-based?}
+            AJ -- Yes --> P[Add entityId and filename to manifest df]
+            AJ -- No --> R[Use dataframe from an empty manifest]
+
+            P --> L[Handle Output Format Logic]
+            R -->  L[Handle Output Format Logic]
+
+            AN -- Yes --> AM{Manifest file-based?}
+            AM -- No --> L[Handle Output Format Logic]
+            AM -- Yes --> AO[Process Annotations]
+            AO --> AP{Annotations Empty?}
+            AP -- Yes --> AQ[Create dataframe from an empty manifest on Google]
+            AQ --> AR[Update dataframe]
+            AP -- No --> AS[Get Manifest with Annotations]
+            AS --> AR
+            AR --> L[Handle Output Format Logic]
             M --> T[End]
             F --> T
             E --> T
