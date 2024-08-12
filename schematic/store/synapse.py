@@ -215,7 +215,7 @@ class SynapseStorage(BaseStorage):
         TODO:
             Consider necessity of adding "columns" and "where_clauses" params to the constructor. Currently with how `query_fileview` is implemented, these params are not needed at this step but could be useful in the future if the need for more scoped querys expands.
         """
-        self.syn = self.login(synapse_cache_path, token, access_token)
+        self.syn = self.login(synapse_cache_path, access_token)
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
@@ -340,12 +340,10 @@ class SynapseStorage(BaseStorage):
         """Login to Synapse
 
         Args:
-            token (Optional[str], optional): A Synapse token. Defaults to None.
             access_token (Optional[str], optional): A synapse access token. Defaults to None.
             synapse_cache_path (Optional[str]): location of synapse cache
 
         Raises:
-            ValueError: If unable to login with token
             ValueError: If unable to loging with access token
 
         Returns:
