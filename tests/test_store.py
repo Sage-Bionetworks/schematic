@@ -117,7 +117,7 @@ def dmge(
 
 
 @pytest.fixture
-def synapse_store_special_scope(request):
+def synapse_store_special_scope():
     yield SynapseStorage(perform_query=False)
 
 

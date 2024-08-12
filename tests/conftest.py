@@ -116,7 +116,7 @@ def config():
 
 
 @pytest.fixture(scope="session")
-def synapse_store(request):
+def synapse_store():
     yield SynapseStorage()
 
 
