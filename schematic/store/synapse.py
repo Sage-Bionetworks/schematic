@@ -335,7 +335,6 @@ class SynapseStorage(BaseStorage):
     @staticmethod
     def login(
         synapse_cache_path: Optional[str] = None,
-        token: Optional[str] = None,
         access_token: Optional[str] = None,
     ) -> synapseclient.Synapse:
         """Login to Synapse
@@ -353,19 +352,11 @@ class SynapseStorage(BaseStorage):
             synapseclient.Synapse: A Synapse object that is logged in
         """
         # If no token is provided, try retrieving access token from environment
-        if not token and not access_token:
+        if not access_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
         # login using a token
-        if token:
-            syn = synapseclient.Synapse(cache_root_dir=synapse_cache_path)
-            try:
-                syn.login(authToken=token, silent=True)
-            except SynapseHTTPError as exc:
-                raise ValueError(
-                    "Please make sure you are logged into synapse.org."
-                ) from exc
-        elif access_token:
+        if access_token:
             try:
                 syn = synapseclient.Synapse(cache_root_dir=synapse_cache_path)
                 syn.login(authToken=access_token, silent=True)
