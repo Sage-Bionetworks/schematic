@@ -360,7 +360,7 @@ class SynapseStorage(BaseStorage):
         if token:
             syn = synapseclient.Synapse(cache_root_dir=synapse_cache_path)
             try:
-                syn.login(sessionToken=token, silent=True)
+                syn.login(authToken=token, silent=True)
             except SynapseHTTPError as exc:
                 raise ValueError(
                     "Please make sure you are logged into synapse.org."
@@ -368,7 +368,7 @@ class SynapseStorage(BaseStorage):
         elif access_token:
             try:
                 syn = synapseclient.Synapse(cache_root_dir=synapse_cache_path)
-                syn.default_headers["Authorization"] = f"Bearer {access_token}"
+                syn.login(authToken=access_token, silent=True)
             except SynapseHTTPError as exc:
                 raise ValueError(
                     "No access to resources. Please make sure that your token is correct"
