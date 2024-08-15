@@ -792,8 +792,9 @@ class SynapseStorage(BaseStorage):
                 dataset_files=dataset_files, only_new_files=False, manifest=manifest
             )
 
-            existing_files = manifest["entityId"].isin(all_files["entityId"])
-            manifest.loc[existing_files, "Filename"] = all_files["Filename"]
+            if not manifest.empty:
+                existing_files = manifest["entityId"].isin(all_files["entityId"])
+                manifest.loc[existing_files, "Filename"] = all_files["Filename"]
 
             # update manifest so that it contains new dataset files
             manifest = (
