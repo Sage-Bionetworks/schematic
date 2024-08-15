@@ -788,12 +788,14 @@ class SynapseStorage(BaseStorage):
         # the columns Filename and entityId are assumed to be present in manifest schema
         # TODO: use idiomatic panda syntax
         if dataset_files:
-            new_files = self._get_file_entityIds(
-                dataset_files=dataset_files, only_new_files=True, manifest=manifest
+            all_files, new_files = self._get_file_entityIds(
+                dataset_files=dataset_files, only_new_files=False, manifest=manifest
             )
 
+            existing_files = manifest["entityId"].isin(all_files["entityId"])
+            manifest.loc[existing_files, "Filename"] = all_files["Filename"]
+
             # update manifest so that it contains new dataset files
-            new_files = pd.DataFrame(new_files)
             manifest = (
                 pd.concat([manifest, new_files], sort=False)
                 .reset_index()
@@ -867,9 +869,11 @@ class SynapseStorage(BaseStorage):
             dataset_file: List of all files in a dataset
             only_new_files: boolean to control whether only new files are returned or all files in the dataset
         Returns:
-            files: dictionary of file names and entityIDs, with scope as specified by `only_new_files`
+            all_files: dictionary of file names and entityIDs, or None if only_new_files is True
+            new_files: dictionary of file names and entityIDs
         """
-        files = {"Filename": [], "entityId": []}
+        all_files = {"Filename": [], "entityId": []}
+        new_files = {"Filename": [], "entityId": []}
 
         if only_new_files:
             if manifest is None:
@@ -880,15 +884,20 @@ class SynapseStorage(BaseStorage):
             # find new files (that are not in the current manifest) if any
             for file_id, file_name in dataset_files:
                 if not file_id in manifest["entityId"].values:
-                    files["Filename"].append(file_name)
-                    files["entityId"].append(file_id)
+                    new_files["Filename"].append(file_name)
+                    new_files["entityId"].append(file_id)
+
+            return None, pd.DataFrame(new_files)
         else:
             # get all files
             for file_id, file_name in dataset_files:
-                files["Filename"].append(file_name)
-                files["entityId"].append(file_id)
+                all_files["Filename"].append(file_name)
+                all_files["entityId"].append(file_id)
+                if not file_id in manifest["entityId"].values:
+                    new_files["Filename"].append(file_name)
+                    new_files["entityId"].append(file_id)
 
-        return files
+            return pd.DataFrame(all_files), pd.DataFrame(new_files)
 
     @tracer.start_as_current_span("SynapseStorage::getProjectManifests")
     def getProjectManifests(
