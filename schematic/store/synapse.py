@@ -797,8 +797,10 @@ class SynapseStorage(BaseStorage):
 
             all_files = pd.DataFrame(all_files)
             new_files = pd.DataFrame(new_files)
-            existing_files = manifest["entityId"].isin(all_files["entityId"])
-            manifest.loc[existing_files, "Filename"] = all_files["Filename"]
+
+            if not manifest.empty:
+                existing_files = manifest["entityId"].isin(all_files["entityId"])
+                manifest.loc[existing_files, "Filename"] = all_files["Filename"]
 
             # update manifest so that it contains new dataset files
 
