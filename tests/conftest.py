@@ -1,19 +1,18 @@
 """Fixtures and helpers for use across all tests"""
-import os
 import logging
+import os
+import shutil
 import sys
 from typing import Generator
 
-import shutil
 import pytest
 from dotenv import load_dotenv
 
-from schematic.schemas.data_model_parser import DataModelParser
-from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-
 from schematic.configuration.configuration import CONFIG
-from schematic.utils.df_utils import load_df
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.synapse import SynapseStorage
+from schematic.utils.df_utils import load_df
 
 load_dotenv()
 
@@ -117,14 +116,8 @@ def config():
 
 
 @pytest.fixture(scope="session")
-def synapse_store(request):
-    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
-    if access_token:
-        synapse_store = SynapseStorage(access_token=access_token)
-    else:
-        synapse_store = SynapseStorage()
-
-    yield synapse_store
+def synapse_store():
+    yield SynapseStorage()
 
 
 # These fixtures make copies of existing test manifests.
