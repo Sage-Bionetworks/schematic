@@ -432,7 +432,7 @@ class TestSynapseStorage:
             assert manifest_data == "syn51204513"
 
     @pytest.mark.parametrize(
-        "existing_manifest_df,fill_in",
+        "existing_manifest_df,fill_in_return_value",
         [
             (
                 pd.DataFrame(),
@@ -468,23 +468,14 @@ class TestSynapseStorage:
         ],
     )
     def test_fill_in_entity_id_filename(
-        self, synapse_store, existing_manifest_df, fill_in
+        self, synapse_store, existing_manifest_df, fill_in_return_value
     ):
-        fill_in_first_return_value = {
-            "Filename": ["mock_file_path"],
-            "entityId": ["mock_entity_id"],
-        }
-        fill_in_first_return_value = {
-            "Filename": ["existing_mock_file_path", "mock_file_path"],
-            "entityId": ["existing_mock_entity_id", "mock_entity_id"],
-        }
-
         with patch(
             "schematic.store.synapse.SynapseStorage.getFilesInStorageDataset",
             return_value=["syn123", "syn124", "syn125"],
         ) as mock_get_file_storage, patch(
             "schematic.store.synapse.SynapseStorage._get_file_entityIds",
-            side_effect=fill_in,
+            side_effect=fill_in_return_value,
         ) as mock_get_file_entity_id:
             dataset_files, new_manifest = synapse_store.fill_in_entity_id_filename(
                 datasetId="test_syn_id", manifest=existing_manifest_df
