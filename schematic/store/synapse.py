@@ -788,12 +788,20 @@ class SynapseStorage(BaseStorage):
         # the columns Filename and entityId are assumed to be present in manifest schema
         # TODO: use idiomatic panda syntax
         if dataset_files:
+            all_files = self._get_file_entityIds(
+                dataset_files=dataset_files, only_new_files=False, manifest=manifest
+            )
             new_files = self._get_file_entityIds(
                 dataset_files=dataset_files, only_new_files=True, manifest=manifest
             )
 
-            # update manifest so that it contains new dataset files
+            all_files = pd.DataFrame(all_files)
             new_files = pd.DataFrame(new_files)
+            existing_files = manifest["entityId"].isin(all_files["entityId"])
+            manifest.loc[existing_files, "Filename"] = all_files["Filename"]
+
+            # update manifest so that it contains new dataset files
+
             manifest = (
                 pd.concat([manifest, new_files], sort=False)
                 .reset_index()
