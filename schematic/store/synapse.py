@@ -1461,7 +1461,7 @@ class SynapseStorage(BaseStorage):
             etag=annotation_dict["annotations"]["etag"],
             id=annotation_dict["annotations"]["id"],
         )
-        return await annotation_class.store_async(self.syn)
+        return await annotation_class.store_async(synapse_client=self.syn)
 
     @async_missing_entity_handler
     async def format_row_annotations(
