@@ -798,29 +798,31 @@ class SynapseStorage(BaseStorage):
             all_files = pd.DataFrame(all_files)
             new_files = pd.DataFrame(new_files)
 
-            if not manifest.empty:
-                synpase_files_in_manifest = all_files["entityId"].isin(
-                    manifest["entityId"]
-                )
-                file_paths_match = (
-                    manifest["Filename"]
-                    == all_files.loc[synpase_files_in_manifest, "Filename"]
-                ).all()
-                if not file_paths_match:
-                    manifest_files_in_synapse = manifest["entityId"].isin(
-                        all_files["entityId"]
-                    )
-                    manifest.loc[manifest_files_in_synapse, "Filename"] = all_files.loc[
-                        synpase_files_in_manifest, "Filename"
-                    ]
-
             # update manifest so that it contains new dataset files
-
             manifest = (
                 pd.concat([manifest, new_files], sort=False)
                 .reset_index()
                 .drop("index", axis=1)
             )
+
+            manifest_reindex = manifest.set_index("entityId")
+            all_files_reindex = all_files.set_index("entityId")
+            all_files_reindex_like_manifest = all_files_reindex.reindex_like(
+                manifest_reindex
+            )
+
+            file_paths_match = (
+                manifest_reindex["Filename"]
+                == all_files_reindex_like_manifest["Filename"]
+            )
+
+            if not file_paths_match.all():
+                manifest_reindex.loc[
+                    ~file_paths_match, "Filename"
+                ] = all_files_reindex_like_manifest.loc[~file_paths_match, "Filename"]
+                manifest = manifest_reindex.reset_index()
+                entityIdCol = manifest.pop("entityId")
+                manifest.insert(len(manifest.columns), "entityId", entityIdCol)
 
         manifest = manifest.fillna("")
         return dataset_files, manifest
