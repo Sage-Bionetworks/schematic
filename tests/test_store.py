@@ -7,6 +7,7 @@ import logging
 import math
 import os
 import shutil
+from contextlib import contextmanager
 from time import sleep
 from typing import Any, Generator
 from unittest.mock import AsyncMock, patch
@@ -19,7 +20,7 @@ from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
 from synapseclient.models import Annotations
 
-from schematic.configuration.configuration import Configuration
+from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.base import BaseStorage
@@ -29,6 +30,11 @@ from tests.conftest import Helpers
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def does_not_raise():
+    yield
 
 
 @pytest.fixture
@@ -213,6 +219,34 @@ class TestSynapseStorage:
         assert synapse_store_special_scope.fileview_query == expected
         # tests that the query was valid and successful, that a view subset has actually been retrived
         assert synapse_store_special_scope.storageFileviewTable.empty is False
+
+    @pytest.mark.parametrize(
+        "asset_view,columns,expectation",
+        [
+            ("syn62339865", ["path"], pytest.raises(ValueError)),
+            ("syn62340177", ["id"], pytest.raises(ValueError)),
+            ("syn23643253", ["id", "path"], does_not_raise()),
+        ],
+    )
+    def test_view_query_exception(
+        self,
+        synapse_store_special_scope: SynapseStorage,
+        asset_view: str,
+        columns: list,
+        expectation: str,
+    ) -> None:
+        project_scope = ["syn23643250"]
+
+        # set to use appropriate test view and set scope
+        CONFIG.synapse_master_fileview_id = asset_view
+        synapse_store_special_scope.project_scope = project_scope
+
+        # ensure approriate exception is raised
+        with expectation:
+            synapse_store_special_scope.query_fileview(columns)
+
+        # reset config to default fileview
+        CONFIG.synapse_master_fileview_id = "syn23643253"
 
     def test_getFileAnnotations(self, synapse_store: SynapseStorage) -> None:
         expected_dict = {
