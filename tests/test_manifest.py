@@ -769,7 +769,9 @@ class TestManifestGenerator:
     )
     def test_get_manifest_with_files(self, helpers, component, datasetId):
         """
-        Test to ensure that when generating a record based manifset that has files in the dataset that the files are not added to the manifest as well
+        Test to ensure that
+            when generating a record based manifset that has files in the dataset that the files are not added to the manifest as well
+            when generating a file based manifest from a dataset thathas had files added that the files are added correctly
         """
         path_to_data_model = helpers.get_data_path("example.model.jsonld")
 
@@ -799,3 +801,14 @@ class TestManifestGenerator:
         elif component == "BulkRNA-seqAssay":
             assert filename_in_manifest_columns
             assert n_rows == 4
+
+            expected_files = pd.Series(
+                [
+                    "schematic - main/BulkRNASeq and files/txt1.txt",
+                    "schematic - main/BulkRNASeq and files/txt2.txt",
+                    "schematic - main/BulkRNASeq and files/txt4.txt",
+                    "schematic - main/BulkRNASeq and files/txt3.txt",
+                ],
+                name="Filename",
+            )
+            assert expected_files.equals(manifest["Filename"])
