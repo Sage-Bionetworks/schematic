@@ -242,11 +242,12 @@ class TestSynapseStorage:
         synapse_store_special_scope.project_scope = project_scope
 
         # ensure approriate exception is raised
-        with expectation:
-            synapse_store_special_scope.query_fileview(columns)
-
-        # reset config to default fileview
-        CONFIG.synapse_master_fileview_id = "syn23643253"
+        try:
+            with expectation:
+                synapse_store_special_scope.query_fileview(columns)
+        finally:
+            # reset config to default fileview
+            CONFIG.synapse_master_fileview_id = "syn23643253"
 
     def test_getFileAnnotations(self, synapse_store: SynapseStorage) -> None:
         expected_dict = {
