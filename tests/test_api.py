@@ -12,10 +12,12 @@ import pandas as pd  # third party library import
 import pytest
 
 from schematic.configuration.configuration import Configuration
-from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
+
 from schematic_api.api import create_app
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -761,9 +763,9 @@ class TestManifestOperation:
 
         # make sure Filename, entityId, and component get filled with correct value
         assert google_sheet_df["Filename"].to_list() == [
-            "schematic - main/TestDataset-Annotations-v3/Sample_A.txt",
-            "schematic - main/TestDataset-Annotations-v3/Sample_B.txt",
-            "schematic - main/TestDataset-Annotations-v3/Sample_C.txt",
+            "TestDataset-Annotations-v3/Sample_A.txt",
+            "TestDataset-Annotations-v3/Sample_B.txt",
+            "TestDataset-Annotations-v3/Sample_C.txt",
         ]
         assert google_sheet_df["entityId"].to_list() == [
             "syn25614636",
