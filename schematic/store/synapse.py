@@ -816,21 +816,26 @@ class SynapseStorage(BaseStorage):
                 .drop("index", axis=1)
             )
 
+            # Reindex manifest and new files dataframes according to entityIds to align file paths and metadata
             manifest_reindex = manifest.set_index("entityId")
             all_files_reindex = all_files.set_index("entityId")
             all_files_reindex_like_manifest = all_files_reindex.reindex_like(
                 manifest_reindex
             )
 
+            # Check if individual file paths in manifest and from synapse match
             file_paths_match = (
                 manifest_reindex["Filename"]
                 == all_files_reindex_like_manifest["Filename"]
             )
 
+            # If all the paths do not match, update the manifest with the filepaths from synapse
             if not file_paths_match.all():
                 manifest_reindex.loc[
                     ~file_paths_match, "Filename"
                 ] = all_files_reindex_like_manifest.loc[~file_paths_match, "Filename"]
+
+                # reformat manifest for further use
                 manifest = manifest_reindex.reset_index()
                 entityIdCol = manifest.pop("entityId")
                 manifest.insert(len(manifest.columns), "entityId", entityIdCol)
