@@ -6,7 +6,6 @@ from time import perf_counter
 # allows specifying explicit variable types
 from typing import Any, Literal, Optional, Union
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen
 
 import numpy as np
 import pandas as pd
