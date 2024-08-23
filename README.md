@@ -116,7 +116,7 @@ section. **Note:** You must place the file at the root of the project like
 
 <strong>Configure config.yml File</strong>
 
-``config_example.yml`` avaiable in the root of this repo. It contains an example repoistory
+There are some defaults in schematic that can be configured. These fields are in ``config_example.yml``:
 
 ```text
 
