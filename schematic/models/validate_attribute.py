@@ -1209,7 +1209,7 @@ class ValidateAttribute(object):
                             errors.append(vr_errors)
                         if vr_warnings:
                             warnings.append(vr_warnings)
-                    if valid_url is True:
+                    if valid_url:
                         # If the URL works, check to see if it contains the proper arguments
                         # as specified in the schema.
                         for arg in url_args:
