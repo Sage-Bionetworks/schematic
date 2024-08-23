@@ -15,12 +15,6 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-@pytest.fixture(name="dmge")
-def DMGE(helpers):
-    dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
-    yield dmge
-
-
 def get_metadataModel(helpers, model_name: str):
     metadataModel = MetadataModel(
         inputMModelLocation=helpers.get_data_path(model_name),
