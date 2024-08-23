@@ -145,6 +145,7 @@ def temporary_file_copy(request, helpers: Helpers) -> Generator[str, None, None]
 
 
 @pytest.fixture(name="dmge", scope="function")
-def DMGE(helpers):
+def DMGE(helpers: Helpers) -> DataModelGraphExplorer:
+    """Fixture to instantiate a DataModelGraphExplorer object."""
     dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
-    yield dmge
+    return dmge

@@ -1125,7 +1125,7 @@ class ValidateAttribute(object):
     def url_validation(
         self,
         val_rule: str,
-        manifest_col: str,
+        manifest_col: pd.Series,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
@@ -1134,7 +1134,7 @@ class ValidateAttribute(object):
             schema. Additionally, the server must be reachable to be deemed as valid.
         Input:
             - val_rule: str, Validation rule
-            - manifest_col: pd.core.series.Series, column for a given
+            - manifest_col: pd.Series, column for a given
                 attribute in the manifest
         Output:
             This function will return errors when the user input value

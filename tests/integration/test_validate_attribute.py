@@ -8,6 +8,8 @@ VALIDATION_RULE_URL = "url"
 
 
 class TestValidateAttribute:
+    """Integration tests for the ValidateAttribute class."""
+
     def test_url_validation_valid_url(self, dmge: DataModelGraphExplorer) -> None:
         # GIVEN a valid URL:
         url = "https://github.com/Sage-Bionetworks/schematic"
