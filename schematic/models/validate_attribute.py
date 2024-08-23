@@ -1,4 +1,3 @@
-import builtins
 import logging
 import re
 from copy import deepcopy
@@ -6,12 +5,12 @@ from time import perf_counter
 
 # allows specifying explicit variable types
 from typing import Any, Literal, Optional, Union
-from urllib import error
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 import numpy as np
 import pandas as pd
+import requests
 from jsonschema import ValidationError
 from synapseclient.core.exceptions import SynapseNoCredentialsError
 
@@ -1133,7 +1132,7 @@ class ValidateAttribute(object):
         Purpose:
             Validate URL's submitted for a particular attribute in a manifest.
             Determine if the URL is valid and contains attributes specified in the
-            schema.
+            schema. Additionally, the server must be reachable to be deemed as valid.
         Input:
             - val_rule: str, Validation rule
             - manifest_col: pd.core.series.Series, column for a given
@@ -1154,8 +1153,9 @@ class ValidateAttribute(object):
             )
             if entry_has_value:
                 # Check if a random phrase, string or number was added and
-                # log the appropriate error. Specifically, Raise an error if the value added is not a string or no part
-                # of the string can be parsed as a part of a URL.
+                # log the appropriate error. Specifically, Raise an error if the value
+                # added is not a string or no part of the string can be parsed as a
+                # part of a URL.
                 if not isinstance(url, str) or not (
                     urlparse(url).scheme
                     + urlparse(url).netloc
@@ -1186,10 +1186,13 @@ class ValidateAttribute(object):
                     try:
                         # Check that the URL points to a working webpage
                         # if not log the appropriate error.
-                        request = Request(url)
-                        response = urlopen(request)
                         valid_url = True
-                        response_code = response.getcode()
+                        response = requests.options(url, allow_redirects=True)
+                        logger.debug(
+                            "Validated URL [URL: %s, status_code: %s]",
+                            url,
+                            response.status_code,
+                        )
                     except:
                         valid_url = False
                         url_error = "invalid_url"
@@ -1207,7 +1210,7 @@ class ValidateAttribute(object):
                             errors.append(vr_errors)
                         if vr_warnings:
                             warnings.append(vr_warnings)
-                    if valid_url == True:
+                    if valid_url is True:
                         # If the URL works, check to see if it contains the proper arguments
                         # as specified in the schema.
                         for arg in url_args:

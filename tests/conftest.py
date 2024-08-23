@@ -142,3 +142,9 @@ def temporary_file_copy(request, helpers: Helpers) -> Generator[str, None, None]
     # Teardown
     if os.path.exists(temp_csv_path):
         os.remove(temp_csv_path)
+
+
+@pytest.fixture(name="dmge", scope="function")
+def DMGE(helpers):
+    dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
+    yield dmge

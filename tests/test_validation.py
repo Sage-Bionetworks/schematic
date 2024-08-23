@@ -1,11 +1,7 @@
-import itertools
 import logging
 import os
 import re
-from pathlib import Path
 
-import jsonschema
-import networkx as nx
 import pytest
 
 from schematic.models.metadata import MetadataModel
@@ -13,8 +9,6 @@ from schematic.models.validate_attribute import GenerateError, ValidateAttribute
 from schematic.models.validate_manifest import ValidateManifest
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
-from schematic.schemas.data_model_parser import DataModelParser
-from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_rules_utils import validation_rule_info
 
 logging.basicConfig(level=logging.DEBUG)
@@ -1075,7 +1069,7 @@ class TestManifestValidation:
 
 
 class TestValidateAttributeObject:
-    def test_login(self, helpers, dmge):
+    def test_login(self, dmge: DataModelGraphExplorer) -> None:
         """
         Tests that sequential logins update the view query as necessary
         """
