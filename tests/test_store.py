@@ -232,7 +232,7 @@ class TestSynapseStorage:
         self,
         synapse_store_special_scope: SynapseStorage,
         asset_view: str,
-        columns: list,
+        columns: list[str],
         expectation: str,
     ) -> None:
         project_scope = ["syn23643250"]
