@@ -4,6 +4,7 @@ from typing import Any
 import json
 import urllib.request
 from schematic import LOADER
+import pickle
 
 
 def load_json(file_path: str) -> Any:
@@ -40,3 +41,9 @@ def load_schemaorg() -> Any:
     data_path = "data_models/schema_org.model.jsonld"
     schema_org_path = LOADER.filename(data_path)
     return load_json(schema_org_path)
+
+def read_pickle():
+    """Read pickle file"""
+    with open(file_path, "rb") as fle:
+        data = pickle.load(fle)
+        return data
