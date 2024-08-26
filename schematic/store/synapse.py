@@ -295,7 +295,7 @@ class SynapseStorage(BaseStorage):
                 exception_text = str(exc)
                 if "Unknown column path" in exception_text:
                     raise ValueError(
-                        "The path column has not been added to the fileview. Please make sure that the fileview is up to date. You can add the path column to the fileview by follwing the instructions in the validation rules documentation (https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/2645262364/Data+Model+Validation+Rules#Filename-Validation)."
+                        "The path column has not been added to the fileview. Please make sure that the fileview is up to date. You can add the path column to the fileview by follwing the instructions in the validation rules documentation."
                     ) from exc
                 elif "Unknown column" in exception_text:
                     missing_columns = exception_text.split("Unknown column ")[-1]
