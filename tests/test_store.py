@@ -123,14 +123,8 @@ def dmge(
 
 
 @pytest.fixture
-def synapse_store_special_scope(request):
-    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
-    if access_token:
-        synapse_store = SynapseStorage(access_token=access_token, perform_query=False)
-    else:
-        synapse_store = SynapseStorage(perform_query=False)
-
-    yield synapse_store
+def synapse_store_special_scope():
+    yield SynapseStorage(perform_query=False)
 
 
 def raise_final_error(retry_state):
@@ -705,7 +699,7 @@ class TestSynapseStorage:
         ) as mock_store_async:
             result = await synapse_store.store_async_annotation(annos_dict)
 
-            mock_store_async.assert_called_once_with(synapse_store.syn)
+            mock_store_async.assert_called_once_with(synapse_client=synapse_store.syn)
             assert result == expected_dict
             assert isinstance(result, Annotations)
 

@@ -215,7 +215,7 @@ class SynapseStorage(BaseStorage):
         TODO:
             Consider necessity of adding "columns" and "where_clauses" params to the constructor. Currently with how `query_fileview` is implemented, these params are not needed at this step but could be useful in the future if the need for more scoped querys expands.
         """
-        self.syn = self.login(synapse_cache_path, token, access_token)
+        self.syn = self.login(synapse_cache_path, access_token)
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
@@ -346,40 +346,29 @@ class SynapseStorage(BaseStorage):
     @staticmethod
     def login(
         synapse_cache_path: Optional[str] = None,
-        token: Optional[str] = None,
         access_token: Optional[str] = None,
     ) -> synapseclient.Synapse:
         """Login to Synapse
 
         Args:
-            token (Optional[str], optional): A Synapse token. Defaults to None.
             access_token (Optional[str], optional): A synapse access token. Defaults to None.
             synapse_cache_path (Optional[str]): location of synapse cache
 
         Raises:
-            ValueError: If unable to login with token
             ValueError: If unable to loging with access token
 
         Returns:
             synapseclient.Synapse: A Synapse object that is logged in
         """
         # If no token is provided, try retrieving access token from environment
-        if not token and not access_token:
+        if not access_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
         # login using a token
-        if token:
-            syn = synapseclient.Synapse(cache_root_dir=synapse_cache_path)
-            try:
-                syn.login(sessionToken=token, silent=True)
-            except SynapseHTTPError as exc:
-                raise ValueError(
-                    "Please make sure you are logged into synapse.org."
-                ) from exc
-        elif access_token:
+        if access_token:
             try:
                 syn = synapseclient.Synapse(cache_root_dir=synapse_cache_path)
-                syn.default_headers["Authorization"] = f"Bearer {access_token}"
+                syn.login(authToken=access_token, silent=True)
             except SynapseHTTPError as exc:
                 raise ValueError(
                     "No access to resources. Please make sure that your token is correct"
@@ -1512,7 +1501,7 @@ class SynapseStorage(BaseStorage):
             etag=annotation_dict["annotations"]["etag"],
             id=annotation_dict["annotations"]["id"],
         )
-        return await annotation_class.store_async(self.syn)
+        return await annotation_class.store_async(synapse_client=self.syn)
 
     @async_missing_entity_handler
     async def format_row_annotations(
