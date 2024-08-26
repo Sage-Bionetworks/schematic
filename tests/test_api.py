@@ -209,10 +209,12 @@ class TestSynapseStorage:
             if file_names:
                 assert (
                     ["syn23643255", "schematic - main/DataTypeX/Sample_A.txt"]
+                    in response_dt
                     and [
                         "syn24226530",
                         "schematic - main/TestDatasets/TestDataset-Annotations/Sample_A.txt",
                     ]
+                    in response_dt
                     and [
                         "syn25057024",
                         "schematic - main/TestDatasets/TestDataset-Annotations-v2/Sample_A.txt",
@@ -227,11 +229,11 @@ class TestSynapseStorage:
         else:
             if file_names:
                 assert (
-                    ["syn23643255", "Sample_A.txt"]
-                    and ["syn24226530", "Sample_A.txt"]
+                    ["syn23643255", "Sample_A.txt"] in response_dt
+                    and ["syn24226530", "Sample_A.txt"] in response_dt
                     and ["syn25057024", "Sample_A.txt"] in response_dt
                 )
-                assert ["syn23643256", "Sample_C.txt"] and [
+                assert ["syn23643256", "Sample_C.txt"] not in response_dt and [
                     "syn24226531",
                     "Sample_B.txt",
                 ] not in response_dt
