@@ -64,7 +64,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes disable=too-m
         parsed_data_model = None
 
         # Instantiate Data Model Parser
-        if not data_model_graph_pickle:
+        if data_model_graph_pickle is not None:
             data_model_parser = DataModelParser(
                 path_to_data_model=self.path_to_json_ld,
             )
