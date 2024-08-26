@@ -586,7 +586,7 @@ def get_storage_projects_datasets(asset_view, project_id):
 
 
 def get_files_storage_dataset(
-    asset_view, dataset_id, full_path, file_names=None
+    asset_view: str, dataset_id: str, full_path: bool, file_names: List[str] = None
 ) -> List[Tuple[str, str]]:
     # Access token now stored in request header
     access_token = get_access_token()
