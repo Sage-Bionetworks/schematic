@@ -11,7 +11,6 @@ from pathlib import Path
 import pygsheets as ps
 from tempfile import NamedTemporaryFile
 from typing import Any, Dict, List, Optional, Tuple, Union, BinaryIO, Literal
-import pickle
 
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
@@ -22,6 +21,7 @@ from schematic.utils.google_api_utils import (
     build_service_account_creds,
 )
 from schematic.utils.df_utils import update_df, load_df
+from schematic.utils.io_utils import read_pickle
 from schematic.utils.schema_utils import extract_component_validation_rules
 from schematic.utils.validate_utils import rule_in_rule_list
 from schematic.utils.schema_utils import DisplayLabelType
@@ -1684,8 +1684,7 @@ class ManifestGenerator(object):
 
         if not graph_data_model:
             if data_model_graph_pickle:
-                with open(data_model_graph_pickle, "rb") as f:
-                    graph_data_model = pickle.load(f)
+                graph_data_model = read_pickle(data_model_graph_pickle)
             else:
                 data_model_parser = DataModelParser(
                     path_to_data_model=path_to_data_model
