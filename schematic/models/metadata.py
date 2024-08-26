@@ -3,7 +3,6 @@ import logging
 import networkx as nx
 from os.path import exists
 from jsonschema import ValidationError
-import pickle
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -18,6 +17,7 @@ from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 from schematic.store.synapse import SynapseStorage
 
 from schematic.utils.df_utils import load_df
+from schematic.utils.io_utils import read_pickle
 
 from schematic.models.validate_manifest import validate_all
 from opentelemetry import trace
@@ -65,8 +65,7 @@ class MetadataModel(object):
 
         # Use graph, if provided. Otherwise parse data model for graph.
         if data_model_graph_pickle:
-            with open(data_model_graph_pickle, "rb") as f:
-                self.graph_data_model = pickle.load(f)
+            self.graph_data_model = read_pickle(data_model_graph_pickle)
             self.dmge = DataModelGraphExplorer(self.graph_data_model)
         else:
             data_model_parser = DataModelParser(
