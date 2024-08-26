@@ -1684,6 +1684,7 @@ class ManifestGenerator(object):
 
         if not graph_data_model:
             if data_model_graph_pickle:
+                """What if pickle file does not fit in memory?"""
                 graph_data_model = read_pickle(data_model_graph_pickle)
             else:
                 data_model_parser = DataModelParser(
