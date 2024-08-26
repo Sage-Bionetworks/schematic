@@ -1644,7 +1644,7 @@ class ManifestGenerator(object):
         strict: Optional[bool] = True,
         use_annotations: Optional[bool] = False,
         graph_data_model: Optional[nx.MultiDiGraph] = None,
-        data_model_graph_pickle: str = None,
+        data_model_graph_pickle: Optional[str] = None,
     ) -> Union[List[str], List[pd.DataFrame]]:
         """Create multiple manifests
 
