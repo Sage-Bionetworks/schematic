@@ -641,7 +641,7 @@ class TestSynapseStorage:
         ) as mock_store_async:
             result = await synapse_store.store_async_annotation(annos_dict)
 
-            mock_store_async.assert_called_once_with(synapse_store.syn)
+            mock_store_async.assert_called_once_with(synapse_client=synapse_store.syn)
             assert result == expected_dict
             assert isinstance(result, Annotations)
 
