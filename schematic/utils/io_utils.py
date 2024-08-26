@@ -42,7 +42,7 @@ def load_schemaorg() -> Any:
     schema_org_path = LOADER.filename(data_path)
     return load_json(schema_org_path)
 
-def read_pickle():
+def read_pickle(file_path: str) -> Any:
     """Read pickle file"""
     with open(file_path, "rb") as fle:
         data = pickle.load(fle)
