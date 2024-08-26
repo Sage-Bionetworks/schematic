@@ -12,12 +12,15 @@ from schematic.visualization.tangled_tree import TangledTree
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-@pytest.fixture(params=[
-    ("example.model.jsonld", "example.model.pickle"),
-    ("example.model.jsonld", ""),
-    pytest.param(("", ""), marks = pytest.mark.xfail),
-    pytest.param(("", "example.model.pickle"), marks = pytest.mark.xfail)
-])
+
+@pytest.fixture(
+    params=[
+        ("example.model.jsonld", "example.model.pickle"),
+        ("example.model.jsonld", ""),
+        pytest.param(("", ""), marks=pytest.mark.xfail),
+        pytest.param(("", "example.model.pickle"), marks=pytest.mark.xfail),
+    ]
+)
 def attributes_explorer(request, helpers):
     # Get JSONLD file path
     param1, param2 = request.param
@@ -38,12 +41,15 @@ def attributes_explorer(request, helpers):
         )
     yield attributes_explorer
 
-@pytest.fixture(params=[
-    ("example.model.jsonld", "example.model.pickle"),
-    ("example.model.jsonld", ""),
-    pytest.param(("", ""), marks = pytest.mark.xfail),
-    pytest.param(("", "example.model.pickle"), marks = pytest.mark.xfail)
-])
+
+@pytest.fixture(
+    params=[
+        ("example.model.jsonld", "example.model.pickle"),
+        ("example.model.jsonld", ""),
+        pytest.param(("", ""), marks=pytest.mark.xfail),
+        pytest.param(("", "example.model.pickle"), marks=pytest.mark.xfail),
+    ]
+)
 def tangled_tree(helpers, request):
     figure_type = "component"
 
@@ -55,18 +61,17 @@ def tangled_tree(helpers, request):
     # Initialize TangledTree
     if param2 == "":
         tangled_tree = TangledTree(
-            path_to_jsonld,
-            figure_type,
-            data_model_labels="class_label"
+            path_to_jsonld, figure_type, data_model_labels="class_label"
         )
     else:
         tangled_tree = TangledTree(
             path_to_jsonld,
             figure_type,
             data_model_labels="class_label",
-            data_model_graph_pickle = path_to_graph
+            data_model_graph_pickle=path_to_graph,
         )
     yield tangled_tree
+
 
 class TestVisualization:
     def test_ae(self, helpers, attributes_explorer):
