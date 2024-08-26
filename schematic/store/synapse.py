@@ -787,47 +787,49 @@ class SynapseStorage(BaseStorage):
         # note that if there is an existing manifest and there are files in the dataset
         # the columns Filename and entityId are assumed to be present in manifest schema
         # TODO: use idiomatic panda syntax
-        if dataset_files:
-            all_files = self._get_file_entityIds(
-                dataset_files=dataset_files, only_new_files=False, manifest=manifest
-            )
-            new_files = self._get_file_entityIds(
-                dataset_files=dataset_files, only_new_files=True, manifest=manifest
-            )
+        if not dataset_files:
+            manifest = manifest.fillna("")
+            return dataset_files, manifest
 
-            all_files = pd.DataFrame(all_files)
-            new_files = pd.DataFrame(new_files)
+        all_files = self._get_file_entityIds(
+            dataset_files=dataset_files, only_new_files=False, manifest=manifest
+        )
+        new_files = self._get_file_entityIds(
+            dataset_files=dataset_files, only_new_files=True, manifest=manifest
+        )
 
-            # update manifest so that it contains new dataset files
-            manifest = (
-                pd.concat([manifest, new_files], sort=False)
-                .reset_index()
-                .drop("index", axis=1)
-            )
+        all_files = pd.DataFrame(all_files)
+        new_files = pd.DataFrame(new_files)
 
-            # Reindex manifest and new files dataframes according to entityIds to align file paths and metadata
-            manifest_reindex = manifest.set_index("entityId")
-            all_files_reindex = all_files.set_index("entityId")
-            all_files_reindex_like_manifest = all_files_reindex.reindex_like(
-                manifest_reindex
-            )
+        # update manifest so that it contains new dataset files
+        manifest = (
+            pd.concat([manifest, new_files], sort=False)
+            .reset_index()
+            .drop("index", axis=1)
+        )
 
-            # Check if individual file paths in manifest and from synapse match
-            file_paths_match = (
-                manifest_reindex["Filename"]
-                == all_files_reindex_like_manifest["Filename"]
-            )
+        # Reindex manifest and new files dataframes according to entityIds to align file paths and metadata
+        manifest_reindex = manifest.set_index("entityId")
+        all_files_reindex = all_files.set_index("entityId")
+        all_files_reindex_like_manifest = all_files_reindex.reindex_like(
+            manifest_reindex
+        )
 
-            # If all the paths do not match, update the manifest with the filepaths from synapse
-            if not file_paths_match.all():
-                manifest_reindex.loc[
-                    ~file_paths_match, "Filename"
-                ] = all_files_reindex_like_manifest.loc[~file_paths_match, "Filename"]
+        # Check if individual file paths in manifest and from synapse match
+        file_paths_match = (
+            manifest_reindex["Filename"] == all_files_reindex_like_manifest["Filename"]
+        )
 
-                # reformat manifest for further use
-                manifest = manifest_reindex.reset_index()
-                entityIdCol = manifest.pop("entityId")
-                manifest.insert(len(manifest.columns), "entityId", entityIdCol)
+        # If all the paths do not match, update the manifest with the filepaths from synapse
+        if not file_paths_match.all():
+            manifest_reindex.loc[
+                ~file_paths_match, "Filename"
+            ] = all_files_reindex_like_manifest.loc[~file_paths_match, "Filename"]
+
+            # reformat manifest for further use
+            manifest = manifest_reindex.reset_index()
+            entityIdCol = manifest.pop("entityId")
+            manifest.insert(len(manifest.columns), "entityId", entityIdCol)
 
         manifest = manifest.fillna("")
         return dataset_files, manifest
