@@ -798,4 +798,4 @@ class TestManifestGenerator:
             assert n_rows == 4
         elif component == "BulkRNA-seqAssay":
             assert filename_in_manifest_columns
-            assert n_rows == 3
+            assert n_rows == 4
