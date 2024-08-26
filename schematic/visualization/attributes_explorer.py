@@ -2,7 +2,6 @@
 import json
 import logging
 import os
-import pickle
 from typing import Optional, no_type_check
 import numpy as np
 import pandas as pd
@@ -12,7 +11,7 @@ from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 from schematic.utils.schema_utils import DisplayLabelType
-from schematic.utils.io_utils import load_json
+from schematic.utils.io_utils import load_json, read_pickle
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +34,7 @@ class AttributesExplorer:
 
         self.jsonld = load_json(self.path_to_jsonld)
         if data_model_graph_pickle and not graph_data_model:
-            with open(data_model_graph_pickle, "rb") as file:
-                graph_data_model = pickle.load(file)
+            graph_data_model = read_pickle(data_model_graph_pickle)
 
         # Parse Model
         if not parsed_data_model:
