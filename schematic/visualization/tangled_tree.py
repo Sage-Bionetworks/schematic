@@ -3,10 +3,10 @@
 # pylint: disable=logging-fstring-interpolation
 # pylint: disable=too-many-lines
 
+import ast
 import json
 import logging
 import os
-import re
 from io import StringIO
 from os import path
 from typing import Literal, Optional, TypedDict, Union
@@ -243,25 +243,6 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             cond_req = cond_req_new.replace("If", "").lstrip().rstrip()
         return cond_req
 
-    def _extract_content_within_quotes(self, strings: list[str]) -> list[str]:
-        """
-        Extract content within quotes from a list of strings.
-
-        Args:
-            strings (list): list of strings
-
-        Returns:
-            list: list of strings with content within single quotes
-        """
-        pattern = r"\'(.*?)\'"
-        extracted_content = []
-
-        for string in strings:
-            matches = re.findall(pattern, string)
-            extracted_content.extend(matches)
-
-        return extracted_content
-
     def _get_ca_alias(self, conditional_requirements: list[str]) -> dict[str, str]:
         """Get the alias for each conditional attribute.
 
@@ -277,9 +258,11 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                 value: attribute
         """
         ca_alias: dict[str, str] = {}
-        extracted_conditional_requirements = self._extract_content_within_quotes(
-            conditional_requirements
-        )
+        extracted_conditional_requirements = []
+        for conditional_requirement in conditional_requirements:
+            extracted_conditional_requirements.extend(
+                ast.literal_eval(node_or_string=conditional_requirement)
+            )
 
         # clean up conditional requirements
         conditional_requirements = [
