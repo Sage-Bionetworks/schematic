@@ -149,6 +149,9 @@ markers = [
     API functionality (skipped on regular GitHub CI test suite)   
     """,
     """\
+    temporary_mark: Temp mark   
+    """,
+    """\
     rule_combos: marks tests covering \
     combinations of rules that aren't always necessary \
     and can add significantly to CI runtime (skipped on GitHub CI unless prompted to run in commit message)   
