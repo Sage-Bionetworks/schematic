@@ -517,6 +517,7 @@ class TestSynapseStorage:
             )
             assert_frame_equal(manifest_to_return, expected_df)
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "hideBlanks, annotation_keys",
         [
@@ -588,6 +589,7 @@ class TestSynapseStorage:
                     "entityId": ["syn123", "syn456"],
                 }
 
+    @pytest.mark.asyncio
     async def test_get_async_annotation(self, synapse_store: SynapseStorage) -> None:
         """test get annotation async function"""
         mock_syn_id = "syn1234"
@@ -607,6 +609,7 @@ class TestSynapseStorage:
             )
             assert result == "mock"
 
+    @pytest.mark.asyncio
     async def test_store_async_annotation(self, synapse_store: SynapseStorage) -> None:
         """test store annotations async function"""
         annos_dict = {
@@ -648,6 +651,7 @@ class TestSynapseStorage:
             assert result == expected_dict
             assert isinstance(result, Annotations)
 
+    @pytest.mark.asyncio
     async def test_process_store_annos_failure(
         self, synapse_store: SynapseStorage
     ) -> None:
@@ -665,6 +669,7 @@ class TestSynapseStorage:
         with pytest.raises(RuntimeError, match="failed with"):
             await synapse_store._process_store_annos(tasks)
 
+    @pytest.mark.asyncio
     async def test_process_store_annos_success_store(
         self, synapse_store: SynapseStorage
     ) -> None:
@@ -695,6 +700,7 @@ class TestSynapseStorage:
             # make sure that the if statement is working
             mock_store_async1.assert_not_called()
 
+    @pytest.mark.asyncio
     async def test_process_store_annos_success_get(
         self, synapse_store: SynapseStorage
     ) -> None:
@@ -740,6 +746,7 @@ class TestSynapseStorage:
             await synapse_store._process_store_annos(new_tasks)
             mock_store_async2.assert_called_once()
 
+    @pytest.mark.asyncio
     async def test_process_store_annos_success_get_entity_id_variants(
         self, synapse_store: SynapseStorage
     ) -> None:
@@ -791,6 +798,7 @@ class TestSynapseStorage:
                 await synapse_store._process_store_annos(new_tasks)
                 mock_store_async2.assert_called_once()
 
+    @pytest.mark.asyncio
     async def test_process_store_annos_get_annos_empty(
         self, synapse_store: SynapseStorage
     ) -> None:
@@ -1213,6 +1221,7 @@ class TestDownloadManifest:
 class TestManifestUpload:
     """Test manifest upload"""
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "original_manifest, files_in_dataset, expected_entity_ids, expected_filenames",
         [
