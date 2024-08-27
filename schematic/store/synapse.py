@@ -216,6 +216,9 @@ class SynapseStorage(BaseStorage):
             Consider necessity of adding "columns" and "where_clauses" params to the constructor. Currently with how `query_fileview` is implemented, these params are not needed at this step but could be useful in the future if the need for more scoped querys expands.
         """
         self.syn = self.login(synapse_cache_path, access_token)
+        # TODO REMOVE
+        self.syn.setEndpoints(**synapseclient.client.STAGING_ENDPOINTS)
+
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
@@ -1861,7 +1864,17 @@ class SynapseStorage(BaseStorage):
             # Merge dataframes to add entityIds
             manifest = manifest.merge(
                 file_df, how="left", on="Filename", suffixes=["_x", None]
-            ).drop("entityId_x", axis=1)
+            )
+
+            # drop the duplicate entity column with NA values
+            col_to_drop = "entityId_x"
+            if manifest.entityId.isnull().all():
+                col_to_drop = "entityId"
+
+            # If the original entityId column is empty after the merge, drop it and rename the duplicate column
+            manifest.drop(columns=[col_to_drop], inplace=True)
+            if col_to_drop == "entityId":
+                manifest.rename(columns={"entityId_x": "entityId"}, inplace=True)
 
         # Fill `entityId` for each row if missing and annotate entity as appropriate
         requests = set()
