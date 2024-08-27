@@ -392,7 +392,10 @@ class TestSynapseStorage:
                 [("test_file", "syn126")],
             ),
             (
-                (os.path.join("parent_folder", "test_folder"), "syn124"),
+                (
+                    os.path.join("schematic - main", "parent_folder", "test_folder"),
+                    "syn124",
+                ),
                 [],
                 [("test_file_2", "syn125")],
             ),
