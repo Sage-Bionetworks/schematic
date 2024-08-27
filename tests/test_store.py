@@ -203,16 +203,19 @@ class TestSynapseStorage:
         where_clauses: list,
         expected: str,
     ) -> None:
-        # Ensure correct view is being utilized
+        # GIVEN a the correct fileview
         assert synapse_store_special_scope.storageFileview == "syn23643253"
 
+        # AND the approrpiate project scope
         synapse_store_special_scope.project_scope = project_scope
 
+        # WHEN the query is built and run
+        # THEN it should complete without raising an exception
         with does_not_raise():
             synapse_store_special_scope.query_fileview(columns, where_clauses)
-            # tests ._build_query()
+            # AND the query string should be as expected
             assert synapse_store_special_scope.fileview_query == expected
-            # tests that the query was valid and successful, that a view subset has actually been retrived
+            # AND query should have recieved a non-empty table
             assert synapse_store_special_scope.storageFileviewTable.empty is False
 
     @pytest.mark.parametrize(
@@ -239,16 +242,18 @@ class TestSynapseStorage:
     ) -> None:
         project_scope = ["syn23643250"]
 
-        # set to use appropriate test view and set scope
+        # GIVEN the appropriate test file view
         CONFIG.synapse_master_fileview_id = asset_view
+        # AND the approrpiate project scope
         synapse_store_special_scope.project_scope = project_scope
 
-        # ensure approriate exception is raised
+        # WHEN the query is built and run
         try:
+            # THEN it should raise a ValueError with the appropriate message
             with pytest.raises(ValueError, match=message):
                 synapse_store_special_scope.query_fileview(columns)
         finally:
-            # reset config to default fileview so subsequent tests do not use the test fileviews utilized by this test
+            # AND the fileview should be reset to the default so the other tests are not affected regardless of the outcome of the query
             CONFIG.synapse_master_fileview_id = "syn23643253"
 
     def test_getFileAnnotations(self, synapse_store: SynapseStorage) -> None:
