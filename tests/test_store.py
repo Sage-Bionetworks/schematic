@@ -208,18 +208,26 @@ class TestSynapseStorage:
 
         synapse_store_special_scope.project_scope = project_scope
 
-        synapse_store_special_scope.query_fileview(columns, where_clauses)
-        # tests ._build_query()
-        assert synapse_store_special_scope.fileview_query == expected
-        # tests that the query was valid and successful, that a view subset has actually been retrived
-        assert synapse_store_special_scope.storageFileviewTable.empty is False
+        with does_not_raise():
+            synapse_store_special_scope.query_fileview(columns, where_clauses)
+            # tests ._build_query()
+            assert synapse_store_special_scope.fileview_query == expected
+            # tests that the query was valid and successful, that a view subset has actually been retrived
+            assert synapse_store_special_scope.storageFileviewTable.empty is False
 
     @pytest.mark.parametrize(
-        "asset_view,columns,expectation",
+        "asset_view,columns,message",
         [
-            ("syn62339865", ["path"], pytest.raises(ValueError)),
-            ("syn62340177", ["id"], pytest.raises(ValueError)),
-            ("syn23643253", ["id", "path"], does_not_raise()),
+            (
+                "syn62339865",
+                ["path"],
+                r"The path column has not been added to the fileview. .*",
+            ),
+            (
+                "syn62340177",
+                ["id"],
+                r"The columns id specified in the query do not exist in the fileview. .*",
+            ),
         ],
     )
     def test_view_query_exception(
@@ -227,7 +235,7 @@ class TestSynapseStorage:
         synapse_store_special_scope: SynapseStorage,
         asset_view: str,
         columns: list[str],
-        expectation: str,
+        message: str,
     ) -> None:
         project_scope = ["syn23643250"]
 
@@ -237,7 +245,7 @@ class TestSynapseStorage:
 
         # ensure approriate exception is raised
         try:
-            with expectation:
+            with pytest.raises(ValueError, match=message):
                 synapse_store_special_scope.query_fileview(columns)
         finally:
             # reset config to default fileview so subsequent tests do not use the test fileviews utilized by this test
