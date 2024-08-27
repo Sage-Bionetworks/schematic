@@ -2,7 +2,6 @@
 
 import logging
 import os
-from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator, Optional
 from unittest.mock import patch
