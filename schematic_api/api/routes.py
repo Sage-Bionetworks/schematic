@@ -366,6 +366,9 @@ def get_manifest_route(
 
     config_handler(asset_view=asset_view)
 
+    if graph_url is not None:
+        graph_url = get_temp_model_path(graph_url)
+
     all_results = ManifestGenerator.create_manifests(
         path_to_data_model=schema_url,
         output_format=output_format,
