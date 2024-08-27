@@ -311,6 +311,11 @@ def get_temp_csv(schema_url):
     # get path to temporary csv file
     return tmp_file.name
 
+def get_temp_pickle(graph_url):
+    # retrieve a pickle via URL and store it in a temporary location
+    with urllib.request.urlopen(graph_url) as response:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pickle") as tmp_file:
+            shutil.copyfileobj(response, tmp_file)
 
 def get_temp_model_path(schema_url):
     # Get model type:
@@ -319,9 +324,11 @@ def get_temp_model_path(schema_url):
         temp_path = get_temp_csv(schema_url)
     elif model_extension == "JSONLD":
         temp_path = get_temp_jsonld(schema_url)
+    elif model_extension == "PICKLE":
+        temp_path = get_temp_pickle(schema_url)
     else:
         raise ValueError(
-            "Did not provide a valid model type CSV or JSONLD, please check submission and try again."
+            "Did not provide a valid model type CSV or JSONLD or PICKLE, please check submission and try again."
         )
     return temp_path
 
@@ -338,6 +345,7 @@ def get_manifest_route(
     strict_validation: bool = True,
     data_model_labels: DisplayLabelType = "class_label",
     data_type: str = None,
+    graph_url: str = None,
 ):
     """Get the immediate dependencies that are related to a given source node.
     Args:
@@ -349,6 +357,7 @@ def get_manifest_route(
         use_annotations: Whether to use existing annotations during manifest generation
         asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
         strict: bool, strictness with which to apply validation rules to google sheets.
+        graph_url: str, URL to a pickled graph object.
     Returns:
         Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
     """
@@ -367,6 +376,7 @@ def get_manifest_route(
         strict=strict_validation,
         use_annotations=use_annotations,
         data_model_labels=data_model_labels,
+        data_model_pickle=graph_url
     )
 
     # return an excel file if output_format is set to "excel"
