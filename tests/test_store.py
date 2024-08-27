@@ -122,7 +122,7 @@ def dmge(
     yield dmge
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def synapse_store_special_scope():
     yield SynapseStorage(perform_query=False)
 
@@ -166,44 +166,57 @@ class TestSynapseStorage:
         shutil.rmtree("test_cache_dir")
 
     @pytest.mark.parametrize(
-        "project_scope,columns,where_clauses,expected",
+        "project_scope,columns,where_clauses,expected,expected_new_query",
         [
-            (None, None, None, "SELECT * FROM syn23643253 ;"),
+            (None, None, None, "SELECT * FROM syn23643253 ;", True),
             (
                 ["syn23643250"],
                 None,
                 None,
                 "SELECT * FROM syn23643253 WHERE projectId IN ('syn23643250', '') ;",
+                True,
             ),
             (
                 None,
                 None,
                 ["projectId IN ('syn23643250')"],
                 "SELECT * FROM syn23643253 WHERE projectId IN ('syn23643250') ;",
+                True,
             ),
             (
                 ["syn23643250"],
                 ["name", "id", "path"],
                 None,
                 "SELECT name,id,path FROM syn23643253 WHERE projectId IN ('syn23643250', '') ;",
+                True,
             ),
             (
                 None,
                 ["name", "id", "path"],
                 ["parentId='syn61682648'", "type='file'"],
                 "SELECT name,id,path FROM syn23643253 WHERE parentId='syn61682648' AND type='file' ;",
+                True,
             ),
             (
                 ["syn23643250"],
                 None,
                 ["parentId='syn61682648'", "type='file'"],
                 "SELECT * FROM syn23643253 WHERE parentId='syn61682648' AND type='file' AND projectId IN ('syn23643250', '') ;",
+                True,
             ),
             (
                 ["syn23643250"],
                 ["name", "id", "path"],
                 ["parentId='syn61682648'", "type='file'"],
                 "SELECT name,id,path FROM syn23643253 WHERE parentId='syn61682648' AND type='file' AND projectId IN ('syn23643250', '') ;",
+                True,
+            ),
+            (
+                ["syn23643250"],
+                ["name", "id", "path"],
+                ["parentId='syn61682648'", "type='file'"],
+                "SELECT name,id,path FROM syn23643253 WHERE parentId='syn61682648' AND type='file' AND projectId IN ('syn23643250', '') ;",
+                False,
             ),
         ],
     )
@@ -214,6 +227,7 @@ class TestSynapseStorage:
         columns: list,
         where_clauses: list,
         expected: str,
+        expected_new_query: bool,
     ) -> None:
         # GIVEN a the correct fileview
         assert synapse_store_special_scope.storageFileview == "syn23643253"
@@ -229,6 +243,8 @@ class TestSynapseStorage:
             assert synapse_store_special_scope.fileview_query == expected
             # AND query should have recieved a non-empty table
             assert synapse_store_special_scope.storageFileviewTable.empty is False
+            # AND the query should be new if expected
+            assert synapse_store_special_scope.new_query_different == expected_new_query
 
     @pytest.mark.parametrize(
         "asset_view,columns,message",
