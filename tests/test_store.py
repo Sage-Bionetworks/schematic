@@ -511,16 +511,19 @@ class TestSynapseStorage:
                 pd.DataFrame(),
                 [
                     {
-                        "Filename": ["mock_file_path"],
-                        "entityId": ["mock_entity_id"],
+                        "Filename": ["new_mock_file_path"],
+                        "entityId": ["new_mock_entity_id"],
                     },
                     {
-                        "Filename": ["mock_file_path"],
-                        "entityId": ["mock_entity_id"],
+                        "Filename": ["new_mock_file_path"],
+                        "entityId": ["new_mock_entity_id"],
                     },
                 ],
                 pd.DataFrame(
-                    {"Filename": ["mock_file_path"], "entityId": ["mock_entity_id"]}
+                    {
+                        "Filename": ["new_mock_file_path"],
+                        "entityId": ["new_mock_entity_id"],
+                    }
                 ),
             ),
             (
@@ -532,18 +535,18 @@ class TestSynapseStorage:
                 ),
                 [
                     {
-                        "Filename": ["existing_mock_file_path", "mock_file_path"],
-                        "entityId": ["existing_mock_entity_id", "mock_entity_id"],
+                        "Filename": ["existing_mock_file_path", "new_mock_file_path"],
+                        "entityId": ["existing_mock_entity_id", "new_mock_entity_id"],
                     },
                     {
-                        "Filename": ["mock_file_path"],
-                        "entityId": ["mock_entity_id"],
+                        "Filename": ["new_mock_file_path"],
+                        "entityId": ["new_mock_entity_id"],
                     },
                 ],
                 pd.DataFrame(
                     {
-                        "Filename": ["existing_mock_file_path", "mock_file_path"],
-                        "entityId": ["existing_mock_entity_id", "mock_entity_id"],
+                        "Filename": ["existing_mock_file_path", "new_mock_file_path"],
+                        "entityId": ["existing_mock_entity_id", "new_mock_entity_id"],
                     }
                 ),
             ),
