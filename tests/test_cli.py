@@ -66,18 +66,24 @@ class TestSchemaCli:
         resultOne = runner.invoke(schema, ["convert", model])
 
         assert resultOne.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
 
         resultTwo = runner.invoke(
             schema, ["convert", model, "--output_path", output_path]
         )
 
         assert resultTwo.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
 
         resultThree = runner.invoke(
             schema, ["convert", model, "--output_type", output_type]
         )
 
         assert resultThree.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
 
         resultFour = runner.invoke(
             schema,
@@ -92,6 +98,8 @@ class TestSchemaCli:
         )
 
         assert resultFour.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
 
         result = runner.invoke(
             schema,
@@ -106,6 +114,8 @@ class TestSchemaCli:
         )
 
         assert result.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
 
         resultFive = runner.invoke(
             schema,
@@ -120,12 +130,16 @@ class TestSchemaCli:
         )
 
         assert resultFive.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
 
         resultSix = runner.invoke(
             schema, ["convert", model, "--output_jsonld", "", "--output_path", ""]
         )
 
         assert resultSix.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
 
     # get manifest by default
     # by default this should download the manifest as a CSV file
