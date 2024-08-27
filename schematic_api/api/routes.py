@@ -376,7 +376,7 @@ def get_manifest_route(
         strict=strict_validation,
         use_annotations=use_annotations,
         data_model_labels=data_model_labels,
-        data_model_pickle=graph_url
+        data_model_graph_pickle=graph_url
     )
 
     # return an excel file if output_format is set to "excel"
