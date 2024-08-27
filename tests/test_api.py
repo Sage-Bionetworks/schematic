@@ -1276,6 +1276,80 @@ class TestSchemaVisualization:
 
         assert response.status_code == 200
 
+        response_data = json.loads(response.data)
+
+        if figure_type == "component":
+            assert len(response_data) == 3
+            for data_list in response_data:
+                for data_point in data_list:
+                    assert data_point in [
+                        {
+                            "id": "Patient",
+                            "parents": [],
+                            "direct_children": ["Biospecimen"],
+                            "children": ["Biospecimen", "BulkRNA-seqAssay"],
+                        },
+                        {
+                            "id": "Biospecimen",
+                            "parents": ["Patient"],
+                            "direct_children": ["BulkRNA-seqAssay"],
+                            "children": ["BulkRNA-seqAssay"],
+                        },
+                        {
+                            "id": "BulkRNA-seqAssay",
+                            "parents": ["Biospecimen"],
+                            "direct_children": [],
+                            "children": [],
+                        },
+                    ]
+        elif figure_type == "dependency":
+            assert len(response_data) == 3
+            for data_list in response_data:
+                for data_point in data_list:
+                    assert data_point in [
+                        {
+                            "id": "BulkRNA-seqAssay",
+                            "parents": [],
+                            "direct_children": ["SampleID", "Filename", "FileFormat"],
+                            "children": [],
+                        },
+                        {
+                            "id": "SampleID",
+                            "parents": ["BulkRNA-seqAssay"],
+                            "direct_children": [],
+                            "children": [],
+                        },
+                        {
+                            "id": "FileFormat",
+                            "parents": ["BulkRNA-seqAssay"],
+                            "direct_children": [
+                                "GenomeBuild",
+                                "GenomeBuild",
+                                "GenomeBuild",
+                                "GenomeFASTA",
+                            ],
+                            "children": [],
+                        },
+                        {
+                            "id": "Filename",
+                            "parents": ["BulkRNA-seqAssay"],
+                            "direct_children": [],
+                            "children": [],
+                        },
+                        {
+                            "id": "GenomeBuild",
+                            "parents": ["FileFormat", "FileFormat", "FileFormat"],
+                            "direct_children": [],
+                            "children": [],
+                        },
+                        {
+                            "id": "GenomeFASTA",
+                            "parents": ["FileFormat"],
+                            "direct_children": [],
+                            "children": [],
+                        },
+                    ]
+
     @pytest.mark.parametrize(
         "component, response_text",
         [
