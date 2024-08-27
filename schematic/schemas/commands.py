@@ -144,10 +144,9 @@ def convert(
         logger.info("Export graph to pickle.")
         output_graph = output_file_no_ext + ".pickle"
         export_graph(graph_data_model, output_graph)
-
-    if output_type == "graph":
-        click.echo(f"Graph created {output_graph}")
-        return 0
+        if output_type == "graph":
+            click.echo(f"Graph created {output_graph}")
+            return 0
 
     logger.info("Converting data model to JSON-LD")
     jsonld_data_model = convert_graph_to_jsonld(graph=graph_data_model)
