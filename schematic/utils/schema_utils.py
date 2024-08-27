@@ -514,7 +514,7 @@ def export_graph(schema: dict, file_path: str) -> None:
             pickle.dump(schema, file)
         logger.info(f"The graph was created and saved to '{file_path}'.")
     except SystemExit as error:
-        logger.error(
+        logger.exception(
             f"The graph failed to save to '{file_path}'. Please check your file path again."
         )
         raise error
