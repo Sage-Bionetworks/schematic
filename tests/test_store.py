@@ -505,7 +505,7 @@ class TestSynapseStorage:
             assert manifest_data == "syn51204513"
 
     @pytest.mark.parametrize(
-        "existing_manifest_df,fill_in_return_value",
+        "existing_manifest_df,fill_in_return_value,expected_df",
         [
             (
                 pd.DataFrame(),
@@ -519,6 +519,9 @@ class TestSynapseStorage:
                         "entityId": ["mock_entity_id"],
                     },
                 ],
+                pd.DataFrame(
+                    {"Filename": ["mock_file_path"], "entityId": ["mock_entity_id"]}
+                ),
             ),
             (
                 pd.DataFrame(
@@ -537,11 +540,17 @@ class TestSynapseStorage:
                         "entityId": ["mock_entity_id"],
                     },
                 ],
+                pd.DataFrame(
+                    {
+                        "Filename": ["existing_mock_file_path", "mock_file_path"],
+                        "entityId": ["existing_mock_entity_id", "mock_entity_id"],
+                    }
+                ),
             ),
         ],
     )
     def test_fill_in_entity_id_filename(
-        self, synapse_store, existing_manifest_df, fill_in_return_value
+        self, synapse_store, existing_manifest_df, fill_in_return_value, expected_df
     ):
         with patch(
             "schematic.store.synapse.SynapseStorage.getFilesInStorageDataset",
@@ -553,17 +562,7 @@ class TestSynapseStorage:
             dataset_files, new_manifest = synapse_store.fill_in_entity_id_filename(
                 datasetId="test_syn_id", manifest=existing_manifest_df
             )
-            if not existing_manifest_df.empty:
-                expected_df = pd.DataFrame(
-                    {
-                        "Filename": ["existing_mock_file_path", "mock_file_path"],
-                        "entityId": ["existing_mock_entity_id", "mock_entity_id"],
-                    }
-                )
-            else:
-                expected_df = pd.DataFrame(
-                    {"Filename": ["mock_file_path"], "entityId": ["mock_entity_id"]}
-                )
+
             assert_frame_equal(new_manifest, expected_df)
             assert dataset_files == ["syn123", "syn124", "syn125"]
 
