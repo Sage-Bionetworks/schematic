@@ -110,6 +110,15 @@ paths:
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
           required: false
+        - in: query
+          name: graph_url
+          schema:
+            type: string
+            nullable: true
+          description: Graph Pickle URL
+          example: >-
+            url_to_graph_pickle_in_github
+          required: false
       operationId: schematic_api.api.routes.get_manifest_route
       responses:
         "200":
