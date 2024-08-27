@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 from schematic.models.metadata import MetadataModel
+from tests.conftest import metadata_model
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -11,16 +12,6 @@ logger = logging.getLogger(__name__)
 @contextmanager
 def does_not_raise():
     yield
-
-
-def metadata_model(helpers, data_model_labels):
-    metadata_model = MetadataModel(
-        inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
-        data_model_labels=data_model_labels,
-        inputMModelLocationType="local",
-    )
-
-    return metadata_model
 
 
 class TestMetadataModel:
