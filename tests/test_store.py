@@ -188,6 +188,18 @@ class TestSynapseStorage:
                 "SELECT name,id,path FROM syn23643253 WHERE projectId IN ('syn23643250', '') ;",
             ),
             (
+                None,
+                ["name", "id", "path"],
+                ["parentId='syn61682648'", "type='file'"],
+                "SELECT name,id,path FROM syn23643253 WHERE parentId='syn61682648' AND type='file' ;",
+            ),
+            (
+                ["syn23643250"],
+                None,
+                ["parentId='syn61682648'", "type='file'"],
+                "SELECT * FROM syn23643253 WHERE parentId='syn61682648' AND type='file' AND projectId IN ('syn23643250', '') ;",
+            ),
+            (
                 ["syn23643250"],
                 ["name", "id", "path"],
                 ["parentId='syn61682648'", "type='file'"],
