@@ -298,9 +298,9 @@ class SynapseStorage(BaseStorage):
                         "The path column has not been added to the fileview. Please make sure that the fileview is up to date. You can add the path column to the fileview by follwing the instructions in the validation rules documentation."
                     ) from exc
                 elif "Unknown column" in exception_text:
-                    missing_columns = exception_text.split("Unknown column ")[-1]
+                    missing_column = exception_text.split("Unknown column ")[-1]
                     raise ValueError(
-                        f"The column(s) ({missing_columns}) specified in the query do not exist in the fileview. Please make sure that the column names are correct and that all expected columns have been added to the fileview."
+                        f"The columns {missing_column} specified in the query do not exist in the fileview. Please make sure that the column names are correct and that all expected columns have been added to the fileview."
                     ) from exc
                 else:
                     raise AccessCredentialsError(self.storageFileview)
