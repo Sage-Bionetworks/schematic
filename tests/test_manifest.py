@@ -763,24 +763,52 @@ class TestManifestGenerator:
             assert all_results == expected_result
 
     @pytest.mark.parametrize(
-        "component,datasetId",
-        [("Biospecimen", "syn61260107"), ("BulkRNA-seqAssay", "syn61374924")],
+        "component,datasetId,expected_file_based,expected_rows,expected_files",
+        [
+            ("Biospecimen", "syn61260107", False, 4, None),
+            (
+                "BulkRNA-seqAssay",
+                "syn61374924",
+                True,
+                4,
+                pd.Series(
+                    [
+                        "schematic - main/BulkRNASeq and files/txt1.txt",
+                        "schematic - main/BulkRNASeq and files/txt2.txt",
+                        "schematic - main/BulkRNASeq and files/txt4.txt",
+                        "schematic - main/BulkRNASeq and files/txt3.txt",
+                    ],
+                    name="Filename",
+                ),
+            ),
+        ],
         ids=["Record based", "File based"],
     )
-    def test_get_manifest_with_files(self, helpers, component, datasetId):
+    def test_get_manifest_with_files(
+        self,
+        helpers,
+        component,
+        datasetId,
+        expected_file_based,
+        expected_rows,
+        expected_files,
+    ):
         """
         Test to ensure that
             when generating a record based manifset that has files in the dataset that the files are not added to the manifest as well
             when generating a file based manifest from a dataset thathas had files added that the files are added correctly
         """
+        # GIVEN the example data model
         path_to_data_model = helpers.get_data_path("example.model.jsonld")
 
+        # AND a graph data model
         graph_data_model = generate_graph_data_model(
             helpers,
             path_to_data_model=path_to_data_model,
             data_model_labels="class_label",
         )
 
+        # AND a manifest generator
         generator = ManifestGenerator(
             path_to_data_model=path_to_data_model,
             graph=graph_data_model,
@@ -788,27 +816,24 @@ class TestManifestGenerator:
             use_annotations=True,
         )
 
+        # WHEN a manifest is generated for the appropriate dataset as a dataframe
         manifest = generator.get_manifest(
             dataset_id=datasetId, output_format="dataframe"
         )
 
-        filename_in_manifest_columns = "Filename" in manifest.columns
+        # AND it is determined if the manifest is filebased
+        is_file_based = "Filename" in manifest.columns
+
+        # AND the number of rows are checked
         n_rows = manifest.shape[0]
 
-        if component == "Biospecimen":
-            assert not filename_in_manifest_columns
-            assert n_rows == 4
-        elif component == "BulkRNA-seqAssay":
-            assert filename_in_manifest_columns
-            assert n_rows == 4
+        # THEN the manifest should have the expected number of rows
+        assert n_rows == expected_rows
 
-            expected_files = pd.Series(
-                [
-                    "schematic - main/BulkRNASeq and files/txt1.txt",
-                    "schematic - main/BulkRNASeq and files/txt2.txt",
-                    "schematic - main/BulkRNASeq and files/txt4.txt",
-                    "schematic - main/BulkRNASeq and files/txt3.txt",
-                ],
-                name="Filename",
-            )
-            assert expected_files.equals(manifest["Filename"])
+        # AND the manifest should be filebased or not as expected
+        assert is_file_based == expected_file_based
+
+        # AND if the manifest is file based
+        if expected_file_based:
+            # THEN the manifest should have the expected files
+            assert manifest["Filename"].equals(expected_files)
