@@ -8,7 +8,6 @@ import json
 import logging
 import os
 from os import path
-import pickle
 from typing import Optional, Literal, TypedDict, Union
 from typing_extensions import assert_never
 
@@ -19,7 +18,7 @@ import pandas as pd
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.utils.io_utils import load_json
+from schematic.utils.io_utils import load_json, read_pickle
 from schematic.utils.schema_utils import DisplayLabelType
 
 
@@ -51,7 +50,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes disable=too-m
         self,
         path_to_json_ld: str,
         figure_type: FigureType,
-        data_model_labels: DisplayLabelType,
+        data_model_labels: DisplayLabelType = "class_label",
         data_model_graph_pickle: Optional[str] = None,
     ) -> None:
         # Load jsonld
@@ -79,9 +78,8 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes disable=too-m
             self.graph_data_model = data_model_grapher.graph
 
         else:
-            with open(data_model_graph_pickle, "rb") as file:
-                self.graph_data_model = pickle.load(file)
-                data_model_grapher = self.graph_data_model
+            self.graph_data_model = read_pickle(data_model_graph_pickle)
+            data_model_grapher = self.graph_data_model
 
         # Instantiate Data Model Graph Explorer
         self.dmge = DataModelGraphExplorer(self.graph_data_model)
