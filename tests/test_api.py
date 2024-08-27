@@ -1379,7 +1379,7 @@ class TestValidationBenchmark:
 
         # Log and check time and ensure successful response
         logger.warning(
-            f"validation endpiont response time {round(response_time,2)} seconds."
+            f"validation endpoint response time {round(response_time,2)} seconds."
         )
         assert response.status_code == 200
         assert response_time < 5.00

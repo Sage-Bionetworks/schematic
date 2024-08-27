@@ -3,24 +3,24 @@
 # pylint: disable=logging-fstring-interpolation
 # pylint: disable=too-many-lines
 
-from io import StringIO
 import json
 import logging
 import os
+import re
+from io import StringIO
 from os import path
-from typing import Optional, Literal, TypedDict, Union
-from typing_extensions import assert_never
+from typing import Literal, Optional, TypedDict, Union
 
 import networkx as nx  # type: ignore
-from networkx.classes.reportviews import NodeView, EdgeDataView  # type: ignore
 import pandas as pd
+from networkx.classes.reportviews import EdgeDataView, NodeView  # type: ignore
+from typing_extensions import assert_never
 
-from schematic.visualization.attributes_explorer import AttributesExplorer
-from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_parser import DataModelParser
 from schematic.utils.io_utils import load_json
 from schematic.utils.schema_utils import DisplayLabelType
-
+from schematic.visualization.attributes_explorer import AttributesExplorer
 
 logger = logging.getLogger(__name__)
 
@@ -243,6 +243,25 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             cond_req = cond_req_new.replace("If", "").lstrip().rstrip()
         return cond_req
 
+    def _extract_content_within_quotes(self, strings: list[str]) -> list[str]:
+        """
+        Extract content within quotes from a list of strings.
+
+        Args:
+            strings (list): list of strings
+
+        Returns:
+            list: list of strings with content within single quotes
+        """
+        pattern = r"\'(.*?)\'"
+        extracted_content = []
+
+        for string in strings:
+            matches = re.findall(pattern, string)
+            extracted_content.extend(matches)
+
+        return extracted_content
+
     def _get_ca_alias(self, conditional_requirements: list[str]) -> dict[str, str]:
         """Get the alias for each conditional attribute.
 
@@ -258,11 +277,14 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                 value: attribute
         """
         ca_alias: dict[str, str] = {}
+        extracted_conditional_requirements = self._extract_content_within_quotes(
+            conditional_requirements
+        )
 
         # clean up conditional requirements
         conditional_requirements = [
             self._remove_unwanted_characters_from_conditional_statement(req)
-            for req in conditional_requirements
+            for req in extracted_conditional_requirements
         ]
 
         for req in conditional_requirements:
