@@ -23,7 +23,7 @@ class AttributesExplorer:
     def __init__(
         self,
         path_to_jsonld: str,
-        data_model_labels: DisplayLabelType,
+        data_model_labels: DisplayLabelType = "class_label",
         data_model_grapher: Optional[DataModelGraph] = None,
         data_model_graph_explorer: Optional[DataModelGraphExplorer] = None,
         parsed_data_model: Optional[dict] = None,
