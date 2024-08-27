@@ -3,8 +3,8 @@
 from typing import Any
 import json
 import urllib.request
-from schematic import LOADER
 import pickle
+from schematic import LOADER
 
 
 def load_json(file_path: str) -> Any:
