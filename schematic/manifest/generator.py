@@ -1682,7 +1682,7 @@ class ManifestGenerator(object):
                     "Please check your submission and try again."
                 )
 
-        if graph_data_model is not None:
+        if graph_data_model is None:
             if data_model_graph_pickle:
                 """What if pickle file does not fit in memory?"""
                 graph_data_model = read_pickle(data_model_graph_pickle)
