@@ -355,7 +355,6 @@ class TestMetadataModelOperation:
             assert response_dt == ["Patient", "Biospecimen", "BulkRNA-seqAssay"]
 
 
-@pytest.mark.temporary_mark
 @pytest.mark.schematic_api
 class TestUtilsOperation:
     @pytest.mark.parametrize("strict_camel_case", [True, False])

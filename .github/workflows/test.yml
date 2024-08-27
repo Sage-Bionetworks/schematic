@@ -119,15 +119,10 @@ jobs:
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
-        # run: >
-        #   source .venv/bin/activate;
-        #   pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-        #   -m "not (table_operations or rule_benchmark)" --reruns 2 -n auto
-        #   -m "not (schematic_api or table_operations or rule_benchmark)" --reruns 2 -n auto
         run: >
           source .venv/bin/activate;
           pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-          -m "temporary_mark" --reruns 2 -n auto
+          -m "not (rule_benchmark or table_operations)" --reruns 2 -n auto
 
 
       - name: Upload pytest test results
