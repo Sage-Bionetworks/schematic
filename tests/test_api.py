@@ -773,9 +773,9 @@ class TestManifestOperation:
 
         # make sure Filename, entityId, and component get filled with correct value
         assert google_sheet_df["Filename"].to_list() == [
-            "TestDataset-Annotations-v3/Sample_A.txt",
-            "TestDataset-Annotations-v3/Sample_B.txt",
-            "TestDataset-Annotations-v3/Sample_C.txt",
+            "schematic - main/TestDataset-Annotations-v3/Sample_A.txt",
+            "schematic - main/TestDataset-Annotations-v3/Sample_B.txt",
+            "schematic - main/TestDataset-Annotations-v3/Sample_C.txt",
         ]
         assert google_sheet_df["entityId"].to_list() == [
             "syn25614636",
