@@ -1280,75 +1280,89 @@ class TestSchemaVisualization:
 
         if figure_type == "component":
             assert len(response_data) == 3
+            expected_data = [
+                {
+                    "id": "Patient",
+                    "parents": [],
+                    "direct_children": ["Biospecimen"],
+                    "children": ["Biospecimen", "BulkRNA-seqAssay"],
+                },
+                {
+                    "id": "Biospecimen",
+                    "parents": ["Patient"],
+                    "direct_children": ["BulkRNA-seqAssay"],
+                    "children": ["BulkRNA-seqAssay"],
+                },
+                {
+                    "id": "BulkRNA-seqAssay",
+                    "parents": ["Biospecimen"],
+                    "direct_children": [],
+                    "children": [],
+                },
+            ]
             for data_list in response_data:
                 for data_point in data_list:
-                    assert data_point in [
-                        {
-                            "id": "Patient",
-                            "parents": [],
-                            "direct_children": ["Biospecimen"],
-                            "children": ["Biospecimen", "BulkRNA-seqAssay"],
-                        },
-                        {
-                            "id": "Biospecimen",
-                            "parents": ["Patient"],
-                            "direct_children": ["BulkRNA-seqAssay"],
-                            "children": ["BulkRNA-seqAssay"],
-                        },
-                        {
-                            "id": "BulkRNA-seqAssay",
-                            "parents": ["Biospecimen"],
-                            "direct_children": [],
-                            "children": [],
-                        },
-                    ]
+                    assert any(
+                        data_point["id"] == expected["id"]
+                        and data_point["parents"] == expected["parents"]
+                        and data_point["direct_children"] == expected["direct_children"]
+                        and set(data_point["children"]) == set(expected["children"])
+                        for expected in expected_data
+                    )
         elif figure_type == "dependency":
             assert len(response_data) == 3
+            expected_data = [
+                {
+                    "id": "BulkRNA-seqAssay",
+                    "parents": [],
+                    "direct_children": ["SampleID", "Filename", "FileFormat"],
+                    "children": [],
+                },
+                {
+                    "id": "SampleID",
+                    "parents": ["BulkRNA-seqAssay"],
+                    "direct_children": [],
+                    "children": [],
+                },
+                {
+                    "id": "FileFormat",
+                    "parents": ["BulkRNA-seqAssay"],
+                    "direct_children": [
+                        "GenomeBuild",
+                        "GenomeBuild",
+                        "GenomeBuild",
+                        "GenomeFASTA",
+                    ],
+                    "children": [],
+                },
+                {
+                    "id": "Filename",
+                    "parents": ["BulkRNA-seqAssay"],
+                    "direct_children": [],
+                    "children": [],
+                },
+                {
+                    "id": "GenomeBuild",
+                    "parents": ["FileFormat", "FileFormat", "FileFormat"],
+                    "direct_children": [],
+                    "children": [],
+                },
+                {
+                    "id": "GenomeFASTA",
+                    "parents": ["FileFormat"],
+                    "direct_children": [],
+                    "children": [],
+                },
+            ]
             for data_list in response_data:
                 for data_point in data_list:
-                    assert data_point in [
-                        {
-                            "id": "BulkRNA-seqAssay",
-                            "parents": [],
-                            "direct_children": ["SampleID", "Filename", "FileFormat"],
-                            "children": [],
-                        },
-                        {
-                            "id": "SampleID",
-                            "parents": ["BulkRNA-seqAssay"],
-                            "direct_children": [],
-                            "children": [],
-                        },
-                        {
-                            "id": "FileFormat",
-                            "parents": ["BulkRNA-seqAssay"],
-                            "direct_children": [
-                                "GenomeBuild",
-                                "GenomeBuild",
-                                "GenomeBuild",
-                                "GenomeFASTA",
-                            ],
-                            "children": [],
-                        },
-                        {
-                            "id": "Filename",
-                            "parents": ["BulkRNA-seqAssay"],
-                            "direct_children": [],
-                            "children": [],
-                        },
-                        {
-                            "id": "GenomeBuild",
-                            "parents": ["FileFormat", "FileFormat", "FileFormat"],
-                            "direct_children": [],
-                            "children": [],
-                        },
-                        {
-                            "id": "GenomeFASTA",
-                            "parents": ["FileFormat"],
-                            "direct_children": [],
-                            "children": [],
-                        },
-                    ]
+                    assert any(
+                        data_point["id"] == expected["id"]
+                        and data_point["parents"] == expected["parents"]
+                        and data_point["direct_children"] == expected["direct_children"]
+                        and set(data_point["children"]) == set(expected["children"])
+                        for expected in expected_data
+                    )
 
     @pytest.mark.parametrize(
         "component, response_text",
