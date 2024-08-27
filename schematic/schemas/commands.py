@@ -71,7 +71,7 @@ def convert(
     schema: Any,
     data_model_labels: DisplayLabelType,
     output_jsonld: Optional[str],
-    output_type: Optional[str],
+    output_type: Optional[Literal["jsonld", "graph", "all"]],
     output_path: Optional[str],
 ) -> int:
     """
@@ -143,10 +143,7 @@ def convert(
     if output_type in ["graph", "all"]:
         logger.info("Export graph to pickle.")
         output_graph = output_file_no_ext + ".pickle"
-        try:
-            export_graph(graph_data_model, output_graph)
-        except SystemExit as error:
-            raise error
+        export_graph(graph_data_model, output_graph)
 
     if output_type == "graph":
         click.echo(f"Graph created {output_graph}")
