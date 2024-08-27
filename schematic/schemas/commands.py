@@ -3,7 +3,7 @@
 import logging
 import time
 import re
-from typing import get_args, Optional, Any
+from typing import get_args, Optional, Any, Literal
 
 import click
 import click_log  # type: ignore
