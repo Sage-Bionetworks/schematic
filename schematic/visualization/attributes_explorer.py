@@ -39,23 +39,23 @@ class AttributesExplorer:
             self.graph_data_model = read_pickle(data_model_graph_pickle)
 
         # Parse Model
-        if parsed_data_model is not None:
+        if parsed_data_model is None:
             data_model_parser = DataModelParser(
                 path_to_data_model=self.path_to_jsonld,
             )
             parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate DataModelGraph
-        if data_model_grapher is not None:
+        if data_model_grapher is None:
             data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
             # Generate graph
             self.graph_data_model = data_model_grapher.graph
 
         # Instantiate Data Model Graph Explorer
         if data_model_graph_explorer is not None:
-            self.dmge = DataModelGraphExplorer(self.graph_data_model)
-        else:
             self.dmge = data_model_graph_explorer
+        else:
+            self.dmge = DataModelGraphExplorer(self.graph_data_model)
 
         # Instantiate Data Model Json Schema
         self.data_model_js = DataModelJSONSchema(
