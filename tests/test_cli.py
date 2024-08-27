@@ -50,56 +50,31 @@ class TestSchemaCli:
 
     @pytest.mark.parametrize(
         "output_path",
-        [
-            "tests/data/example.model.pickle",
-            "tests/data/example.model.jsonld"
-        ],
-        ids=["output_path_pickle", "output_path_jsonld"]
+        ["tests/data/example.model.pickle", "tests/data/example.model.jsonld"],
+        ids=["output_path_pickle", "output_path_jsonld"],
     )
     @pytest.mark.parametrize(
         "output_type",
-        [
-            "jsonld",
-            "graph",
-            "all"
-        ],
-        ids=["output_type_jsonld", "output_type_graph", "output_type_all"]
+        ["jsonld", "graph", "all"],
+        ids=["output_type_jsonld", "output_type_graph", "output_type_all"],
     )
     def test_schema_convert_cli(self, runner, output_path, output_type):
         model = "tests/data/example.model.csv"
         label_type = "class_label"
         expected = 0
 
-        resultOne = runner.invoke(
-            schema,
-            [
-                "convert",
-                model
-            ]
-        )
+        resultOne = runner.invoke(schema, ["convert", model])
 
         assert resultOne.exit_code == expected
 
         resultTwo = runner.invoke(
-            schema,
-            [
-                "convert",
-                model,
-                "--output_path",
-                output_path
-            ]
+            schema, ["convert", model, "--output_path", output_path]
         )
 
         assert resultTwo.exit_code == expected
 
         resultThree = runner.invoke(
-            schema,
-            [
-                "convert",
-                model,
-                "--output_type",
-                output_type
-            ]
+            schema, ["convert", model, "--output_type", output_type]
         )
 
         assert resultThree.exit_code == expected
@@ -112,8 +87,8 @@ class TestSchemaCli:
                 "--output_type",
                 output_type,
                 "--output_jsonld",
-                output_path
-            ]
+                output_path,
+            ],
         )
 
         assert resultFour.exit_code == expected
@@ -127,7 +102,7 @@ class TestSchemaCli:
                 output_path,
                 "--data_model_labels",
                 label_type,
-            ]
+            ],
         )
 
         assert result.exit_code == expected
@@ -140,22 +115,14 @@ class TestSchemaCli:
                 "--output_jsonld",
                 "tests/data/example.model.pickle",
                 "--output_path",
-                "tests/data/example.model.pickle"
-            ]
+                "tests/data/example.model.pickle",
+            ],
         )
 
         assert resultFive.exit_code == expected
 
         resultSix = runner.invoke(
-            schema,
-            [
-                "convert",
-                model,
-                "--output_jsonld",
-                "",
-                "--output_path",
-                ""
-            ]
+            schema, ["convert", model, "--output_jsonld", "", "--output_path", ""]
         )
 
         assert resultSix.exit_code == expected
