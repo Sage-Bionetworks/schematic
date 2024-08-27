@@ -33,7 +33,9 @@ class AttributesExplorer:
         self.path_to_jsonld = path_to_jsonld
 
         self.jsonld = load_json(self.path_to_jsonld)
-        if data_model_graph_pickle and graph_data_model is not None:
+        if graph_data_model is not None:
+            self.graph_data_model = graph_data_model
+        elif data_model_graph_pickle is not None:
             self.graph_data_model = read_pickle(data_model_graph_pickle)
 
         # Parse Model
