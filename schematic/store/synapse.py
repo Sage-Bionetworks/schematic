@@ -1540,14 +1540,21 @@ class SynapseStorage(BaseStorage):
                 annos.pop(anno_k) if anno_k in annos.keys() else annos
             # Otherwise save annotation as approrpriate
             else:
+                if annotation_keys == "display_label":
+                    node_validation_rules = dmge.get_node_validation_rules(
+                        node_display_name=anno_k
+                    )
+                else:
+                    node_validation_rules = dmge.get_node_validation_rules(
+                        node_label=anno_k
+                    )
+
                 if isinstance(anno_v, float) and np.isnan(anno_v):
                     annos[anno_k] = ""
                 elif (
                     isinstance(anno_v, str)
                     and re.fullmatch(csv_list_regex, anno_v)
-                    and rule_in_rule_list(
-                        "list", dmge.get_node_validation_rules(anno_k)
-                    )
+                    and rule_in_rule_list("list", node_validation_rules)
                 ):
                     annos[anno_k] = anno_v.split(",")
                 else:
