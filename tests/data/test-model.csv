@@ -45,7 +45,7 @@ Check Match Exactly values,,,,,TRUE,DataProperty,,,matchExactlyOne MockComponent
 Check Match None values,,,,,TRUE,DataProperty,,,matchNone MockComponent.checkMatchNonevalues value error
 Check Recommended,,,,,FALSE,DataProperty,,,recommended
 Check Ages,,,,,TRUE,DataProperty,,,protectAges
-MockCombinedRule,,,,,TRUE,DataProperty,,,#MockComponent unique error::regex match ^[a-zA-Z0-9_-]+$ error::required
+MockCombinedRule,,,,,TRUE,DataProperty,,,#AnotherMockComponent unique error::regex match ^[a-zA-Z0-9_-]+$ error::required
 Check Unique,,,,,TRUE,DataProperty,,,unique error
 Check Range,,,,,TRUE,DataProperty,,,inRange 50 100 error
 Check Date,,,,,TRUE,DataProperty,,,date
@@ -54,4 +54,4 @@ MockRDB,,,"Component, MockRDB_id, SourceManifest",,FALSE,DataType,,,
 MockRDB_id,,,,,TRUE,DataProperty,,,int
 SourceManifest,,,,,TRUE,DataProperty,,,
 MockFilename,,,"Component, Filename",,FALSE,DataType,,,
-MockComponent,,,"Component, MockCombinedRule",,FALSE,DataType,,,
+AnotherMockComponent,,,"Component, MockCombinedRule",,FALSE,DataType,,,
