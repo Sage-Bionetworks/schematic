@@ -122,7 +122,7 @@ jobs:
         run: >
           source .venv/bin/activate;
           pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-          -m "not (rule_benchmark)" tests/test_store.py::TestTableOperations::test_createTable[aks_display_label-tcn_display_name]
+          -m "not (rule_benchmark)" tests/test_store.py::TestTableOperations::test_create_table[aks_display_label-tcn_display_name]
           --log-level=DEBUG -v
         # run: >
         #   source .venv/bin/activate;

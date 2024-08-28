@@ -8,7 +8,7 @@ import math
 import os
 import shutil
 import uuid
-from typing import Any, Generator
+from typing import Any, Callable, Generator
 from unittest.mock import AsyncMock, patch
 
 import pandas as pd
