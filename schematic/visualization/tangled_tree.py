@@ -18,7 +18,7 @@ import pandas as pd
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.utils.io_utils import load_json
+from schematic.utils.io_utils import load_json, read_pickle
 from schematic.utils.schema_utils import DisplayLabelType
 
 
@@ -43,14 +43,15 @@ class Node(TypedDict):
     children: list[str]
 
 
-class TangledTree:  # pylint: disable=too-many-instance-attributes
+class TangledTree:  # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     """Tangled tree class"""
 
     def __init__(
         self,
         path_to_json_ld: str,
         figure_type: FigureType,
-        data_model_labels: DisplayLabelType,
+        data_model_labels: DisplayLabelType = "class_label",
+        data_model_graph_pickle: Optional[str] = None,
     ) -> None:
         # Load jsonld
         self.path_to_json_ld = path_to_json_ld
@@ -59,19 +60,26 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
         # Parse schema name
         self.schema_name = path.basename(self.path_to_json_ld).split(".model.jsonld")[0]
 
+        parsed_data_model = None
+
         # Instantiate Data Model Parser
-        data_model_parser = DataModelParser(
-            path_to_data_model=self.path_to_json_ld,
-        )
+        if data_model_graph_pickle is None:
+            data_model_parser = DataModelParser(
+                path_to_data_model=self.path_to_json_ld,
+            )
 
-        # Parse Model
-        parsed_data_model = data_model_parser.parse_model()
+            # Parse Model
+            parsed_data_model = data_model_parser.parse_model()
 
-        # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
+            # Instantiate DataModelGraph
+            data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
-        # Generate graph
-        self.graph_data_model = data_model_grapher.graph
+            # Generate graph
+            self.graph_data_model = data_model_grapher.graph
+
+        else:
+            self.graph_data_model = read_pickle(data_model_graph_pickle)
+            data_model_grapher = self.graph_data_model
 
         # Instantiate Data Model Graph Explorer
         self.dmge = DataModelGraphExplorer(self.graph_data_model)
@@ -91,6 +99,8 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             data_model_grapher=data_model_grapher,
             data_model_graph_explorer=self.dmge,
             parsed_data_model=parsed_data_model,
+            graph_data_model=self.graph_data_model,
+            data_model_graph_pickle=data_model_graph_pickle,
         )
 
         # Create output paths.
