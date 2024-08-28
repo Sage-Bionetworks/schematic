@@ -58,6 +58,7 @@ class SetValidationOutput:
       keys are the synapse id of the target manifest
       values are the values missing from the target manifest
     """
+
     target_manifests: list[str] = field(default_factory=list)
     matching_manifests: list[str] = field(default_factory=list)
     missing_manifest_values: dict[str, pd.Series] = field(default_factory=dict)
@@ -1288,10 +1289,10 @@ class ValidateAttribute(object):
         """Parse validation log, so values can be used to raise warnings/errors
 
         Args:
-            validation_log (dict[str, pd.Series]): 
+            validation_log (dict[str, pd.Series]):
 
         Returns:
-            tuple[list[str], list[str], list[str]]: 
+            tuple[list[str], list[str], list[str]]:
               invalid rows recorded in the validation log,
               invalid values recorded in the validation log,
               a lsit of manifest synapse ids
@@ -1438,7 +1439,7 @@ class ValidateAttribute(object):
     ) -> tuple[list[str], list[str]]:
         """
         Helper to remove NAs from a list of invalid entries (if applicable, and allowed),
-          remove the row too from row_num. 
+          remove the row too from row_num.
         This will make sure errors are not rasied for NA entries unless the value is required.
 
         Args:

@@ -1593,7 +1593,9 @@ class TestUnitValidateAttributeObject:
         assert bool_list1 == [True]
         assert bool_list2 == [False]
 
-    def test__gather_set_warnings_errors_match_atleast_one(self, va_obj: ValidateAttribute) -> None:
+    def test__gather_set_warnings_errors_match_atleast_one(
+        self, va_obj: ValidateAttribute
+    ) -> None:
         """Tests for ValidateAttribute._gather_set_warnings_errors for matchAtLeastOne"""
         val_rule = "matchAtLeastOne Patient.PatientID set error"
 
@@ -1641,7 +1643,9 @@ class TestUnitValidateAttributeObject:
             "manifests: [syn1, syn2]"
         )
 
-    def test__gather_set_warnings_errors_match_exactly_one(self, va_obj: ValidateAttribute) -> None:
+    def test__gather_set_warnings_errors_match_exactly_one(
+        self, va_obj: ValidateAttribute
+    ) -> None:
         """Tests for ValidateAttribute._gather_set_warnings_errors for matchExactlyOne"""
         val_rule = "matchExactlyOne Patient.PatientID set error"
 
@@ -1693,7 +1697,9 @@ class TestUnitValidateAttributeObject:
             "manifests: [syn1, syn2]"
         )
 
-    def test__gather_set_warnings_errors_match_none(self, va_obj: ValidateAttribute) -> None:
+    def test__gather_set_warnings_errors_match_none(
+        self, va_obj: ValidateAttribute
+    ) -> None:
         """Tests for ValidateAttribute._gather_set_warnings_errors for matchNone"""
         val_rule = "matchNone Patient.PatientID set error"
 
