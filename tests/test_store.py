@@ -7,7 +7,7 @@ import logging
 import math
 import os
 import shutil
-from contextlib import contextmanager
+from contextlib import nullcontext as does_not_raise
 from time import sleep
 from typing import Any, Generator
 from unittest.mock import AsyncMock, patch
@@ -30,11 +30,6 @@ from tests.conftest import Helpers
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-
-@contextmanager
-def does_not_raise():
-    yield
 
 
 @pytest.fixture

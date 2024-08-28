@@ -1,17 +1,11 @@
 import logging
-from contextlib import contextmanager
+from contextlib import nullcontext as does_not_raise
 from unittest.mock import patch
 
-from schematic.models.metadata import MetadataModel
 from tests.conftest import metadata_model
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-
-@contextmanager
-def does_not_raise():
-    yield
 
 
 class TestMetadataModel:
