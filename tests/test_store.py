@@ -917,7 +917,7 @@ class TestTableOperations:
             synapse_store, "_generate_table_name", return_value=(table_name, "followup")
         ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
             # WHEN I associate metadata with files
-            manifestId = synapse_store.associateMetadataWithFiles(
+            manifest_id = synapse_store.associateMetadataWithFiles(
                 dmge=dmge,
                 metadataManifestPath=helpers.get_data_path(manifest_path),
                 datasetId=datasetId,
@@ -928,7 +928,7 @@ class TestTableOperations:
                 table_column_names=table_column_names,
                 annotation_keys=annotation_keys,
             )
-            schedule_for_cleanup(CleanupItem(synapse_id=manifestId))
+            schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
 
         # THEN the table should exist
         existing_tables = synapse_store.get_table_info(projectId=projectId)
@@ -972,7 +972,7 @@ class TestTableOperations:
             synapse_store, "_generate_table_name", return_value=(table_name, "followup")
         ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
             # updating file view on synapse takes a long time
-            manifestId = synapse_store.associateMetadataWithFiles(
+            manifest_id = synapse_store.associateMetadataWithFiles(
                 dmge=dmge,
                 metadataManifestPath=helpers.get_data_path(manifest_path),
                 datasetId=datasetId,
@@ -983,7 +983,7 @@ class TestTableOperations:
                 table_column_names=table_column_names,
                 annotation_keys=annotation_keys,
             )
-            schedule_for_cleanup(CleanupItem(synapse_id=manifestId))
+            schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
         existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # Query table for DaystoFollowUp column
@@ -1001,7 +1001,7 @@ class TestTableOperations:
             synapse_store, "_generate_table_name", return_value=(table_name, "followup")
         ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
             # Associate replacement manifest with files
-            manifestId = synapse_store.associateMetadataWithFiles(
+            manifest_id = synapse_store.associateMetadataWithFiles(
                 dmge=dmge,
                 metadataManifestPath=helpers.get_data_path(replacement_manifest_path),
                 datasetId=datasetId,
@@ -1012,7 +1012,7 @@ class TestTableOperations:
                 table_column_names=table_column_names,
                 annotation_keys=annotation_keys,
             )
-            schedule_for_cleanup(CleanupItem(synapse_id=manifestId))
+            schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
         existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # Query table for DaystoFollowUp column
@@ -1053,7 +1053,7 @@ class TestTableOperations:
             synapse_store, "_generate_table_name", return_value=(table_name, "mockrdb")
         ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
             # updating file view on synapse takes a long time
-            manifestId = synapse_store.associateMetadataWithFiles(
+            manifest_id = synapse_store.associateMetadataWithFiles(
                 dmge=dmge,
                 metadataManifestPath=helpers.get_data_path(manifest_path),
                 datasetId=datasetId,
@@ -1064,7 +1064,7 @@ class TestTableOperations:
                 table_column_names="display_name",
                 annotation_keys=annotation_keys,
             )
-            schedule_for_cleanup(CleanupItem(synapse_id=manifestId))
+            schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
         existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # set primary key annotation for uploaded table
@@ -1086,7 +1086,7 @@ class TestTableOperations:
             synapse_store, "_generate_table_name", return_value=(table_name, "mockrdb")
         ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
             # Associate new manifest with files
-            manifestId = synapse_store.associateMetadataWithFiles(
+            manifest_id = synapse_store.associateMetadataWithFiles(
                 dmge=dmge,
                 metadataManifestPath=helpers.get_data_path(replacement_manifest_path),
                 datasetId=datasetId,
@@ -1097,7 +1097,7 @@ class TestTableOperations:
                 table_column_names="display_name",
                 annotation_keys=annotation_keys,
             )
-            schedule_for_cleanup(CleanupItem(synapse_id=manifestId))
+            schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
         existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # Query table for DaystoFollowUp column

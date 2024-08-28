@@ -2455,7 +2455,6 @@ class SynapseStorage(BaseStorage):
 
         # re-query if no datasets found
         if dataset_row.empty:
-            sleep(5)
             self.query_fileview()
             # Subset main file view
             dataset_index = self.storageFileviewTable["id"] == datasetId
@@ -2706,9 +2705,6 @@ class TableOperations:
             for col in cols:
                 current_table.addColumn(col)
             self.synStore.syn.store(current_table, isRestricted=self.restrict)
-
-            # wait for synapse store to finish
-            sleep(1)
 
             # build schema and table from columns and store with necessary restrictions
             schema = Schema(
