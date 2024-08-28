@@ -3,7 +3,7 @@
 import logging
 import time
 import re
-from typing import get_args, Optional, Any
+from typing import get_args, Optional, Any, Literal
 
 import click
 import click_log  # type: ignore
@@ -17,7 +17,7 @@ from schematic.schemas.data_model_jsonld import convert_graph_to_jsonld
 
 from schematic.utils.schema_utils import DisplayLabelType
 from schematic.utils.cli_utils import query_dict
-from schematic.utils.schema_utils import export_schema
+from schematic.utils.schema_utils import export_schema, export_graph
 from schematic.help import schema_commands
 
 logger = logging.getLogger("schematic")
@@ -59,9 +59,21 @@ def schema() -> None:  # use as `schematic model ...`
     metavar="<OUTPUT_PATH>",
     help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
 )
+@click.option("--output_path", help="Alias for --output_jsonld")
+@click.option(
+    "--output_type",
+    "-ot",
+    type=click.Choice(["jsonld", "graph", "all"], case_sensitive=False),
+    default="jsonld",
+    help=query_dict(schema_commands, ("schema", "convert", "output_type")),
+)
 def convert(
-    schema: Any, data_model_labels: DisplayLabelType, output_jsonld: Optional[str]
-) -> None:
+    schema: Any,
+    data_model_labels: DisplayLabelType,
+    output_jsonld: Optional[str],
+    output_type: Optional[Literal["jsonld", "graph", "all"]],
+    output_path: Optional[str],
+) -> int:
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
@@ -114,35 +126,44 @@ def convert(
                 for warning in war:
                     logger.warning(warning)
 
+    if output_path:
+        output_jsonld = output_path
+
+    if output_jsonld is None:
+        output_file_no_ext = re.sub("[.](jsonld|csv|pickle)$", "", schema)
+    else:
+        output_file_no_ext = re.sub("[.](jsonld|csv|pickle)$", "", output_jsonld)
+
+    logger.info(
+        "By default, the JSON-LD output will be stored alongside the first "
+        f"input CSV or JSON-LD file. In this case, it will appear here: '{output_jsonld}'. "
+        "You can use the `--output_jsonld` argument to specify another file path."
+    )
+
+    if output_type in ["graph", "all"]:
+        logger.info("Export graph to pickle.")
+        output_graph = output_file_no_ext + ".pickle"
+        export_graph(graph_data_model, output_graph)
+        if output_type == "graph":
+            click.echo(f"Graph created {output_graph}")
+            return 0
+
     logger.info("Converting data model to JSON-LD")
     jsonld_data_model = convert_graph_to_jsonld(graph=graph_data_model)
 
     # output JSON-LD file alongside CSV file by default, get path.
-    if output_jsonld is None:
-        if not ".jsonld" in schema:
-            csv_no_ext = re.sub("[.]csv$", "", schema)
-            output_jsonld = csv_no_ext + ".jsonld"
-        else:
-            output_jsonld = schema
-
-        logger.info(
-            "By default, the JSON-LD output will be stored alongside the first "
-            f"input CSV or JSON-LD file. In this case, it will appear here: '{output_jsonld}'. "
-            "You can use the `--output_jsonld` argument to specify another file path."
-        )
+    output_jsonld = output_file_no_ext + ".jsonld"
 
     # saving updated schema.org schema
     try:
         export_schema(jsonld_data_model, output_jsonld)
-        click.echo(
+        logger.info(
             f"The Data Model was created and saved to '{output_jsonld}' location."
         )
     except:  # pylint: disable=bare-except
-        click.echo(
-            (
-                f"The Data Model could not be created by using '{output_jsonld}' location. "
-                "Please check your file path again"
-            )
+        logger.error(
+            f"The Data Model could not be created by using '{output_jsonld}' location. "
+            "Please check your file path again"
         )
 
     # get the end time
@@ -151,3 +172,4 @@ def convert(
     # get the execution time
     elapsed_time = time.strftime("%M:%S", time.gmtime(end_time - start_time))
     click.echo(f"Execution time: {elapsed_time} (M:S)")
+    return 0

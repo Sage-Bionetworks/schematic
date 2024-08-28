@@ -7,6 +7,7 @@ import logging
 import os
 import string
 from typing import Literal, Union, Optional
+import pickle
 
 import inflection
 
@@ -500,3 +501,20 @@ def get_json_schema_log_file_path(data_model_path: str, source_node: str) -> str
         prefix = prefix_root
     json_schema_log_file_path = f"{prefix}.{source_node}.schema.json"
     return json_schema_log_file_path
+
+
+def export_graph(schema: dict, file_path: str) -> None:
+    """Write object to a pickle file.
+    Args:
+        schema, dict: A data model graph to export
+        file_path, str: File to create
+    """
+    try:
+        with open(file_path, "wb") as file:
+            pickle.dump(schema, file)
+        logger.info(f"The graph was created and saved to '{file_path}'.")
+    except SystemExit as error:
+        logger.exception(
+            f"The graph failed to save to '{file_path}'. Please check your file path again."
+        )
+        raise error

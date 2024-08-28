@@ -1,6 +1,8 @@
 import os
 
 import pytest
+import pickle
+import json
 from unittest.mock import patch
 
 from click.testing import CliRunner
@@ -46,18 +48,64 @@ class TestSchemaCli:
         except:
             pass
 
-    def test_schema_convert_cli(self, runner, helpers):
-        data_model_csv_path = helpers.get_data_path("example.model.csv")
-
-        output_path = helpers.get_data_path("example.model.jsonld")
-
+    @pytest.mark.parametrize(
+        "output_path",
+        ["tests/data/example.model.pickle", "tests/data/example.model.jsonld"],
+        ids=["output_path_pickle", "output_path_jsonld"],
+    )
+    @pytest.mark.parametrize(
+        "output_type",
+        ["jsonld", "graph", "all"],
+        ids=["output_type_jsonld", "output_type_graph", "output_type_all"],
+    )
+    def test_schema_convert_cli(self, runner, output_path, output_type):
+        model = "tests/data/example.model.csv"
         label_type = "class_label"
+        expected = 0
+
+        resultOne = runner.invoke(schema, ["convert", model])
+
+        assert resultOne.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
+
+        resultTwo = runner.invoke(
+            schema, ["convert", model, "--output_path", output_path]
+        )
+
+        assert resultTwo.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
+
+        resultThree = runner.invoke(
+            schema, ["convert", model, "--output_type", output_type]
+        )
+
+        assert resultThree.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
+
+        resultFour = runner.invoke(
+            schema,
+            [
+                "convert",
+                model,
+                "--output_type",
+                output_type,
+                "--output_jsonld",
+                output_path,
+            ],
+        )
+
+        assert resultFour.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
 
         result = runner.invoke(
             schema,
             [
                 "convert",
-                data_model_csv_path,
+                model,
                 "--output_jsonld",
                 output_path,
                 "--data_model_labels",
@@ -65,13 +113,33 @@ class TestSchemaCli:
             ],
         )
 
-        assert result.exit_code == 0
+        assert result.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
 
-        expected_substr = (
-            "The Data Model was created and saved to " f"'{output_path}' location."
+        resultFive = runner.invoke(
+            schema,
+            [
+                "convert",
+                model,
+                "--output_jsonld",
+                "tests/data/example.model.pickle",
+                "--output_path",
+                "tests/data/example.model.pickle",
+            ],
         )
 
-        assert expected_substr in result.output
+        assert resultFive.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
+
+        resultSix = runner.invoke(
+            schema, ["convert", model, "--output_jsonld", "", "--output_path", ""]
+        )
+
+        assert resultSix.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
 
     # get manifest by default
     # by default this should download the manifest as a CSV file

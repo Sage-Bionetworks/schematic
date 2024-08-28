@@ -48,6 +48,7 @@ from schematic.exceptions import (
 
 from schematic.utils import cli_utils, df_utils, general, io_utils, validate_utils
 from schematic.utils.df_utils import load_df
+import pickle
 from schematic.utils.general import (
     calculate_datetime,
     check_synapse_cache_size,
@@ -71,6 +72,7 @@ from schematic.utils.schema_utils import (
     extract_component_validation_rules,
     check_for_duplicate_components,
     get_json_schema_log_file_path,
+    export_graph,
 )
 
 
@@ -1025,6 +1027,50 @@ class TestSchemaUtils:
             else:
                 return
         return
+
+
+class TestExportGraph:
+    def test_export_graph_success(self, tmp_path):
+        # Create a temporary file path
+        file_path = tmp_path / "graph.pickle"
+
+        # Define a sample schema
+        schema = {
+            "node1": {"edges": ["node2", "node3"]},
+            "node2": {"edges": []},
+            "node3": {"edges": []},
+        }
+
+        # Call the export_graph function
+        export_graph(schema, str(file_path))
+
+        # Check if the file exists
+        assert file_path.exists()
+
+        # Load the saved schema from the file
+        with open(file_path, "rb") as file:
+            saved_schema = pickle.load(file)
+
+        # Check if the saved schema is equal to the original schema
+        assert saved_schema == schema
+
+    def test_export_graph_failure(self, tmp_path, caplog):
+        # Create a temporary file path
+        file_path = tmp_path / "graph.pickle"
+
+        # Define a sample schema
+        schema = {
+            "node1": {"edges": ["node2", "node3"]},
+            "node2": {"edges": []},
+            "node3": {"edges": []},
+        }
+
+        # Set the file path to a non-existent directory
+        invalid_file_path = str(tmp_path / "non_existent_directory" / "graph.pickle")
+
+        # Call the export_graph function with an invalid file path
+        with pytest.raises(Exception):
+            export_graph(schema, invalid_file_path)
 
     @pytest.mark.parametrize(
         "data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values())

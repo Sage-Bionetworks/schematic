@@ -216,6 +216,7 @@ schema_commands = {
             "output_jsonld": (
                 "Path to where the generated JSON-LD file needs to be outputted."
             ),
+            "output_type": ("Output format to export the schema."),
             "data_model_labels": DATA_MODEL_LABELS_HELP,
         }
     }
