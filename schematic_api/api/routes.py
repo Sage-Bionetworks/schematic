@@ -37,6 +37,7 @@ from schematic.utils.schema_utils import (
     DisplayLabelType,
     get_property_label_from_display_name,
 )
+from schematic.utils.io_utils import read_pickle
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.visualization.tangled_tree import TangledTree
 
@@ -317,6 +318,8 @@ def get_temp_pickle(graph_url):
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pickle") as tmp_file:
             shutil.copyfileobj(response, tmp_file)
 
+    return tmp_file.name
+
 def get_temp_model_path(schema_url):
     # Get model type:
     model_extension = pathlib.Path(schema_url).suffix.replace(".", "").upper()
@@ -367,7 +370,8 @@ def get_manifest_route(
     config_handler(asset_view=asset_view)
 
     if graph_url is not None:
-        graph_url = get_temp_model_path(graph_url)
+        graph_path = get_temp_model_path(graph_url)
+        graph_data_model=read_pickle(graph_path)
 
     all_results = ManifestGenerator.create_manifests(
         path_to_data_model=schema_url,
@@ -379,7 +383,7 @@ def get_manifest_route(
         strict=strict_validation,
         use_annotations=use_annotations,
         data_model_labels=data_model_labels,
-        data_model_graph_pickle=graph_url
+        graph_data_model=graph_data_model
     )
 
     # return an excel file if output_format is set to "excel"
@@ -412,7 +416,6 @@ def validate_manifest_route(
     json_str=None,
     asset_view=None,
     project_scope=None,
-    graph_url=None,
 ):
     # Access token now stored in request header
     access_token = get_access_token()
@@ -440,8 +443,6 @@ def validate_manifest_route(
 
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
-    if graph_url is not None:
-        graph_url = get_temp_model_path(graph_url)
 
     metadata_model = MetadataModel(
         inputMModelLocation=data_model,
@@ -455,7 +456,6 @@ def validate_manifest_route(
         restrict_rules=restrict_rules,
         project_scope=project_scope,
         access_token=access_token,
-        data_model_graph_pickle=graph_url
     )
 
     res_dict = {"errors": errors, "warnings": warnings}
@@ -478,7 +478,6 @@ def submit_manifest_route(
     table_column_names=None,
     annotation_keys=None,
     file_annotations_upload: bool = True,
-    graph_url=None,
 ):
     # call config_handler()
     config_handler(asset_view=asset_view)
@@ -511,8 +510,6 @@ def submit_manifest_route(
 
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
-    if graph_url is not None:
-        graph_url = get_temp_model_path(graph_url)
 
     if not table_column_names:
         table_column_names = "class_label"
@@ -538,7 +535,6 @@ def submit_manifest_route(
         table_column_names=table_column_names,
         annotation_keys=annotation_keys,
         file_annotations_upload=file_annotations_upload,
-        data_model_graph_pickle=graph_url
     )
 
     return manifest_id
