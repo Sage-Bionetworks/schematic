@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 import sys
-from typing import Generator
+from typing import Callable, Generator, Set
 
 import pytest
 from dotenv import load_dotenv
@@ -13,6 +13,7 @@ from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExp
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import load_df
+from tests.utils import CleanupAction, CleanupItem
 
 load_dotenv()
 
@@ -149,3 +150,39 @@ def DMGE(helpers: Helpers) -> DataModelGraphExplorer:
     """Fixture to instantiate a DataModelGraphExplorer object."""
     dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
     return dmge
+
+
+@pytest.fixture(scope="function")
+def schedule_for_cleanup(
+    request, synapse_store: SynapseStorage
+) -> Callable[[CleanupItem], None]:
+    """Returns a closure that takes an item that should be scheduled for cleanup."""
+
+    items: Set[CleanupItem] = set()
+
+    def _append_cleanup(item: CleanupItem):
+        print(f"Added {item} to cleanup list")
+        items.add(item)
+
+    def cleanup_scheduled_items() -> None:
+        for item in items:
+            print(f"Cleaning up {item}")
+            try:
+                if item.action == CleanupAction.DELETE:
+                    if item.synapse_id:
+                        synapse_store.syn.delete(obj=item.synapse_id)
+                    elif item.name and item.parent_id:
+                        synapse_id = synapse_store.syn.findEntityId(
+                            name=item.name, parent=item.parent_id
+                        )
+                        synapse_store.syn.delete(obj=synapse_id)
+                    else:
+                        logger.error(f"Invalid cleanup item {item}")
+                else:
+                    logger.error(f"Invalid cleanup action {item.action}")
+            except Exception as ex:
+                logger.exception(f"Failed to delete {item}")
+
+    request.addfinalizer(cleanup_scheduled_items)
+
+    return _append_cleanup

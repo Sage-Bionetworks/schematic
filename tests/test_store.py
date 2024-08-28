@@ -7,7 +7,7 @@ import logging
 import math
 import os
 import shutil
-from time import sleep
+import uuid
 from typing import Any, Generator
 from unittest.mock import AsyncMock, patch
 
@@ -26,6 +26,7 @@ from schematic.store.base import BaseStorage
 from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
 from schematic.utils.general import check_synapse_cache_size
 from tests.conftest import Helpers
+from tests.utils import CleanupItem
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -73,14 +74,18 @@ def projectId(synapse_store, helpers):
 
 
 @pytest.fixture
-def datasetId(synapse_store, projectId, helpers):
+def datasetId(
+    synapse_store: SynapseStorage, projectId: str, helpers, schedule_for_cleanup
+):
     dataset = Folder(
-        name="Table Test  Dataset " + helpers.get_python_version(),
+        name="Table Test Dataset "
+        + helpers.get_python_version()
+        + f" integration_test_{str(uuid.uuid4()).replace('-', '_')}",
         parent=projectId,
     )
 
     datasetId = synapse_store.syn.store(dataset).id
-    sleep(5)
+    schedule_for_cleanup(CleanupItem(synapse_id=datasetId))
     yield datasetId
 
 
@@ -889,51 +894,45 @@ class TestTableOperations:
         ["display_label", "class_label"],
         ids=["aks_display_label", "aks_class_label"],
     )
-    def test_createTable(
+    def test_create_table(
         self,
-        helpers,
-        synapse_store,
-        config: Configuration,
-        projectId,
-        datasetId,
-        table_column_names,
-        annotation_keys,
+        helpers: Helpers,
+        synapse_store: SynapseStorage,
+        projectId: str,
+        datasetId: str,
+        table_column_names: str,
+        annotation_keys: str,
         dmge: DataModelGraphExplorer,
-    ):
+        schedule_for_cleanup: Callable[[CleanupItem], None],
+    ) -> None:
+        # GIVEN a table to create
         table_manipulation = None
+        table_name = f"followup_synapse_storage_manifest_table_integration_test_{str(uuid.uuid4()).replace('-', '_')}"
+        schedule_for_cleanup(CleanupItem(name=table_name, parent_id=projectId))
 
-        # Check if FollowUp table exists if so delete
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
-
-        table_name = "followup_synapse_storage_manifest_table"
-
-        if table_name in existing_tables.keys():
-            synapse_store.syn.delete(existing_tables[table_name])
-            sleep(10)
-            # assert no table
-            assert (
-                table_name
-                not in synapse_store.get_table_info(projectId=projectId).keys()
-            )
-
-        # associate metadata with files
+        # AND a manifest to associate metadata with files
         manifest_path = "mock_manifests/table_manifest.csv"
-        # updating file view on synapse takes a long time
-        manifestId = synapse_store.associateMetadataWithFiles(
-            dmge=dmge,
-            metadataManifestPath=helpers.get_data_path(manifest_path),
-            datasetId=datasetId,
-            manifest_record_type="table_and_file",
-            hideBlanks=True,
-            restrict_manifest=False,
-            table_manipulation=table_manipulation,
-            table_column_names=table_column_names,
-            annotation_keys=annotation_keys,
-        )
+
+        with patch.object(
+            synapse_store, "_generate_table_name", return_value=(table_name, "followup")
+        ):
+            # WHEN I associate metadata with files
+            manifestId = synapse_store.associateMetadataWithFiles(
+                dmge=dmge,
+                metadataManifestPath=helpers.get_data_path(manifest_path),
+                datasetId=datasetId,
+                manifest_record_type="table_and_file",
+                hideBlanks=True,
+                restrict_manifest=False,
+                table_manipulation=table_manipulation,
+                table_column_names=table_column_names,
+                annotation_keys=annotation_keys,
+            )
+            schedule_for_cleanup(CleanupItem(synapse_id=manifestId))
+
+        # THEN the table should exist
         existing_tables = synapse_store.get_table_info(projectId=projectId)
 
-        # clean Up
-        synapse_store.syn.delete(manifestId)
         # assert table exists
         assert table_name in existing_tables.keys()
 
@@ -947,20 +946,21 @@ class TestTableOperations:
         ["display_label", "class_label"],
         ids=["aks_display_label", "aks_class_label"],
     )
-    def test_replaceTable(
+    def test_replace_table(
         self,
-        helpers,
-        synapse_store,
-        config: Configuration,
-        projectId,
-        datasetId,
-        table_column_names,
-        annotation_keys,
+        helpers: Helpers,
+        synapse_store: SynapseStorage,
+        projectId: str,
+        datasetId: str,
+        table_column_names: str,
+        annotation_keys: str,
         dmge: DataModelGraphExplorer,
-    ):
+        schedule_for_cleanup: Callable[[str], None],
+    ) -> None:
         table_manipulation = "replace"
 
-        table_name = "followup_synapse_storage_manifest_table"
+        table_name = f"followup_synapse_storage_manifest_table_integration_test_{str(uuid.uuid4()).replace('-', '_')}"
+        schedule_for_cleanup(CleanupItem(name=table_name, parent_id=projectId))
         manifest_path = "mock_manifests/table_manifest.csv"
         replacement_manifest_path = "mock_manifests/table_manifest_replacement.csv"
         column_of_interest = "DaystoFollowUp"
@@ -968,121 +968,111 @@ class TestTableOperations:
         # Check if FollowUp table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId=projectId)
 
-        if table_name in existing_tables.keys():
-            synapse_store.syn.delete(existing_tables[table_name])
-            sleep(10)
-            # assert no table
-            assert (
-                table_name
-                not in synapse_store.get_table_info(projectId=projectId).keys()
+        with patch.object(
+            synapse_store, "_generate_table_name", return_value=(table_name, "followup")
+        ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
+            # updating file view on synapse takes a long time
+            manifestId = synapse_store.associateMetadataWithFiles(
+                dmge=dmge,
+                metadataManifestPath=helpers.get_data_path(manifest_path),
+                datasetId=datasetId,
+                manifest_record_type="table_and_file",
+                hideBlanks=True,
+                restrict_manifest=False,
+                table_manipulation=table_manipulation,
+                table_column_names=table_column_names,
+                annotation_keys=annotation_keys,
             )
-
-        # updating file view on synapse takes a long time
-        manifestId = synapse_store.associateMetadataWithFiles(
-            dmge=dmge,
-            metadataManifestPath=helpers.get_data_path(manifest_path),
-            datasetId=datasetId,
-            manifest_record_type="table_and_file",
-            hideBlanks=True,
-            restrict_manifest=False,
-            table_manipulation=table_manipulation,
-            table_column_names=table_column_names,
-            annotation_keys=annotation_keys,
-        )
+            schedule_for_cleanup(CleanupItem(synapse_id=manifestId))
         existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # Query table for DaystoFollowUp column
-        tableId = existing_tables[table_name]
-        daysToFollowUp = (
-            synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {tableId}")
+        table_id = existing_tables[table_name]
+        days_to_follow_up = (
+            synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
             .asDataFrame()
             .squeeze()
         )
 
         # assert Days to FollowUp == 73
-        assert (daysToFollowUp == 73).all()
+        assert (days_to_follow_up == 73).all()
 
-        # Associate replacement manifest with files
-        manifestId = synapse_store.associateMetadataWithFiles(
-            dmge=dmge,
-            metadataManifestPath=helpers.get_data_path(replacement_manifest_path),
-            datasetId=datasetId,
-            manifest_record_type="table_and_file",
-            hideBlanks=True,
-            restrict_manifest=False,
-            table_manipulation=table_manipulation,
-            table_column_names=table_column_names,
-            annotation_keys=annotation_keys,
-        )
+        with patch.object(
+            synapse_store, "_generate_table_name", return_value=(table_name, "followup")
+        ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
+            # Associate replacement manifest with files
+            manifestId = synapse_store.associateMetadataWithFiles(
+                dmge=dmge,
+                metadataManifestPath=helpers.get_data_path(replacement_manifest_path),
+                datasetId=datasetId,
+                manifest_record_type="table_and_file",
+                hideBlanks=True,
+                restrict_manifest=False,
+                table_manipulation=table_manipulation,
+                table_column_names=table_column_names,
+                annotation_keys=annotation_keys,
+            )
+            schedule_for_cleanup(CleanupItem(synapse_id=manifestId))
         existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # Query table for DaystoFollowUp column
-        tableId = existing_tables[table_name]
-        daysToFollowUp = (
-            synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {tableId}")
+        table_id = existing_tables[table_name]
+        days_to_follow_up = (
+            synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
             .asDataFrame()
             .squeeze()
         )
 
         # assert Days to FollowUp == 89 now and not 73
-        assert (daysToFollowUp == 89).all()
-        # delete table
-        synapse_store.syn.delete(tableId)
+        assert (days_to_follow_up == 89).all()
 
     @pytest.mark.parametrize(
         "annotation_keys",
         ["display_label", "class_label"],
         ids=["aks_display_label", "aks_class_label"],
     )
-    def test_upsertTable(
+    def test_upsert_table(
         self,
-        helpers,
-        synapse_store,
-        config: Configuration,
-        projectId,
-        datasetId,
-        annotation_keys,
+        helpers: Helpers,
+        synapse_store: SynapseStorage,
+        projectId: str,
+        datasetId: str,
+        annotation_keys: str,
         dmge: DataModelGraphExplorer,
+        schedule_for_cleanup: Callable[[str], None],
     ):
         table_manipulation = "upsert"
 
-        table_name = "MockRDB_synapse_storage_manifest_table".lower()
+        table_name = f"MockRDB_synapse_storage_manifest_table_integration_test_{str(uuid.uuid4()).replace('-', '_')}".lower()
+        schedule_for_cleanup(CleanupItem(name=table_name, parent_id=projectId))
         manifest_path = "mock_manifests/rdb_table_manifest.csv"
         replacement_manifest_path = "mock_manifests/rdb_table_manifest_upsert.csv"
         column_of_interest = "MockRDB_id,SourceManifest"
 
-        # Check if FollowUp table exists if so delete
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
-
-        if table_name in existing_tables.keys():
-            synapse_store.syn.delete(existing_tables[table_name])
-            sleep(10)
-            # assert no table
-            assert (
-                table_name
-                not in synapse_store.get_table_info(projectId=projectId).keys()
+        with patch.object(
+            synapse_store, "_generate_table_name", return_value=(table_name, "mockrdb")
+        ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
+            # updating file view on synapse takes a long time
+            manifestId = synapse_store.associateMetadataWithFiles(
+                dmge=dmge,
+                metadataManifestPath=helpers.get_data_path(manifest_path),
+                datasetId=datasetId,
+                manifest_record_type="table_and_file",
+                hideBlanks=True,
+                restrict_manifest=False,
+                table_manipulation=table_manipulation,
+                table_column_names="display_name",
+                annotation_keys=annotation_keys,
             )
-
-        # updating file view on synapse takes a long time
-        manifestId = synapse_store.associateMetadataWithFiles(
-            dmge=dmge,
-            metadataManifestPath=helpers.get_data_path(manifest_path),
-            datasetId=datasetId,
-            manifest_record_type="table_and_file",
-            hideBlanks=True,
-            restrict_manifest=False,
-            table_manipulation=table_manipulation,
-            table_column_names="display_name",
-            annotation_keys=annotation_keys,
-        )
+            schedule_for_cleanup(CleanupItem(synapse_id=manifestId))
         existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # set primary key annotation for uploaded table
-        tableId = existing_tables[table_name]
+        table_id = existing_tables[table_name]
 
         # Query table for DaystoFollowUp column
         table_query = (
-            synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {tableId}")
+            synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
             .asDataFrame()
             .squeeze()
         )
@@ -1092,24 +1082,28 @@ class TestTableOperations:
         assert table_query.MockRDB_id.size == 4
         assert table_query["SourceManifest"][3] == "Manifest1"
 
-        # Associate new manifest with files
-        manifestId = synapse_store.associateMetadataWithFiles(
-            dmge=dmge,
-            metadataManifestPath=helpers.get_data_path(replacement_manifest_path),
-            datasetId=datasetId,
-            manifest_record_type="table_and_file",
-            hideBlanks=True,
-            restrict_manifest=False,
-            table_manipulation=table_manipulation,
-            table_column_names="display_name",
-            annotation_keys=annotation_keys,
-        )
+        with patch.object(
+            synapse_store, "_generate_table_name", return_value=(table_name, "mockrdb")
+        ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
+            # Associate new manifest with files
+            manifestId = synapse_store.associateMetadataWithFiles(
+                dmge=dmge,
+                metadataManifestPath=helpers.get_data_path(replacement_manifest_path),
+                datasetId=datasetId,
+                manifest_record_type="table_and_file",
+                hideBlanks=True,
+                restrict_manifest=False,
+                table_manipulation=table_manipulation,
+                table_column_names="display_name",
+                annotation_keys=annotation_keys,
+            )
+            schedule_for_cleanup(CleanupItem(synapse_id=manifestId))
         existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # Query table for DaystoFollowUp column
-        tableId = existing_tables[table_name]
+        table_id = existing_tables[table_name]
         table_query = (
-            synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {tableId}")
+            synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
             .asDataFrame()
             .squeeze()
         )
@@ -1118,8 +1112,6 @@ class TestTableOperations:
         assert table_query.MockRDB_id.max() == 8
         assert table_query.MockRDB_id.size == 8
         assert table_query["SourceManifest"][3] == "Manifest2"
-        # delete table
-        synapse_store.syn.delete(tableId)
 
 
 class TestDownloadManifest:
