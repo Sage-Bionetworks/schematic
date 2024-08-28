@@ -7,6 +7,7 @@ import logging
 import math
 import os
 import shutil
+import tempfile
 import uuid
 from typing import Any, Callable, Generator
 from unittest.mock import AsyncMock, patch
@@ -18,6 +19,7 @@ from synapseclient import EntityViewSchema, Folder
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
 from synapseclient.models import Annotations
+from synapseclient.models import Folder as FolderModel
 
 from schematic.configuration.configuration import Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
@@ -913,13 +915,30 @@ class TestTableOperations:
         # AND a manifest to associate metadata with files
         manifest_path = "mock_manifests/table_manifest.csv"
 
+        # AND a copy of all the folders in the manifest. Added to the dataset directory for easy cleanup
+        manifest = helpers.get_data_frame(manifest_path)
+        for index, row in manifest.iterrows():
+            folder_id = row["entityId"]
+            folder_copy = FolderModel(id=folder_id).copy(
+                parent_id=datasetId, synapse_client=synapse_store.syn
+            )
+            schedule_for_cleanup(CleanupItem(synapse_id=folder_copy.id))
+            manifest.at[index, "entityId"] = folder_copy.id
+
         with patch.object(
             synapse_store, "_generate_table_name", return_value=(table_name, "followup")
-        ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
+        ), patch.object(
+            synapse_store, "getDatasetProject", return_value=projectId
+        ), tempfile.NamedTemporaryFile(
+            delete=True, suffix=".csv"
+        ) as tmp_file:
+            # Write the DF to a temporary file to prevent modifying the original
+            manifest.to_csv(tmp_file.name, index=False)
+
             # WHEN I associate metadata with files
             manifest_id = synapse_store.associateMetadataWithFiles(
                 dmge=dmge,
-                metadataManifestPath=helpers.get_data_path(manifest_path),
+                metadataManifestPath=tmp_file.name,
                 datasetId=datasetId,
                 manifest_record_type="table_and_file",
                 hideBlanks=True,
@@ -965,16 +984,35 @@ class TestTableOperations:
         replacement_manifest_path = "mock_manifests/table_manifest_replacement.csv"
         column_of_interest = "DaystoFollowUp"
 
+        # AND a copy of all the folders in the manifest. Added to the dataset directory for easy cleanup
+        manifest = helpers.get_data_frame(manifest_path)
+        replacement_manifest = helpers.get_data_frame(replacement_manifest_path)
+        for index, row in manifest.iterrows():
+            folder_id = row["entityId"]
+            folder_copy = FolderModel(id=folder_id).copy(
+                parent_id=datasetId, synapse_client=synapse_store.syn
+            )
+            schedule_for_cleanup(CleanupItem(synapse_id=folder_copy.id))
+            manifest.at[index, "entityId"] = folder_copy.id
+            replacement_manifest.at[index, "entityId"] = folder_copy.id
+
         # Check if FollowUp table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         with patch.object(
             synapse_store, "_generate_table_name", return_value=(table_name, "followup")
-        ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
+        ), patch.object(
+            synapse_store, "getDatasetProject", return_value=projectId
+        ), tempfile.NamedTemporaryFile(
+            delete=True, suffix=".csv"
+        ) as tmp_file:
+            # Write the DF to a temporary file to prevent modifying the original
+            manifest.to_csv(tmp_file.name, index=False)
+
             # updating file view on synapse takes a long time
             manifest_id = synapse_store.associateMetadataWithFiles(
                 dmge=dmge,
-                metadataManifestPath=helpers.get_data_path(manifest_path),
+                metadataManifestPath=tmp_file.name,
                 datasetId=datasetId,
                 manifest_record_type="table_and_file",
                 hideBlanks=True,
@@ -999,11 +1037,18 @@ class TestTableOperations:
 
         with patch.object(
             synapse_store, "_generate_table_name", return_value=(table_name, "followup")
-        ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
+        ), patch.object(
+            synapse_store, "getDatasetProject", return_value=projectId
+        ), tempfile.NamedTemporaryFile(
+            delete=True, suffix=".csv"
+        ) as tmp_file:
+            # Write the DF to a temporary file to prevent modifying the original
+            replacement_manifest.to_csv(tmp_file.name, index=False)
+
             # Associate replacement manifest with files
             manifest_id = synapse_store.associateMetadataWithFiles(
                 dmge=dmge,
-                metadataManifestPath=helpers.get_data_path(replacement_manifest_path),
+                metadataManifestPath=tmp_file.name,
                 datasetId=datasetId,
                 manifest_record_type="table_and_file",
                 hideBlanks=True,
@@ -1051,11 +1096,18 @@ class TestTableOperations:
 
         with patch.object(
             synapse_store, "_generate_table_name", return_value=(table_name, "mockrdb")
-        ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
+        ), patch.object(
+            synapse_store, "getDatasetProject", return_value=projectId
+        ), tempfile.NamedTemporaryFile(
+            delete=True, suffix=".csv"
+        ) as tmp_file:
+            # Copy to a temporary file to prevent modifying the original
+            shutil.copyfile(helpers.get_data_path(manifest_path), tmp_file.name)
+
             # updating file view on synapse takes a long time
             manifest_id = synapse_store.associateMetadataWithFiles(
                 dmge=dmge,
-                metadataManifestPath=helpers.get_data_path(manifest_path),
+                metadataManifestPath=tmp_file.name,
                 datasetId=datasetId,
                 manifest_record_type="table_and_file",
                 hideBlanks=True,
@@ -1084,11 +1136,20 @@ class TestTableOperations:
 
         with patch.object(
             synapse_store, "_generate_table_name", return_value=(table_name, "mockrdb")
-        ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
+        ), patch.object(
+            synapse_store, "getDatasetProject", return_value=projectId
+        ), tempfile.NamedTemporaryFile(
+            delete=True, suffix=".csv"
+        ) as tmp_file:
+            # Copy to a temporary file to prevent modifying the original
+            shutil.copyfile(
+                helpers.get_data_path(replacement_manifest_path), tmp_file.name
+            )
+
             # Associate new manifest with files
             manifest_id = synapse_store.associateMetadataWithFiles(
                 dmge=dmge,
-                metadataManifestPath=helpers.get_data_path(replacement_manifest_path),
+                metadataManifestPath=tmp_file.name,
                 datasetId=datasetId,
                 manifest_record_type="table_and_file",
                 hideBlanks=True,
