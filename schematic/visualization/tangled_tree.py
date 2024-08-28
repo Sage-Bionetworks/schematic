@@ -276,15 +276,12 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                 attr = "".join(attr.split())
                 ali = self._strip_double_quotes(ali)
                 ca_alias[ali] = attr
-                print("this is going through")
             else:
-                print("else statement")
                 attr, alias_str = req.split(" is ")
                 alias_lst = alias_str.split(" OR ")
                 for elem in alias_lst:
                     elem = self._strip_double_quotes(elem)
                     ca_alias[elem] = attr
-        print("ca alias", ca_alias)
         return ca_alias
 
     def _gather_component_dependency_info(
