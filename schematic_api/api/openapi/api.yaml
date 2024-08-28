@@ -312,15 +312,6 @@ paths:
           description: List, a subset of the projects contained within the asset view that are relevant for the current operation. Speeds up some operations that interact with Synapse. Relevant for validating manifests involving cross-manifest validation, but optional.
           example: ['syn23643250', 'syn47218127', 'syn47218347']
           required: false
-        - in: query
-          name: graph_url
-          schema:
-            type: string
-            nullable: true
-          description: Graph Pickle URL
-          example: >-
-            url_to_graph_pickle_in_github
-          required: false
 
       operationId: schematic_api.api.routes.validate_manifest_route
       responses:
@@ -476,15 +467,6 @@ paths:
             nullable: false
           description: List, a subset of the projects contained within the asset view that are relevant for the current operation. Speeds up some operations that interact with Synapse.
           example: ['syn23643250', 'syn47218127', 'syn47218347']
-          required: false
-        - in: query
-          name: graph_url
-          schema:
-            type: string
-            nullable: true
-          description: Graph Pickle URL
-          example: >-
-            url_to_graph_pickle_in_github
           required: false
       operationId: schematic_api.api.routes.submit_manifest_route
       responses:
