@@ -1,6 +1,5 @@
 import logging
 from contextlib import nullcontext as does_not_raise
-from unittest.mock import patch
 
 from tests.conftest import metadata_model
 
