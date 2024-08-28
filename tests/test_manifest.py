@@ -38,7 +38,12 @@ def generate_graph_data_model(helpers, path_to_data_model, data_model_labels):
 
     return graph_data_model
 
-
+@pytest.fixture(params=["example.model.jsonld",
+                        "example.model.csv"])
+def data_model_path(request, helpers):
+    data_model_path = helpers.get_data_path(request.param)
+    yield data_model_path
+    
 @pytest.fixture(
     params=[
         (True, "Patient"),
@@ -53,21 +58,19 @@ def generate_graph_data_model(helpers, path_to_data_model, data_model_labels):
         "skip_annotations-BulkRNAseqAssay",
     ],
 )
-def manifest_generator(helpers, request):
+def manifest_generator(helpers, request, data_model_path):
     # Rename request param for readability
     use_annotations, data_type = request.param
-
-    path_to_data_model = helpers.get_data_path("example.model.jsonld")
 
     # Get graph data model
     graph_data_model = generate_graph_data_model(
         helpers,
-        path_to_data_model=path_to_data_model,
+        path_to_data_model=data_model_path,
         data_model_labels="class_label",
     )
 
     manifest_generator = ManifestGenerator(
-        path_to_data_model=path_to_data_model,
+        path_to_data_model=data_model_path,
         graph=graph_data_model,
         root=data_type,
         use_annotations=use_annotations,
@@ -121,20 +124,19 @@ def app():
 
 
 class TestManifestGenerator:
-    def test_init(self, helpers):
-        path_to_data_model = helpers.get_data_path("example.model.jsonld")
+    def test_init(self, helpers, data_model_path):
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
             helpers,
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             data_model_labels="class_label",
         )
 
         generator = ManifestGenerator(
             graph=graph_data_model,
             title="mock_title",
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             root="Patient",
         )
 
@@ -155,23 +157,22 @@ class TestManifestGenerator:
         ],
         ids=["DataType not found in Schema", "No DataType provided"],
     )
-    def test_missing_root_error(self, helpers, data_type, exc, exc_message):
+    def test_missing_root_error(self, helpers, data_type, exc, exc_message, data_model_path):
         """
         Test for errors when either no DataType is provided or when a DataType is provided but not found in the schema
         """
-        path_to_data_model = helpers.get_data_path("example.model.jsonld")
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
             helpers,
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             data_model_labels="class_label",
         )
 
         # A LookupError should be raised and include message when the component cannot be found
         with pytest.raises(exc) as e:
             generator = ManifestGenerator(
-                path_to_data_model=helpers.get_data_path("example.model.jsonld"),
+                path_to_data_model=data_model_path,
                 graph=graph_data_model,
                 root=data_type,
                 use_annotations=False,
@@ -236,7 +237,7 @@ class TestManifestGenerator:
     @pytest.mark.parametrize("sheet_url", [None, True, False])
     @pytest.mark.parametrize("dataset_id", [None, "syn27600056"])
     @pytest.mark.google_credentials_needed
-    def test_get_manifest_excel(self, helpers, sheet_url, output_format, dataset_id):
+    def test_get_manifest_excel(self, helpers, sheet_url, output_format, dataset_id, data_model_path):
         """
         Purpose: the goal of this test is to make sure that output_format parameter and sheet_url parameter could function well;
         In addition, this test also makes sure that getting a manifest with an existing dataset_id is working
@@ -246,17 +247,16 @@ class TestManifestGenerator:
         data_type = "Patient"
 
         # Get path to data model
-        path_to_data_model = helpers.get_data_path("example.model.jsonld")
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
             helpers,
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             data_model_labels="class_label",
         )
 
         generator = ManifestGenerator(
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             graph=graph_data_model,
             root=data_type,
             use_annotations=False,
@@ -296,7 +296,7 @@ class TestManifestGenerator:
         [("syn27600056"), ("syn52397659")],
         ids=["Annotations present", "Annotations not present"],
     )
-    def test_get_manifest_no_annos(self, helpers, dataset_id):
+    def test_get_manifest_no_annos(self, helpers, dataset_id, data_model_path):
         """
         Test to cover manifest generation under the case where use_annotations is True
         but there are no annotations in the dataset
@@ -305,19 +305,16 @@ class TestManifestGenerator:
         # Use a non-file based DataType
         data_type = "Patient"
 
-        # Get path to data model
-        path_to_data_model = helpers.get_data_path("example.model.jsonld")
-
         # Get graph data model
         graph_data_model = generate_graph_data_model(
             helpers,
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             data_model_labels="class_label",
         )
 
         # Instantiate object with use_annotations set to True
         generator = ManifestGenerator(
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             graph=graph_data_model,
             root=data_type,
             use_annotations=True,
@@ -418,23 +415,21 @@ class TestManifestGenerator:
                 {"Filename": [], "Component": []},
                 {"Component": ["BulkRNA-seqAssay"]},
             ),
-        ],
+        ], 
     )
     def test_add_root_to_component_without_additional_metadata(
-        self, helpers, data_type, required_metadata_fields, expected
+        self, helpers, data_type, required_metadata_fields, expected, data_model_path
     ):
-        # Get path to data model
-        path_to_data_model = helpers.get_data_path("example.model.jsonld")
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
             helpers,
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             data_model_labels="class_label",
         )
 
         manifest_generator = ManifestGenerator(
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             graph=graph_data_model,
             root=data_type,
         )
@@ -460,20 +455,18 @@ class TestManifestGenerator:
         ],
     )
     def test_add_root_to_component_with_additional_metadata(
-        self, helpers, additional_metadata
+        self, helpers, additional_metadata, data_model_path
     ):
-        # Get path to data model
-        path_to_data_model = helpers.get_data_path("example.model.jsonld")
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
             helpers,
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             data_model_labels="class_label",
         )
 
         manifest_generator = ManifestGenerator(
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             graph=graph_data_model,
             root="BulkRNA-seqAssay",
         )
@@ -538,7 +531,7 @@ class TestManifestGenerator:
         ],
     )
     @pytest.mark.google_credentials_needed
-    def test_update_dataframe_with_existing_df(self, helpers, existing_manifest):
+    def test_update_dataframe_with_existing_df(self, helpers, existing_manifest, data_model_path):
         """
         Tests the following discrepancies with an existing schema:
             - schema has matching columns to existing_df
@@ -549,18 +542,16 @@ class TestManifestGenerator:
         data_type = "Patient"
         sheet_url = True
 
-        path_to_data_model = helpers.get_data_path("example.model.jsonld")
-
         # Get graph data model
         graph_data_model = generate_graph_data_model(
             helpers,
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             data_model_labels="class_label",
         )
 
         # Instantiate the Manifest Generator.
         generator = ManifestGenerator(
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             graph=graph_data_model,
             root=data_type,
             use_annotations=False,
@@ -684,23 +675,22 @@ class TestManifestGenerator:
         "return_output", ["Mock excel file path", "Mock google sheet link"]
     )
     def test_create_single_manifest(
-        self, simple_manifest_generator, helpers, return_output
+        self, simple_manifest_generator, helpers, return_output, data_model_path
     ):
         with patch(
             "schematic.manifest.generator.ManifestGenerator.get_manifest",
             return_value=return_output,
         ):
-            json_ld_path = helpers.get_data_path("example.model.jsonld")
             data_type = "Patient"
 
             graph_data_model = generate_graph_data_model(
                 helpers,
-                path_to_data_model=json_ld_path,
+                path_to_data_model=data_model_path,
                 data_model_labels="class_label",
             )
 
             result = simple_manifest_generator.create_single_manifest(
-                path_to_data_model=json_ld_path,
+                path_to_data_model=data_model_path,
                 graph_data_model=graph_data_model,
                 data_type=data_type,
                 output_format="google_sheet",
@@ -712,15 +702,14 @@ class TestManifestGenerator:
         "test_data_types", [["Patient", "Biospecimen"], ["all manifests"]]
     )
     def test_create_manifests_raise_errors(
-        self, simple_manifest_generator, helpers, test_data_types
+        self, simple_manifest_generator, helpers, test_data_types, data_model_path
     ):
         with pytest.raises(ValueError) as exception_info:
-            json_ld_path = helpers.get_data_path("example.model.jsonld")
             data_types = test_data_types
             dataset_ids = ["syn123456"]
 
             simple_manifest_generator.create_manifests(
-                path_to_data_model=json_ld_path,
+                path_to_data_model=data_model_path,
                 data_types=data_types,
                 dataset_ids=dataset_ids,
                 output_format="google_sheet",
@@ -746,14 +735,15 @@ class TestManifestGenerator:
         test_data_types,
         dataset_ids,
         expected_result,
+        data_model_path
     ):
         with patch(
             "schematic.manifest.generator.ManifestGenerator.create_single_manifest",
             return_value="mock google sheet link",
         ):
-            json_ld_path = helpers.get_data_path("example.model.jsonld")
+            
             all_results = simple_manifest_generator.create_manifests(
-                path_to_data_model=json_ld_path,
+                path_to_data_model=data_model_path,
                 data_types=test_data_types,
                 dataset_ids=dataset_ids,
                 output_format="google_sheet",
@@ -767,20 +757,18 @@ class TestManifestGenerator:
         [("Biospecimen", "syn61260107"), ("BulkRNA-seqAssay", "syn61374924")],
         ids=["Record based", "File based"],
     )
-    def test_get_manifest_with_files(self, helpers, component, datasetId):
+    def test_get_manifest_with_files(self, helpers, component, datasetId, data_model_path):
         """
         Test to ensure that when generating a record based manifset that has files in the dataset that the files are not added to the manifest as well
         """
-        path_to_data_model = helpers.get_data_path("example.model.jsonld")
-
         graph_data_model = generate_graph_data_model(
             helpers,
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             data_model_labels="class_label",
         )
 
         generator = ManifestGenerator(
-            path_to_data_model=path_to_data_model,
+            path_to_data_model=data_model_path,
             graph=graph_data_model,
             root=component,
             use_annotations=True,
