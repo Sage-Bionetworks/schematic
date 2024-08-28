@@ -1098,6 +1098,11 @@ def fixture_cross_val_df3() -> Generator[DataFrame, None, None]:
 
 @pytest.fixture(name="cross_val_col_names")
 def fixture_cross_val_col_names() -> Generator[dict[str, str], None, None]:
+    """
+    Yields:
+        Generator[dict[str, str], None, None]: A dicitonary of column names
+          keys are the label, and values are the display name
+    """
     column_names = {
         "patientid": "PatientID",
         "component": "component",
@@ -1118,7 +1123,7 @@ def fixture_va_obj(
 class TestUnitValidateAttributeObject:
     """Testing for ValidateAttribute class with all Synapse calls mocked"""
 
-    def test_cross_validation1(
+    def test_cross_validation_set_rules(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
         """Tests for cross manifest validation for set rules"""
@@ -1200,10 +1205,10 @@ class TestUnitValidateAttributeObject:
             )
             assert e
 
-    def test_cross_validation2(
+    def test_cross_validation_value_rules(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
-        """Tests for cross manifest validation"""
+        """Tests for cross manifest validation for value rules"""
         val_rule_one = "matchAtLeastOne Patient.PatientID value error"
         val_rule_two = "matchExactlyOne Patient.PatientID value error"
         val_rule_three = "matchNone Patient.PatientID value error"
@@ -1272,7 +1277,7 @@ class TestUnitValidateAttributeObject:
             )
             assert e
 
-    def test__run_validation_across_target_manifests1(
+    def test__run_validation_across_target_manifests_failures(
         self,
         va_obj: ValidateAttribute,
         cross_val_df1: DataFrame,
@@ -1326,7 +1331,7 @@ class TestUnitValidateAttributeObject:
 
             assert result == "values not recorded in targets stored"
 
-    def test__run_validation_across_target_manifests2(
+    def test__run_validation_across_target_manifests_value_rules(
         self,
         va_obj: ValidateAttribute,
         cross_val_df1: DataFrame,
@@ -1355,7 +1360,7 @@ class TestUnitValidateAttributeObject:
             assert isinstance(validation_store[2], Series)
             assert validation_store[2].empty
 
-    def test__run_validation_across_target_manifests3(
+    def test__run_validation_across_target_manifests_set_rules(
         self,
         va_obj: ValidateAttribute,
         cross_val_df1: DataFrame,
@@ -1588,7 +1593,7 @@ class TestUnitValidateAttributeObject:
         assert bool_list1 == [True]
         assert bool_list2 == [False]
 
-    def test__gather_set_warnings_errors1(self, va_obj: ValidateAttribute) -> None:
+    def test__gather_set_warnings_errors_match_atleast_one(self, va_obj: ValidateAttribute) -> None:
         """Tests for ValidateAttribute._gather_set_warnings_errors for matchAtLeastOne"""
         val_rule = "matchAtLeastOne Patient.PatientID set error"
 
@@ -1620,7 +1625,8 @@ class TestUnitValidateAttributeObject:
         assert not warnings
         assert len(errors) == 1
         assert errors[0] == (
-            "Rule: matchAtLeastOne set; Attribute: PatientID; Manifest did not match any target manifests: [syn1]"
+            "Rule: matchAtLeastOne set; Attribute: PatientID; Manifest did not match any target "
+            "manifests: [syn1]"
         )
 
         errors, warnings = va_obj._gather_set_warnings_errors(
@@ -1631,10 +1637,11 @@ class TestUnitValidateAttributeObject:
         assert not warnings
         assert len(errors) == 1
         assert errors[0] == (
-            "Rule: matchAtLeastOne set; Attribute: PatientID; Manifest did not match any target manifests: [syn1, syn2]"
+            "Rule: matchAtLeastOne set; Attribute: PatientID; Manifest did not match any target "
+            "manifests: [syn1, syn2]"
         )
 
-    def test__gather_set_warnings_errors2(self, va_obj: ValidateAttribute) -> None:
+    def test__gather_set_warnings_errors_match_exactly_one(self, va_obj: ValidateAttribute) -> None:
         """Tests for ValidateAttribute._gather_set_warnings_errors for matchExactlyOne"""
         val_rule = "matchExactlyOne Patient.PatientID set error"
 
@@ -1656,7 +1663,8 @@ class TestUnitValidateAttributeObject:
         assert not warnings
         assert len(errors) == 1
         assert errors[0] == (
-            "Rule: matchExactlyOne set; Attribute: PatientID; Manifest did not match any target manifests: [syn1]"
+            "Rule: matchExactlyOne set; Attribute: PatientID; Manifest did not match any target "
+            "manifests: [syn1]"
         )
 
         errors, warnings = va_obj._gather_set_warnings_errors(
@@ -1667,7 +1675,8 @@ class TestUnitValidateAttributeObject:
         assert not warnings
         assert len(errors) == 1
         assert errors[0] == (
-            "Rule: matchExactlyOne set; Attribute: PatientID; Manifest did not match any target manifests: [syn1, syn2]"
+            "Rule: matchExactlyOne set; Attribute: PatientID; Manifest did not match any target "
+            "manifests: [syn1, syn2]"
         )
 
         errors, warnings = va_obj._gather_set_warnings_errors(
@@ -1680,10 +1689,11 @@ class TestUnitValidateAttributeObject:
         assert not warnings
         assert len(errors) == 1
         assert errors[0] == (
-            "Rule: matchExactlyOne set; Attribute: PatientID; Manifest matched multiple manifests: [syn1, syn2]"
+            "Rule: matchExactlyOne set; Attribute: PatientID; Manifest matched multiple "
+            "manifests: [syn1, syn2]"
         )
 
-    def test__gather_set_warnings_errors3(self, va_obj: ValidateAttribute) -> None:
+    def test__gather_set_warnings_errors_match_none(self, va_obj: ValidateAttribute) -> None:
         """Tests for ValidateAttribute._gather_set_warnings_errors for matchNone"""
         val_rule = "matchNone Patient.PatientID set error"
 
@@ -1697,7 +1707,8 @@ class TestUnitValidateAttributeObject:
         assert not warnings
         assert len(errors) == 1
         assert errors[0] == (
-            "Rule: matchNone set; Attribute: PatientID; Manifest matched one or more manifests: [syn1]"
+            "Rule: matchNone set; Attribute: PatientID; Manifest matched one or more "
+            "manifests: [syn1]"
         )
 
         errors, warnings = va_obj._gather_set_warnings_errors(
