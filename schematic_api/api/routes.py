@@ -312,6 +312,7 @@ def get_temp_csv(schema_url):
     # get path to temporary csv file
     return tmp_file.name
 
+
 def get_temp_pickle(graph_url):
     # retrieve a pickle via URL and store it in a temporary location
     with urllib.request.urlopen(graph_url) as response:
@@ -319,6 +320,7 @@ def get_temp_pickle(graph_url):
             shutil.copyfileobj(response, tmp_file)
 
     return tmp_file.name
+
 
 def get_temp_model_path(schema_url):
     # Get model type:
@@ -371,7 +373,7 @@ def get_manifest_route(
 
     if graph_url is not None:
         graph_path = get_temp_model_path(graph_url)
-        graph_data_model=read_pickle(graph_path)
+        graph_data_model = read_pickle(graph_path)
 
     all_results = ManifestGenerator.create_manifests(
         path_to_data_model=schema_url,
@@ -383,7 +385,7 @@ def get_manifest_route(
         strict=strict_validation,
         use_annotations=use_annotations,
         data_model_labels=data_model_labels,
-        graph_data_model=graph_data_model
+        graph_data_model=graph_data_model,
     )
 
     # return an excel file if output_format is set to "excel"
