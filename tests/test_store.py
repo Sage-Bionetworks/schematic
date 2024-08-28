@@ -915,7 +915,7 @@ class TestTableOperations:
 
         with patch.object(
             synapse_store, "_generate_table_name", return_value=(table_name, "followup")
-        ):
+        ), patch.object(synapse_store, "getDatasetProject", return_value=projectId):
             # WHEN I associate metadata with files
             manifestId = synapse_store.associateMetadataWithFiles(
                 dmge=dmge,
