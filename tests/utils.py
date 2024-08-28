@@ -9,6 +9,10 @@ class CleanupAction(str, Enum):
 
     DELETE = "delete"
 
+    def __str__(self) -> str:
+        # See https://peps.python.org/pep-0663/
+        return self.value
+
 
 @dataclass(frozen=True)
 class CleanupItem:

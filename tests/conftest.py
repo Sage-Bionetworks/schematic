@@ -175,7 +175,8 @@ def schedule_for_cleanup(
                         synapse_id = synapse_store.syn.findEntityId(
                             name=item.name, parent=item.parent_id
                         )
-                        synapse_store.syn.delete(obj=synapse_id)
+                        if synapse_id:
+                            synapse_store.syn.delete(obj=synapse_id)
                     else:
                         logger.error(f"Invalid cleanup item {item}")
                 else:
