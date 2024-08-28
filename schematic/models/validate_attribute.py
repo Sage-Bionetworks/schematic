@@ -1895,25 +1895,20 @@ class ValidateAttribute(object):
         # Check if a target manifest has been found, if so do not export validation_store
         if not target_attribute_in_manifest:
             return (start_time, target_attribute_in_manifest)
-        elif sum(target_manifest_empty) > 0:
+        if sum(target_manifest_empty) > 0:
             return (start_time, "values not recorded in targets stored")
-        else:
-            # Store outputs according to the scope for which they are used.
-            if "set" in rule_scope:
-                validation_store = validation_store
-
-            elif "value" in rule_scope:
-                # From the concatenated target column, for value scope, run validation
-                (
-                    missing_values,
-                    duplicated_values,
-                    repeat_values,
-                ) = self._run_validation_across_targets_value(
-                    manifest_col=manifest_col,
-                    concatenated_target_column=target_column,
-                )
-                validation_store = (missing_values, duplicated_values, repeat_values)
-            return (start_time, validation_store)
+        if "value" in rule_scope:
+            # From the concatenated target column, for value scope, run validation
+            (
+                missing_values,
+                duplicated_values,
+                repeat_values,
+            ) = self._run_validation_across_targets_value(
+                manifest_col=manifest_col,
+                concatenated_target_column=target_column,
+            )
+            validation_store = (missing_values, duplicated_values, repeat_values)
+        return (start_time, validation_store)
 
     def cross_validation(
         self,
@@ -1959,7 +1954,8 @@ class ValidateAttribute(object):
         errors: list[str] = []
         warnings: list[str] = []
 
-        # If there are no target_columns to validate against, assume this is the first manifest being submitted and
+        # If there are no target_columns to validate against,
+        # assume this is the first manifest being submitted and
         # allow users to just submit.
         if isinstance(validation_output, bool) and not validation_output:
             warnings = GenerateError.generate_no_cross_warning(
@@ -1973,22 +1969,19 @@ class ValidateAttribute(object):
                 dmge=self.dmge, attribute_name=manifest_col.name, val_rule=val_rule
             )
 
-        elif isinstance(validation_output, SetValidationOutput):
-            if "set" in rule_scope:
-                assert isinstance(validation_output, SetValidationOutput)
-                errors, warnings = self._gather_set_warnings_errors(
-                    val_rule=val_rule,
-                    source_attribute=str(manifest_col.name),
-                    validation_output=validation_output,
-                )
+        elif isinstance(validation_output, SetValidationOutput) and "set" in rule_scope:
+            errors, warnings = self._gather_set_warnings_errors(
+                val_rule=val_rule,
+                source_attribute=str(manifest_col.name),
+                validation_output=validation_output,
+            )
 
-        elif isinstance(validation_output, tuple):
-            if "value" in rule_scope:
-                errors, warnings = self._gather_value_warnings_errors(
-                    val_rule=val_rule,
-                    source_attribute=str(manifest_col.name),
-                    value_validation_store=validation_output,
-                )
+        elif isinstance(validation_output, tuple) and "value" in rule_scope:
+            errors, warnings = self._gather_value_warnings_errors(
+                val_rule=val_rule,
+                source_attribute=str(manifest_col.name),
+                value_validation_store=validation_output,
+            )
 
         logger.debug(f"cross manifest validation time {perf_counter()-start_time}")
         return errors, warnings
