@@ -378,7 +378,7 @@ class SynapseStorage(BaseStorage):
             except SynapseHTTPError as ex:
                 str_message = str(ex).replace("\n", "")
                 if "trash" in str_message or "does not exist" in str_message:
-                    logging.warning(str_message, exc_info=True)
+                    logging.warning(str_message)
                     return None
                 else:
                     raise ex
@@ -394,7 +394,7 @@ class SynapseStorage(BaseStorage):
             except SynapseHTTPError as ex:
                 str_message = str(ex).replace("\n", "")
                 if "trash" in str_message or "does not exist" in str_message:
-                    logging.warning(str_message, exc_info=True)
+                    logging.warning(str_message)
                     return None
                 else:
                     raise ex
