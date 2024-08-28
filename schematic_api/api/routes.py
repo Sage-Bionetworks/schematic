@@ -371,6 +371,7 @@ def get_manifest_route(
 
     config_handler(asset_view=asset_view)
 
+    graph_data_model = None
     if graph_url is not None:
         graph_path = get_temp_model_path(graph_url)
         graph_data_model = read_pickle(graph_path)
