@@ -16,6 +16,7 @@ import pandas as pd
 from networkx.classes.reportviews import EdgeDataView, NodeView  # type: ignore
 from typing_extensions import assert_never
 
+from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.utils.io_utils import load_json, read_pickle
 from schematic.utils.schema_utils import DisplayLabelType
