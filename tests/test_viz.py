@@ -1,9 +1,9 @@
-from io import StringIO
 import json
-import os
-import pandas as pd
 import logging
+import os
+from io import StringIO
 
+import pandas as pd
 import pytest
 
 from schematic.visualization.attributes_explorer import AttributesExplorer
@@ -156,6 +156,31 @@ class TestVisualization:
         # Check the extracted text matches expected text.
         assert actual_patient_text == expected_patient_text
         assert actual_Biospecimen_text == expected_Biospecimen_text
+
+    @pytest.mark.parametrize(
+        "conditional_requirements, expected",
+        [
+            # Test case 1: Multiple file formats
+            (
+                [
+                    "['File Format is \"BAM\"', 'File Format is \"CRAM\"', 'File Format is \"CSV/TSV\"']"
+                ],
+                {"BAM": "FileFormat", "CRAM": "FileFormat", "CSV/TSV": "FileFormat"},
+            ),
+            # Test case 2: Single file format
+            (["['File Format is \"CRAM\"']"], {"CRAM": "FileFormat"}),
+            # Test case 3: with "OR" keyword
+            (
+                ['[\'File Format is "BAM" OR "CRAM" OR "CSV/TSV"\']'],
+                {"BAM": "File Format", "CRAM": "File Format", "CSV/TSV": "File Format"},
+            ),
+        ],
+    )
+    def test_get_ca_alias(
+        self, helpers, tangled_tree, conditional_requirements, expected
+    ):
+        ca_alias = tangled_tree._get_ca_alias(conditional_requirements)
+        assert ca_alias == expected
 
     def test_layers(self, helpers, tangled_tree):
         layers_str = tangled_tree.get_tangled_tree_layers(save_file=False)[0]

@@ -3,24 +3,23 @@
 # pylint: disable=logging-fstring-interpolation
 # pylint: disable=too-many-lines
 
-from io import StringIO
+import ast
 import json
 import logging
 import os
+from io import StringIO
 from os import path
-from typing import Optional, Literal, TypedDict, Union
-from typing_extensions import assert_never
+from typing import Literal, Optional, TypedDict, Union
 
 import networkx as nx  # type: ignore
-from networkx.classes.reportviews import NodeView, EdgeDataView  # type: ignore
 import pandas as pd
+from networkx.classes.reportviews import EdgeDataView, NodeView  # type: ignore
+from typing_extensions import assert_never
 
-from schematic.visualization.attributes_explorer import AttributesExplorer
-from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.utils.io_utils import load_json, read_pickle
 from schematic.utils.schema_utils import DisplayLabelType
-
+from schematic.visualization.attributes_explorer import AttributesExplorer
 
 logger = logging.getLogger(__name__)
 
@@ -268,11 +267,16 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes disable=too-m
                 value: attribute
         """
         ca_alias: dict[str, str] = {}
+        extracted_conditional_requirements = []
+        for conditional_requirement in conditional_requirements:
+            extracted_conditional_requirements.extend(
+                ast.literal_eval(node_or_string=conditional_requirement)
+            )
 
         # clean up conditional requirements
         conditional_requirements = [
             self._remove_unwanted_characters_from_conditional_statement(req)
-            for req in conditional_requirements
+            for req in extracted_conditional_requirements
         ]
 
         for req in conditional_requirements:
