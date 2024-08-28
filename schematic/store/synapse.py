@@ -378,7 +378,7 @@ class SynapseStorage(BaseStorage):
             except SynapseHTTPError as ex:
                 str_message = str(ex).replace("\n", "")
                 if "trash" in str_message or "does not exist" in str_message:
-                    logging.warning(str_message)
+                    logging.warning(str_message, exc_info=True)
                     return None
                 else:
                     raise ex
@@ -394,7 +394,7 @@ class SynapseStorage(BaseStorage):
             except SynapseHTTPError as ex:
                 str_message = str(ex).replace("\n", "")
                 if "trash" in str_message or "does not exist" in str_message:
-                    logging.warning(str_message)
+                    logging.warning(str_message, exc_info=True)
                     return None
                 else:
                     raise ex
@@ -1748,8 +1748,10 @@ class SynapseStorage(BaseStorage):
 
     def _generate_table_name(self, manifest):
         """Helper function to generate a table name for upload to synapse.
+
         Args:
             Manifest loaded as a pd.Dataframe
+
         Returns:
             table_name (str): Name of the table to load
             component_name (str): Name of the manifest component (if applicable)
@@ -2197,9 +2199,9 @@ class SynapseStorage(BaseStorage):
         # Upload manifest to synapse based on user input (manifest_record_type)
         if manifest_record_type == "file_only":
             manifest_synapse_file_id = self.upload_manifest_as_csv(
-                dmge,
-                manifest,
-                metadataManifestPath,
+                dmge=dmge,
+                manifest=manifest,
+                metadataManifestPath=metadataManifestPath,
                 datasetId=datasetId,
                 restrict=restrict_manifest,
                 hideBlanks=hideBlanks,
@@ -2210,9 +2212,9 @@ class SynapseStorage(BaseStorage):
             )
         elif manifest_record_type == "table_and_file":
             manifest_synapse_file_id = self.upload_manifest_as_table(
-                dmge,
-                manifest,
-                metadataManifestPath,
+                dmge=dmge,
+                manifest=manifest,
+                metadataManifestPath=metadataManifestPath,
                 datasetId=datasetId,
                 table_name=table_name,
                 component_name=component_name,
@@ -2226,9 +2228,9 @@ class SynapseStorage(BaseStorage):
             )
         elif manifest_record_type == "file_and_entities":
             manifest_synapse_file_id = self.upload_manifest_as_csv(
-                dmge,
-                manifest,
-                metadataManifestPath,
+                dmge=dmge,
+                manifest=manifest,
+                metadataManifestPath=metadataManifestPath,
                 datasetId=datasetId,
                 restrict=restrict_manifest,
                 hideBlanks=hideBlanks,
@@ -2239,9 +2241,9 @@ class SynapseStorage(BaseStorage):
             )
         elif manifest_record_type == "table_file_and_entities":
             manifest_synapse_file_id = self.upload_manifest_combo(
-                dmge,
-                manifest,
-                metadataManifestPath,
+                dmge=dmge,
+                manifest=manifest,
+                metadataManifestPath=metadataManifestPath,
                 datasetId=datasetId,
                 table_name=table_name,
                 component_name=component_name,
