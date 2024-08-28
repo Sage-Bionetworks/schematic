@@ -1,8 +1,11 @@
 import logging
 import os
 import re
+<<<<<<< HEAD
 from typing import Generator
 from unittest.mock import patch
+=======
+>>>>>>> develop
 
 import pytest
 from pandas import Series, DataFrame, concat
@@ -21,12 +24,15 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 @pytest.fixture(name="dmge")
 def DMGE(helpers) -> Generator[DataModelGraphExplorer, None, None]:
     dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
     yield dmge
 
 
+=======
+>>>>>>> develop
 def get_metadataModel(helpers, model_name: str):
     metadataModel = MetadataModel(
         inputMModelLocation=helpers.get_data_path(model_name),
@@ -1006,7 +1012,7 @@ class TestManifestValidation:
 
 
 class TestValidateAttributeObject:
-    def test_login(self, helpers, dmge):
+    def test_login(self, dmge: DataModelGraphExplorer) -> None:
         """
         Tests that sequential logins update the view query as necessary
         """

@@ -547,7 +547,8 @@ class SynapseStorage(BaseStorage):
         Raises:
             ValueError: Dataset ID not found.
         """
-        # select all files within a given storage dataset folder (top level folder in a Synapse storage project or folder marked with contentType = 'dataset')
+        # select all files within a given storage dataset folder (top level folder in
+        # a Synapse storage project or folder marked with contentType = 'dataset')
         walked_path = synapseutils.walk(
             self.syn, datasetId, includeTypes=["folder", "file"]
         )
@@ -557,25 +558,36 @@ class SynapseStorage(BaseStorage):
         file_list = []
 
         # iterate over all results
-        for dirpath, dirname, filenames in walked_path:
+        for dirpath, _, path_filenames in walked_path:
             # iterate over all files in a folder
-            for filename in filenames:
-                if (not "manifest" in filename[0] and not fileNames) or (
-                    fileNames and filename[0] in fileNames
+            for path_filename in path_filenames:
+                if ("manifest" not in path_filename[0] and not fileNames) or (
+                    fileNames and path_filename[0] in fileNames
                 ):
-                    # don't add manifest to list of files unless it is specified in the list of specified fileNames; return all found files
+                    # don't add manifest to list of files unless it is specified in the
+                    # list of specified fileNames; return all found files
                     # except the manifest if no fileNames have been specified
                     # TODO: refactor for clarity/maintainability
 
                     if fullpath:
                         # append directory path to filename
-                        filename = (
-                            project_name + "/" + dirpath[0] + "/" + filename[0],
-                            filename[1],
-                        )
+                        if dirpath[0].startswith(f"{project_name}/"):
+                            path_filename = (
+                                dirpath[0] + "/" + path_filename[0],
+                                path_filename[1],
+                            )
+                        else:
+                            path_filename = (
+                                project_name
+                                + "/"
+                                + dirpath[0]
+                                + "/"
+                                + path_filename[0],
+                                path_filename[1],
+                            )
 
                     # add file name file id tuple, rearranged so that id is first and name follows
-                    file_list.append(filename[::-1])
+                    file_list.append(path_filename[::-1])
 
         return file_list
 
@@ -655,8 +667,8 @@ class SynapseStorage(BaseStorage):
                 manifest_data = ManifestDownload.download_manifest(
                     md, newManifestName=newManifestName, manifest_df=manifest
                 )
-                ## TO DO: revisit how downstream code handle manifest_data. If the downstream code would break when manifest_data is an empty string,
-                ## then we should catch the error here without returning an empty string.
+                # TO DO: revisit how downstream code handle manifest_data. If the downstream code would break when manifest_data is an empty string,
+                # then we should catch the error here without returning an empty string.
                 if not manifest_data:
                     logger.debug(
                         f"No manifest data returned. Please check if you have successfully downloaded manifest: {manifest_syn_id}"
@@ -1461,7 +1473,7 @@ class SynapseStorage(BaseStorage):
             etag=annotation_dict["annotations"]["etag"],
             id=annotation_dict["annotations"]["id"],
         )
-        return await annotation_class.store_async(self.syn)
+        return await annotation_class.store_async(synapse_client=self.syn)
 
     @async_missing_entity_handler
     async def format_row_annotations(
@@ -3024,6 +3036,8 @@ class DatasetFileView:
         for col in int_columns:
             # Coercing to string because NaN is a floating point value
             # and cannot exist alongside integers in a column
-            to_int_fn = lambda x: "" if np.isnan(x) else str(int(x))
+            def to_int_fn(x):
+                return "" if np.isnan(x) else str(int(x))
+
             self.table[col] = self.table[col].apply(to_int_fn)
         return self.table

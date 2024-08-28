@@ -392,7 +392,10 @@ class TestSynapseStorage:
                 [("test_file", "syn126")],
             ),
             (
-                (os.path.join("parent_folder", "test_folder"), "syn124"),
+                (
+                    os.path.join("schematic - main", "parent_folder", "test_folder"),
+                    "syn124",
+                ),
                 [],
                 [("test_file_2", "syn125")],
             ),
@@ -641,7 +644,7 @@ class TestSynapseStorage:
         ) as mock_store_async:
             result = await synapse_store.store_async_annotation(annos_dict)
 
-            mock_store_async.assert_called_once_with(synapse_store.syn)
+            mock_store_async.assert_called_once_with(synapse_client=synapse_store.syn)
             assert result == expected_dict
             assert isinstance(result, Annotations)
 

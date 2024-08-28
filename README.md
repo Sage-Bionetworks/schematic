@@ -2,17 +2,28 @@
 [![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop) [![Documentation Status](https://readthedocs.org/projects/sage-schematic/badge/?version=develop)](https://sage-schematic.readthedocs.io/en/develop/?badge=develop) [![PyPI version](https://badge.fury.io/py/schematicpy.svg)](https://badge.fury.io/py/schematicpy)
 
 # Table of contents
+- [Schematic](#schematic)
+- [Table of contents](#table-of-contents)
 - [Introduction](#introduction)
 - [Installation](#installation)
   - [Installation Requirements](#installation-requirements)
   - [Installation guide for Schematic CLI users](#installation-guide-for-schematic-cli-users)
   - [Installation guide for developers/contributors](#installation-guide-for-developerscontributors)
+    - [Development environment setup](#development-environment-setup)
+    - [Development process instruction](#development-process-instruction)
+    - [Example For REST API ](#example-for-rest-api-)
+      - [Use file path of `config.yml` to run API endpoints:](#use-file-path-of-configyml-to-run-api-endpoints)
+      - [Use content of `config.yml` and `schematic_service_account_creds.json`as an environment variable to run API endpoints:](#use-content-of-configyml-and-schematic_service_account_credsjsonas-an-environment-variable-to-run-api-endpoints)
+    - [Example For Schematic on mac/linux ](#example-for-schematic-on-maclinux-)
+    - [Example For Schematic on Windows ](#example-for-schematic-on-windows-)
 - [Other Contribution Guidelines](#other-contribution-guidelines)
-    - [Update readthedocs documentation](#update-readthedocs-documentation)
+  - [Updating readthedocs documentation](#updating-readthedocs-documentation)
+  - [Update toml file and lock file](#update-toml-file-and-lock-file)
+  - [Reporting bugs or feature requests](#reporting-bugs-or-feature-requests)
 - [Command Line Usage](#command-line-usage)
 - [Testing](#testing)
   - [Updating Synapse test resources](#updating-synapse-test-resources)
-- [Code Style](#code-style)
+- [Code style](#code-style)
 - [Contributors](#contributors)
 
 # Introduction
@@ -90,13 +101,15 @@ This command will install the dependencies based on what we specify in poetry.lo
 *Note*: If you won't interact with Synapse, please ignore this section.
 
 There are two main configuration files that need to be edited:
-config.yml
-and [synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/v2.3.0-rc/synapseclient/.synapseConfig)
+- config.yml
+- [synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/master/synapseclient/.synapseConfig)
 
 <strong>Configure .synapseConfig File</strong>
 
-Download a copy of the ``.synapseConfig`` file, open the file in the
-editor of your choice and edit the `username` and `authtoken` attribute under the `authentication` section 
+Download a copy of the ``.synapseConfig`` file, open the file in the editor of your 
+choice and edit the `username` and `authtoken` attribute under the `authentication` 
+section. **Note:** You must place the file at the root of the project like
+`{project_root}/.synapseConfig` in order for any authenticated tests to work.
 
 *Note*: You could also visit [configparser](https://docs.python.org/3/library/configparser.html#module-configparser>) doc to see the format that `.synapseConfig` must have. For instance:
 >[authentication]<br> username = ABC <br> authtoken = abc
