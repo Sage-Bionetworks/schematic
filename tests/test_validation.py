@@ -1,28 +1,28 @@
-import itertools
 import logging
 import os
 import re
-from pathlib import Path
+from typing import Generator
+from unittest.mock import patch
 
-import jsonschema
-import networkx as nx
 import pytest
+from pandas import Series, DataFrame, concat
 
 from schematic.models.metadata import MetadataModel
-from schematic.models.validate_attribute import GenerateError, ValidateAttribute
+from schematic.models.validate_attribute import GenerateError, ValidateAttribute, SetValidationOutput
 from schematic.models.validate_manifest import ValidateManifest
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
-from schematic.schemas.data_model_parser import DataModelParser
-from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_rules_utils import validation_rule_info
+import schematic.models.validate_attribute
+
+# pylint: disable=protected-access
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(name="dmge")
-def DMGE(helpers):
+def DMGE(helpers) -> Generator[DataModelGraphExplorer, None, None]:
     dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
     yield dmge
 
@@ -398,17 +398,7 @@ class TestManifestValidation:
             in errors
         )
 
-        assert (
-            GenerateError.generate_cross_warning(
-                val_rule="matchNone error",
-                row_num=["3"],
-                attribute_name="Check Match None",
-                manifest_id=["syn54126950"],
-                invalid_entry=["123"],
-                dmge=dmge,
-            )[0]
-            in errors
-        )
+        assert "Rule: matchNone set; Attribute: Check Match None; Manifest matched one or more manifests: [syn54127008]" in errors
 
         assert (
             GenerateError.generate_cross_warning(
@@ -442,17 +432,7 @@ class TestManifestValidation:
             in warnings
         )
 
-        assert (
-            GenerateError.generate_cross_warning(
-                val_rule="matchAtLeastOne",
-                row_num=["3"],
-                attribute_name="Check Match at Least",
-                invalid_entry=["7163"],
-                manifest_id=["syn54126997", "syn54127001"],
-                dmge=dmge,
-            )[1]
-            in warnings
-        )
+        assert "Rule: matchAtLeastOne set; Attribute: Check Match at Least; Manifest did not match any target manifests: [syn54126997, syn54127001]" in warnings
 
         assert (
             GenerateError.generate_cross_warning(
@@ -465,22 +445,7 @@ class TestManifestValidation:
             in warnings
         )
 
-        assert (
-            GenerateError.generate_cross_warning(
-                val_rule="matchExactlyOne",
-                attribute_name="Check Match Exactly",
-                matching_manifests=["syn54126950", "syn54127008"],
-                dmge=dmge,
-            )[1]
-            in warnings
-            or GenerateError.generate_cross_warning(
-                val_rule="matchExactlyOne",
-                attribute_name="Check Match Exactly",
-                matching_manifests=["syn54127702", "syn54127008"],
-                dmge=dmge,
-            )[1]
-            in warnings
-        )
+        assert "Rule: matchExactlyOne set; Attribute: Check Match Exactly; Manifest did not match any target manifests: [syn54126950, syn54127008]" in warnings
 
         cross_warning = GenerateError.generate_cross_warning(
             val_rule="matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value",
@@ -616,17 +581,7 @@ class TestManifestValidation:
             in errors
         )
 
-        assert (
-            GenerateError.generate_cross_warning(
-                val_rule="matchNone error",
-                row_num=["3"],
-                attribute_name="Check Match None",
-                manifest_id=["syn54126950"],
-                invalid_entry=["123"],
-                dmge=dmge,
-            )[0]
-            in errors
-        )
+        assert "Rule: matchNone set; Attribute: Check Match None; Manifest matched one or more manifests: [syn54127008]" in errors
 
         assert (
             GenerateError.generate_cross_warning(
@@ -640,17 +595,7 @@ class TestManifestValidation:
         )
 
         # Check Warnings
-        assert (
-            GenerateError.generate_cross_warning(
-                val_rule="matchAtLeastOne",
-                row_num=["3"],
-                attribute_name="Check Match at Least",
-                invalid_entry=["7163"],
-                manifest_id=["syn54126997", "syn54127001"],
-                dmge=dmge,
-            )[1]
-            in warnings
-        )
+        assert "Rule: matchAtLeastOne set; Attribute: Check Match at Least; Manifest did not match any target manifests: [syn54126997, syn54127001]" in warnings
 
         assert (
             GenerateError.generate_cross_warning(
@@ -663,22 +608,8 @@ class TestManifestValidation:
             in warnings
         )
 
-        assert (
-            GenerateError.generate_cross_warning(
-                val_rule="matchExactlyOne",
-                attribute_name="Check Match Exactly",
-                matching_manifests=["syn54126950", "syn54127008"],
-                dmge=dmge,
-            )[1]
-            in warnings
-            or GenerateError.generate_cross_warning(
-                val_rule="matchExactlyOne",
-                attribute_name="Check Match Exactly",
-                matching_manifests=["syn54127702", "syn54127008"],
-                dmge=dmge,
-            )[1]
-            in warnings
-        )
+        assert "Rule: matchExactlyOne set; Attribute: Check Match Exactly; Manifest did not match any target manifests: [syn54126950, syn54127008]" in warnings
+        
 
         assert (
             GenerateError.generate_cross_warning(
@@ -1095,3 +1026,611 @@ class TestValidateAttributeObject:
             validate_attribute.synStore.fileview_query
             == "SELECT name,id,path FROM syn23643253 WHERE parentId='syn61682648' AND type='file' AND projectId IN ('syn23643250', '') ;"
         )
+
+
+
+@pytest.fixture(name="cross_val_df1")
+def fixture_cross_val_df1() -> Generator[DataFrame, None, None]:
+    """Yields a dataframe"""
+    df = DataFrame(
+        {
+            "PatientID": ["A", "B", "C"],
+            "component": ["comp1", "comp1", "comp1"],
+            "id": ["id1", "id2", "id3"],
+            "entityid": ["x", "x", "x"],
+        }
+    )
+    yield df
+
+@pytest.fixture(name="cross_val_df2")
+def fixture_cross_val_df2(cross_val_df1: DataFrame) -> Generator[DataFrame, None, None]:
+    """Yields dataframe df1 with an extra row"""
+    df = concat(
+        [
+            cross_val_df1,
+            DataFrame(
+                {
+                    "PatientID": ["D"],
+                    "component": ["comp1"],
+                    "id": ["id4"],
+                    "entityid": ["x"],
+                }
+            ),
+        ]
+    )
+    yield df
+
+@pytest.fixture(name="cross_val_df3")
+def fixture_cross_val_df3() -> Generator[DataFrame, None, None]:
+    """Yields empty dataframe"""
+    df = DataFrame(
+        {
+            "PatientID": [],
+            "component": [],
+            "id": [],
+            "entityid": [],
+        }
+    )
+    yield df
+
+
+@pytest.fixture(name="cross_val_col_names")
+def fixture_cross_val_col_names() -> Generator[dict[str, str], None, None]:
+    column_names = {
+        "patientid": "PatientID",
+        "component": "component",
+        "id": "id",
+        "entityid": "entityid",
+    }
+    yield column_names
+
+@pytest.fixture(name="va_obj")
+def fixture_va_obj(dmge: DataModelGraphExplorer) -> Generator[ValidateAttribute, None, None]:
+    """Yield a ValidateAttribute object"""
+    yield ValidateAttribute(dmge)
+
+
+class TestUnitValidateAttributeObject:
+    """Testing for ValidateAttribute class with all Synapse calls mocked"""
+    def test_cross_validation1(self, va_obj: ValidateAttribute, cross_val_df1:DataFrame):
+        """Tests for cross manifest validation for set rules"""
+
+        val_rule_one = "matchAtLeastOne Patient.PatientID set error"
+        val_rule_two = "matchExactlyOne Patient.PatientID set error"
+        val_rule_three = "matchNone Patient.PatientID set error"
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1}
+        ):
+            assert va_obj.cross_validation(val_rule_one, Series(['A', 'B', 'C'])) == ([], [])
+            assert va_obj.cross_validation(val_rule_one, Series(['A', 'B', 'C', 'C'])) == ([], [])
+
+            e, _ = va_obj.cross_validation(val_rule_one, Series(['A', 'B'], index=[0, 1], name='PatientID'))
+            assert e
+
+            e, _ = va_obj.cross_validation(val_rule_one, Series(['A', 'B', 'C', 'D'], index=[0, 1, 2 ,3], name='PatientID'))
+            assert e
+
+
+            assert va_obj.cross_validation(val_rule_two, Series(['A', 'B', 'C'])) == ([], [])
+            assert va_obj.cross_validation(val_rule_two, Series(['A', 'B', 'C', 'C'])) == ([], [])
+
+            e, _ = va_obj.cross_validation(val_rule_two, Series(['A', 'B'], index=[0, 1], name='PatientID'))
+            assert e
+
+            e, _ = va_obj.cross_validation(val_rule_two, Series(['A', 'B', 'C', 'D'], index=[0, 1, 2 ,3], name='PatientID'))
+            assert e
+
+
+            assert va_obj.cross_validation(val_rule_three, Series(['A', 'B'])) == ([], [])
+            assert va_obj.cross_validation(val_rule_three, Series(['A', 'B', 'C', 'D'])) == ([], [])
+
+            e, _ = va_obj.cross_validation(val_rule_three, Series(['A', 'B', 'C'], index=[0, 1, 2 ], name='PatientID'))
+            assert e
+            
+            e, _ = va_obj.cross_validation(val_rule_three, Series(['A', 'B', 'C', 'C'], index=[0, 1, 2 ,3], name='PatientID'))
+            assert e
+
+
+        with patch.object(
+                schematic.models.validate_attribute.ValidateAttribute,
+                "_get_target_manifest_dataframes",
+                return_value={"syn1": cross_val_df1, "syn2": cross_val_df1}
+            ):
+            
+            e, _ = va_obj.cross_validation(val_rule_two, Series(['A', 'B', 'C'], index=[0, 1, 2], name='PatientID'))
+            assert e
+
+
+
+    def test_cross_validation2(self, va_obj: ValidateAttribute, cross_val_df1:DataFrame):
+        """Tests for cross manifest validation"""
+        val_rule_one = "matchAtLeastOne Patient.PatientID value error"
+        val_rule_two = "matchExactlyOne Patient.PatientID value error"
+        val_rule_three = "matchNone Patient.PatientID value error"
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1}
+        ):
+            assert va_obj.cross_validation(val_rule_one, Series([])) == ([], [])
+            assert va_obj.cross_validation(val_rule_one, Series(['A'])) == ([], [])
+            assert va_obj.cross_validation(val_rule_one, Series(['A', 'A'])) == ([], [])
+            assert va_obj.cross_validation(val_rule_one, Series(['A', 'B'])) == ([], [])
+            assert va_obj.cross_validation(val_rule_one, Series(['A', 'B', 'C'])) == ([], [])
+            assert va_obj.cross_validation(val_rule_one, Series(['A', 'B', 'C', 'C'])) == ([], [])
+
+            e, _ = va_obj.cross_validation(val_rule_one, Series(['D'], index=[0], name='PatientID'))
+            assert e
+
+            assert va_obj.cross_validation(val_rule_two, Series([])) == ([], [])
+            assert va_obj.cross_validation(val_rule_two, Series(['A'])) == ([], [])
+            assert va_obj.cross_validation(val_rule_two, Series(['A', 'A'])) == ([], [])
+            assert va_obj.cross_validation(val_rule_two, Series(['A', 'B'])) == ([], [])
+            assert va_obj.cross_validation(val_rule_two, Series(['A', 'B', 'C'])) == ([], [])
+            assert va_obj.cross_validation(val_rule_two, Series(['A', 'B', 'C', 'C'])) == ([], [])
+
+            e, _ = va_obj.cross_validation(val_rule_two, Series(['D'], index=[0], name='PatientID'))
+            assert e
+
+            assert va_obj.cross_validation(val_rule_three, Series([])) == ([], [])
+            assert va_obj.cross_validation(val_rule_three, Series(['D'])) == ([], [])
+
+            e, _ = va_obj.cross_validation(val_rule_three, Series(['A'], index=[0], name='PatientID'))
+            assert e
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1, "syn2": cross_val_df1}
+        ):
+            
+            assert va_obj.cross_validation(val_rule_two, Series([])) == ([], [])
+
+            e, _ = va_obj.cross_validation(val_rule_two, Series(['A'], index=[0], name='PatientID'))
+            assert e
+
+            e, _ = va_obj.cross_validation(val_rule_two, Series(['D'], index=[0], name='PatientID'))
+            assert e
+
+    def test__run_validation_across_target_manifests1(
+            self,
+            va_obj: ValidateAttribute,
+            cross_val_df1:DataFrame,
+            cross_val_df3:DataFrame,
+        ) -> None:
+        """Tests for ValidateAttribute._run_validation_across_target_manifests with failures"""
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={}
+        ):
+            _, result = va_obj._run_validation_across_target_manifests(
+                project_scope=None,
+                rule_scope="value",
+                access_token="xxx",
+                val_rule="rule comp.att",
+                manifest_col=Series([]),
+                target_column=Series([])
+            )
+            assert not result
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df3}
+        ):
+            _, result = va_obj._run_validation_across_target_manifests(
+                project_scope=None,
+                rule_scope="value",
+                access_token="xxx",
+                val_rule="rule Patient.PatientID",
+                manifest_col=Series([]),
+                target_column=Series([])
+            )
+
+            assert result == "values not recorded in targets stored"
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1, "syn2": cross_val_df3}
+        ):
+            _, result = va_obj._run_validation_across_target_manifests(
+                project_scope=None,
+                rule_scope="value",
+                access_token="xxx",
+                val_rule="rule Patient.PatientID",
+                manifest_col=Series([]),
+                target_column=Series([])
+            )
+
+            assert result == "values not recorded in targets stored"
+
+    def test__run_validation_across_target_manifests2(
+            self,
+            va_obj: ValidateAttribute,
+            cross_val_df1:DataFrame,
+        ) -> None:
+        """Tests for ValidateAttribute._run_validation_across_target_manifests with value rule"""
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1}
+        ):
+            _, validation_store = va_obj._run_validation_across_target_manifests(
+                project_scope=None,
+                rule_scope="value",
+                access_token="xxx",
+                val_rule="rule Patient.PatientID value",
+                manifest_col=Series([]),
+                target_column=Series([])
+            )
+            assert isinstance(validation_store, tuple)
+            assert len(validation_store) == 3
+            assert isinstance(validation_store[0], Series)
+            assert validation_store[0].empty
+            assert isinstance(validation_store[1], Series)
+            assert validation_store[1].empty
+            assert isinstance(validation_store[2], Series)
+            assert validation_store[2].empty
+
+    def test__run_validation_across_target_manifests3(
+            self,
+            va_obj: ValidateAttribute,
+            cross_val_df1:DataFrame,
+        ) -> None:
+        """Tests for ValidateAttribute._run_validation_across_target_manifests with set rule"""
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1}
+        ):
+            _, validation_output = va_obj._run_validation_across_target_manifests(
+                project_scope=None,
+                rule_scope="set",
+                access_token="xxx",
+                val_rule="rule Patient.PatientID set",
+                manifest_col=Series([]),
+                target_column=Series([])
+            )
+            assert isinstance(validation_output, SetValidationOutput)
+            assert validation_output.target_manifests == ["syn1"]
+            assert validation_output.matching_manifests == []
+            mmv = validation_output.missing_manifest_values
+            assert list(mmv.keys()) == ["syn1"]
+            assert mmv["syn1"].to_list() == ['A', 'B', 'C']
+            assert validation_output.missing_target_values == {}
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1, "syn2": cross_val_df1}
+        ):
+            _, validation_output = va_obj._run_validation_across_target_manifests(
+                project_scope=None,
+                rule_scope="set",
+                access_token="xxx",
+                val_rule="rule Patient.PatientID set",
+                manifest_col=Series(['A', 'B', 'C']),
+                target_column=Series([])
+            )
+            assert isinstance(validation_output, SetValidationOutput)
+            assert validation_output.target_manifests == ["syn1", "syn2"]
+            assert validation_output.matching_manifests == ["syn1", "syn2"]
+            assert validation_output.missing_manifest_values == {}
+            assert validation_output.missing_target_values == {}
+
+    def test__run_validation_across_targets_value(
+        self, va_obj: ValidateAttribute
+    ) -> None:
+        """Tests for ValidateAttribute._run_validation_across_targets_value"""
+
+        missing1, duplicated1, repeat1 = va_obj._run_validation_across_targets_value(
+            manifest_col=Series(["A", "B", "C"]),
+            concatenated_target_column=Series(["A", "B", "C"]),
+        )
+        assert missing1.empty
+        assert duplicated1.empty
+        assert repeat1.to_list() == ["A", "B", "C"]
+
+        missing2, duplicated2, repeat2 = va_obj._run_validation_across_targets_value(
+            manifest_col=Series(["C"]),
+            concatenated_target_column=Series(["A", "B", "B", "C", "C"]),
+        )
+        assert missing2.empty
+        assert duplicated2.to_list() == ["C"]
+        assert repeat2.to_list() == ["C"]
+
+        missing1, duplicated1, repeat1 = va_obj._run_validation_across_targets_value(
+            manifest_col=Series(["A", "B", "C"]),
+            concatenated_target_column=Series(["A"]),
+        )
+        assert missing1.to_list() == ["B", "C"]
+        assert duplicated1.empty
+        assert repeat1.to_list() == ["A"]
+
+    def test__gather_value_warnings_errors(self, va_obj: ValidateAttribute) -> None:
+        """Tests for ValidateAttribute._gather_value_warnings_errors"""
+
+        errors, warnings = va_obj._gather_value_warnings_errors(
+            val_rule="matchAtLeastOne comp.att value error",
+            source_attribute="att",
+            value_validation_store=(Series([]), Series([]), Series([])),
+        )
+        assert not errors
+        assert not warnings
+
+        errors, warnings = va_obj._gather_value_warnings_errors(
+            val_rule="matchAtLeastOne Patient.PatientID value error",
+            source_attribute="PatientID",
+            value_validation_store=(Series(["A", "B", "C"]), Series([]), Series([])),
+        )
+        assert not warnings
+        assert len(errors) == 1
+        assert len(errors[0]) == 4
+        assert errors[0][1] == "PatientID"
+        assert errors[0][2] == (
+            "Value(s) ['A', 'B', 'C'] from row(s) ['2', '3', '4'] of the attribute "
+            "PatientID in the source manifest are missing."
+        )
+
+        errors, warnings = va_obj._gather_value_warnings_errors(
+            val_rule="matchAtLeastOne Patient.PatientID value error",
+            source_attribute="PatientID",
+            value_validation_store=(Series([]), Series(["A", "B", "C"]), Series([])),
+        )
+        assert not warnings
+        assert not errors
+
+        errors, warnings = va_obj._gather_value_warnings_errors(
+            val_rule="matchAtLeastOne Patient.PatientID value error",
+            source_attribute="PatientID",
+            value_validation_store=(
+                Series([]),
+                Series(["A", "B", "C"]),
+                Series(["A", "B", "C"]),
+            ),
+        )
+        assert not warnings
+        assert not errors
+
+    def test__run_validation_across_targets_set(
+        self,
+        va_obj: ValidateAttribute,
+        cross_val_col_names: dict[str, str],
+        cross_val_df1: DataFrame,
+    ) -> None:
+        """Tests for ValidateAttribute._run_validation_across_targets_set for matchAtLeastOne"""
+
+
+        output, bool_list1, bool_list2 = va_obj._run_validation_across_targets_set(
+            column_names=cross_val_col_names,
+            manifest_col=Series(["A", "B", "C"]),
+            target_attribute="patientid",
+            target_manifest=cross_val_df1,
+            target_manifest_id="syn1",
+            target_attribute_in_manifest_list=[],
+            target_manifest_empty=[],
+            validation_output=SetValidationOutput()
+        )
+        assert output.target_manifests == ['syn1']
+        assert output.matching_manifests == ['syn1']
+        assert not output.missing_manifest_values
+        assert not output.missing_target_values
+        assert bool_list1 == [True]
+        assert bool_list2 == [False]
+
+        output, bool_list1, bool_list2 = va_obj._run_validation_across_targets_set(
+            column_names=cross_val_col_names,
+            manifest_col=Series(["A", "B", "C"]),
+            target_attribute="patientid",
+            target_manifest=cross_val_df1,
+            target_manifest_id="syn2",
+            target_attribute_in_manifest_list=[],
+            target_manifest_empty=[],
+            validation_output=output
+        )
+        assert output.target_manifests == ['syn1', 'syn2']
+        assert output.matching_manifests == ['syn1', 'syn2']
+        assert not output.missing_manifest_values
+        assert not output.missing_target_values
+        assert bool_list1 == [True]
+        assert bool_list2 == [False]
+
+        output, bool_list1, bool_list2 = va_obj._run_validation_across_targets_set(
+            column_names=cross_val_col_names,
+            manifest_col=Series(["A", "B", "C", "D"]),
+            target_attribute="patientid",
+            target_manifest=cross_val_df1,
+            target_manifest_id="syn1",
+            target_attribute_in_manifest_list=[],
+            target_manifest_empty=[],
+            validation_output=SetValidationOutput()
+        )
+        assert output.target_manifests == ['syn1']
+        assert not output.matching_manifests
+        assert not output.missing_manifest_values
+        assert output.missing_target_values["syn1"].to_list() == ["D"]
+        assert bool_list1 == [True]
+        assert bool_list2 == [False]
+
+        output, bool_list1, bool_list2 = va_obj._run_validation_across_targets_set(
+            column_names=cross_val_col_names,
+            manifest_col=Series(["A", "B", "C", "D"]),
+            target_attribute="patientid",
+            target_manifest=cross_val_df1,
+            target_manifest_id="syn2",
+            target_attribute_in_manifest_list=[],
+            target_manifest_empty=[],
+            validation_output=output
+        )
+        assert output.target_manifests == ['syn1', 'syn2']
+        assert not output.matching_manifests
+        assert not output.missing_manifest_values
+        assert output.missing_target_values["syn1"].to_list() == ["D"]
+        assert output.missing_target_values["syn2"].to_list() == ["D"]
+        assert bool_list1 == [True]
+        assert bool_list2 == [False]
+
+        output, bool_list1, bool_list2 = va_obj._run_validation_across_targets_set(
+            column_names=cross_val_col_names,
+            manifest_col=Series(["A", "B"]),
+            target_attribute="patientid",
+            target_manifest=cross_val_df1,
+            target_manifest_id="syn1",
+            target_attribute_in_manifest_list=[],
+            target_manifest_empty=[],
+            validation_output=SetValidationOutput()
+        )
+        assert output.target_manifests == ['syn1']
+        assert not output.matching_manifests
+        assert output.missing_manifest_values["syn1"].to_list() == ["C"]
+        assert not output.missing_target_values
+        assert bool_list1 == [True]
+        assert bool_list2 == [False]
+
+        output, bool_list1, bool_list2 = va_obj._run_validation_across_targets_set(
+            column_names=cross_val_col_names,
+            manifest_col=Series(["A", "B"]),
+            target_attribute="patientid",
+            target_manifest=cross_val_df1,
+            target_manifest_id="syn2",
+            target_attribute_in_manifest_list=[],
+            target_manifest_empty=[],
+            validation_output=output
+        )
+        assert output.target_manifests == ['syn1', 'syn2']
+        assert not output.matching_manifests
+        assert output.missing_manifest_values["syn1"].to_list() == ["C"]
+        assert output.missing_manifest_values["syn2"].to_list() == ["C"]
+        assert not output.missing_target_values
+        assert bool_list1 == [True]
+        assert bool_list2 == [False]
+
+    def test__gather_set_warnings_errors1(self, va_obj: ValidateAttribute) -> None:
+        """Tests for ValidateAttribute._gather_set_warnings_errors for matchAtLeastOne"""
+        val_rule="matchAtLeastOne Patient.PatientID set error"
+
+        errors, warnings = va_obj._gather_set_warnings_errors(
+            val_rule=val_rule,
+            source_attribute="PatientID",
+            validation_output=SetValidationOutput(target_manifests=["syn1"],  matching_manifests=["syn1"])
+        )
+        assert not warnings
+        assert not errors
+
+        errors, warnings = va_obj._gather_set_warnings_errors(
+            val_rule=val_rule,
+            source_attribute="PatientID",
+            validation_output=SetValidationOutput(target_manifests=["syn1", "syn2"], matching_manifests=["syn1", "syn2"])
+        )
+        assert not warnings
+        assert not errors
+
+        errors, warnings = va_obj._gather_set_warnings_errors(
+            val_rule=val_rule,
+            source_attribute="PatientID",
+            validation_output=SetValidationOutput(target_manifests=["syn1"])
+        )
+        assert not warnings
+        assert len(errors) == 1
+        assert errors[0] == (
+            "Rule: matchAtLeastOne set; Attribute: PatientID; Manifest did not match any target manifests: [syn1]"
+        )
+
+        errors, warnings = va_obj._gather_set_warnings_errors(
+            val_rule=val_rule,
+            source_attribute="PatientID",
+            validation_output=SetValidationOutput(target_manifests=["syn1", "syn2"])
+        )
+        assert not warnings
+        assert len(errors) == 1
+        assert errors[0] == (
+            "Rule: matchAtLeastOne set; Attribute: PatientID; Manifest did not match any target manifests: [syn1, syn2]"
+        )
+
+    def test__gather_set_warnings_errors2(self, va_obj: ValidateAttribute) -> None:
+        """Tests for ValidateAttribute._gather_set_warnings_errors for matchExactlyOne"""
+        val_rule="matchExactlyOne Patient.PatientID set error"
+
+        errors, warnings = va_obj._gather_set_warnings_errors(
+            val_rule=val_rule,
+            source_attribute="PatientID",
+            validation_output=SetValidationOutput(matching_manifests=["syn1"], target_manifests=["syn1"])
+        )
+        assert not warnings
+        assert not errors
+
+        errors, warnings = va_obj._gather_set_warnings_errors(
+            val_rule=val_rule,
+            source_attribute="PatientID",
+            validation_output=SetValidationOutput(target_manifests=["syn1"])
+        )
+        assert not warnings
+        assert len(errors) == 1
+        assert errors[0] == (
+            "Rule: matchExactlyOne set; Attribute: PatientID; Manifest did not match any target manifests: [syn1]"
+        )
+
+        errors, warnings = va_obj._gather_set_warnings_errors(
+            val_rule=val_rule,
+            source_attribute="PatientID",
+            validation_output=SetValidationOutput(target_manifests=["syn1", "syn2"])
+        )
+        assert not warnings
+        assert len(errors) == 1
+        assert errors[0] == (
+            "Rule: matchExactlyOne set; Attribute: PatientID; Manifest did not match any target manifests: [syn1, syn2]"
+        )
+
+        errors, warnings = va_obj._gather_set_warnings_errors(
+            val_rule=val_rule,
+            source_attribute="PatientID",
+            validation_output=SetValidationOutput(matching_manifests=["syn1", "syn2"], target_manifests=["syn1", "syn2"])
+        )
+        assert not warnings
+        assert len(errors) == 1
+        assert errors[0] == (
+            "Rule: matchExactlyOne set; Attribute: PatientID; Manifest matched multiple manifests: [syn1, syn2]"
+        )
+
+    def test__gather_set_warnings_errors3(self, va_obj: ValidateAttribute) -> None:
+        """Tests for ValidateAttribute._gather_set_warnings_errors for matchNone"""
+        val_rule="matchNone Patient.PatientID set error"
+
+        errors, warnings = va_obj._gather_set_warnings_errors(
+            val_rule=val_rule,
+            source_attribute="PatientID",
+            validation_output=SetValidationOutput(matching_manifests=["syn1"],target_manifests=["syn1"])
+        )
+        assert not warnings
+        assert len(errors) == 1
+        assert errors[0] == (
+            "Rule: matchNone set; Attribute: PatientID; Manifest matched one or more manifests: [syn1]"
+        )
+
+        errors, warnings = va_obj._gather_set_warnings_errors(
+            val_rule=val_rule,
+            source_attribute="PatientID",
+            validation_output=SetValidationOutput(target_manifests=["syn1"])
+        )
+        assert not warnings
+        assert not errors
+
+    def test__get_column_names(self, va_obj: ValidateAttribute) -> None:
+        """Tests for ValidateAttribute._get_column_names"""
+        assert not va_obj._get_column_names(DataFrame())
+        assert va_obj._get_column_names(DataFrame({"col1": []})) == {"col1": "col1"}
+        assert va_obj._get_column_names(DataFrame({"col1": [], "col2": []})) == {
+            "col1": "col1",
+            "col2": "col2",
+        }
+        assert va_obj._get_column_names(DataFrame({"COL 1": []})) == {"col1": "COL 1"}
+        assert va_obj._get_column_names(DataFrame({"ColId": []})) == {"colid": "ColId"}
+        assert va_obj._get_column_names(DataFrame({"ColID": []})) == {"colid": "ColID"}

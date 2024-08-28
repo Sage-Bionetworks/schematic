@@ -436,7 +436,7 @@ class SynapseStorage(BaseStorage):
 
         return all_results
 
-    def getStorageProjects(self, project_scope: List = None) -> list[tuple[str, str]]:
+    def getStorageProjects(self, project_scope: Optional[list] = None) -> list[tuple[str, str]]:
         """Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
 
         Returns:
