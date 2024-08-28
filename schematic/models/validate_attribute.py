@@ -49,28 +49,19 @@ class SetValidationOutput:
     """
     This is the result of doing cross validation when of type set.
     target_manifests: All manifests the input manifest was checked against
-
+    target_manifests: All manifests the input manifest was checked against,
+      and the columns checked matched
+    missing_manifest_values: target manifests where the manifest checked was missing values
+      keys are the synapse id of the target manifest
+      values are the values missing from the checked manifest
+    missing_target_values: target manifests that were missing values
+      keys are the synapse id of the target manifest
+      values are the values missing from the target manifest
     """
-
     target_manifests: list[str] = field(default_factory=list)
     matching_manifests: list[str] = field(default_factory=list)
     missing_manifest_values: dict[str, pd.Series] = field(default_factory=dict)
     missing_target_values: dict[str, pd.Series] = field(default_factory=dict)
-
-
-"""
-
-The first item of the tuple is the missing_manifest_log (dict[str, pd.Series]):
-    a dictionary of manifests with missing values,
-    keys are synapse ids
-    values are Pandas Series of missing values
-The second item of the tuple is the present_manifest_log (list[str]):
-    a list of present manifests by synapse id
-The third item of the tuple is the repeat_manifest_log, (dict[str, pd.Series]):
-    a dictionary of manifests with repeat values,
-    keys are synapse ids
-    values are Pandas Series of repeat values
-"""
 
 
 class GenerateError:
@@ -879,6 +870,18 @@ class ValidateAttribute(object):
         project_scope: Optional[list[str]],
         access_token: Optional[str] = None,
     ) -> tuple[list[str], list[str]]:
+        """Gets a list of synapse ids of mainfests to check against
+
+        Args:
+            target_component (str): Manifet ids are gotten fo this type
+            project_scope (Optional[list[str]]): Projects to limit the scope
+              of cross manifest validation to. Defaults to None.
+            access_token (Optional[str], optional): Synapse access token Defaults to None.
+
+        Returns:
+            tuple[list[str], list[str]]:
+              A list of manifest synapse ids, and their dataset synapse ids
+        """
         t_manifest_search = perf_counter()
         target_manifest_ids: list[str] = []
         target_dataset_ids: list[str] = []
@@ -1283,12 +1286,15 @@ class ValidateAttribute(object):
         self, validation_log: dict[str, pd.Series]
     ) -> tuple[list[str], list[str], list[str]]:
         """Parse validation log, so values can be used to raise warnings/errors
+
         Args:
-            validation_log, dict[str, pd.Series]:
+            validation_log (dict[str, pd.Series]): 
+
         Returns:
-            invalid_rows, list: invalid rows recorded in the validation log
-            invalid_enties, list: invalid values recorded in the validation log
-            manifest_ids, list:
+            tuple[list[str], list[str], list[str]]: 
+              invalid rows recorded in the validation log,
+              invalid values recorded in the validation log,
+              a lsit of manifest synapse ids
         """
         # Initialize parameters
         validation_rows, validation_values = [], []
@@ -1310,12 +1316,15 @@ class ValidateAttribute(object):
         self, series_1: pd.Series, series_2: pd.Series
     ) -> tuple[list[str], list[str]]:
         """Merge two series to identify gather all invalid values, and parse out invalid rows and entries
+
         Args:
-            series_1, pd.Series: first set of invalid values to extract
-            series_2, pd.Series: second set of invalid values to extract
+            series_1 (pd.Series): first set of invalid values to extract
+            series_2 (pd.Series): second set of invalid values to extract
+
         Returns:
-            invalid_rows, list: invalid rows taken from both series
-            invalid_entry, list: invalid values taken from both series
+            tuple[list[str], list[str]]:
+              invalid rows taken from both series
+              invalid values taken from both series
         """
         # Merge series to get invalid values and rows
         invalid_values = pd.merge(series_1, series_2, how="outer")
@@ -1410,7 +1419,10 @@ class ValidateAttribute(object):
             msg = "Manifest matched one or more manifests"
 
         if msg:
-            msg = f"Rule: {rule}; Attribute: {source_attribute}; {msg}: [{', '.join(manifest_list)}]"
+            msg = (
+                f"Rule: {rule}; Attribute: {source_attribute}; {msg}: "
+                f"[{', '.join(manifest_list)}]"
+            )
             if "error" in val_rule:
                 errors = [msg]
             else:
@@ -1424,15 +1436,21 @@ class ValidateAttribute(object):
         row_num: Optional[list[str]],
         attribute_name: str,
     ) -> tuple[list[str], list[str]]:
-        """Helper to remove NAs from a list of invalid entries (if applicable, and allowed), remove the row
-        too from row_num. This will make sure errors are not rasied for NA entries unless the value is required.
+        """
+        Helper to remove NAs from a list of invalid entries (if applicable, and allowed),
+          remove the row too from row_num. 
+        This will make sure errors are not rasied for NA entries unless the value is required.
+
         Args:
-            invalid_entry, list[str]: default=None, list of entries in the source manifest where
-                invalid values were located.
-            row_num, list[str[: default=None, list of rows in the source manifest where invalid values were located
-            attribute_name, str: source attribute name
+            invalid_entry (Optional[list[str]]): list of entries in the source manifest where
+              invalid values were located.
+            row_num (Optional[list[str]]): list of rows in the source manifest where invalid values
+              were located
+            attribute_name (str): source attribute name
+
         Returns:
-            invalid_entry and row_num returned with any NA and corresponding row index value removed, if applicable.
+            tuple[list[str], list[str]]: invalid_entry and row_num returned with any NA and
+              corresponding row index value removed, if applicable.
         """
         idx_to_remove = []
         # Check if the current attribute column is required, via the data model
@@ -1468,28 +1486,36 @@ class ValidateAttribute(object):
         manifest_id: Optional[list[str]] = None,
         invalid_entry: Optional[list[str]] = None,
     ) -> tuple[list[str], list[str]]:
-        """Helper to call GenerateError.generate_cross_warning in a consistent way, gather warnings and errors.
+        """
+        Helper to call GenerateError.generate_cross_warning in a consistent way,
+          gather warnings and errors.
+
         Args:
             val_rule, str: Validation Rule
             attribute_name, str: source attribute name
-            row_num, list: default=None, list of rows in the source manifest where invalid values were located
-            matching_manifests, list: default=None, ist of manifests with all values in the target attribute present
+            row_num, list: default=None, list of rows in the source manifest where
+              invalid values were located
+            matching_manifests, list: default=None, ist of manifests with all values
+              in the target attribute present
             manifest_id, list: default=None, list of manifests where invalid values were located.
-            invalid_entry, list: default=None, list of entries in the source manifest where invalid values were located.
+            invalid_entry, list: default=None, list of entries in the source manifest
+              where invalid values were located.
         Returns:
-            errors, list[str]: list of errors to raise, as appropriate, if values in current manifest do
-            not pass relevant cross mannifest validation across the target manifest(s)
-            warnings, list[str]: list of warnings to raise, as appropriate, if values in current manifest do
-            not pass relevant cross mannifest validation across the target manifest(s)
+            errors, list[str]: list of errors to raise, as appropriate, if values in
+              current manifest do not pass relevant cross mannifest validation across
+              the target manifest(s) warnings, list[str]: list of warnings to raise,
+              as appropriate, if values in current manifest do not pass relevant
+              cross mannifest validation across the target manifest(s)
         """
         invalid_entry, row_num = self._remove_non_entry_from_invalid_entry_list(
             invalid_entry, row_num, attribute_name
         )
         errors, warnings = [], []
 
-        # Want to make sure we only generate errors when appropriate. Dont call, if we have removed all Nans,
-        # Also rules either require an invalid entry OR matching manifests. So let pass if either of those
-        # thresholds are met.
+        # Want to make sure we only generate errors when appropriate. Dont call,
+        #  if we have removed all Nans,
+        # Also rules either require an invalid entry OR matching manifests.
+        # So let pass if either of those thresholds are met.
         if invalid_entry or matching_manifests:
             if not invalid_entry:
                 invalid_entry = "No Invalid Entry Recorded"
@@ -1514,17 +1540,21 @@ class ValidateAttribute(object):
         source_attribute: str,
         value_validation_store: ValueValidationOutput,
     ) -> tuple[list[str], list[str]]:
-        """For value rule scope, find invalid rows and entries, and generate appropriate errors and warnings
+        """
+        For value rule scope, find invalid rows and entries, and generate
+          appropriate errors and warnings
+
         Args:
             val_rule, str: Validation rule
             source_attribute, str: source manifest column name
             value_validation_store, ValueValidationOutput
                 contains missing_values, duplicated_values, and repeat values
         Returns:
-            errors, list[str]: list of errors to raise, as appropriate, if values in current manifest do
-            not pass relevant cross mannifest validation across the target manifest(s)
-            warnings, list[str]: list of warnings to raise, as appropriate, if values in current manifest do
-            not pass relevant cross mannifest validation across the target manifest(s)
+            errors, list[str]: list of errors to raise, as appropriate, if values in
+              current manifest donot pass relevant cross mannifest validation across
+              the target manifest(s) warnings, list[str]: list of warnings to raise,
+              as appropriate, if values in current manifest do not pass relevant
+              cross mannifest validation across the target manifest(s)
         """
         # Initialize with empty lists
         errors: list[str] = []
@@ -1631,13 +1661,21 @@ class ValidateAttribute(object):
                 target_manifest_empty=target_manifest_empty,
                 column_names=column_names,
             )
+
+            # Drop all missing values before checking sets
             manifest_col.dropna(inplace=True)
             target_column.dropna(inplace=True)
+
             validation_output.target_manifests.append(target_manifest_id)
+
+            # Find values missing in checked column vs target column, and vice versa
             missing_target_values = manifest_col[~manifest_col.isin(target_column)]
             missing_manifest_values = target_column[~target_column.isin(manifest_col)]
+
             if missing_target_values.empty and missing_manifest_values.empty:
                 validation_output.matching_manifests.append(target_manifest_id)
+
+            # Add missing values to SetValidationOutput
             if not missing_target_values.empty:
                 validation_output.missing_target_values[
                     target_manifest_id
@@ -1659,11 +1697,11 @@ class ValidateAttribute(object):
         self,
         column_names: dict[str, str],
         target_attribute: str,
-        concatenated_target_column: pd.core.series.Series,
-        target_manifest: pd.core.series.Series,
+        concatenated_target_column: pd.Series,
+        target_manifest: pd.DataFrame,
         target_attribute_in_manifest_list: list[bool],
         target_manifest_empty: list[bool],
-    ) -> tuple[pd.core.series.Series, list[bool], list[bool],]:
+    ) -> tuple[pd.Series, list[bool], list[bool],]:
         """A helper function for creating a concatenating all target attribute columns across all target manifest.
             This function checks if the target attribute is in the current target manifest. If it is, and is the
             first manifest with this column, start recording it, if it has already been recorded from
@@ -1671,9 +1709,9 @@ class ValidateAttribute(object):
         Args:
             column_names, dict: {stripped_col_name:original_column_name}
             target_attribute, str: current target attribute
-            concatenated_target_column, pd.core.series.Series: target column in the process of being built, possibly
+            concatenated_target_column, pd.Series: target column in the process of being built, possibly
                 passed through this function multiple times based on the number of manifests
-            target_manifest, pd.core.series.Series: current target manifest
+            target_manifest, pd.DataFrame: current target manifest
         Returns:
             concatenated_target_column, pd.core.series.Series: All target columns concatenated into a single column
         """
@@ -1811,7 +1849,8 @@ class ValidateAttribute(object):
           based on scope. Output start time and validation outputs..
 
         Args:
-            project_scope (Optional[list[str]]): Projects to limit the scope of cross manifest validation to.
+            project_scope (Optional[list[str]]): Projects to limit the scope of cross manifest
+             validation to.
             rule_scope (ScopeTypes): The scope of the rule, taken from validation rule
             access_token (str): Asset Store access token
             val_rule (str):  Validation rule.
@@ -1828,9 +1867,9 @@ class ValidateAttribute(object):
                 SetValidationOutput: if using the set parameter
         """
         # Initialize variables
-        target_attribute_in_manifest_list = []
-        target_manifest_empty = []
-        validation_store = SetValidationOutput([], [], {}, {})
+        target_attribute_in_manifest_list: list[bool] = []
+        target_manifest_empty: list[bool] = []
+        validation_store = SetValidationOutput()
 
         target_attribute_in_manifest = False
 
@@ -1845,14 +1884,15 @@ class ValidateAttribute(object):
             target_component, project_scope, access_token
         )
 
-        # For each target manifest, gather target manifest column and compare to the source manifest column
+        # For each target manifest, gather target manifest column and compare
+        # to the source manifest column
         # Save relevant data as appropriate for the given scope
         for target_manifest_id, target_manifest in manifest_dict.items():
             # Get manifest column names
             column_names = self._get_column_names(target_manifest=target_manifest)
 
-            # Read each target manifest and run validation of current manifest column (set) against each
-            # manifest individually, gather results
+            # Read each target manifest and run validation of current manifest column
+            # (set) against each manifest individually, gather results
             if "set" in rule_scope:
                 (
                     validation_store,
@@ -1869,9 +1909,9 @@ class ValidateAttribute(object):
                     validation_output=validation_store,
                 )
 
-            # Concatenate target manifest columns, in a subsequent step will run cross manifest validation from
-            # the current manifest
-            # column values against the concatenated target column
+            # Concatenate target manifest columns, in a subsequent step will run cross
+            # manifest validation from the current manifest column values against the
+            # concatenated target column
             if "value" in rule_scope:
                 (
                     target_column,
@@ -1929,8 +1969,9 @@ class ValidateAttribute(object):
             access_token (str): Asset Store access token
 
         Returns:
-            tuple[list[str], list[str]]: warnings and errors as appropriate if values in current manifest do
-            no pass relevant cross mannifest validation across the target manifest(s)
+            tuple[list[str], list[str]]: warnings and errors as appropriate if values
+              in current manifest do no pass relevant cross mannifest validation
+              across the target manifest(s)
         """
         # Initialize target_column
         target_column = pd.Series(dtype=object)
