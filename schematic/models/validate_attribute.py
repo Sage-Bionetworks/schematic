@@ -43,6 +43,7 @@ The third Series are the repeat_values: values that are repeated between the man
     column and concatenated target column
 """
 
+
 @dataclass
 class SetValidationOutput:
     """
@@ -50,10 +51,12 @@ class SetValidationOutput:
     target_manifests: All manifests the input manifest was checked against
 
     """
+
     target_manifests: list[str] = field(default_factory=list)
     matching_manifests: list[str] = field(default_factory=list)
     missing_manifest_values: dict[str, pd.Series] = field(default_factory=dict)
     missing_target_values: dict[str, pd.Series] = field(default_factory=dict)
+
 
 """
 
@@ -1397,11 +1400,10 @@ class ValidateAttribute(object):
             "matchExactlyOne" in val_rule
             and len(validation_output.matching_manifests) > 1
         ):
-
             rule = "matchExactlyOne set"
             manifest_list = validation_output.matching_manifests
             msg = "Manifest matched multiple manifests"
-    
+
         if "matchNone" in val_rule and len(validation_output.matching_manifests) > 0:
             rule = "matchNone set"
             manifest_list = validation_output.matching_manifests
@@ -1789,7 +1791,9 @@ class ValidateAttribute(object):
         )
         manifests: list[pd.DataFrame] = []
         for dataset_id in dataset_ids:
-            entity: File = self.synStore.getDatasetManifest(datasetId=dataset_id, downloadFile=True)
+            entity: File = self.synStore.getDatasetManifest(
+                datasetId=dataset_id, downloadFile=True
+            )
             manifests.append(pd.read_csv(entity.path))
         return dict(zip(manifest_ids, manifests))
 
@@ -1862,7 +1866,7 @@ class ValidateAttribute(object):
                     target_manifest_id=target_manifest_id,
                     target_attribute_in_manifest_list=target_attribute_in_manifest_list,
                     target_manifest_empty=target_manifest_empty,
-                    validation_output=validation_store
+                    validation_output=validation_store,
                 )
 
             # Concatenate target manifest columns, in a subsequent step will run cross manifest validation from
