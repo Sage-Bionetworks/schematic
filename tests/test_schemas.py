@@ -633,25 +633,13 @@ class TestDataModelGraphExplorer:
                 None,
                 ["list strict", "regex match [a-f]"],
             ),
-            # test case 2: node label is not valid and display name is not provided
-            (
-                "invalid node label",
-                None,
-                [],
-            ),
-            # Test case 3: node label and node display name are not provided
-            (
-                None,
-                None,
-                None,
-            ),
-            # Test case 4: node label and display label is not in graph
+            # Test case 2: node label is not provided and display label is not part of the schema
             (
                 None,
                 "invalid display label",
                 [],
             ),
-            # Test case 5: node label is not provided but a valid display label is provided
+            # Test case 3: node label is not provided but a valid display label is provided
             (
                 None,
                 "Patient ID",
@@ -659,7 +647,7 @@ class TestDataModelGraphExplorer:
             ),
         ],
     )
-    def test_get_node_validation_rules(
+    def test_get_node_validation_rules_valid(
         self,
         helpers,
         data_model,
@@ -668,16 +656,42 @@ class TestDataModelGraphExplorer:
         expected_validation_rule,
     ):
         DMGE = helpers.get_data_model_graph_explorer(path=data_model)
-        if not node_label and not node_display_name:
-            with pytest.raises(ValueError):
-                node_validation_rules = DMGE.get_node_validation_rules(
-                    node_label=node_label, node_display_name=node_display_name
-                )
-        else:
-            node_validation_rules = DMGE.get_node_validation_rules(
+
+        node_validation_rules = DMGE.get_node_validation_rules(
+            node_label=node_label, node_display_name=node_display_name
+        )
+        assert node_validation_rules == expected_validation_rule
+
+    @pytest.mark.parametrize(
+        "data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values())
+    )
+    @pytest.mark.parametrize(
+        "node_label, node_display_name",
+        [
+            # Test case 1: node label and node display name are not provided
+            (
+                None,
+                None,
+            ),
+            # Test case 2: node label is not valid and display name is not provided
+            (
+                "invalid node",
+                None,
+            ),
+        ],
+    )
+    def test_get_node_validation_rules_invalid(
+        self,
+        helpers,
+        data_model,
+        node_label,
+        node_display_name,
+    ):
+        DMGE = helpers.get_data_model_graph_explorer(path=data_model)
+        with pytest.raises(ValueError):
+            DMGE.get_node_validation_rules(
                 node_label=node_label, node_display_name=node_display_name
             )
-            assert node_validation_rules == expected_validation_rule
 
     def test_get_subgraph_by_edge_type(self):
         return

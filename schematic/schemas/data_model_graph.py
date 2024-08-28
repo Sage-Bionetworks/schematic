@@ -790,10 +790,15 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             # try search node label using display name
             node_label = self.get_node_label(node_display_name)
 
-        if not node_label or node_label not in self.graph.nodes:
+        if not node_label:
             return []
 
-        node_validation_rules = self.graph.nodes[node_label]["validationRules"]
+        try:
+            node_validation_rules = self.graph.nodes[node_label]["validationRules"]
+        except:
+            raise ValueError(
+                f"{node_label} is not in the graph, please check that you are providing the proper node label"
+            )
 
         return node_validation_rules
 
