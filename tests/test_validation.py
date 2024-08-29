@@ -1319,7 +1319,10 @@ class TestUnitValidateAttributeObject:
             assert len(errors) == 1
 
     def test_cross_validation_value_match_atleast_one_rules_passing(
-        self, va_obj: ValidateAttribute, cross_val_df1: DataFrame, cross_val_df2: DataFrame
+        self,
+        va_obj: ValidateAttribute,
+        cross_val_df1: DataFrame,
+        cross_val_df2: DataFrame,
     ):
         """Tests for cross manifest validation for matchAtLeastOne value rules"""
         val_rule = "matchAtLeastOne Patient.PatientID value error"
@@ -1420,7 +1423,6 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1, "syn2": cross_val_df1},
         ):
-            '''
             errors, _ = va_obj.cross_validation(
                 val_rule, Series(["A"], index=[0], name="PatientID")
             )
@@ -1429,10 +1431,6 @@ class TestUnitValidateAttributeObject:
             errors, _ = va_obj.cross_validation(
                 val_rule, Series(["D"], index=[0], name="PatientID")
             )
-            assert len(errors) == 1
-            '''
-
-            errors, _ = va_obj.cross_validation(val_rule, Series([]))
             assert len(errors) == 1
 
     def test_cross_validation_match_none_value_rules_passing(
