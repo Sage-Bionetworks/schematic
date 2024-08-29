@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 MessageLevelType = Literal["warning", "error"]
 ScopeTypes = Literal["set", "value"]
 
+
 @dataclass
 class ValueValidationOutput:
     """
@@ -43,6 +44,7 @@ class ValueValidationOutput:
         repeat_values (pd.Series): values that are repeated between the manifest
           column and concatenated target column
     """
+
     missing_values: pd.Series = field(default_factory=pd.Series)
     duplicated_values: pd.Series = field(default_factory=pd.Series)
     repeat_values: pd.Series = field(default_factory=pd.Series)
@@ -1561,7 +1563,7 @@ class ValidateAttribute(object):
              other manifests
 
         Returns:
-            tuple[list[str], list[str]]: 
+            tuple[list[str], list[str]]:
               list of errors to raise, as appropriate, if values in
               current manifest donot pass relevant cross mannifest validation across
               the target manifest(s) warnings
@@ -1577,11 +1579,12 @@ class ValidateAttribute(object):
         # Determine invalid rows and entries based on the rule type
         if "matchAtLeastOne" in val_rule and not validation_output.missing_values.empty:
             invalid_rows, invalid_entry = self._format_invalid_row_values(
-                 validation_output.missing_values
+                validation_output.missing_values
             )
 
         elif "matchExactlyOne" in val_rule and (
-            validation_output.duplicated_values.any() or validation_output.missing_values.any()
+            validation_output.duplicated_values.any()
+            or validation_output.missing_values.any()
         ):
             invalid_rows, invalid_entry = self._merge_format_invalid_rows_values(
                 validation_output.duplicated_values, validation_output.missing_values
@@ -1787,11 +1790,11 @@ class ValidateAttribute(object):
         Returns:
             ValueValidationOutput: The result of validation
         """
-        # Find values that are present in the source manifest, 
+        # Find values that are present in the source manifest,
         # but not present in the target manifest
         missing_values = manifest_col[~manifest_col.isin(concatenated_target_column)]
 
-        # Find values that duplicated in the concatenated target column, 
+        # Find values that duplicated in the concatenated target column,
         # and also present in the source manifest column
         duplicated_values = manifest_col[
             manifest_col.isin(
@@ -2036,7 +2039,10 @@ class ValidateAttribute(object):
                 validation_output=validation_output,
             )
 
-        elif isinstance(validation_output, ValueValidationOutput) and "value" in rule_scope:
+        elif (
+            isinstance(validation_output, ValueValidationOutput)
+            and "value" in rule_scope
+        ):
             errors, warnings = self._gather_value_warnings_errors(
                 val_rule=val_rule,
                 source_attribute=str(manifest_col.name),

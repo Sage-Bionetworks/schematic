@@ -12,7 +12,7 @@ from schematic.models.validate_attribute import (
     GenerateError,
     ValidateAttribute,
     SetValidationOutput,
-    ValueValidationOutput
+    ValueValidationOutput,
 )
 from schematic.models.validate_manifest import ValidateManifest
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
@@ -404,13 +404,10 @@ class TestManifestValidation:
         )
 
         assert (
-            (
-                "Rule: matchNone set; "
-                "Attribute: Check Match None; Manifest matched one or more "
-                "manifests: [syn54127008]"
-            )
-            in errors
-        )
+            "Rule: matchNone set; "
+            "Attribute: Check Match None; Manifest matched one or more "
+            "manifests: [syn54127008]"
+        ) in errors
 
         assert (
             GenerateError.generate_cross_warning(
@@ -445,13 +442,10 @@ class TestManifestValidation:
         )
 
         assert (
-            (
-                "Rule: matchAtLeastOne set; "
-                "Attribute: Check Match at Least; Manifest did not match any target "
-                "manifests: [syn54126997, syn54127001]"
-            )
-            in warnings
-        )
+            "Rule: matchAtLeastOne set; "
+            "Attribute: Check Match at Least; Manifest did not match any target "
+            "manifests: [syn54126997, syn54127001]"
+        ) in warnings
 
         assert (
             GenerateError.generate_cross_warning(
@@ -465,13 +459,10 @@ class TestManifestValidation:
         )
 
         assert (
-            (
-                "Rule: matchExactlyOne set; "
-                "Attribute: Check Match Exactly; Manifest did not match any target "
-                "manifests: [syn54126950, syn54127008]"
-            )
-            in warnings
-        )
+            "Rule: matchExactlyOne set; "
+            "Attribute: Check Match Exactly; Manifest did not match any target "
+            "manifests: [syn54126950, syn54127008]"
+        ) in warnings
 
         cross_warning = GenerateError.generate_cross_warning(
             val_rule="matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value",
@@ -608,13 +599,10 @@ class TestManifestValidation:
         )
 
         assert (
-            (
-                "Rule: matchNone set; "
-                "Attribute: Check Match None; Manifest matched one or more "
-                "manifests: [syn54127008]"
-            )
-            in errors
-        )
+            "Rule: matchNone set; "
+            "Attribute: Check Match None; Manifest matched one or more "
+            "manifests: [syn54127008]"
+        ) in errors
 
         assert (
             GenerateError.generate_cross_warning(
@@ -629,13 +617,10 @@ class TestManifestValidation:
 
         # Check Warnings
         assert (
-            (
-                "Rule: matchAtLeastOne set; "
-                "Attribute: Check Match at Least; Manifest did not match any target "
-                "manifests: [syn54126997, syn54127001]"
-            )
-            in warnings
-        )
+            "Rule: matchAtLeastOne set; "
+            "Attribute: Check Match at Least; Manifest did not match any target "
+            "manifests: [syn54126997, syn54127001]"
+        ) in warnings
 
         assert (
             GenerateError.generate_cross_warning(
@@ -649,13 +634,10 @@ class TestManifestValidation:
         )
 
         assert (
-            (
-                "Rule: matchExactlyOne set; "
-                "Attribute: Check Match Exactly; Manifest did not match any target "
-                "manifests: [syn54126950, syn54127008]"
-            )
-            in warnings
-        )
+            "Rule: matchExactlyOne set; "
+            "Attribute: Check Match Exactly; Manifest did not match any target "
+            "manifests: [syn54126950, syn54127008]"
+        ) in warnings
 
         assert (
             GenerateError.generate_cross_warning(
@@ -1487,7 +1469,9 @@ class TestUnitValidateAttributeObject:
         errors, warnings = va_obj._gather_value_warnings_errors(
             val_rule="matchAtLeastOne Patient.PatientID value error",
             source_attribute="PatientID",
-            validation_output=ValueValidationOutput(duplicated_values=Series(["A", "B", "C"])),
+            validation_output=ValueValidationOutput(
+                duplicated_values=Series(["A", "B", "C"])
+            ),
         )
         assert len(warnings) == 0
         assert len(errors) == 0
