@@ -10,7 +10,7 @@ import shutil
 from contextlib import nullcontext as does_not_raise
 from time import sleep
 from typing import Any, Generator
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pandas as pd
 import pytest
@@ -258,26 +258,31 @@ class TestSynapseStorage:
     )
     def test_view_query_exception(
         self,
-        synapse_store_special_scope: SynapseStorage,
         asset_view: str,
         columns: list[str],
         message: str,
     ) -> None:
+        # GIVEN a project scope
         project_scope = ["syn23643250"]
 
-        # GIVEN the appropriate test file view
-        CONFIG.synapse_master_fileview_id = asset_view
-        # AND the approrpiate project scope
-        synapse_store_special_scope.project_scope = project_scope
+        # AND a test configuration
+        TEST_CONFIG = Configuration()
+        with patch(
+            "schematic.store.synapse.CONFIG", return_value=TEST_CONFIG
+        ) as mock_config:
+            # AND the appropriate test file view
+            mock_config.synapse_master_fileview_id = asset_view
+            # AND a real path to the synapse config file
+            mock_config.synapse_configuration_path = CONFIG.synapse_configuration_path
+            # AND a unique synapse storage object that uses the values modified in the test config
+            synapse_store = SynapseStorage(perform_query=False)
+            # AND the given project scope
+            synapse_store.project_scope = project_scope
 
-        # WHEN the query is built and run
-        try:
+            # WHEN the query is built and run
             # THEN it should raise a ValueError with the appropriate message
             with pytest.raises(ValueError, match=message):
-                synapse_store_special_scope.query_fileview(columns)
-        finally:
-            # AND the fileview should be reset to the default so the other tests are not affected regardless of the outcome of the query
-            CONFIG.synapse_master_fileview_id = "syn23643253"
+                synapse_store.query_fileview(columns)
 
     def test_getFileAnnotations(self, synapse_store: SynapseStorage) -> None:
         expected_dict = {
