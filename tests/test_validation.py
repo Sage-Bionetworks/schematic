@@ -12,6 +12,7 @@ from schematic.models.validate_attribute import (
     GenerateError,
     ValidateAttribute,
     SetValidationOutput,
+    ValueValidationOutput
 )
 from schematic.models.validate_manifest import ValidateManifest
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
@@ -403,7 +404,11 @@ class TestManifestValidation:
         )
 
         assert (
-            "Rule: matchNone set; Attribute: Check Match None; Manifest matched one or more manifests: [syn54127008]"
+            (
+                "Rule: matchNone set; "
+                "Attribute: Check Match None; Manifest matched one or more "
+                "manifests: [syn54127008]"
+            )
             in errors
         )
 
@@ -440,7 +445,11 @@ class TestManifestValidation:
         )
 
         assert (
-            "Rule: matchAtLeastOne set; Attribute: Check Match at Least; Manifest did not match any target manifests: [syn54126997, syn54127001]"
+            (
+                "Rule: matchAtLeastOne set; "
+                "Attribute: Check Match at Least; Manifest did not match any target "
+                "manifests: [syn54126997, syn54127001]"
+            )
             in warnings
         )
 
@@ -456,7 +465,11 @@ class TestManifestValidation:
         )
 
         assert (
-            "Rule: matchExactlyOne set; Attribute: Check Match Exactly; Manifest did not match any target manifests: [syn54126950, syn54127008]"
+            (
+                "Rule: matchExactlyOne set; "
+                "Attribute: Check Match Exactly; Manifest did not match any target "
+                "manifests: [syn54126950, syn54127008]"
+            )
             in warnings
         )
 
@@ -595,7 +608,11 @@ class TestManifestValidation:
         )
 
         assert (
-            "Rule: matchNone set; Attribute: Check Match None; Manifest matched one or more manifests: [syn54127008]"
+            (
+                "Rule: matchNone set; "
+                "Attribute: Check Match None; Manifest matched one or more "
+                "manifests: [syn54127008]"
+            )
             in errors
         )
 
@@ -612,7 +629,11 @@ class TestManifestValidation:
 
         # Check Warnings
         assert (
-            "Rule: matchAtLeastOne set; Attribute: Check Match at Least; Manifest did not match any target manifests: [syn54126997, syn54127001]"
+            (
+                "Rule: matchAtLeastOne set; "
+                "Attribute: Check Match at Least; Manifest did not match any target "
+                "manifests: [syn54126997, syn54127001]"
+            )
             in warnings
         )
 
@@ -628,7 +649,11 @@ class TestManifestValidation:
         )
 
         assert (
-            "Rule: matchExactlyOne set; Attribute: Check Match Exactly; Manifest did not match any target manifests: [syn54126950, syn54127008]"
+            (
+                "Rule: matchExactlyOne set; "
+                "Attribute: Check Match Exactly; Manifest did not match any target "
+                "manifests: [syn54126950, syn54127008]"
+            )
             in warnings
         )
 
@@ -1343,7 +1368,7 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1},
         ):
-            _, validation_store = va_obj._run_validation_across_target_manifests(
+            _, validation_output = va_obj._run_validation_across_target_manifests(
                 project_scope=None,
                 rule_scope="value",
                 access_token="xxx",
@@ -1351,14 +1376,10 @@ class TestUnitValidateAttributeObject:
                 manifest_col=Series([]),
                 target_column=Series([]),
             )
-            assert isinstance(validation_store, tuple)
-            assert len(validation_store) == 3
-            assert isinstance(validation_store[0], Series)
-            assert validation_store[0].empty
-            assert isinstance(validation_store[1], Series)
-            assert validation_store[1].empty
-            assert isinstance(validation_store[2], Series)
-            assert validation_store[2].empty
+            assert isinstance(validation_output, ValueValidationOutput)
+            assert validation_output.missing_values.empty
+            assert validation_output.duplicated_values.empty
+            assert validation_output.repeat_values.empty
 
     def test__run_validation_across_target_manifests_set_rules(
         self,
@@ -1412,29 +1433,29 @@ class TestUnitValidateAttributeObject:
     ) -> None:
         """Tests for ValidateAttribute._run_validation_across_targets_value"""
 
-        missing1, duplicated1, repeat1 = va_obj._run_validation_across_targets_value(
+        validation_output = va_obj._run_validation_across_targets_value(
             manifest_col=Series(["A", "B", "C"]),
             concatenated_target_column=Series(["A", "B", "C"]),
         )
-        assert missing1.empty
-        assert duplicated1.empty
-        assert repeat1.to_list() == ["A", "B", "C"]
+        assert validation_output.missing_values.empty
+        assert validation_output.duplicated_values.empty
+        assert validation_output.repeat_values.to_list() == ["A", "B", "C"]
 
-        missing2, duplicated2, repeat2 = va_obj._run_validation_across_targets_value(
+        validation_output = va_obj._run_validation_across_targets_value(
             manifest_col=Series(["C"]),
             concatenated_target_column=Series(["A", "B", "B", "C", "C"]),
         )
-        assert missing2.empty
-        assert duplicated2.to_list() == ["C"]
-        assert repeat2.to_list() == ["C"]
+        assert validation_output.missing_values.empty
+        assert validation_output.duplicated_values.to_list() == ["C"]
+        assert validation_output.repeat_values.to_list() == ["C"]
 
-        missing1, duplicated1, repeat1 = va_obj._run_validation_across_targets_value(
+        validation_output = va_obj._run_validation_across_targets_value(
             manifest_col=Series(["A", "B", "C"]),
             concatenated_target_column=Series(["A"]),
         )
-        assert missing1.to_list() == ["B", "C"]
-        assert duplicated1.empty
-        assert repeat1.to_list() == ["A"]
+        assert validation_output.missing_values.to_list() == ["B", "C"]
+        assert validation_output.duplicated_values.empty
+        assert validation_output.repeat_values.to_list() == ["A"]
 
     def test__gather_value_warnings_errors(self, va_obj: ValidateAttribute) -> None:
         """Tests for ValidateAttribute._gather_value_warnings_errors"""
@@ -1442,17 +1463,19 @@ class TestUnitValidateAttributeObject:
         errors, warnings = va_obj._gather_value_warnings_errors(
             val_rule="matchAtLeastOne comp.att value error",
             source_attribute="att",
-            value_validation_store=(Series([]), Series([]), Series([])),
+            validation_output=ValueValidationOutput(),
         )
-        assert not errors
-        assert not warnings
+        assert len(errors) == 0
+        assert len(warnings) == 0
 
         errors, warnings = va_obj._gather_value_warnings_errors(
             val_rule="matchAtLeastOne Patient.PatientID value error",
             source_attribute="PatientID",
-            value_validation_store=(Series(["A", "B", "C"]), Series([]), Series([])),
+            validation_output=(
+                ValueValidationOutput(missing_values=Series(["A", "B", "C"]))
+            ),
         )
-        assert not warnings
+        assert len(warnings) == 0
         assert len(errors) == 1
         assert len(errors[0]) == 4
         assert errors[0][1] == "PatientID"
@@ -1464,22 +1487,21 @@ class TestUnitValidateAttributeObject:
         errors, warnings = va_obj._gather_value_warnings_errors(
             val_rule="matchAtLeastOne Patient.PatientID value error",
             source_attribute="PatientID",
-            value_validation_store=(Series([]), Series(["A", "B", "C"]), Series([])),
+            validation_output=ValueValidationOutput(duplicated_values=Series(["A", "B", "C"])),
         )
-        assert not warnings
-        assert not errors
+        assert len(warnings) == 0
+        assert len(errors) == 0
 
         errors, warnings = va_obj._gather_value_warnings_errors(
             val_rule="matchAtLeastOne Patient.PatientID value error",
             source_attribute="PatientID",
-            value_validation_store=(
-                Series([]),
-                Series(["A", "B", "C"]),
-                Series(["A", "B", "C"]),
+            validation_output=ValueValidationOutput(
+                duplicated_values=Series(["A", "B", "C"]),
+                repeat_values=Series(["A", "B", "C"]),
             ),
         )
-        assert not warnings
-        assert not errors
+        assert len(warnings) == 0
+        assert len(errors) == 0
 
     def test__run_validation_across_targets_set(
         self,
@@ -1501,8 +1523,8 @@ class TestUnitValidateAttributeObject:
         )
         assert output.target_manifests == ["syn1"]
         assert output.matching_manifests == ["syn1"]
-        assert not output.missing_manifest_values
-        assert not output.missing_target_values
+        assert output.missing_manifest_values == {}
+        assert output.missing_target_values == {}
         assert bool_list1 == [True]
         assert bool_list2 == [False]
 
@@ -1606,8 +1628,8 @@ class TestUnitValidateAttributeObject:
                 target_manifests=["syn1"], matching_manifests=["syn1"]
             ),
         )
-        assert not warnings
-        assert not errors
+        assert len(warnings) == 0
+        assert len(errors) == 0
 
         errors, warnings = va_obj._gather_set_warnings_errors(
             val_rule=val_rule,
@@ -1616,15 +1638,15 @@ class TestUnitValidateAttributeObject:
                 target_manifests=["syn1", "syn2"], matching_manifests=["syn1", "syn2"]
             ),
         )
-        assert not warnings
-        assert not errors
+        assert len(warnings) == 0
+        assert len(errors) == 0
 
         errors, warnings = va_obj._gather_set_warnings_errors(
             val_rule=val_rule,
             source_attribute="PatientID",
             validation_output=SetValidationOutput(target_manifests=["syn1"]),
         )
-        assert not warnings
+        assert len(warnings) == 0
         assert len(errors) == 1
         assert errors[0] == (
             "Rule: matchAtLeastOne set; Attribute: PatientID; Manifest did not match any target "
@@ -1636,7 +1658,7 @@ class TestUnitValidateAttributeObject:
             source_attribute="PatientID",
             validation_output=SetValidationOutput(target_manifests=["syn1", "syn2"]),
         )
-        assert not warnings
+        assert len(warnings) == 0
         assert len(errors) == 1
         assert errors[0] == (
             "Rule: matchAtLeastOne set; Attribute: PatientID; Manifest did not match any target "
@@ -1656,15 +1678,15 @@ class TestUnitValidateAttributeObject:
                 matching_manifests=["syn1"], target_manifests=["syn1"]
             ),
         )
-        assert not warnings
-        assert not errors
+        assert len(warnings) == 0
+        assert len(errors) == 0
 
         errors, warnings = va_obj._gather_set_warnings_errors(
             val_rule=val_rule,
             source_attribute="PatientID",
             validation_output=SetValidationOutput(target_manifests=["syn1"]),
         )
-        assert not warnings
+        assert len(warnings) == 0
         assert len(errors) == 1
         assert errors[0] == (
             "Rule: matchExactlyOne set; Attribute: PatientID; Manifest did not match any target "
@@ -1676,7 +1698,7 @@ class TestUnitValidateAttributeObject:
             source_attribute="PatientID",
             validation_output=SetValidationOutput(target_manifests=["syn1", "syn2"]),
         )
-        assert not warnings
+        assert len(warnings) == 0
         assert len(errors) == 1
         assert errors[0] == (
             "Rule: matchExactlyOne set; Attribute: PatientID; Manifest did not match any target "
@@ -1690,7 +1712,7 @@ class TestUnitValidateAttributeObject:
                 matching_manifests=["syn1", "syn2"], target_manifests=["syn1", "syn2"]
             ),
         )
-        assert not warnings
+        assert len(warnings) == 0
         assert len(errors) == 1
         assert errors[0] == (
             "Rule: matchExactlyOne set; Attribute: PatientID; Manifest matched multiple "
@@ -1710,7 +1732,7 @@ class TestUnitValidateAttributeObject:
                 matching_manifests=["syn1"], target_manifests=["syn1"]
             ),
         )
-        assert not warnings
+        assert len(warnings) == 0
         assert len(errors) == 1
         assert errors[0] == (
             "Rule: matchNone set; Attribute: PatientID; Manifest matched one or more "
@@ -1722,8 +1744,8 @@ class TestUnitValidateAttributeObject:
             source_attribute="PatientID",
             validation_output=SetValidationOutput(target_manifests=["syn1"]),
         )
-        assert not warnings
-        assert not errors
+        assert len(warnings) == 0
+        assert len(errors) == 0
 
     def test__get_column_names(self, va_obj: ValidateAttribute) -> None:
         """Tests for ValidateAttribute._get_column_names"""

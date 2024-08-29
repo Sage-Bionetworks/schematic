@@ -30,18 +30,22 @@ logger = logging.getLogger(__name__)
 MessageLevelType = Literal["warning", "error"]
 ScopeTypes = Literal["set", "value"]
 
-ValueValidationOutput = tuple[pd.Series, pd.Series, pd.Series]
-"""
-This is the result of doing cross validation when of type value.
-This is a tuple made of three pandas Series objects
+@dataclass
+class ValueValidationOutput:
+    """
+    This is the result of doing cross validation when of type value.
 
-The first Series are the missing_values: values that are present in the source manifest,
-    but not present in the target manifest
-The second Series are the duplicated_values: values that duplicated in the concatenated
-    target column, and also present in the source manifest column
-The third Series are the repeat_values: values that are repeated between the manifest
-    column and concatenated target column
-"""
+    Args:
+        missing_values (pd.Series): values that are present in the source manifest,
+          but not present in the target manifest
+        duplicated_values (pd.Series): values that duplicated in the concatenated
+          target column, and also present in the source manifest column
+        repeat_values (pd.Series): values that are repeated between the manifest
+          column and concatenated target column
+    """
+    missing_values: pd.Series = field(default_factory=pd.Series)
+    duplicated_values: pd.Series = field(default_factory=pd.Series)
+    repeat_values: pd.Series = field(default_factory=pd.Series)
 
 
 @dataclass
@@ -1544,23 +1548,25 @@ class ValidateAttribute(object):
         self,
         val_rule: str,
         source_attribute: str,
-        value_validation_store: ValueValidationOutput,
+        validation_output: ValueValidationOutput,
     ) -> tuple[list[str], list[str]]:
         """
         For value rule scope, find invalid rows and entries, and generate
           appropriate errors and warnings
 
         Args:
-            val_rule, str: Validation rule
-            source_attribute, str: source manifest column name
-            value_validation_store, ValueValidationOutput
-                contains missing_values, duplicated_values, and repeat values
+            val_rule (str): Validation rule
+            source_attribute (str): source manifest column name
+            validation_output (ValueValidationOutput): The output of validation across
+             other manifests
+
         Returns:
-            errors, list[str]: list of errors to raise, as appropriate, if values in
+            tuple[list[str], list[str]]: 
+              list of errors to raise, as appropriate, if values in
               current manifest donot pass relevant cross mannifest validation across
-              the target manifest(s) warnings, list[str]: list of warnings to raise,
-              as appropriate, if values in current manifest do not pass relevant
-              cross mannifest validation across the target manifest(s)
+              the target manifest(s) warnings
+              list of warnings to raise, as appropriate, if values in current manifest
+              do not pass relevant cross mannifest validation across the target manifest(s)
         """
         # Initialize with empty lists
         errors: list[str] = []
@@ -1568,27 +1574,23 @@ class ValidateAttribute(object):
         invalid_rows: list[str] = []
         invalid_entry: list[str] = []
 
-        # Unpack the value_validation_store
-        (missing_values, duplicated_values, repeat_values) = value_validation_store
-
         # Determine invalid rows and entries based on the rule type
-        if "matchAtLeastOne" in val_rule and not missing_values.empty:
+        if "matchAtLeastOne" in val_rule and not validation_output.missing_values.empty:
             invalid_rows, invalid_entry = self._format_invalid_row_values(
-                missing_values
+                 validation_output.missing_values
             )
 
         elif "matchExactlyOne" in val_rule and (
-            duplicated_values.any() or missing_values.any()
+            validation_output.duplicated_values.any() or validation_output.missing_values.any()
         ):
-            (
-                invalid_rows,
-                invalid_entry,
-            ) = self._merge_format_invalid_rows_values(
-                duplicated_values, missing_values
+            invalid_rows, invalid_entry = self._merge_format_invalid_rows_values(
+                validation_output.duplicated_values, validation_output.missing_values
             )
 
-        elif "matchNone" in val_rule and repeat_values.any():
-            invalid_rows, invalid_entry = self._format_invalid_row_values(repeat_values)
+        elif "matchNone" in val_rule and validation_output.repeat_values.any():
+            invalid_rows, invalid_entry = self._format_invalid_row_values(
+                validation_output.repeat_values
+            )
 
         # If invalid rows/entries found, raise warning/error
         if invalid_rows and invalid_entry:
@@ -1785,10 +1787,12 @@ class ValidateAttribute(object):
         Returns:
             ValueValidationOutput: The result of validation
         """
-        # Find values that are present in the source manifest, but not present in the target manifest
+        # Find values that are present in the source manifest, 
+        # but not present in the target manifest
         missing_values = manifest_col[~manifest_col.isin(concatenated_target_column)]
 
-        # Find values that duplicated in the concatenated target column, and also present in the source manifest column
+        # Find values that duplicated in the concatenated target column, 
+        # and also present in the source manifest column
         duplicated_values = manifest_col[
             manifest_col.isin(
                 concatenated_target_column[concatenated_target_column.duplicated()]
@@ -1798,7 +1802,11 @@ class ValidateAttribute(object):
         # Find values that are repeated between the manifest column and concatenated target column
         repeat_values = manifest_col[manifest_col.isin(concatenated_target_column)]
 
-        return missing_values, duplicated_values, repeat_values
+        return ValueValidationOutput(
+            missing_values=missing_values,
+            duplicated_values=duplicated_values,
+            repeat_values=repeat_values,
+        )
 
     def _get_column_names(self, target_manifest: pd.DataFrame) -> dict[str, str]:
         """Convert manifest column names into validation rule input format
@@ -1955,15 +1963,10 @@ class ValidateAttribute(object):
             return (start_time, "values not recorded in targets stored")
         if "value" in rule_scope:
             # From the concatenated target column, for value scope, run validation
-            (
-                missing_values,
-                duplicated_values,
-                repeat_values,
-            ) = self._run_validation_across_targets_value(
+            validation_store = self._run_validation_across_targets_value(
                 manifest_col=manifest_col,
                 concatenated_target_column=target_column,
             )
-            validation_store = (missing_values, duplicated_values, repeat_values)
         return (start_time, validation_store)
 
     def cross_validation(
@@ -2033,11 +2036,11 @@ class ValidateAttribute(object):
                 validation_output=validation_output,
             )
 
-        elif isinstance(validation_output, tuple) and "value" in rule_scope:
+        elif isinstance(validation_output, ValueValidationOutput) and "value" in rule_scope:
             errors, warnings = self._gather_value_warnings_errors(
                 val_rule=val_rule,
                 source_attribute=str(manifest_col.name),
-                value_validation_store=validation_output,
+                validation_output=validation_output,
             )
 
         logger.debug(f"cross manifest validation time {perf_counter()-start_time}")
