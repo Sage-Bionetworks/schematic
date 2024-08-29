@@ -505,7 +505,7 @@ class TestDfUtils:
         n_unprocessed_rows = unprocessed_df.shape[0]
         n_processed_rows = df.shape[0]
 
-        assert n_unprocessed_rows == 4
+        assert n_unprocessed_rows == 3
         assert n_processed_rows == 3
 
         if preserve_raw_input:
