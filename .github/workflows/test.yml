@@ -119,19 +119,10 @@ jobs:
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
-        # run: >
-        #   source .venv/bin/activate;
-        #   pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-        #   -m "not (rule_benchmark)" -n auto tests/test_store.py::TestTableOperations::test_create_table[aks_display_label-tcn_display_name]
-        #   --log-level=DEBUG -v
         run: >
           source .venv/bin/activate;
           pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-          -m "table_operations" -n auto
-        # run: >
-        #   source .venv/bin/activate;
-        #   pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-        #   -m "not (rule_benchmark or table_operations)" --reruns 2 -n auto
+          -m "table_operations" -n auto --log-level=DEBUG -v
 
 
       - name: Upload pytest test results
