@@ -1385,8 +1385,8 @@ class ValidateAttribute(object):
         validation_output: SetValidationOutput,
     ) -> tuple[list[str], list[str]]:
         """
-        Based on the cross manifest validation rule, and in set rule scope, pass variables to
-        _get_cross_errors_warnings to log appropriate error or warning.
+        Determine if there is an error/warning, and then create the message based on validation
+          output and rule type 
 
         Args:
             val_rule (str): Validation Rule

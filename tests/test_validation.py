@@ -1055,6 +1055,11 @@ class TestValidateAttributeObject:
             == "SELECT name,id,path FROM syn23643253 WHERE parentId='syn61682648' AND type='file' AND projectId IN ('syn23643250', '') ;"
         )
 
+    def test__get_target_manifest_dataframes(self, va_obj: ValidateAttribute) -> None:
+        """Testing for ValidateAttribute._get_target_manifest_dataframes"""
+        manifests = va_obj._get_target_manifest_dataframes("patient", project_scope=["syn54126707"])
+        assert list(manifests.keys()) == ["syn54126997", "syn54127001"]
+
 
 @pytest.fixture(name="cross_val_df1")
 def fixture_cross_val_df1() -> Generator[DataFrame, None, None]:
@@ -1149,6 +1154,9 @@ class TestUnitValidateAttributeObject:
                 [],
                 [],
             )
+            assert va_obj.cross_validation(val_rule, Series(["A", "B", "C", "A", "B", "C"])) == (
+                [], [], 
+            )
 
     def test_cross_validation_match_atleast_one_set_rules_errors(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
@@ -1161,16 +1169,46 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1},
         ):
-            errors, _ = va_obj.cross_validation(
+            errors, warnings = va_obj.cross_validation(
                 val_rule, Series(["A", "B"], index=[0, 1], name="PatientID")
             )
+            assert len(warnings) == 0
             assert len(errors) == 1
 
-            errors, _ = va_obj.cross_validation(
+            errors, warnings = va_obj.cross_validation(
                 val_rule,
                 Series(["A", "B", "C", "D"], index=[0, 1, 2, 3], name="PatientID"),
             )
+            assert len(warnings) == 0
             assert len(errors) == 1
+
+            errors, warnings = va_obj.cross_validation(val_rule, Series([], index=[], name="PatientID") )
+            assert len(warnings) == 0
+            assert len(errors) == 1
+
+    def test_cross_validation_match_atleast_one_set_rules_warnings(
+        self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
+    ):
+        """Tests for cross manifest validation for matchAtLeastOne set rules"""
+        val_rule = "matchAtLeastOne Patient.PatientID set warning"
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1},
+        ):
+            errors, warnings = va_obj.cross_validation(
+                val_rule, Series(["A", "B"], index=[0, 1], name="PatientID")
+            )
+            assert len(warnings) == 1
+            assert len(errors) == 0
+
+            errors, warnings = va_obj.cross_validation(
+                val_rule,
+                Series(["A", "B", "C", "D"], index=[0, 1, 2, 3], name="PatientID"),
+            )
+            assert len(warnings) == 1
+            assert len(errors) == 0
 
     def test_cross_validation_match_exactly_one_set_rules_passing(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
@@ -1406,6 +1444,7 @@ class TestUnitValidateAttributeObject:
         cross_val_df3: DataFrame,
     ) -> None:
         """Tests for ValidateAttribute._run_validation_across_target_manifests with failures"""
+        # This shows that when no target manifests are found to check against, False is returned
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
@@ -1419,8 +1458,9 @@ class TestUnitValidateAttributeObject:
                 manifest_col=Series([]),
                 target_column=Series([]),
             )
-            assert not result
+            assert result is False
 
+        # This shows that when the only target manifest is empty, only a message is returned
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
@@ -1437,6 +1477,25 @@ class TestUnitValidateAttributeObject:
 
             assert result == "values not recorded in targets stored"
 
+        # This shows that when the only target manifest is empty, only a message is returned
+        # even if the tested column has values
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df3},
+        ):
+            _, result = va_obj._run_validation_across_target_manifests(
+                project_scope=None,
+                rule_scope="value",
+                access_token="xxx",
+                val_rule="rule Patient.PatientID",
+                manifest_col=Series(['A', 'B', 'C']),
+                target_column=Series([]),
+            )
+
+            assert result == "values not recorded in targets stored"
+
+        # This shows that when any target manifest is empty, only a message is returned
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
@@ -1456,10 +1515,11 @@ class TestUnitValidateAttributeObject:
     def test__run_validation_across_target_manifests_value_rules(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        cross_val_df1: DataFrame
     ) -> None:
         """Tests for ValidateAttribute._run_validation_across_target_manifests with value rule"""
 
+        # This tests when an empty column is validated there are no missing values to be returned
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
@@ -1485,6 +1545,8 @@ class TestUnitValidateAttributeObject:
     ) -> None:
         """Tests for ValidateAttribute._run_validation_across_target_manifests with set rule"""
 
+        # This tests when an empty column is validated, all values in the target
+        # manifest are returned as missing in the column
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
@@ -1506,6 +1568,10 @@ class TestUnitValidateAttributeObject:
             assert mmv["syn1"].to_list() == ["A", "B", "C"]
             assert validation_output.missing_target_values == {}
 
+        # This tests when series is validated and has all values in the target
+        # manifest, no missing values are returned
+        # In addition this shows that both manifests are listed in the target
+        # nad matching manifests
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
