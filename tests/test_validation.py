@@ -1130,7 +1130,7 @@ def fixture_va_obj(
 class TestUnitValidateAttributeObject:
     """Testing for ValidateAttribute class with all Synapse calls mocked"""
 
-    def test_cross_validation_match_atleast_one_set_rules(
+    def test_cross_validation_match_atleast_one_set_rules_passing(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
         """Tests for cross manifest validation for matchAtLeastOne set rules"""
@@ -1150,6 +1150,18 @@ class TestUnitValidateAttributeObject:
                 [],
             )
 
+    def test_cross_validation_match_atleast_one_set_rules_errors(
+        self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
+    ):
+        """Tests for cross manifest validation for matchAtLeastOne set rules"""
+        val_rule = "matchAtLeastOne Patient.PatientID set error"
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1},
+        ):
+
             e, _ = va_obj.cross_validation(
                 val_rule, Series(["A", "B"], index=[0, 1], name="PatientID")
             )
@@ -1161,7 +1173,7 @@ class TestUnitValidateAttributeObject:
             )
             assert len(e) == 1
 
-    def test_cross_validation_match_exactly_one_set_rules(
+    def test_cross_validation_match_exactly_one_set_rules_passing(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
         """Tests for cross manifest validation for matchExactlyOne set rules"""
@@ -1180,6 +1192,19 @@ class TestUnitValidateAttributeObject:
                 [],
                 [],
             )
+
+    
+    def test_cross_validation_match_exactly_one_set_rules_errors(
+        self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
+    ):
+        """Tests for cross manifest validation for matchExactlyOne set rules"""
+        val_rule = "matchExactlyOne Patient.PatientID set error"
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1},
+        ):
 
             e, _ = va_obj.cross_validation(
                 val_rule, Series(["A", "B"], index=[0, 1], name="PatientID")
@@ -1202,7 +1227,7 @@ class TestUnitValidateAttributeObject:
             )
             assert e
 
-    def test_cross_validation_match_none_set_rules(
+    def test_cross_validation_match_none_set_rules_passing(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
         """Tests for cross manifest validation for matchNone set rules"""
@@ -1222,6 +1247,18 @@ class TestUnitValidateAttributeObject:
                 [],
             )
 
+    def test_cross_validation_match_none_set_rules_errors(
+        self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
+    ):
+        """Tests for cross manifest validation for matchNone set rules"""
+        val_rule = "matchNone Patient.PatientID set error"
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1},
+        ):
+
             e, _ = va_obj.cross_validation(
                 val_rule,
                 Series(["A", "B", "C"], index=[0, 1, 2], name="PatientID"),
@@ -1234,7 +1271,7 @@ class TestUnitValidateAttributeObject:
             )
             assert e
 
-    def test_cross_validation_value_match_atleast_one_rules(
+    def test_cross_validation_value_match_atleast_one_rules_passing(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
         """Tests for cross manifest validation for matchAtLeastOne value rules"""
@@ -1257,13 +1294,24 @@ class TestUnitValidateAttributeObject:
                 [],
                 [],
             )
+    def test_cross_validation_value_match_atleast_one_rules_errors(
+        self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
+    ):
+        """Tests for cross manifest validation for matchAtLeastOne value rules"""
+        val_rule = "matchAtLeastOne Patient.PatientID value error"
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1},
+        ):
 
             e, _ = va_obj.cross_validation(
                 val_rule, Series(["D"], index=[0], name="PatientID")
             )
             assert e
 
-    def test_cross_validation_match_exactly_ne_value_rules(
+    def test_cross_validation_match_exactly_ne_value_rules_passing(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
         """Tests for cross manifest validation for matchExactlyOne value rules"""
@@ -1287,6 +1335,25 @@ class TestUnitValidateAttributeObject:
                 [],
             )
 
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1, "syn2": cross_val_df1},
+        ):
+            assert va_obj.cross_validation(val_rule, Series([])) == ([], [])
+
+    def test_cross_validation_match_exactly_ne_value_rules_errors(
+        self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
+    ):
+        """Tests for cross manifest validation for matchExactlyOne value rules"""
+        val_rule = "matchExactlyOne Patient.PatientID value error"
+
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1},
+        ):
+
             e, _ = va_obj.cross_validation(
                 val_rule, Series(["D"], index=[0], name="PatientID")
             )
@@ -1297,8 +1364,6 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1, "syn2": cross_val_df1},
         ):
-            assert va_obj.cross_validation(val_rule, Series([])) == ([], [])
-
             e, _ = va_obj.cross_validation(
                 val_rule, Series(["A"], index=[0], name="PatientID")
             )
