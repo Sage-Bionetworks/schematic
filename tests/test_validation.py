@@ -1057,7 +1057,9 @@ class TestValidateAttributeObject:
 
     def test__get_target_manifest_dataframes(self, va_obj: ValidateAttribute) -> None:
         """Testing for ValidateAttribute._get_target_manifest_dataframes"""
-        manifests = va_obj._get_target_manifest_dataframes("patient", project_scope=["syn54126707"])
+        manifests = va_obj._get_target_manifest_dataframes(
+            "patient", project_scope=["syn54126707"]
+        )
         assert list(manifests.keys()) == ["syn54126997", "syn54127001"]
 
 
@@ -1154,8 +1156,11 @@ class TestUnitValidateAttributeObject:
                 [],
                 [],
             )
-            assert va_obj.cross_validation(val_rule, Series(["A", "B", "C", "A", "B", "C"])) == (
-                [], [], 
+            assert va_obj.cross_validation(
+                val_rule, Series(["A", "B", "C", "A", "B", "C"])
+            ) == (
+                [],
+                [],
             )
 
     def test_cross_validation_match_atleast_one_set_rules_errors(
@@ -1182,7 +1187,9 @@ class TestUnitValidateAttributeObject:
             assert len(warnings) == 0
             assert len(errors) == 1
 
-            errors, warnings = va_obj.cross_validation(val_rule, Series([], index=[], name="PatientID") )
+            errors, warnings = va_obj.cross_validation(
+                val_rule, Series([], index=[], name="PatientID")
+            )
             assert len(warnings) == 0
             assert len(errors) == 1
 
@@ -1489,7 +1496,7 @@ class TestUnitValidateAttributeObject:
                 rule_scope="value",
                 access_token="xxx",
                 val_rule="rule Patient.PatientID",
-                manifest_col=Series(['A', 'B', 'C']),
+                manifest_col=Series(["A", "B", "C"]),
                 target_column=Series([]),
             )
 
@@ -1513,9 +1520,7 @@ class TestUnitValidateAttributeObject:
             assert result == "values not recorded in targets stored"
 
     def test__run_validation_across_target_manifests_value_rules(
-        self,
-        va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame
+        self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ) -> None:
         """Tests for ValidateAttribute._run_validation_across_target_manifests with value rule"""
 

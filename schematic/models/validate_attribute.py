@@ -1386,7 +1386,7 @@ class ValidateAttribute(object):
     ) -> tuple[list[str], list[str]]:
         """
         Determine if there is an error/warning, and then create the message based on validation
-          output and rule type 
+          output and rule type
 
         Args:
             val_rule (str): Validation Rule
