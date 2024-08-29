@@ -1161,16 +1161,16 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1},
         ):
-            e, _ = va_obj.cross_validation(
+            errors, _ = va_obj.cross_validation(
                 val_rule, Series(["A", "B"], index=[0, 1], name="PatientID")
             )
-            assert len(e) == 1
+            assert len(errors) == 1
 
-            e, _ = va_obj.cross_validation(
+            errors, _ = va_obj.cross_validation(
                 val_rule,
                 Series(["A", "B", "C", "D"], index=[0, 1, 2, 3], name="PatientID"),
             )
-            assert len(e) == 1
+            assert len(errors) == 1
 
     def test_cross_validation_match_exactly_one_set_rules_passing(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
@@ -1203,27 +1203,27 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1},
         ):
-            e, _ = va_obj.cross_validation(
+            errors, _ = va_obj.cross_validation(
                 val_rule, Series(["A", "B"], index=[0, 1], name="PatientID")
             )
-            assert e
+            assert len(errors) == 1
 
-            e, _ = va_obj.cross_validation(
+            errors, _ = va_obj.cross_validation(
                 val_rule,
                 Series(["A", "B", "C", "D"], index=[0, 1, 2, 3], name="PatientID"),
             )
-            assert e
+            assert len(errors) == 1
 
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1, "syn2": cross_val_df1},
         ):
-            e, _ = va_obj.cross_validation(
+            errors, _ = va_obj.cross_validation(
                 val_rule, Series(["A", "B", "C"], index=[0, 1, 2], name="PatientID")
             )
-            assert e
-
+            assert len(errors) == 1
+            
     def test_cross_validation_match_none_set_rules_passing(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
@@ -1255,17 +1255,17 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1},
         ):
-            e, _ = va_obj.cross_validation(
+            errors, _ = va_obj.cross_validation(
                 val_rule,
                 Series(["A", "B", "C"], index=[0, 1, 2], name="PatientID"),
             )
-            assert e
+            assert len(errors) == 1
 
-            e, _ = va_obj.cross_validation(
+            errors, _ = va_obj.cross_validation(
                 val_rule,
                 Series(["A", "B", "C", "C"], index=[0, 1, 2, 3], name="PatientID"),
             )
-            assert e
+            assert len(errors) == 1
 
     def test_cross_validation_value_match_atleast_one_rules_passing(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
@@ -1302,10 +1302,10 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1},
         ):
-            e, _ = va_obj.cross_validation(
+            errors, _ = va_obj.cross_validation(
                 val_rule, Series(["D"], index=[0], name="PatientID")
             )
-            assert e
+            assert len(errors) == 1
 
     def test_cross_validation_match_exactly_ne_value_rules_passing(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
@@ -1349,27 +1349,27 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1},
         ):
-            e, _ = va_obj.cross_validation(
+            errors, _ = va_obj.cross_validation(
                 val_rule, Series(["D"], index=[0], name="PatientID")
             )
-            assert e
+            assert len(errors) == 1
 
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1, "syn2": cross_val_df1},
         ):
-            e, _ = va_obj.cross_validation(
+            errors, _ = va_obj.cross_validation(
                 val_rule, Series(["A"], index=[0], name="PatientID")
             )
-            assert e
+            assert len(errors) == 1
 
-            e, _ = va_obj.cross_validation(
+            errors, _ = va_obj.cross_validation(
                 val_rule, Series(["D"], index=[0], name="PatientID")
             )
-            assert e
+            assert len(errors) == 1
 
-    def test_cross_validation_match_none_value_rules(
+    def test_cross_validation_match_none_value_rules_passing(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
         """Tests for cross manifest validation for matchNone value rules"""
@@ -1382,11 +1382,22 @@ class TestUnitValidateAttributeObject:
         ):
             assert va_obj.cross_validation(val_rule, Series([])) == ([], [])
             assert va_obj.cross_validation(val_rule, Series(["D"])) == ([], [])
+            
+    def test_cross_validation_match_none_value_rules_errors(
+        self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
+    ):
+        """Tests for cross manifest validation for matchNone value rules"""
+        val_rule = "matchNone Patient.PatientID value error"
 
-            e, _ = va_obj.cross_validation(
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_get_target_manifest_dataframes",
+            return_value={"syn1": cross_val_df1},
+        ):
+            errors, _ = va_obj.cross_validation(
                 val_rule, Series(["A"], index=[0], name="PatientID")
             )
-            assert e
+            assert len(errors) == 1
 
     def test__run_validation_across_target_manifests_failures(
         self,
@@ -1543,33 +1554,8 @@ class TestUnitValidateAttributeObject:
         assert validation_output.duplicated_values.empty
         assert validation_output.repeat_values.to_list() == ["A"]
 
-    def test__gather_value_warnings_errors(self, va_obj: ValidateAttribute) -> None:
+    def test__gather_value_warnings_errors_passing(self, va_obj: ValidateAttribute) -> None:
         """Tests for ValidateAttribute._gather_value_warnings_errors"""
-
-        errors, warnings = va_obj._gather_value_warnings_errors(
-            val_rule="matchAtLeastOne comp.att value error",
-            source_attribute="att",
-            validation_output=ValueValidationOutput(),
-        )
-        assert len(errors) == 0
-        assert len(warnings) == 0
-
-        errors, warnings = va_obj._gather_value_warnings_errors(
-            val_rule="matchAtLeastOne Patient.PatientID value error",
-            source_attribute="PatientID",
-            validation_output=(
-                ValueValidationOutput(missing_values=Series(["A", "B", "C"]))
-            ),
-        )
-        assert len(warnings) == 0
-        assert len(errors) == 1
-        assert len(errors[0]) == 4
-        assert errors[0][1] == "PatientID"
-        assert errors[0][2] == (
-            "Value(s) ['A', 'B', 'C'] from row(s) ['2', '3', '4'] of the attribute "
-            "PatientID in the source manifest are missing."
-        )
-
         errors, warnings = va_obj._gather_value_warnings_errors(
             val_rule="matchAtLeastOne Patient.PatientID value error",
             source_attribute="PatientID",
@@ -1590,6 +1576,34 @@ class TestUnitValidateAttributeObject:
         )
         assert len(warnings) == 0
         assert len(errors) == 0
+
+
+        errors, warnings = va_obj._gather_value_warnings_errors(
+            val_rule="matchAtLeastOne comp.att value error",
+            source_attribute="att",
+            validation_output=ValueValidationOutput(),
+        )
+        assert len(errors) == 0
+        assert len(warnings) == 0
+
+    def test__gather_value_warnings_errors_with_errors(self, va_obj: ValidateAttribute) -> None:
+        """Tests for ValidateAttribute._gather_value_warnings_errors"""
+
+        errors, warnings = va_obj._gather_value_warnings_errors(
+            val_rule="matchAtLeastOne Patient.PatientID value error",
+            source_attribute="PatientID",
+            validation_output=(
+                ValueValidationOutput(missing_values=Series(["A", "B", "C"]))
+            ),
+        )
+        assert len(warnings) == 0
+        assert len(errors) == 1
+        assert len(errors[0]) == 4
+        assert errors[0][1] == "PatientID"
+        assert errors[0][2] == (
+            "Value(s) ['A', 'B', 'C'] from row(s) ['2', '3', '4'] of the attribute "
+            "PatientID in the source manifest are missing."
+        )
 
     def test__run_validation_across_targets_set(
         self,
