@@ -48,15 +48,18 @@ The third Series are the repeat_values: values that are repeated between the man
 class SetValidationOutput:
     """
     This is the result of doing cross validation when of type set.
-    target_manifests: All manifests the input manifest was checked against
-    target_manifests: All manifests the input manifest was checked against,
-      and the columns checked matched
-    missing_manifest_values: target manifests where the manifest checked was missing values
-      keys are the synapse id of the target manifest
-      values are the values missing from the checked manifest
-    missing_target_values: target manifests that were missing values
-      keys are the synapse id of the target manifest
-      values are the values missing from the target manifest
+
+    Args:
+        target_manifests (list[str]): All manifests the input manifest was checked against
+        matching_manifests (list[str]): All manifests the input manifest was checked against,
+          and matched
+        missing_manifest_values (dict[str, pd.Series]): target manifests where the manifest
+          checked was missing values
+          keys are the synapse id of the target manifest
+          values are the values missing from the checked manifest
+        missing_target_values (dict[str, pd.Series]): target manifests that were missing values
+          keys are the synapse id of the target manifest
+          values are the values missing from the target manifest
     """
 
     target_manifests: list[str] = field(default_factory=list)
@@ -1642,14 +1645,24 @@ class ValidateAttribute(object):
             manifest_col (pd.Series): Source manifest column
             target_attribute (str): current target attribute
             target_manifest (pd.DataFrame): Current target manifest Synapse ID
-            target_manifest_id (str): _description_
-            target_attribute_in_manifest_list (list[bool]): Log of manifests with missing values,
-              {synapse_id: index,missing value}, updated.
-            target_manifest_empty (list[bool]): _description_
-            validation_output (SetValidationOutput): _description_
+            target_manifest_id (str): The synapse id of the current target manifest
+            target_attribute_in_manifest_list (list[bool]):  For each manifest,
+              whether or not the target attribute is in the target manifest
+              This is appended for each manifest being validated against
+            target_manifest_empty (list[bool]): For each manifest, whether or not it was empty.
+              This is appended for each manifest being validated against
+            validation_output (SetValidationOutput): The output of validating against each target
+              manifest so far
 
         Returns:
-            tuple[SetValidationOutput, list[bool], list[bool]]: _description_
+            tuple[SetValidationOutput, list[bool], list[bool]]:
+              SetValidationOutput: The output of validating against each target manifest
+                updated to include the current one
+              list[bool]: For each manifest, whether or not it was empty,
+                appended for the current target manifest
+              list[bool]: For each manifest, whether or not it was empty,
+               appended for the current target manifest
+
         """
         target_attribute_in_manifest = False
         # If the manifest has the target attribute for the component do the cross validation
