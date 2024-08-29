@@ -1538,7 +1538,7 @@ class SynapseStorage(BaseStorage):
             # Otherwise save annotation as approrpriate
             else:
                 if isinstance(anno_v, float) and np.isnan(anno_v):
-                    annos[anno_k] = ""
+                    annos["annotations"]["annotations"][anno_k] = ""
                 elif (
                     isinstance(anno_v, str)
                     and re.fullmatch(csv_list_regex, anno_v)
@@ -1546,9 +1546,9 @@ class SynapseStorage(BaseStorage):
                         "list", dmge.get_node_validation_rules(anno_k)
                     )
                 ):
-                    annos[anno_k] = anno_v.split(",")
+                    annos["annotations"]["annotations"][anno_k] = anno_v.split(",")
                 else:
-                    annos[anno_k] = anno_v
+                    annos["annotations"]["annotations"][anno_k] = anno_v
 
         return annos
 
@@ -1809,7 +1809,10 @@ class SynapseStorage(BaseStorage):
                     else:
                         # store annotations if they are not None
                         if annos:
-                            normalized_annos = {k.lower(): v for k, v in annos.items()}
+                            normalized_annos = {
+                                k.lower(): v
+                                for k, v in annos["annotations"]["annotations"].items()
+                            }
                             entity_id = normalized_annos["entityid"]
                             logger.info(
                                 f"Obtained and processed annotations for {entity_id} entity"
