@@ -126,7 +126,7 @@ jobs:
         run: >
           source .venv/bin/activate;
           pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-          -m "table_operations" --log-level=DEBUG -v
+          -m "table_operations" --reruns 2
 
 
       - name: Upload pytest test results

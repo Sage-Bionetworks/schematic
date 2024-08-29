@@ -7,6 +7,16 @@ from typing import Callable, Generator, Set
 
 import pytest
 from dotenv import load_dotenv
+from opentelemetry import trace
+from opentelemetry._logs import set_logger_provider
+from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
 from pytest_asyncio import is_async_test
 
 from schematic.configuration.configuration import CONFIG
@@ -15,6 +25,8 @@ from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import load_df
 from tests.utils import CleanupAction, CleanupItem
+
+tracer = trace.get_tracer("Schematic-Tests")
 
 load_dotenv()
 
@@ -204,3 +216,59 @@ def pytest_collection_modifyitems(items) -> None:
     session_scope_marker = pytest.mark.asyncio(scope="session")
     for async_test in pytest_asyncio_tests:
         async_test.add_marker(session_scope_marker, append=False)
+
+
+active_span_processors = []
+
+
+@pytest.fixture(scope="session", autouse=True)
+def set_up_tracing() -> None:
+    """Set up tracing for the API."""
+    tracing_export = os.environ.get("TRACING_EXPORT_FORMAT", None)
+    tracing_service_name = os.environ.get("TRACING_SERVICE_NAME", "schematic-tests")
+    if tracing_export == "otlp":
+        trace.set_tracer_provider(
+            TracerProvider(
+                resource=Resource(attributes={SERVICE_NAME: tracing_service_name})
+            )
+        )
+        processor = BatchSpanProcessor(OTLPSpanExporter())
+        active_span_processors.append(processor)
+        trace.get_tracer_provider().add_span_processor(processor)
+    else:
+        trace.set_tracer_provider(TracerProvider(sampler=ALWAYS_OFF))
+
+
+@pytest.fixture(autouse=True, scope="function")
+def wrap_with_otel(request):
+    """Start a new OTEL Span for each test function."""
+    with tracer.start_as_current_span(request.node.name):
+        try:
+            yield
+        finally:
+            for processor in active_span_processors:
+                processor.force_flush()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def set_up_logging() -> None:
+    """Set up logging to export to OTLP."""
+    logging_export = os.environ.get("LOGGING_EXPORT_FORMAT", None)
+    logging_service_name = os.environ.get("LOGGING_SERVICE_NAME", "schematic-tests")
+    logging_instance_name = os.environ.get("LOGGING_INSTANCE_NAME", "local")
+    if logging_export == "otlp":
+        resource = Resource.create(
+            {
+                "service.name": logging_service_name,
+                "service.instance.id": logging_instance_name,
+            }
+        )
+
+        logger_provider = LoggerProvider(resource=resource)
+        set_logger_provider(logger_provider=logger_provider)
+
+        # TODO: Add support for secure connections
+        exporter = OTLPLogExporter(insecure=True)
+        logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
+        handler = LoggingHandler(level=logging.NOTSET, logger_provider=logger_provider)
+        logging.getLogger().addHandler(handler)
