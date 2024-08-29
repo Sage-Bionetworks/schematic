@@ -1161,7 +1161,6 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1},
         ):
-
             e, _ = va_obj.cross_validation(
                 val_rule, Series(["A", "B"], index=[0, 1], name="PatientID")
             )
@@ -1193,7 +1192,6 @@ class TestUnitValidateAttributeObject:
                 [],
             )
 
-    
     def test_cross_validation_match_exactly_one_set_rules_errors(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
@@ -1205,7 +1203,6 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1},
         ):
-
             e, _ = va_obj.cross_validation(
                 val_rule, Series(["A", "B"], index=[0, 1], name="PatientID")
             )
@@ -1258,7 +1255,6 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1},
         ):
-
             e, _ = va_obj.cross_validation(
                 val_rule,
                 Series(["A", "B", "C"], index=[0, 1, 2], name="PatientID"),
@@ -1294,6 +1290,7 @@ class TestUnitValidateAttributeObject:
                 [],
                 [],
             )
+
     def test_cross_validation_value_match_atleast_one_rules_errors(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
@@ -1305,7 +1302,6 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1},
         ):
-
             e, _ = va_obj.cross_validation(
                 val_rule, Series(["D"], index=[0], name="PatientID")
             )
@@ -1353,7 +1349,6 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1},
         ):
-
             e, _ = va_obj.cross_validation(
                 val_rule, Series(["D"], index=[0], name="PatientID")
             )
