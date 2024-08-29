@@ -1223,7 +1223,7 @@ class TestUnitValidateAttributeObject:
                 val_rule, Series(["A", "B", "C"], index=[0, 1, 2], name="PatientID")
             )
             assert len(errors) == 1
-            
+
     def test_cross_validation_match_none_set_rules_passing(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
@@ -1382,7 +1382,7 @@ class TestUnitValidateAttributeObject:
         ):
             assert va_obj.cross_validation(val_rule, Series([])) == ([], [])
             assert va_obj.cross_validation(val_rule, Series(["D"])) == ([], [])
-            
+
     def test_cross_validation_match_none_value_rules_errors(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
@@ -1554,7 +1554,9 @@ class TestUnitValidateAttributeObject:
         assert validation_output.duplicated_values.empty
         assert validation_output.repeat_values.to_list() == ["A"]
 
-    def test__gather_value_warnings_errors_passing(self, va_obj: ValidateAttribute) -> None:
+    def test__gather_value_warnings_errors_passing(
+        self, va_obj: ValidateAttribute
+    ) -> None:
         """Tests for ValidateAttribute._gather_value_warnings_errors"""
         errors, warnings = va_obj._gather_value_warnings_errors(
             val_rule="matchAtLeastOne Patient.PatientID value error",
@@ -1577,7 +1579,6 @@ class TestUnitValidateAttributeObject:
         assert len(warnings) == 0
         assert len(errors) == 0
 
-
         errors, warnings = va_obj._gather_value_warnings_errors(
             val_rule="matchAtLeastOne comp.att value error",
             source_attribute="att",
@@ -1586,7 +1587,9 @@ class TestUnitValidateAttributeObject:
         assert len(errors) == 0
         assert len(warnings) == 0
 
-    def test__gather_value_warnings_errors_with_errors(self, va_obj: ValidateAttribute) -> None:
+    def test__gather_value_warnings_errors_with_errors(
+        self, va_obj: ValidateAttribute
+    ) -> None:
         """Tests for ValidateAttribute._gather_value_warnings_errors"""
 
         errors, warnings = va_obj._gather_value_warnings_errors(
