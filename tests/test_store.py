@@ -896,7 +896,7 @@ class TestTableOperations:
         ["display_label", "class_label"],
         ids=["aks_display_label", "aks_class_label"],
     )
-    def test_create_table(
+    async def test_create_table(
         self,
         helpers: Helpers,
         synapse_store: SynapseStorage,
@@ -965,7 +965,7 @@ class TestTableOperations:
         ["display_label", "class_label"],
         ids=["aks_display_label", "aks_class_label"],
     )
-    def test_replace_table(
+    async def test_replace_table(
         self,
         helpers: Helpers,
         synapse_store: SynapseStorage,
@@ -1076,7 +1076,7 @@ class TestTableOperations:
         ["display_label", "class_label"],
         ids=["aks_display_label", "aks_class_label"],
     )
-    def test_upsert_table(
+    async def test_upsert_table(
         self,
         helpers: Helpers,
         synapse_store: SynapseStorage,
