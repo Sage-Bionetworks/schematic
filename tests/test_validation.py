@@ -1145,9 +1145,10 @@ class TestUnitValidateAttributeObject:
                 [],
                 [],
             )
-            assert va_obj.cross_validation(
-                val_rule, Series(["A", "B", "C", "C"])
-            ) == ([], [])
+            assert va_obj.cross_validation(val_rule, Series(["A", "B", "C", "C"])) == (
+                [],
+                [],
+            )
 
             e, _ = va_obj.cross_validation(
                 val_rule, Series(["A", "B"], index=[0, 1], name="PatientID")
@@ -1171,14 +1172,14 @@ class TestUnitValidateAttributeObject:
             "_get_target_manifest_dataframes",
             return_value={"syn1": cross_val_df1},
         ):
-
             assert va_obj.cross_validation(val_rule, Series(["A", "B", "C"])) == (
                 [],
                 [],
             )
-            assert va_obj.cross_validation(
-                val_rule, Series(["A", "B", "C", "C"])
-            ) == ([], [])
+            assert va_obj.cross_validation(val_rule, Series(["A", "B", "C", "C"])) == (
+                [],
+                [],
+            )
 
             e, _ = va_obj.cross_validation(
                 val_rule, Series(["A", "B"], index=[0, 1], name="PatientID")
@@ -1216,9 +1217,10 @@ class TestUnitValidateAttributeObject:
                 [],
                 [],
             )
-            assert va_obj.cross_validation(
-                val_rule, Series(["A", "B", "C", "D"])
-            ) == ([], [])
+            assert va_obj.cross_validation(val_rule, Series(["A", "B", "C", "D"])) == (
+                [],
+                [],
+            )
 
             e, _ = va_obj.cross_validation(
                 val_rule,
@@ -1251,9 +1253,14 @@ class TestUnitValidateAttributeObject:
                 [],
                 [],
             )
-            assert va_obj.cross_validation(val_rule, Series(["A", "B", "C", "C"])) == ([], [])
+            assert va_obj.cross_validation(val_rule, Series(["A", "B", "C", "C"])) == (
+                [],
+                [],
+            )
 
-            e, _ = va_obj.cross_validation(val_rule, Series(["D"], index=[0], name="PatientID"))
+            e, _ = va_obj.cross_validation(
+                val_rule, Series(["D"], index=[0], name="PatientID")
+            )
             assert e
 
     def test_cross_validation_match_exactly_ne_value_rules(
@@ -1275,9 +1282,10 @@ class TestUnitValidateAttributeObject:
                 [],
                 [],
             )
-            assert va_obj.cross_validation(
-                val_rule, Series(["A", "B", "C", "C"])
-            ) == ([], [])
+            assert va_obj.cross_validation(val_rule, Series(["A", "B", "C", "C"])) == (
+                [],
+                [],
+            )
 
             e, _ = va_obj.cross_validation(
                 val_rule, Series(["D"], index=[0], name="PatientID")
@@ -1507,7 +1515,7 @@ class TestUnitValidateAttributeObject:
             source_attribute="PatientID",
             validation_output=ValueValidationOutput(
                 duplicated_values=Series(["A", "B", "C"])
-            )
+            ),
         )
         assert len(warnings) == 0
         assert len(errors) == 0
