@@ -1193,6 +1193,12 @@ class TestUnitValidateAttributeObject:
             assert len(warnings) == 0
             assert len(errors) == 1
 
+            errors, warnings = va_obj.cross_validation(
+                val_rule, Series([""], index=[0], name="PatientID")
+            )
+            assert len(warnings) == 0
+            assert len(errors) == 1
+
     def test_cross_validation_match_atleast_one_set_rules_warnings(
         self, va_obj: ValidateAttribute, cross_val_df1: DataFrame
     ):
