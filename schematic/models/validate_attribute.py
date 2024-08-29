@@ -1292,7 +1292,9 @@ class ValidateAttribute(object):
         """Parse validation log, so values can be used to raise warnings/errors
 
         Args:
-            validation_log (dict[str, pd.Series]):
+            validation_log (dict[str, pd.Series]): A log of validated columns
+              keys are synapse ids
+              values are manifest columns
 
         Returns:
             tuple[list[str], list[str], list[str]]:
