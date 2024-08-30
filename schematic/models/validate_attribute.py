@@ -3,7 +3,7 @@ import re
 from copy import deepcopy
 from time import perf_counter
 from dataclasses import field, dataclass
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal, Optional, Union, get_args, cast
 from urllib.parse import urlparse
 
 import numpy as np
@@ -27,8 +27,28 @@ from schematic.utils.validate_utils import (
 
 logger = logging.getLogger(__name__)
 
+CrossValidationRule = Literal["matchExactlyOne", "matchAtLeastOne", "matchNone"]
 MessageLevelType = Literal["warning", "error"]
 ScopeTypes = Literal["set", "value"]
+
+
+@dataclass
+class ParsedCrossValidationRule:
+    """
+    This is the result of parsing out a cross validation rule
+
+    Attributes:
+        rule (CrossValidationRule): The rule being validated
+        validation_target (str): The target Component and Attribute to be validated against
+        scope_type (ScopeTypes): The scope of the validation rule
+        message_level (MessageLevelType): The severaity leel of the message returned to users
+
+    """
+
+    rule: CrossValidationRule
+    validation_target: str
+    scope_type: ScopeTypes
+    message_level: MessageLevelType
 
 
 @dataclass
@@ -36,7 +56,7 @@ class ValueValidationOutput:
     """
     This is the result of doing cross validation when of type value.
 
-    Args:
+    Attributes:
         missing_values (pd.Series): values that are present in the source manifest,
           but not present in the target manifest
         duplicated_values (pd.Series): values that duplicated in the concatenated
@@ -55,7 +75,7 @@ class SetValidationOutput:
     """
     This is the result of doing cross validation when of type set.
 
-    Args:
+    Attributes:
         target_manifests (list[str]): All manifests the input manifest was checked against
         matching_manifests (list[str]): All manifests the input manifest was checked against,
           and matched
@@ -1306,7 +1326,7 @@ class ValidateAttribute(object):
             tuple[list[str], list[str], list[str]]:
               invalid rows recorded in the validation log,
               invalid values recorded in the validation log,
-              a lsit of manifest synapse ids
+              a list of manifest synapse ids
         """
         # Initialize parameters
         validation_rows, validation_values = [], []
@@ -1380,7 +1400,9 @@ class ValidateAttribute(object):
 
     def _gather_set_warnings_errors(
         self,
-        val_rule: str,
+        rule: CrossValidationRule,
+        scope_type: ScopeTypes,
+        msg_level: MessageLevelType,
         source_attribute: str,
         validation_output: SetValidationOutput,
     ) -> tuple[list[str], list[str]]:
@@ -1389,53 +1411,42 @@ class ValidateAttribute(object):
           output and rule type
 
         Args:
-            val_rule (str): Validation Rule
-            source_attribute (str): Source manifest column name
+            rule (CrossValidationRule): The validation rule used to determine the validation output
+            scope_type (ScopeTypes): The scope of the validation rule
+            msg_level (MessageLevelType): Type of error message to use
+            source_attribute (str): Source manifest column name_
             validation_output (SetValidationOutput): The validation putput to parse into
               error and warning messages
+
         Returns:
             tuple[list[str], list[str]]: A list of error message and a list of warning messages
         """
-
         errors: list[str] = []
         warnings: list[str] = []
         msg: Optional[str] = None
 
-        if (
-            "matchAtLeastOne" in val_rule
-            and len(validation_output.matching_manifests) == 0
-        ):
-            rule = "matchAtLeastOne set"
+        if rule == "matchAtLeastOne" and len(validation_output.matching_manifests) == 0:
             manifest_list = validation_output.target_manifests
             msg = "Manifest did not match any target manifests"
 
-        if (
-            "matchExactlyOne" in val_rule
-            and len(validation_output.matching_manifests) == 0
-        ):
-            rule = "matchExactlyOne set"
+        if rule == "matchExactlyOne" and len(validation_output.matching_manifests) == 0:
             manifest_list = validation_output.target_manifests
             msg = "Manifest did not match any target manifests"
 
-        if (
-            "matchExactlyOne" in val_rule
-            and len(validation_output.matching_manifests) > 1
-        ):
-            rule = "matchExactlyOne set"
+        if rule == "matchExactlyOne" and len(validation_output.matching_manifests) > 1:
             manifest_list = validation_output.matching_manifests
             msg = "Manifest matched multiple manifests"
 
-        if "matchNone" in val_rule and len(validation_output.matching_manifests) > 0:
-            rule = "matchNone set"
+        if rule == "matchNone" and len(validation_output.matching_manifests) > 0:
             manifest_list = validation_output.matching_manifests
             msg = "Manifest matched one or more manifests"
 
         if msg:
             msg = (
-                f"Rule: {rule}; Attribute: {source_attribute}; {msg}: "
+                f"Rule: {rule} {scope_type}; Attribute: {source_attribute}; {msg}: "
                 f"[{', '.join(manifest_list)}]"
             )
-            if "error" in val_rule:
+            if msg_level == "error":
                 errors = [msg]
             else:
                 warnings = [msg]
@@ -1824,16 +1835,6 @@ class ValidateAttribute(object):
             column_names[stripped_col_name] = original_column_name
         return column_names
 
-    def _get_rule_scope(self, val_rule: str) -> ScopeTypes:
-        """Parse scope from validation rule
-        Args:
-            val_rule, str: Validation Rule
-        Returns:
-            scope, ScopeTypes: The scope of the rule, taken from validation rule
-        """
-        scope = val_rule.lower().split(" ")[2]
-        return scope
-
     def _get_target_manifest_dataframes(
         self,
         target_component: str,
@@ -1866,8 +1867,8 @@ class ValidateAttribute(object):
         self,
         project_scope: Optional[list[str]],
         rule_scope: ScopeTypes,
-        access_token: str,
-        val_rule: str,
+        access_token: Optional[str],
+        validation_target: str,
         manifest_col: pd.Series,
         target_column: pd.Series,
     ) -> tuple[float, Union[ValueValidationOutput, SetValidationOutput, bool, str],]:
@@ -1879,8 +1880,8 @@ class ValidateAttribute(object):
             project_scope (Optional[list[str]]): Projects to limit the scope of cross manifest
              validation to.
             rule_scope (ScopeTypes): The scope of the rule, taken from validation rule
-            access_token (str): Asset Store access token
-            val_rule (str):  Validation rule.
+            access_token (Optional[str]): Asset Store access token
+            validation_target (str):  The target to validate in the form of "Component.Attribute"
             manifest_col (pd.Series): Source manifest column for a given source component
             target_column (pd.Series): Empty target_column to fill out in this function
 
@@ -1901,7 +1902,7 @@ class ValidateAttribute(object):
         target_attribute_in_manifest = False
 
         # Set relevant parameters
-        [target_component, target_attribute] = val_rule.lower().split(" ")[1].split(".")
+        [target_component, target_attribute] = validation_target.lower().split(".")
         target_column.name = target_attribute
 
         # Start timer
@@ -1920,7 +1921,7 @@ class ValidateAttribute(object):
 
             # Read each target manifest and run validation of current manifest column
             # (set) against each manifest individually, gather results
-            if "set" in rule_scope:
+            if rule_scope == "set":
                 (
                     validation_store,
                     target_attribute_in_manifest_list,
@@ -1939,7 +1940,7 @@ class ValidateAttribute(object):
             # Concatenate target manifest columns, in a subsequent step will run cross
             # manifest validation from the current manifest column values against the
             # concatenated target column
-            if "value" in rule_scope:
+            if rule_scope == "value":
                 (
                     target_column,
                     target_attribute_in_manifest_list,
@@ -1964,13 +1965,80 @@ class ValidateAttribute(object):
             return (start_time, target_attribute_in_manifest)
         if sum(target_manifest_empty) > 0:
             return (start_time, "values not recorded in targets stored")
-        if "value" in rule_scope:
+        if rule_scope == "value":
             # From the concatenated target column, for value scope, run validation
             validation_store = self._run_validation_across_targets_value(
                 manifest_col=manifest_col,
                 concatenated_target_column=target_column,
             )
         return (start_time, validation_store)
+
+    def _parse_cross_validation_rule_string(
+        self, rule_string: str
+    ) -> ParsedCrossValidationRule:
+        """Parses a cross validation rule string into a class with fields for all the parts
+
+        Args:
+            rule_string (str): The rule string, it should have 3-4 parts separated by spaces
+
+        Returns:
+            ParsedCrossValidationRule:  The various parts of the rule parsed out
+        """
+        rule_parameters = rule_string.split(" ")
+        if not 3 <= len(rule_parameters) <= 4:
+            raise (
+                ValueError(
+                    (
+                        "Rule string must have 3 to 4 parts separated by spaces: "
+                        "<Rule> <Component.Attribute> <rule_scope> <message_level>"
+                    )
+                )
+            )
+
+        if rule_parameters[0] not in get_args(CrossValidationRule):
+            raise (
+                ValueError(
+                    (
+                        "The first section of the rule must be a valid rule type: "
+                        f"{list(get_args(CrossValidationRule))}"
+                    )
+                )
+            )
+        rule = rule_parameters[0]
+
+        validation_target = rule_parameters[1]
+
+        if rule_parameters[2] not in get_args(ScopeTypes):
+            raise (
+                ValueError(
+                    (
+                        "The third section of the rule must be a valid scope type: "
+                        f"{list(get_args(ScopeTypes))}"
+                    )
+                )
+            )
+        scope_type = rule_parameters[2]
+
+        if len(rule_parameters) == 4:
+            if rule_parameters[3] not in get_args(MessageLevelType):
+                raise (
+                    ValueError(
+                        (
+                            "The 4th section of the rule must be a valid message level type: "
+                            f"{list(get_args(MessageLevelType))}"
+                        )
+                    )
+                )
+            msg_level = rule_parameters[3]
+        else:
+            msg_level = "warning"
+
+        return ParsedCrossValidationRule(
+            cast(CrossValidationRule, rule),
+            validation_target,
+            cast(ScopeTypes, scope_type),
+            cast(MessageLevelType, msg_level),
+        )
 
     def cross_validation(
         self,
@@ -1995,11 +2063,10 @@ class ValidateAttribute(object):
               in current manifest do no pass relevant cross mannifest validation
               across the target manifest(s)
         """
+        rule = self._parse_cross_validation_rule_string(val_rule)
+
         # Initialize target_column
         target_column = pd.Series(dtype=object)
-
-        # Get the rule_scope from the validation rule
-        rule_scope = self._get_rule_scope(val_rule)
 
         # Run validation from source to target manifest(s), gather outputs
         (
@@ -2007,9 +2074,9 @@ class ValidateAttribute(object):
             validation_output,
         ) = self._run_validation_across_target_manifests(
             project_scope=project_scope,
-            rule_scope=rule_scope,
+            rule_scope=rule.scope_type,
             access_token=access_token,
-            val_rule=val_rule,
+            validation_target=rule.validation_target,
             manifest_col=manifest_col,
             target_column=target_column,
         )
@@ -2032,16 +2099,21 @@ class ValidateAttribute(object):
                 dmge=self.dmge, attribute_name=manifest_col.name, val_rule=val_rule
             )
 
-        elif isinstance(validation_output, SetValidationOutput) and "set" in rule_scope:
+        elif (
+            isinstance(validation_output, SetValidationOutput)
+            and rule.scope_type == "set"
+        ):
             errors, warnings = self._gather_set_warnings_errors(
-                val_rule=val_rule,
+                rule=rule.rule,
+                scope_type=rule.scope_type,
+                msg_level=rule.message_level,
                 source_attribute=str(manifest_col.name),
                 validation_output=validation_output,
             )
 
         elif (
             isinstance(validation_output, ValueValidationOutput)
-            and "value" in rule_scope
+            and rule.scope_type == "value"
         ):
             errors, warnings = self._gather_value_warnings_errors(
                 val_rule=val_rule,
