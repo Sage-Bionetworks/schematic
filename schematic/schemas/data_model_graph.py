@@ -795,7 +795,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
         try:
             node_validation_rules = self.graph.nodes[node_label]["validationRules"]
-        except:
+        except KeyError:
             raise ValueError(
                 f"{node_label} is not in the graph, please check that you are providing the proper node label"
             )
