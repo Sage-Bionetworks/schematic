@@ -772,7 +772,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
     def get_node_validation_rules(
         self, node_label: Optional[str] = None, node_display_name: Optional[str] = None
-    ) -> Union[list, dict[str, str]]:
+    ) -> Union[list[str], dict[str, str]]:
         """Get validation rules associated with a node,
 
         Args:

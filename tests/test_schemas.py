@@ -3,7 +3,7 @@ import logging
 import os
 import random
 from copy import deepcopy
-from typing import Optional
+from typing import Optional, Union
 
 import networkx as nx
 import numpy as np
@@ -37,6 +37,7 @@ from schematic.utils.schema_utils import (
     get_label_from_display_name,
     parse_validation_rules,
 )
+from tests.conftest import Helpers
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -649,11 +650,11 @@ class TestDataModelGraphExplorer:
     )
     def test_get_node_validation_rules_valid(
         self,
-        helpers,
-        data_model,
-        node_label,
-        node_display_name,
-        expected_validation_rule,
+        helpers: Helpers,
+        data_model: str,
+        node_label: Optional[str],
+        node_display_name: Optional[str],
+        expected_validation_rule: Union[list[str], dict[str, str]],
     ):
         DMGE = helpers.get_data_model_graph_explorer(path=data_model)
 
