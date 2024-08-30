@@ -76,6 +76,19 @@ def test_manifest_json(helpers) -> str:
     return test_manifest_path
 
 
+@pytest.fixture(scope="class",
+                params=["example.model.jsonld",
+                        "example.model.csv"])
+def data_model_url(request):
+    data_model_url = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/" + request.param
+    yield data_model_url
+
+
+@pytest.fixture(scope="class")
+def benchmark_data_model_jsonld():
+    benchmark_data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
+    yield benchmark_data_model_jsonld
+
 def get_MockComponent_attribute() -> Generator[str, None, None]:
     """
     Yield all of the mock conponent attributes one at a time
@@ -331,9 +344,9 @@ class TestSynapseStorage:
 @pytest.mark.schematic_api
 class TestMetadataModelOperation:
     @pytest.mark.parametrize("as_graph", [True, False])
-    def test_component_requirement(self, client: FlaskClient, as_graph: bool) -> None:
+    def test_component_requirement(self, data_model_url, client: FlaskClient, as_graph: bool) -> None:
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "source_component": "BulkRNA-seqAssay",
             "as_graph": as_graph,
         }
@@ -382,8 +395,8 @@ class TestUtilsOperation:
 
 @pytest.mark.schematic_api
 class TestDataModelGraphExplorerOperation:
-    def test_get_schema(self, client: FlaskClient) -> None:
-        params = {"schema_url": DATA_MODEL_JSON_LD, "data_model_labels": "class_label"}
+    def test_get_schema(self, data_model_url, client: FlaskClient) -> None:
+        params = {"schema_url": data_model_url, "data_model_labels": "class_label"}
         response = client.get(
             "http://localhost:3001/v1/schemas/get/schema", query_string=params
         )
@@ -396,9 +409,9 @@ class TestDataModelGraphExplorerOperation:
         if os.path.exists(response_dt):
             os.remove(response_dt)
 
-    def test_if_node_required(test, client: FlaskClient) -> None:
+    def test_if_node_required(test, data_model_url, client: FlaskClient) -> None:
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "node_display_name": "FamilyHistory",
             "data_model_labels": "class_label",
         }
@@ -410,9 +423,9 @@ class TestDataModelGraphExplorerOperation:
         assert response.status_code == 200
         assert response_dta == True
 
-    def test_get_node_validation_rules(test, client: FlaskClient) -> None:
+    def test_get_node_validation_rules(test, data_model_url, client: FlaskClient) -> None:
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "node_display_name": "CheckRegexList",
         }
         response = client.get(
@@ -424,9 +437,9 @@ class TestDataModelGraphExplorerOperation:
         assert "list" in response_dta
         assert "regex match [a-f]" in response_dta
 
-    def test_get_nodes_display_names(test, client: FlaskClient) -> None:
+    def test_get_nodes_display_names(test, data_model_url, client: FlaskClient) -> None:
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "node_list": ["FamilyHistory", "Biospecimen"],
         }
         response = client.get(
@@ -440,8 +453,8 @@ class TestDataModelGraphExplorerOperation:
     @pytest.mark.parametrize(
         "relationship", ["parentOf", "requiresDependency", "rangeValue", "domainValue"]
     )
-    def test_get_subgraph_by_edge(self, client: FlaskClient, relationship: str) -> None:
-        params = {"schema_url": DATA_MODEL_JSON_LD, "relationship": relationship}
+    def test_get_subgraph_by_edge(self, data_model_url, client: FlaskClient, relationship: str) -> None:
+        params = {"schema_url": data_model_url, "relationship": relationship}
 
         response = client.get(
             "http://localhost:3001/v1/schemas/get/graph_by_edge_type",
@@ -452,10 +465,10 @@ class TestDataModelGraphExplorerOperation:
     @pytest.mark.parametrize("return_display_names", [True, False])
     @pytest.mark.parametrize("node_label", ["FamilyHistory", "TissueStatus"])
     def test_get_node_range(
-        self, client: FlaskClient, return_display_names: bool, node_label: str
+        self, data_model_url, client: FlaskClient, return_display_names: bool, node_label: str
     ) -> None:
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "return_display_names": return_display_names,
             "node_label": node_label,
         }
@@ -479,6 +492,7 @@ class TestDataModelGraphExplorerOperation:
     @pytest.mark.parametrize("source_node", ["Patient", "Biospecimen"])
     def test_node_dependencies(
         self,
+        data_model_url,
         client: FlaskClient,
         source_node: str,
         return_display_names: Union[bool, None],
@@ -488,7 +502,7 @@ class TestDataModelGraphExplorerOperation:
         return_schema_ordered = False
 
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "source_node": source_node,
             "return_display_names": return_display_names,
             "return_schema_ordered": return_schema_ordered,
@@ -554,7 +568,8 @@ class TestManifestOperation:
         ["Biospecimen", "Patient", "all manifests", ["Biospecimen", "Patient"]],
     )
     def test_generate_existing_manifest(
-        self,
+        self,,
+        data_model_url,
         client: FlaskClient,
         data_type: str,
         output_format: str,
@@ -572,7 +587,7 @@ class TestManifestOperation:
             dataset_id = None  # if "all manifests", dataset id is None
 
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "asset_view": "syn23643253",
             "title": "Example",
             "data_type": data_type,
@@ -638,6 +653,7 @@ class TestManifestOperation:
     )
     def test_generate_new_manifest(
         self,
+        data_model_url
         caplog: pytest.LogCaptureFixture,
         client: FlaskClient,
         data_type: str,
@@ -645,7 +661,7 @@ class TestManifestOperation:
         request_headers: Dict[str, str],
     ) -> None:
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "asset_view": "syn23643253",
             "title": "Example",
             "data_type": data_type,
@@ -741,10 +757,10 @@ class TestManifestOperation:
         ],
     )
     def test_generate_manifest_file_based_annotations(
-        self, client: FlaskClient, use_annotations: bool, expected: list[str]
+        self, data_model_url, client: FlaskClient, use_annotations: bool, expected: list[str]
     ) -> None:
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "data_type": "BulkRNA-seqAssay",
             "dataset_id": "syn25614635",
             "asset_view": "syn51707141",
@@ -791,10 +807,10 @@ class TestManifestOperation:
     # test case: generate a manifest with annotations when use_annotations is set to True for a component that is not file-based
     # the dataset folder does not contain an existing manifest
     def test_generate_manifest_not_file_based_with_annotations(
-        self, client: FlaskClient
+        self, data_model_url, client: FlaskClient
     ) -> None:
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "data_type": "Patient",
             "dataset_id": "syn25614635",
             "asset_view": "syn51707141",
@@ -826,9 +842,9 @@ class TestManifestOperation:
             ]
         )
 
-    def test_generate_manifest_data_type_not_found(self, client: FlaskClient) -> None:
+    def test_generate_manifest_data_type_not_found(self, data_model_url, client: FlaskClient) -> None:
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "data_type": "wrong data type",
             "use_annotations": False,
         }
@@ -840,14 +856,14 @@ class TestManifestOperation:
         assert "LookupError" in str(response.data)
 
     def test_populate_manifest(
-        self, client: FlaskClient, test_manifest_csv: str
+        self, data_model_url, client: FlaskClient, test_manifest_csv: str
     ) -> None:
         # test manifest
         test_manifest_data = open(test_manifest_csv, "rb")
 
         params = {
             "data_type": "MockComponent",
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "title": "Example",
             "csv_file": test_manifest_data,
         }
@@ -873,13 +889,14 @@ class TestManifestOperation:
     )
     def test_validate_manifest(
         self,
+        data_model_url,
         client: FlaskClient,
         json_str: Union[str, None],
         restrict_rules: Union[bool, None],
         test_manifest_csv: str,
         request_headers: Dict[str, str],
     ) -> None:
-        params = {"schema_url": DATA_MODEL_JSON_LD, "restrict_rules": restrict_rules}
+        params = {"schema_url": data_model_url, "restrict_rules": restrict_rules}
 
         if json_str:
             params["json_str"] = json_str
@@ -1076,13 +1093,14 @@ class TestManifestOperation:
     @pytest.mark.submission
     def test_submit_manifest_table_and_file_replace(
         self,
+        data_model_url,
         client: FlaskClient,
         request_headers: Dict[str, str],
         test_manifest_submit: str,
     ) -> None:
         """Testing submit manifest in a csv format as a table and a file. Only replace the table"""
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "data_type": "Biospecimen",
             "restrict_rules": False,
             "hide_blanks": False,
@@ -1114,6 +1132,7 @@ class TestManifestOperation:
     def test_submit_manifest_file_only_replace(
         self,
         helpers,
+        data_model_url,
         client: FlaskClient,
         request_headers: Dict[str, str],
         data_type: str,
@@ -1122,7 +1141,7 @@ class TestManifestOperation:
     ) -> None:
         """Testing submit manifest in a csv format as a file"""
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "data_type": data_type,
             "restrict_rules": False,
             "manifest_record_type": "file_only",
@@ -1165,12 +1184,12 @@ class TestManifestOperation:
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
     def test_submit_manifest_json_str_replace(
-        self, client: FlaskClient, request_headers: Dict[str, str]
+        self, cdata_model_url, lient: FlaskClient, request_headers: Dict[str, str]
     ) -> None:
         """Submit json str as a file"""
         json_str = '[{"Sample ID": 123, "Patient ID": 1,"Tissue Status": "Healthy","Component": "Biospecimen"}]'
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "data_type": "Biospecimen",
             "json_str": json_str,
             "restrict_rules": False,
@@ -1194,12 +1213,13 @@ class TestManifestOperation:
     @pytest.mark.submission
     def test_submit_manifest_w_file_and_entities(
         self,
+        data_model_url,
         client: FlaskClient,
         request_headers: Dict[str, str],
         test_manifest_submit: str,
     ) -> None:
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "data_type": "Biospecimen",
             "restrict_rules": False,
             "manifest_record_type": "file_and_entities",
@@ -1224,12 +1244,13 @@ class TestManifestOperation:
     @pytest.mark.submission
     def test_submit_manifest_table_and_file_upsert(
         self,
+        data_model_url,
         client: FlaskClient,
         request_headers: Dict[str, str],
         test_upsert_manifest_csv: str,
     ) -> None:
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "data_type": "MockRDB",
             "restrict_rules": False,
             "manifest_record_type": "table_and_file",
@@ -1253,8 +1274,8 @@ class TestManifestOperation:
 
 @pytest.mark.schematic_api
 class TestSchemaVisualization:
-    def test_visualize_attributes(self, client: FlaskClient) -> None:
-        params = {"schema_url": DATA_MODEL_JSON_LD}
+    def test_visualize_attributes(self, data_model_url, client: FlaskClient) -> None:
+        params = {"schema_url": data_model_url}
 
         response = client.get(
             "http://localhost:3001/v1/visualize/attributes", query_string=params
@@ -1264,10 +1285,10 @@ class TestSchemaVisualization:
 
     @pytest.mark.parametrize("figure_type", ["component", "dependency"])
     def test_visualize_tangled_tree_layers(
-        self, client: FlaskClient, figure_type: str
+        self, client: FlaskClient, figure_type: str, data_model_url
     ) -> None:
         # TODO: Determine a 2nd data model to use for this test, test both models sequentially, add checks for content of response
-        params = {"schema_url": DATA_MODEL_JSON_LD, "figure_type": figure_type}
+        params = {"schema_url": data_model_url, "figure_type": figure_type}
 
         response = client.get(
             "http://localhost:3001/v1/visualize/tangled_tree/layers",
@@ -1372,10 +1393,10 @@ class TestSchemaVisualization:
         ],
     )
     def test_visualize_component(
-        self, client: FlaskClient, component: str, response_text: str
+        self, data_model_url, client: FlaskClient, component: str, response_text: str
     ) -> None:
         params = {
-            "schema_url": DATA_MODEL_JSON_LD,
+            "schema_url": data_model_url,
             "component": component,
             "include_index": False,
             "data_model_labels": "class_label",
@@ -1400,6 +1421,7 @@ class TestValidationBenchmark:
     def test_validation_performance(
         self,
         helpers,
+        data_model_url,
         client: FlaskClient,
         test_invalid_manifest: pd.DataFrame,
         MockComponent_attribute: Generator[str, None, None],
@@ -1420,7 +1442,7 @@ class TestValidationBenchmark:
 
         # Set paramters for endpoint
         params = {
-            "schema_url": BENCHMARK_DATA_MODEL_JSON_LD,
+            "schema_url": benchmark_data_model_url,
             "data_type": "MockComponent",
         }
         headers = {"Content-Type": "multipart/form-data", "Accept": "application/json"}
