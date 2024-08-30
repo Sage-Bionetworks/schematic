@@ -1,19 +1,19 @@
 """Fixtures and helpers for use across all tests"""
-import os
 import logging
+import os
+import shutil
 import sys
 from typing import Generator
 
-import shutil
 import pytest
 from dotenv import load_dotenv
 
-from schematic.schemas.data_model_parser import DataModelParser
-from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-
 from schematic.configuration.configuration import CONFIG
-from schematic.utils.df_utils import load_df
+from schematic.models.metadata import MetadataModel
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.synapse import SynapseStorage
+from schematic.utils.df_utils import load_df
 
 load_dotenv()
 
@@ -117,14 +117,8 @@ def config():
 
 
 @pytest.fixture(scope="session")
-def synapse_store(request):
-    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
-    if access_token:
-        synapse_store = SynapseStorage(access_token=access_token)
-    else:
-        synapse_store = SynapseStorage()
-
-    yield synapse_store
+def synapse_store():
+    yield SynapseStorage()
 
 
 # These fixtures make copies of existing test manifests.
@@ -149,3 +143,20 @@ def temporary_file_copy(request, helpers: Helpers) -> Generator[str, None, None]
     # Teardown
     if os.path.exists(temp_csv_path):
         os.remove(temp_csv_path)
+
+
+@pytest.fixture(name="dmge", scope="function")
+def DMGE(helpers: Helpers) -> DataModelGraphExplorer:
+    """Fixture to instantiate a DataModelGraphExplorer object."""
+    dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
+    return dmge
+
+
+def metadata_model(helpers, data_model_labels):
+    metadata_model = MetadataModel(
+        inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
+        data_model_labels=data_model_labels,
+        inputMModelLocationType="local",
+    )
+
+    return metadata_model

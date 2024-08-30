@@ -2,8 +2,8 @@
 
 import logging
 import os
-from typing import Optional, Generator
 from pathlib import Path
+from typing import Generator, Optional
 from unittest.mock import patch
 
 import pytest

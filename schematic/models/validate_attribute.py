@@ -1,32 +1,29 @@
-import builtins
 import logging
 import re
+from copy import deepcopy
 from time import perf_counter
 
 # allows specifying explicit variable types
-from typing import Any, Optional, Literal, Union
-from urllib import error
+from typing import Any, Literal, Optional, Union
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen
 
 import numpy as np
 import pandas as pd
+import requests
 from jsonschema import ValidationError
+from synapseclient.core.exceptions import SynapseNoCredentialsError
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
-
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import (
     comma_separated_list_regex,
-    parse_str_series_to_list,
-    np_array_to_str_list,
-    iterable_to_str_list,
-    rule_in_rule_list,
     get_list_robustness,
+    iterable_to_str_list,
+    np_array_to_str_list,
+    parse_str_series_to_list,
+    rule_in_rule_list,
 )
-
-from synapseclient.core.exceptions import SynapseNoCredentialsError
 
 logger = logging.getLogger(__name__)
 
@@ -458,6 +455,45 @@ class GenerateError:
             warnings.append(nv_warnings)
         return errors, warnings
 
+    def generate_filename_error(
+        val_rule: str,
+        attribute_name: str,
+        row_num: str,
+        invalid_entry: Any,
+        error_type: str,
+        dmge: DataModelGraphExplorer,
+    ) -> tuple[list[str], list[str]]:
+        """
+        Purpose:
+            Generate an logging error as well as a stored error message, when
+            a filename error is encountered.
+        Args:
+            val_rule: str, rule as defined in the schema for the component.
+            attribute_name: str, attribute being validated
+            row_num: str, row where the error was detected
+            invalid_entry: str, value that caused the error
+            error_type: str, type of error encountered
+            dmge: DataModelGraphExplorer object
+        Returns:
+            Errors: list[str] Error details for further storage.
+            warnings: list[str] Warning details for further storage.
+        """
+        if error_type == "path does not exist":
+            error_message = f"The file path '{invalid_entry}' on row {row_num} does not exist in the file view."
+        elif error_type == "mismatched entityId":
+            error_message = f"The entityId for file path '{invalid_entry}' on row {row_num} does not match the entityId for the file in the file view"
+
+        error_list, warning_list = GenerateError.raise_and_store_message(
+            dmge=dmge,
+            val_rule=val_rule,
+            error_row=row_num,
+            error_col=attribute_name,
+            error_message=error_message,
+            error_val=invalid_entry,
+        )
+
+        return error_list, warning_list
+
     def _get_rule_attributes(
         val_rule: str, error_col_name: str, dmge: DataModelGraphExplorer
     ) -> tuple[list, str, MessageLevelType, bool, bool, bool]:
@@ -731,6 +767,31 @@ class ValidateAttribute(object):
     def __init__(self, dmge: DataModelGraphExplorer) -> None:
         self.dmge = dmge
 
+    def _login(
+        self,
+        access_token: Optional[str] = None,
+        project_scope: Optional[list[str]] = None,
+        columns: Optional[list] = None,
+        where_clauses: Optional[list] = None,
+    ):
+        # if the ValidateAttribute object already has a SynapseStorage object, just requery the fileview, if not then login
+        if hasattr(self, "synStore"):
+            if self.synStore.project_scope != project_scope:
+                self.synStore.project_scope = project_scope
+            self.synStore.query_fileview(columns=columns, where_clauses=where_clauses)
+        else:
+            try:
+                self.synStore = SynapseStorage(
+                    access_token=access_token,
+                    project_scope=project_scope,
+                    columns=columns,
+                    where_clauses=where_clauses,
+                )
+            except SynapseNoCredentialsError as e:
+                raise ValueError(
+                    "No Synapse credentials were provided. Credentials must be provided to utilize cross-manfiest validation functionality."
+                ) from e
+
     def get_no_entry(self, entry: str, node_display_name: str) -> bool:
         """Helper function to check if the entry is blank or contains a not applicable type string (and NA is permitted)
         Args:
@@ -777,22 +838,14 @@ class ValidateAttribute(object):
         target_manifest_ids = []
         target_dataset_ids = []
 
-        # login
-        try:
-            synStore = SynapseStorage(
-                access_token=access_token, project_scope=project_scope
-            )
-        except SynapseNoCredentialsError as e:
-            raise ValueError(
-                "No Synapse credentials were provided. Credentials must be provided to utilize cross-manfiest validation functionality."
-            ) from e
+        self._login(project_scope=project_scope, access_token=access_token)
 
         # Get list of all projects user has access to
-        projects = synStore.getStorageProjects(project_scope=project_scope)
+        projects = self.synStore.getStorageProjects(project_scope=project_scope)
 
         for project in projects:
             # get all manifests associated with datasets in the projects
-            target_datasets = synStore.getProjectManifests(projectId=project[0])
+            target_datasets = self.synStore.getProjectManifests(projectId=project[0])
 
             # If the manifest includes the target component, include synID in list
             for target_dataset in target_datasets:
@@ -805,7 +858,7 @@ class ValidateAttribute(object):
         logger.debug(
             f"Cross manifest gathering elapsed time {perf_counter()-t_manifest_search}"
         )
-        return synStore, target_manifest_ids, target_dataset_ids
+        return target_manifest_ids, target_dataset_ids
 
     def list_validation(
         self,
@@ -1072,16 +1125,16 @@ class ValidateAttribute(object):
     def url_validation(
         self,
         val_rule: str,
-        manifest_col: str,
+        manifest_col: pd.Series,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Validate URL's submitted for a particular attribute in a manifest.
             Determine if the URL is valid and contains attributes specified in the
-            schema.
+            schema. Additionally, the server must be reachable to be deemed as valid.
         Input:
             - val_rule: str, Validation rule
-            - manifest_col: pd.core.series.Series, column for a given
+            - manifest_col: pd.Series, column for a given
                 attribute in the manifest
         Output:
             This function will return errors when the user input value
@@ -1099,8 +1152,9 @@ class ValidateAttribute(object):
             )
             if entry_has_value:
                 # Check if a random phrase, string or number was added and
-                # log the appropriate error. Specifically, Raise an error if the value added is not a string or no part
-                # of the string can be parsed as a part of a URL.
+                # log the appropriate error. Specifically, Raise an error if the value
+                # added is not a string or no part of the string can be parsed as a
+                # part of a URL.
                 if not isinstance(url, str) or not (
                     urlparse(url).scheme
                     + urlparse(url).netloc
@@ -1131,10 +1185,13 @@ class ValidateAttribute(object):
                     try:
                         # Check that the URL points to a working webpage
                         # if not log the appropriate error.
-                        request = Request(url)
-                        response = urlopen(request)
                         valid_url = True
-                        response_code = response.getcode()
+                        response = requests.options(url, allow_redirects=True)
+                        logger.debug(
+                            "Validated URL [URL: %s, status_code: %s]",
+                            url,
+                            response.status_code,
+                        )
                     except:
                         valid_url = False
                         url_error = "invalid_url"
@@ -1152,7 +1209,7 @@ class ValidateAttribute(object):
                             errors.append(vr_errors)
                         if vr_warnings:
                             warnings.append(vr_warnings)
-                    if valid_url == True:
+                    if valid_url:
                         # If the URL works, check to see if it contains the proper arguments
                         # as specified in the schema.
                         for arg in url_args:
@@ -1779,7 +1836,6 @@ class ValidateAttribute(object):
 
         # Get IDs of manifests with target component
         (
-            synStore,
             target_manifest_ids,
             target_dataset_ids,
         ) = self.get_target_manifests(target_component, project_scope, access_token)
@@ -1793,7 +1849,7 @@ class ValidateAttribute(object):
             target_manifest_ids, target_dataset_ids
         ):
             # Pull manifest from Synapse
-            entity = synStore.getDatasetManifest(
+            entity = self.synStore.getDatasetManifest(
                 datasetId=target_dataset_id, downloadFile=True
             )
             # Load manifest
@@ -1950,4 +2006,76 @@ class ValidateAttribute(object):
 
         logger.debug(f"cross manifest validation time {perf_counter()-start_time}")
 
+        return errors, warnings
+
+    def filename_validation(
+        self,
+        val_rule: str,
+        manifest: pd.core.frame.DataFrame,
+        access_token: str,
+        project_scope: Optional[list] = None,
+    ):
+        """
+        Purpose:
+            Validate the filenames in the manifest against the data paths in the fileview.
+        Args:
+            val_rule: str, Validation rule for the component
+            manifest: pd.core.frame.DataFrame, manifest
+            access_token: str, Asset Store access token
+            project_scope: Optional[list] = None: Projects to limit the scope of cross manifest validation to.
+        Returns:
+            errors: list[str] Error details for further storage.
+            warnings: list[str] Warning details for further storage.
+        """
+        errors = []
+        warnings = []
+
+        where_clauses = []
+        rule_parts = val_rule.split(" ")
+
+        dataset_clause = f"parentId='{rule_parts[1]}'"
+        where_clauses.append(dataset_clause)
+
+        self._login(
+            project_scope=project_scope,
+            access_token=access_token,
+            columns=["id", "path"],
+            where_clauses=where_clauses,
+        )
+
+        fileview = self.synStore.storageFileviewTable.reset_index(drop=True)
+        # filename in dataset?
+        files_in_view = manifest["Filename"].isin(fileview["path"])
+        # filenames match with entity IDs in dataset
+        joined_df = manifest.merge(
+            fileview, how="outer", left_on="Filename", right_on="path"
+        )
+        # cover case where there are more files in dataset than in manifest
+        joined_df = joined_df.loc[~joined_df["Component"].isna()].reset_index(drop=True)
+
+        entity_id_match = joined_df["id"] == joined_df["entityId"]
+
+        # update manifest with types of errors identified
+        manifest_with_errors = deepcopy(manifest)
+        manifest_with_errors["Error"] = pd.NA
+        manifest_with_errors.loc[~entity_id_match, "Error"] = "mismatched entityId"
+        manifest_with_errors.loc[~files_in_view, "Error"] = "path does not exist"
+
+        # Generate errors
+        invalid_entries = manifest_with_errors.loc[
+            manifest_with_errors["Error"].notna()
+        ]
+        for index, data in invalid_entries.iterrows():
+            vr_errors, vr_warnings = GenerateError.generate_filename_error(
+                val_rule=val_rule,
+                attribute_name="Filename",
+                row_num=str(index),
+                invalid_entry=data["Filename"],
+                error_type=data["Error"],
+                dmge=self.dmge,
+            )
+            if vr_errors:
+                errors.append(vr_errors)
+            if vr_warnings:
+                warnings.append(vr_warnings)
         return errors, warnings

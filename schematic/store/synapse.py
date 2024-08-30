@@ -1,74 +1,71 @@
 """Synapse storage class"""
 
+import asyncio
 import atexit
-from copy import deepcopy
-from dataclasses import dataclass
 import logging
-import numpy as np
-import pandas as pd
 import os
 import re
 import secrets
 import shutil
-import synapseclient
 import uuid  # used to generate unique names for entities
-
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_chain,
-    wait_fixed,
-    retry_if_exception_type,
-)
+from copy import deepcopy
+from dataclasses import asdict, dataclass
 from time import sleep
 
 # allows specifying explicit variable types
-from typing import Dict, List, Tuple, Sequence, Union, Optional
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 
+import numpy as np
+import pandas as pd
+import synapseclient
+import synapseutils
+from opentelemetry import trace
+from schematic_db.rdb.synapse_database import SynapseDatabase
 from synapseclient import (
-    Synapse,
-    File,
-    Folder,
-    Table,
-    Schema,
+    Column,
     EntityViewSchema,
     EntityViewType,
-    Column,
+    File,
+    Folder,
+    Schema,
+    Synapse,
+    Table,
     as_table_columns,
 )
-from synapseclient.entity import File
-from synapseclient.table import CsvFileTable, build_table, Schema
+from synapseclient.api import get_entity_id_bundle2
 from synapseclient.core.exceptions import (
-    SynapseHTTPError,
     SynapseAuthenticationError,
-    SynapseUnmetAccessRestrictions,
     SynapseHTTPError,
+    SynapseUnmetAccessRestrictions,
 )
-import synapseutils
+from synapseclient.entity import File
+from synapseclient.models.annotations import Annotations
+from synapseclient.table import CsvFileTable, Schema, build_table
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_chain,
+    wait_fixed,
+)
 
-from schematic_db.rdb.synapse_database import SynapseDatabase
-
+from schematic.configuration.configuration import CONFIG
+from schematic.exceptions import AccessCredentialsError
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
-
-from schematic.utils.df_utils import update_df, load_df, col_in_dataframe
-from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
+from schematic.store.base import BaseStorage
+from schematic.utils.df_utils import col_in_dataframe, load_df, update_df
 
 # entity_type_mapping, get_dir_size, create_temp_folder, check_synapse_cache_size, and clear_synapse_cache functions are used for AWS deployment
 # Please do not remove these import statements
 from schematic.utils.general import (
-    entity_type_mapping,
-    get_dir_size,
-    create_temp_folder,
     check_synapse_cache_size,
     clear_synapse_cache,
+    create_temp_folder,
+    entity_type_mapping,
+    get_dir_size,
 )
-
 from schematic.utils.schema_utils import get_class_label_from_display_name
-
-from schematic.store.base import BaseStorage
-from schematic.exceptions import AccessCredentialsError
-from schematic.configuration.configuration import CONFIG
-from opentelemetry import trace
+from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 
 logger = logging.getLogger("Synapse storage")
 
@@ -198,6 +195,9 @@ class SynapseStorage(BaseStorage):
         access_token: Optional[str] = None,
         project_scope: Optional[list] = None,
         synapse_cache_path: Optional[str] = None,
+        perform_query: Optional[bool] = True,
+        columns: Optional[list] = None,
+        where_clauses: Optional[list] = None,
     ) -> None:
         """Initializes a SynapseStorage object.
 
@@ -212,13 +212,16 @@ class SynapseStorage(BaseStorage):
             synapse_cache_path (Optional[str], optional):
               Location of synapse cache.
               Defaults to None.
+        TODO:
+            Consider necessity of adding "columns" and "where_clauses" params to the constructor. Currently with how `query_fileview` is implemented, these params are not needed at this step but could be useful in the future if the need for more scoped querys expands.
         """
-        self.syn = self.login(synapse_cache_path, token, access_token)
+        self.syn = self.login(synapse_cache_path, access_token)
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
         self.root_synapse_cache = self.syn.cache.cache_root_dir
-        self._query_fileview()
+        if perform_query:
+            self.query_fileview(columns=columns, where_clauses=where_clauses)
 
     def _purge_synapse_cache(
         self, maximum_storage_allowed_cache_gb: int = 1, minute_buffer: int = 15
@@ -251,61 +254,121 @@ class SynapseStorage(BaseStorage):
                 # instead of guessing how much space that we left, print out .synapseCache here
                 logger.info(f"the total size of .synapseCache is: {nbytes} bytes")
 
-    @tracer.start_as_current_span("SynapseStorage::_query_fileview")
-    def _query_fileview(self):
+    @tracer.start_as_current_span("SynapseStorage::query_fileview")
+    def query_fileview(
+        self,
+        columns: Optional[list] = None,
+        where_clauses: Optional[list] = None,
+    ) -> None:
+        """
+        Method to query the Synapse FileView and store the results in a pandas DataFrame. The results are stored in the storageFileviewTable attribute.
+        Is called once during initialization of the SynapseStorage object and can be called again later to specify a specific, more limited scope for validation purposes.
+        Args:
+            columns (Optional[list], optional): List of columns to be selected from the table. Defaults behavior is to request all columns.
+            where_clauses (Optional[list], optional): List of where clauses to be used to scope the query. Defaults to None.
+        """
         self._purge_synapse_cache()
-        try:
-            self.storageFileview = CONFIG.synapse_master_fileview_id
-            self.manifest = CONFIG.synapse_manifest_basename
-            if self.project_scope:
+
+        self.storageFileview = CONFIG.synapse_master_fileview_id
+        self.manifest = CONFIG.synapse_manifest_basename
+
+        # Initialize to assume that the new fileview query will be different from what may already be stored. Initializes to True because generally one will not have already been performed
+        self.new_query_different = True
+
+        # If a query has already been performed, store the query
+        previous_query_built = hasattr(self, "fileview_query")
+        if previous_query_built:
+            previous_query = self.fileview_query
+
+        # Build a query with the current given parameters and check to see if it is different from the previous
+        self._build_query(columns=columns, where_clauses=where_clauses)
+        if previous_query_built:
+            self.new_query_different = self.fileview_query != previous_query
+
+        # Only perform the query if it is different from the previous query
+        if self.new_query_different:
+            try:
                 self.storageFileviewTable = self.syn.tableQuery(
-                    f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(self.project_scope + [''])}"
+                    query=self.fileview_query,
                 ).asDataFrame()
-            else:
-                # get data in administrative fileview for this pipeline
-                self.storageFileviewTable = self.syn.tableQuery(
-                    "SELECT * FROM " + self.storageFileview
-                ).asDataFrame()
-        except SynapseHTTPError:
-            raise AccessCredentialsError(self.storageFileview)
+            except SynapseHTTPError as exc:
+                exception_text = str(exc)
+                if "Unknown column path" in exception_text:
+                    raise ValueError(
+                        "The path column has not been added to the fileview. Please make sure that the fileview is up to date. You can add the path column to the fileview by follwing the instructions in the validation rules documentation."
+                    )
+                elif "Unknown column" in exception_text:
+                    missing_column = exception_text.split("Unknown column ")[-1]
+                    raise ValueError(
+                        f"The columns {missing_column} specified in the query do not exist in the fileview. Please make sure that the column names are correct and that all expected columns have been added to the fileview."
+                    )
+                else:
+                    raise AccessCredentialsError(self.storageFileview)
+
+    def _build_query(
+        self, columns: Optional[list] = None, where_clauses: Optional[list] = None
+    ):
+        """
+        Method to build a query for Synapse FileViews
+        Args:
+            columns (Optional[list], optional): List of columns to be selected from the table. Defaults behavior is to request all columns.
+            where_clauses (Optional[list], optional): List of where clauses to be used to scope the query. Defaults to None.
+            self.storageFileview (str): Synapse FileView ID
+            self.project_scope (Optional[list], optional): List of project IDs to be used to scope the query. Defaults to None.
+                Gets added to where_clauses, more included for backwards compatability and as a more user friendly way of subsetting the view in a simple way.
+        """
+        if columns is None:
+            columns = []
+        if where_clauses is None:
+            where_clauses = []
+
+        if self.project_scope:
+            project_scope_clause = f"projectId IN {tuple(self.project_scope + [''])}"
+            where_clauses.append(project_scope_clause)
+
+        if where_clauses:
+            where_clauses = " AND ".join(where_clauses)
+            where_clauses = f"WHERE {where_clauses} ;"
+        else:
+            where_clauses = ";"
+
+        if columns:
+            columns = ",".join(columns)
+        else:
+            columns = "*"
+
+        self.fileview_query = (
+            f"SELECT {columns} FROM {self.storageFileview} {where_clauses}"
+        )
+
+        return
 
     @staticmethod
     def login(
         synapse_cache_path: Optional[str] = None,
-        token: Optional[str] = None,
         access_token: Optional[str] = None,
     ) -> synapseclient.Synapse:
         """Login to Synapse
 
         Args:
-            token (Optional[str], optional): A Synapse token. Defaults to None.
             access_token (Optional[str], optional): A synapse access token. Defaults to None.
             synapse_cache_path (Optional[str]): location of synapse cache
 
         Raises:
-            ValueError: If unable to login with token
             ValueError: If unable to loging with access token
 
         Returns:
             synapseclient.Synapse: A Synapse object that is logged in
         """
         # If no token is provided, try retrieving access token from environment
-        if not token and not access_token:
+        if not access_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
         # login using a token
-        if token:
-            syn = synapseclient.Synapse(cache_root_dir=synapse_cache_path)
-            try:
-                syn.login(sessionToken=token, silent=True)
-            except SynapseHTTPError as exc:
-                raise ValueError(
-                    "Please make sure you are logged into synapse.org."
-                ) from exc
-        elif access_token:
+        if access_token:
             try:
                 syn = synapseclient.Synapse(cache_root_dir=synapse_cache_path)
-                syn.default_headers["Authorization"] = f"Bearer {access_token}"
+                syn.login(authToken=access_token, silent=True)
             except SynapseHTTPError as exc:
                 raise ValueError(
                     "No access to resources. Please make sure that your token is correct"
@@ -323,6 +386,22 @@ class SynapseStorage(BaseStorage):
         def wrapper(*args, **kwargs):
             try:
                 return method(*args, **kwargs)
+            except SynapseHTTPError as ex:
+                str_message = str(ex).replace("\n", "")
+                if "trash" in str_message or "does not exist" in str_message:
+                    logging.warning(str_message)
+                    return None
+                else:
+                    raise ex
+
+        return wrapper
+
+    def async_missing_entity_handler(method):
+        """Decorator to handle missing entities in async methods."""
+
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                return await method(*args, **kwargs)
             except SynapseHTTPError as ex:
                 str_message = str(ex).replace("\n", "")
                 if "trash" in str_message or "does not exist" in str_message:
@@ -479,30 +558,47 @@ class SynapseStorage(BaseStorage):
         Raises:
             ValueError: Dataset ID not found.
         """
-        # select all files within a given storage dataset folder (top level folder in a Synapse storage project or folder marked with contentType = 'dataset')
+        # select all files within a given storage dataset folder (top level folder in
+        # a Synapse storage project or folder marked with contentType = 'dataset')
         walked_path = synapseutils.walk(
             self.syn, datasetId, includeTypes=["folder", "file"]
         )
 
+        project = self.getDatasetProject(datasetId)
+        project_name = self.syn.get(project, downloadFile=False).name
         file_list = []
 
         # iterate over all results
-        for dirpath, dirname, filenames in walked_path:
+        for dirpath, _, path_filenames in walked_path:
             # iterate over all files in a folder
-            for filename in filenames:
-                if (not "manifest" in filename[0] and not fileNames) or (
-                    fileNames and filename[0] in fileNames
+            for path_filename in path_filenames:
+                if ("manifest" not in path_filename[0] and not fileNames) or (
+                    fileNames and path_filename[0] in fileNames
                 ):
-                    # don't add manifest to list of files unless it is specified in the list of specified fileNames; return all found files
+                    # don't add manifest to list of files unless it is specified in the
+                    # list of specified fileNames; return all found files
                     # except the manifest if no fileNames have been specified
                     # TODO: refactor for clarity/maintainability
 
                     if fullpath:
                         # append directory path to filename
-                        filename = (dirpath[0] + "/" + filename[0], filename[1])
+                        if dirpath[0].startswith(f"{project_name}/"):
+                            path_filename = (
+                                dirpath[0] + "/" + path_filename[0],
+                                path_filename[1],
+                            )
+                        else:
+                            path_filename = (
+                                project_name
+                                + "/"
+                                + dirpath[0]
+                                + "/"
+                                + path_filename[0],
+                                path_filename[1],
+                            )
 
                     # add file name file id tuple, rearranged so that id is first and name follows
-                    file_list.append(filename[::-1])
+                    file_list.append(path_filename[::-1])
 
         return file_list
 
@@ -582,8 +678,8 @@ class SynapseStorage(BaseStorage):
                 manifest_data = ManifestDownload.download_manifest(
                     md, newManifestName=newManifestName, manifest_df=manifest
                 )
-                ## TO DO: revisit how downstream code handle manifest_data. If the downstream code would break when manifest_data is an empty string,
-                ## then we should catch the error here without returning an empty string.
+                # TO DO: revisit how downstream code handle manifest_data. If the downstream code would break when manifest_data is an empty string,
+                # then we should catch the error here without returning an empty string.
                 if not manifest_data:
                     logger.debug(
                         f"No manifest data returned. Please check if you have successfully downloaded manifest: {manifest_syn_id}"
@@ -703,18 +799,49 @@ class SynapseStorage(BaseStorage):
         # note that if there is an existing manifest and there are files in the dataset
         # the columns Filename and entityId are assumed to be present in manifest schema
         # TODO: use idiomatic panda syntax
-        if dataset_files:
-            new_files = self._get_file_entityIds(
-                dataset_files=dataset_files, only_new_files=True, manifest=manifest
-            )
+        if not dataset_files:
+            manifest = manifest.fillna("")
+            return dataset_files, manifest
 
-            # update manifest so that it contains new dataset files
-            new_files = pd.DataFrame(new_files)
-            manifest = (
-                pd.concat([manifest, new_files], sort=False)
-                .reset_index()
-                .drop("index", axis=1)
-            )
+        all_files = self._get_file_entityIds(
+            dataset_files=dataset_files, only_new_files=False, manifest=manifest
+        )
+        new_files = self._get_file_entityIds(
+            dataset_files=dataset_files, only_new_files=True, manifest=manifest
+        )
+
+        all_files = pd.DataFrame(all_files)
+        new_files = pd.DataFrame(new_files)
+
+        # update manifest so that it contains new dataset files
+        manifest = (
+            pd.concat([manifest, new_files], sort=False)
+            .reset_index()
+            .drop("index", axis=1)
+        )
+
+        # Reindex manifest and new files dataframes according to entityIds to align file paths and metadata
+        manifest_reindex = manifest.set_index("entityId")
+        all_files_reindex = all_files.set_index("entityId")
+        all_files_reindex_like_manifest = all_files_reindex.reindex_like(
+            manifest_reindex
+        )
+
+        # Check if individual file paths in manifest and from synapse match
+        file_paths_match = (
+            manifest_reindex["Filename"] == all_files_reindex_like_manifest["Filename"]
+        )
+
+        # If all the paths do not match, update the manifest with the filepaths from synapse
+        if not file_paths_match.all():
+            manifest_reindex.loc[
+                ~file_paths_match, "Filename"
+            ] = all_files_reindex_like_manifest.loc[~file_paths_match, "Filename"]
+
+            # reformat manifest for further use
+            manifest = manifest_reindex.reset_index()
+            entityIdCol = manifest.pop("entityId")
+            manifest.insert(len(manifest.columns), "entityId", entityIdCol)
 
         manifest = manifest.fillna("")
         return dataset_files, manifest
@@ -1355,10 +1482,62 @@ class SynapseStorage(BaseStorage):
 
         return manifest_synapse_file_id
 
-    @missing_entity_handler
-    def format_row_annotations(
-        self, dmge, row, entityId: str, hideBlanks: bool, annotation_keys: str
-    ):
+    async def get_async_annotation(self, synapse_id: str) -> Dict[str, Any]:
+        """get annotations asynchronously
+
+        Args:
+            synapse_id (str): synapse id of the entity that the annotation belongs
+
+        Returns:
+            Dict[str, Any]: The requested entity bundle matching
+            <https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/model/entitybundle/v2/EntityBundle.html>
+        """
+        return await get_entity_id_bundle2(
+            entity_id=synapse_id,
+            request={"includeAnnotations": True},
+            synapse_client=self.syn,
+        )
+
+    async def store_async_annotation(self, annotation_dict: dict) -> Annotations:
+        """store annotation in an async way
+
+        Args:
+            annotation_dict (dict): annotation in a dictionary format
+
+        Returns:
+            Annotations: The stored annotations.
+        """
+        annotation_data = Annotations.from_dict(
+            synapse_annotations=annotation_dict["annotations"]["annotations"]
+        )
+        annotation_class = Annotations(
+            annotations=annotation_data,
+            etag=annotation_dict["annotations"]["etag"],
+            id=annotation_dict["annotations"]["id"],
+        )
+        return await annotation_class.store_async(synapse_client=self.syn)
+
+    @async_missing_entity_handler
+    async def format_row_annotations(
+        self,
+        dmge: DataModelGraphExplorer,
+        row: pd.Series,
+        entityId: str,
+        hideBlanks: bool,
+        annotation_keys: str,
+    ) -> Union[None, Dict[str, Any]]:
+        """Format row annotations
+
+        Args:
+            dmge (DataModelGraphExplorer): data moodel graph explorer object
+            row (pd.Series): row of the manifest
+            entityId (str): entity id of the manifest
+            hideBlanks (bool): when true, does not upload annotation keys with blank values. When false, upload Annotation keys with empty string values
+            annotation_keys (str): display_label/class_label
+
+        Returns:
+            Union[None, Dict[str,]]: if entity id is in trash can, return None. Otherwise, return the annotations
+        """
         # prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces, parenthesis)
         # note: the removal of special characters, will apply only to annotation keys; we are not altering the manifest
         # this could create a divergence between manifest column and annotations. this should be ok for most use cases.
@@ -1388,7 +1567,8 @@ class SynapseStorage(BaseStorage):
 
             metadataSyn[keySyn] = v
         # set annotation(s) for the various objects/items in a dataset on Synapse
-        annos = self.syn.get_annotations(entityId)
+        annos = await self.get_async_annotation(entityId)
+
         csv_list_regex = comma_separated_list_regex()
         for anno_k, anno_v in metadataSyn.items():
             # Remove keys with nan or empty string values from dict of annotations to be uploaded
@@ -1625,37 +1805,6 @@ class SynapseStorage(BaseStorage):
             table_name = "synapse_storage_manifest_table"
         return table_name, component_name
 
-    @tracer.start_as_current_span("SynapseStorage::_add_annotations")
-    def _add_annotations(
-        self,
-        dmge,
-        row,
-        entityId: str,
-        hideBlanks: bool,
-        annotation_keys: str,
-    ):
-        """Helper function to format and add annotations to entities in Synapse.
-        Args:
-            dmge: DataModelGraphExplorer object,
-            row: current row of manifest being processed
-            entityId (str): synapseId of entity to add annotations to
-            hideBlanks: Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
-            annotation_keys:  (str) display_label/class_label(default), Determines labeling syle for annotation keys. class_label will format the display
-                name as upper camelcase, and strip blacklisted characters, display_label will strip blacklisted characters including spaces, to retain
-                display label formatting while ensuring the label is formatted properly for Synapse annotations.
-        Returns:
-            Annotations are added to entities in Synapse, no return.
-        """
-        # Format annotations for Synapse
-        annos = self.format_row_annotations(
-            dmge, row, entityId, hideBlanks, annotation_keys
-        )
-
-        if annos:
-            # Store annotations for an entity folder
-            self.syn.set_annotations(annos)
-        return
-
     def _create_entity_id(self, idx, row, manifest, datasetId):
         """Helper function to generate an entityId and add it to the appropriate row in the manifest.
         Args:
@@ -1675,8 +1824,48 @@ class SynapseStorage(BaseStorage):
         manifest.loc[idx, "entityId"] = entityId
         return manifest, entityId
 
+    async def _process_store_annos(self, requests: Set[asyncio.Task]) -> None:
+        """Process annotations and store them on synapse asynchronously
+
+        Args:
+            requests (Set[asyncio.Task]): a set of tasks of formatting annotations created by format_row_annotations function in previous step
+
+        Raises:
+            RuntimeError: raise a run time error if a task failed to complete
+        """
+        while requests:
+            done_tasks, pending_tasks = await asyncio.wait(
+                requests, return_when=asyncio.FIRST_COMPLETED
+            )
+            requests = pending_tasks
+
+            for completed_task in done_tasks:
+                try:
+                    annos = completed_task.result()
+
+                    if isinstance(annos, Annotations):
+                        annos_dict = asdict(annos)
+                        normalized_annos = {k.lower(): v for k, v in annos_dict.items()}
+                        entity_id = normalized_annos["id"]
+                        logger.info(f"Successfully stored annotations for {entity_id}")
+                    else:
+                        # store annotations if they are not None
+                        if annos:
+                            normalized_annos = {k.lower(): v for k, v in annos.items()}
+                            entity_id = normalized_annos["entityid"]
+                            logger.info(
+                                f"Obtained and processed annotations for {entity_id} entity"
+                            )
+                            requests.add(
+                                asyncio.create_task(
+                                    self.store_async_annotation(annotation_dict=annos)
+                                )
+                            )
+                except Exception as e:
+                    raise RuntimeError(f"failed with { repr(e) }.") from e
+
     @tracer.start_as_current_span("SynapseStorage::add_annotations_to_entities_files")
-    def add_annotations_to_entities_files(
+    async def add_annotations_to_entities_files(
         self,
         dmge,
         manifest,
@@ -1717,6 +1906,7 @@ class SynapseStorage(BaseStorage):
             ).drop("entityId_x", axis=1)
 
         # Fill `entityId` for each row if missing and annotate entity as appropriate
+        requests = set()
         for idx, row in manifest.iterrows():
             if not row["entityId"] and (
                 manifest_record_type == "file_and_entities"
@@ -1736,8 +1926,14 @@ class SynapseStorage(BaseStorage):
 
             # Adding annotations to connected files.
             if entityId:
-                self._add_annotations(dmge, row, entityId, hideBlanks, annotation_keys)
-                logger.info(f"Added annotations to entity: {entityId}")
+                # Format annotations for Synapse
+                annos_task = asyncio.create_task(
+                    self.format_row_annotations(
+                        dmge, row, entityId, hideBlanks, annotation_keys
+                    )
+                )
+                requests.add(annos_task)
+        await self._process_store_annos(requests)
         return manifest
 
     @tracer.start_as_current_span("SynapseStorage::upload_manifest_as_table")
@@ -1791,14 +1987,16 @@ class SynapseStorage(BaseStorage):
         )
 
         if file_annotations_upload:
-            manifest = self.add_annotations_to_entities_files(
-                dmge,
-                manifest,
-                manifest_record_type,
-                datasetId,
-                hideBlanks,
-                manifest_synapse_table_id,
-                annotation_keys,
+            manifest = asyncio.run(
+                self.add_annotations_to_entities_files(
+                    dmge,
+                    manifest,
+                    manifest_record_type,
+                    datasetId,
+                    hideBlanks,
+                    manifest_synapse_table_id,
+                    annotation_keys,
+                )
             )
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(
@@ -1865,13 +2063,15 @@ class SynapseStorage(BaseStorage):
             manifest_synapse_file_id (str): SynID of manifest csv uploaded to synapse.
         """
         if file_annotations_upload:
-            manifest = self.add_annotations_to_entities_files(
-                dmge,
-                manifest,
-                manifest_record_type,
-                datasetId,
-                hideBlanks,
-                annotation_keys=annotation_keys,
+            manifest = asyncio.run(
+                self.add_annotations_to_entities_files(
+                    dmge,
+                    manifest,
+                    manifest_record_type,
+                    datasetId,
+                    hideBlanks,
+                    annotation_keys=annotation_keys,
+                )
             )
 
         # Load manifest to synapse as a CSV File
@@ -1943,14 +2143,16 @@ class SynapseStorage(BaseStorage):
         )
 
         if file_annotations_upload:
-            manifest = self.add_annotations_to_entities_files(
-                dmge,
-                manifest,
-                manifest_record_type,
-                datasetId,
-                hideBlanks,
-                manifest_synapse_table_id,
-                annotation_keys=annotation_keys,
+            manifest = asyncio.run(
+                self.add_annotations_to_entities_files(
+                    dmge,
+                    manifest,
+                    manifest_record_type,
+                    datasetId,
+                    hideBlanks,
+                    manifest_synapse_table_id,
+                    annotation_keys=annotation_keys,
+                )
             )
 
         # Load manifest to synapse as a CSV File
@@ -2294,7 +2496,7 @@ class SynapseStorage(BaseStorage):
         # re-query if no datasets found
         if dataset_row.empty:
             sleep(5)
-            self._query_fileview()
+            self.query_fileview()
             # Subset main file view
             dataset_index = self.storageFileviewTable["id"] == datasetId
             dataset_row = self.storageFileviewTable[dataset_index]
@@ -2876,6 +3078,8 @@ class DatasetFileView:
         for col in int_columns:
             # Coercing to string because NaN is a floating point value
             # and cannot exist alongside integers in a column
-            to_int_fn = lambda x: "" if np.isnan(x) else str(int(x))
+            def to_int_fn(x):
+                return "" if np.isnan(x) else str(int(x))
+
             self.table[col] = self.table[col].apply(to_int_fn)
         return self.table
