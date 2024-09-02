@@ -1,37 +1,67 @@
 version: "3.9"
 services:
-  # run schematic APIs in a docker container without uWSGI
+
   schematic:
-    build:
-      dockerfile: Dockerfile
-    container_name: schematic
-    entrypoint: python /usr/src/app/run_api.py
-    ports:
-      - "3001:3001"
-    volumes:
-      - .:/schematic
-    working_dir: /schematic
-    environment:
-      APP_HOST: "0.0.0.0"
-      APP_PORT: "3001"
-      SCHEMATIC_CONFIG: /schematic/config.yml
-      SCHEMATIC_CONFIG_CONTENT: "${SCHEMATIC_CONFIG_CONTENT}"
-      GE_HOME: /usr/src/app/great_expectations/
-  # run schematic APIs in a docker container with uWSGI and nginx
-  schematic-aws:
     build: 
       context: ../schematic
       dockerfile: schematic_api/Dockerfile
-    container_name: schematic-api-aws
-    image: sagebionetworks/schematic-aws-api:latest
-    restart: always
-    env_file: 
-      - .env
+    container_name: schematic  # Name of the container
+    ports:
+      - "3001:3001"  # Port mapping
+    volumes:
+      - .:/schematic  # Volume mapping (bind mount)
+    working_dir: /schematic  # Working directory inside the container
+    environment:
+      GE_HOME: /usr/src/app/great_expectations/
+      SCHEMATIC_CONFIG_CONTENT: ${SCHEMATIC_CONFIG_CONTENT}
+      SERVICE_ACCOUNT_CREDS: ${SERVICE_ACCOUNT_CREDS}
+      CELERY_BROKER_URL: redis://redis:6379/0  # URL for Celery to connect to Redis
+    command: python run_api.py  # Command to run inside the container
+    # restart: unless-stopped  # Optional: Automatically restart the container unless it's stopped manually
+    networks:
+        - schematic
+    # depends_on:
+      # - redis
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3001/v1/ui || exit 1"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  redis:
+    image: redis:latest  # Redis image
+    container_name: redis  # Name of the Redis container
+    ports:
+      - "6379:6379"  # Expose Redis port
+    # restart: unless-stopped
     networks:
       - schematic
-    ports: 
-      - "${USE_LISTEN_PORT}:80"
-      - "443:443"
+
+  celery:
+    build: 
+      context: ../schematic
+      dockerfile: schematic_api/Dockerfile
+    container_name: celery  # Name of the container
+    environment:
+      GE_HOME: /usr/src/app/great_expectations/
+      SCHEMATIC_CONFIG_CONTENT: ${SCHEMATIC_CONFIG_CONTENT}
+      SERVICE_ACCOUNT_CREDS: ${SERVICE_ACCOUNT_CREDS}
+      CELERY_BROKER_URL: redis://redis:6379/0  # URL for Celery to connect to Redis
+    command: celery -A schematic_api.api.celery worker --loglevel=info  # Command to run Celery worker
+    depends_on:
+      redis:  # Ensure Redis starts before Celery
+        condition: service_started
+      schematic:
+        condition: service_healthy
+
+    # restart: unless-stopped
+    networks:
+      - schematic
+
 networks:
   schematic:
     name: schematic
+
+  
+
