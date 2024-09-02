@@ -12,6 +12,7 @@ if __name__ == "__main__":
     port = int(port)
 
     # Launch app
-    app = create_app()
+    app,_ = create_app()
+
     #TO DO: add a flag --debug to control debug parameter
     app.run(host=host, port=port, debug=False)
