@@ -24,8 +24,11 @@ from schematic.utils.validate_utils import (
     parse_str_series_to_list,
     rule_in_rule_list,
 )
+from opentelemetry import trace
 
 logger = logging.getLogger(__name__)
+
+tracer = trace.get_tracer("Schematic")
 
 MessageLevelType = Literal["warning", "error"]
 ScopeTypes = Literal["set", "value"]
@@ -1769,6 +1772,7 @@ class ValidateAttribute(object):
         scope = val_rule.lower().split(" ")[2]
         return scope
 
+    @tracer.start_as_current_span("ValidateAttribute::_run_validation_across_target_manifests")
     def _run_validation_across_target_manifests(
         self,
         project_scope: Optional[list[str]],
@@ -1933,6 +1937,7 @@ class ValidateAttribute(object):
                 validation_store = (missing_values, duplicated_values, repeat_values)
             return (start_time, validation_store)
 
+    @tracer.start_as_current_span("ValidateAttribute::cross_validation")
     def cross_validation(
         self,
         val_rule: str,
