@@ -49,14 +49,14 @@ jobs:
       #----------------------------------------------
       #       verify runner environment
       #----------------------------------------------
-      - name: Print runner environment information
-        run: |
-          echo "Running on runner: $RUNNER_NAME"
-          echo "Runner OS: $RUNNER_OS"
-          echo "Runner OS version: $RUNNER_OS_VERSION"
-          echo "Runner architecture: $RUNNER_ARCH"
-          echo "Total memory: $(free -h)"
-          echo "CPU info: $(lscpu)"
+      # - name: Print runner environment information
+      #   run: |
+      #     echo "Running on runner: $RUNNER_NAME"
+      #     echo "Runner OS: $RUNNER_OS"
+      #     echo "Runner OS version: $RUNNER_OS_VERSION"
+      #     echo "Runner architecture: $RUNNER_ARCH"
+      #     echo "Total memory: $(free -h)"
+      #     echo "CPU info: $(lscpu)"
 
       #----------------------------------------------
       #          install & configure poetry
@@ -134,7 +134,7 @@ jobs:
         run: >
           source .venv/bin/activate;
           pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-          -m "not (rule_benchmark)" --reruns 2 -n auto
+          -m "not (rule_benchmark)" --reruns 2 -n 4
 
 
       - name: Upload pytest test results
