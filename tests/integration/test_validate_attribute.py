@@ -79,7 +79,7 @@ class TestValidateAttribute:
     ) -> None:
         """
         This test checks that the method successfully returns manifests from Synapse
-        
+
         """
         validator = ValidateAttribute(dmge=dmge)
         manifests = validator._get_target_manifest_dataframes(  # pylint:disable= protected-access
