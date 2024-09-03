@@ -1,26 +1,25 @@
 #!/usr/bin/env python3
 
-from typing import get_args
-from gc import callbacks
 import logging
 import sys
+from gc import callbacks
 from time import perf_counter
+from typing import get_args
 
 import click
 import click_log
-
 from jsonschema import ValidationError
 
+from schematic.configuration.configuration import CONFIG
+from schematic.exceptions import MissingConfigValueError
+from schematic.help import model_commands
 from schematic.models.metadata import MetadataModel
 from schematic.utils.cli_utils import (
     log_value_from_config,
-    query_dict,
-    parse_syn_ids,
     parse_comma_str_to_list,
+    parse_syn_ids,
+    query_dict,
 )
-from schematic.help import model_commands
-from schematic.exceptions import MissingConfigValueError
-from schematic.configuration.configuration import CONFIG
 from schematic.utils.schema_utils import DisplayLabelType
 
 logger = logging.getLogger("schematic")
@@ -111,6 +110,12 @@ def model(ctx, config):  # use as `schematic model ...`
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
 @click.option(
+    "-ds",
+    "--dataset_scope",
+    default=None,
+    help=query_dict(model_commands, ("model", "validate", "dataset_scope")),
+)
+@click.option(
     "--table_manipulation",
     "-tm",
     default="replace",
@@ -150,6 +155,7 @@ def submit_manifest(
     hide_blanks,
     restrict_rules,
     project_scope,
+    dataset_scope,
     table_manipulation,
     data_model_labels,
     table_column_names,
@@ -177,6 +183,7 @@ def submit_manifest(
         restrict_rules=restrict_rules,
         hide_blanks=hide_blanks,
         project_scope=project_scope,
+        dataset_scope=dataset_scope,
         table_manipulation=table_manipulation,
         table_column_names=table_column_names,
         annotation_keys=annotation_keys,
@@ -228,6 +235,12 @@ def submit_manifest(
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
 @click.option(
+    "-ds",
+    "--dataset_scope",
+    default=None,
+    help=query_dict(model_commands, ("model", "validate", "dataset_scope")),
+)
+@click.option(
     "--data_model_labels",
     "-dml",
     is_flag=True,
@@ -241,6 +254,7 @@ def validate_manifest(
     json_schema,
     restrict_rules,
     project_scope,
+    dataset_scope,
     data_model_labels,
 ):
     """
@@ -276,6 +290,7 @@ def validate_manifest(
         jsonSchema=json_schema,
         restrict_rules=restrict_rules,
         project_scope=project_scope,
+        dataset_scope=dataset_scope,
     )
 
     if not errors:

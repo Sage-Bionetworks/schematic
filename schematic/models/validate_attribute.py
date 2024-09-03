@@ -2014,6 +2014,7 @@ class ValidateAttribute(object):
         manifest: pd.core.frame.DataFrame,
         access_token: str,
         project_scope: Optional[list] = None,
+        dataset_scope: Optional[str] = None,
     ):
         """
         Purpose:
@@ -2031,9 +2032,8 @@ class ValidateAttribute(object):
         warnings = []
 
         where_clauses = []
-        rule_parts = val_rule.split(" ")
 
-        dataset_clause = f"parentId='{rule_parts[1]}'"
+        dataset_clause = f"parentId='{dataset_scope}'"
         where_clauses.append(dataset_clause)
 
         self._login(
