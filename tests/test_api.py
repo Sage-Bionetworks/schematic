@@ -76,11 +76,12 @@ def test_manifest_json(helpers) -> str:
     return test_manifest_path
 
 
-@pytest.fixture(scope="class",
-                params=["example.model.jsonld",
-                        "example.model.csv"])
+@pytest.fixture(scope="class", params=["example.model.jsonld", "example.model.csv"])
 def data_model_url(request):
-    data_model_url = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/" + request.param
+    data_model_url = (
+        "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/"
+        + request.param
+    )
     yield data_model_url
 
 
@@ -88,6 +89,7 @@ def data_model_url(request):
 def benchmark_data_model_jsonld():
     benchmark_data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
     yield benchmark_data_model_jsonld
+
 
 def get_MockComponent_attribute() -> Generator[str, None, None]:
     """
@@ -344,7 +346,9 @@ class TestSynapseStorage:
 @pytest.mark.schematic_api
 class TestMetadataModelOperation:
     @pytest.mark.parametrize("as_graph", [True, False])
-    def test_component_requirement(self, data_model_url, client: FlaskClient, as_graph: bool) -> None:
+    def test_component_requirement(
+        self, data_model_url, client: FlaskClient, as_graph: bool
+    ) -> None:
         params = {
             "schema_url": data_model_url,
             "source_component": "BulkRNA-seqAssay",
@@ -423,7 +427,9 @@ class TestDataModelGraphExplorerOperation:
         assert response.status_code == 200
         assert response_dta == True
 
-    def test_get_node_validation_rules(test, data_model_url, client: FlaskClient) -> None:
+    def test_get_node_validation_rules(
+        test, data_model_url, client: FlaskClient
+    ) -> None:
         params = {
             "schema_url": data_model_url,
             "node_display_name": "CheckRegexList",
@@ -453,7 +459,9 @@ class TestDataModelGraphExplorerOperation:
     @pytest.mark.parametrize(
         "relationship", ["parentOf", "requiresDependency", "rangeValue", "domainValue"]
     )
-    def test_get_subgraph_by_edge(self, data_model_url, client: FlaskClient, relationship: str) -> None:
+    def test_get_subgraph_by_edge(
+        self, data_model_url, client: FlaskClient, relationship: str
+    ) -> None:
         params = {"schema_url": data_model_url, "relationship": relationship}
 
         response = client.get(
@@ -465,7 +473,11 @@ class TestDataModelGraphExplorerOperation:
     @pytest.mark.parametrize("return_display_names", [True, False])
     @pytest.mark.parametrize("node_label", ["FamilyHistory", "TissueStatus"])
     def test_get_node_range(
-        self, data_model_url, client: FlaskClient, return_display_names: bool, node_label: str
+        self,
+        data_model_url,
+        client: FlaskClient,
+        return_display_names: bool,
+        node_label: str,
     ) -> None:
         params = {
             "schema_url": data_model_url,
@@ -568,7 +580,7 @@ class TestManifestOperation:
         ["Biospecimen", "Patient", "all manifests", ["Biospecimen", "Patient"]],
     )
     def test_generate_existing_manifest(
-        self,,
+        self,
         data_model_url,
         client: FlaskClient,
         data_type: str,
@@ -653,7 +665,7 @@ class TestManifestOperation:
     )
     def test_generate_new_manifest(
         self,
-        data_model_url
+        data_model_url,
         caplog: pytest.LogCaptureFixture,
         client: FlaskClient,
         data_type: str,
@@ -757,7 +769,11 @@ class TestManifestOperation:
         ],
     )
     def test_generate_manifest_file_based_annotations(
-        self, data_model_url, client: FlaskClient, use_annotations: bool, expected: list[str]
+        self,
+        data_model_url,
+        client: FlaskClient,
+        use_annotations: bool,
+        expected: list[str],
     ) -> None:
         params = {
             "schema_url": data_model_url,
@@ -842,7 +858,9 @@ class TestManifestOperation:
             ]
         )
 
-    def test_generate_manifest_data_type_not_found(self, data_model_url, client: FlaskClient) -> None:
+    def test_generate_manifest_data_type_not_found(
+        self, data_model_url, client: FlaskClient
+    ) -> None:
         params = {
             "schema_url": data_model_url,
             "data_type": "wrong data type",
