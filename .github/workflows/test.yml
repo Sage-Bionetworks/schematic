@@ -47,6 +47,18 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       #----------------------------------------------
+      #       verify runner environment
+      #----------------------------------------------
+      - name: Print runner environment information
+        run: |
+          echo "Running on runner: $RUNNER_NAME"
+          echo "Runner OS: $RUNNER_OS"
+          echo "Runner OS version: $RUNNER_OS_VERSION"
+          echo "Runner architecture: $RUNNER_ARCH"
+          echo "Total memory: $(free -h)"
+          echo "CPU info: $(lscpu)"
+
+      #----------------------------------------------
       #          install & configure poetry
       #----------------------------------------------
       - name: Install Poetry
