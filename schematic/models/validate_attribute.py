@@ -1952,6 +1952,7 @@ class ValidateAttribute(object):
                     concatenated_target_column=target_column,
                 )
                 validation_store = (missing_values, duplicated_values, repeat_values)
+
             return (start_time, validation_store)
 
     def cross_validation(
