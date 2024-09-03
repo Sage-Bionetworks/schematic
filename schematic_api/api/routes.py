@@ -43,8 +43,10 @@ from schematic.visualization.tangled_tree import TangledTree
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
+tracing_service_name = os.environ.get("TRACING_SERVICE_NAME", "schematic-api")
+
 trace.set_tracer_provider(
-    TracerProvider(resource=Resource(attributes={SERVICE_NAME: "schematic-api"}))
+    TracerProvider(resource=Resource(attributes={SERVICE_NAME: tracing_service_name}))
 )
 
 
