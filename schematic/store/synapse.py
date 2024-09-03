@@ -293,8 +293,19 @@ class SynapseStorage(BaseStorage):
                 self.storageFileviewTable = self.syn.tableQuery(
                     query=self.fileview_query,
                 ).asDataFrame()
-            except SynapseHTTPError:
-                raise AccessCredentialsError(self.storageFileview)
+            except SynapseHTTPError as exc:
+                exception_text = str(exc)
+                if "Unknown column path" in exception_text:
+                    raise ValueError(
+                        "The path column has not been added to the fileview. Please make sure that the fileview is up to date. You can add the path column to the fileview by follwing the instructions in the validation rules documentation."
+                    )
+                elif "Unknown column" in exception_text:
+                    missing_column = exception_text.split("Unknown column ")[-1]
+                    raise ValueError(
+                        f"The columns {missing_column} specified in the query do not exist in the fileview. Please make sure that the column names are correct and that all expected columns have been added to the fileview."
+                    )
+                else:
+                    raise AccessCredentialsError(self.storageFileview)
 
     def _build_query(
         self, columns: Optional[list] = None, where_clauses: Optional[list] = None
@@ -790,18 +801,49 @@ class SynapseStorage(BaseStorage):
         # note that if there is an existing manifest and there are files in the dataset
         # the columns Filename and entityId are assumed to be present in manifest schema
         # TODO: use idiomatic panda syntax
-        if dataset_files:
-            new_files = self._get_file_entityIds(
-                dataset_files=dataset_files, only_new_files=True, manifest=manifest
-            )
+        if not dataset_files:
+            manifest = manifest.fillna("")
+            return dataset_files, manifest
 
-            # update manifest so that it contains new dataset files
-            new_files = pd.DataFrame(new_files)
-            manifest = (
-                pd.concat([manifest, new_files], sort=False)
-                .reset_index()
-                .drop("index", axis=1)
-            )
+        all_files = self._get_file_entityIds(
+            dataset_files=dataset_files, only_new_files=False, manifest=manifest
+        )
+        new_files = self._get_file_entityIds(
+            dataset_files=dataset_files, only_new_files=True, manifest=manifest
+        )
+
+        all_files = pd.DataFrame(all_files)
+        new_files = pd.DataFrame(new_files)
+
+        # update manifest so that it contains new dataset files
+        manifest = (
+            pd.concat([manifest, new_files], sort=False)
+            .reset_index()
+            .drop("index", axis=1)
+        )
+
+        # Reindex manifest and new files dataframes according to entityIds to align file paths and metadata
+        manifest_reindex = manifest.set_index("entityId")
+        all_files_reindex = all_files.set_index("entityId")
+        all_files_reindex_like_manifest = all_files_reindex.reindex_like(
+            manifest_reindex
+        )
+
+        # Check if individual file paths in manifest and from synapse match
+        file_paths_match = (
+            manifest_reindex["Filename"] == all_files_reindex_like_manifest["Filename"]
+        )
+
+        # If all the paths do not match, update the manifest with the filepaths from synapse
+        if not file_paths_match.all():
+            manifest_reindex.loc[
+                ~file_paths_match, "Filename"
+            ] = all_files_reindex_like_manifest.loc[~file_paths_match, "Filename"]
+
+            # reformat manifest for further use
+            manifest = manifest_reindex.reset_index()
+            entityIdCol = manifest.pop("entityId")
+            manifest.insert(len(manifest.columns), "entityId", entityIdCol)
 
         manifest = manifest.fillna("")
         return dataset_files, manifest
