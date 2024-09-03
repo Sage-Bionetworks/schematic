@@ -213,22 +213,6 @@ def schedule_for_cleanup(
     return _append_cleanup
 
 
-def pytest_collection_modifyitems(items) -> None:
-    """Taken from docs at:
-    https://pytest-asyncio.readthedocs.io/en/latest/how-to-guides/run_session_tests_in_same_loop.html
-
-    Used to run all tests within the same event loop. This will allow any underlying
-    logic use the same event loop for all tests. It is important for the underlying
-    usage of the synapse python client which uses HTTPX for their async library. HTTPX
-    connection pools cannot be shared across event loops. This will allow us to use the
-    same connection pool for all tests.
-    """
-    pytest_asyncio_tests = (item for item in items if is_async_test(item))
-    session_scope_marker = pytest.mark.asyncio(loop_scope="session")
-    for async_test in pytest_asyncio_tests:
-        async_test.add_marker(session_scope_marker, append=False)
-
-
 active_span_processors = []
 
 
