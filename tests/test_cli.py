@@ -1,13 +1,14 @@
 import os
-from unittest.mock import patch
 
 import pytest
+from unittest.mock import patch
+
 from click.testing import CliRunner
 
-from schematic.configuration.configuration import Configuration
+from schematic.schemas.commands import schema
 from schematic.manifest.commands import manifest
 from schematic.models.commands import model
-from schematic.schemas.commands import schema
+from schematic.configuration.configuration import Configuration
 from tests.conftest import Helpers
 
 
@@ -18,7 +19,8 @@ def runner() -> CliRunner:
     return CliRunner()
 
 
-@pytest.fixture(params=["example.model.jsonld", "example.model.csv"])
+@pytest.fixture(params=["example.model.jsonld",
+                        "example.model.csv"])
 def data_model_path(request, helpers):
     data_model_path = helpers.get_data_path(request.param)
     yield data_model_path

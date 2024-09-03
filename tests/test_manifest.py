@@ -38,13 +38,12 @@ def generate_graph_data_model(helpers, path_to_data_model, data_model_labels):
 
     return graph_data_model
 
-
-@pytest.fixture(params=["example.model.jsonld", "example.model.csv"])
+@pytest.fixture(params=["example.model.jsonld",
+                        "example.model.csv"])
 def data_model_path(request, helpers):
     data_model_path = helpers.get_data_path(request.param)
     yield data_model_path
-
-
+    
 @pytest.fixture(
     params=[
         (True, "Patient"),
@@ -126,6 +125,7 @@ def app():
 
 class TestManifestGenerator:
     def test_init(self, helpers, data_model_path):
+
         # Get graph data model
         graph_data_model = generate_graph_data_model(
             helpers,
@@ -157,9 +157,7 @@ class TestManifestGenerator:
         ],
         ids=["DataType not found in Schema", "No DataType provided"],
     )
-    def test_missing_root_error(
-        self, helpers, data_type, exc, exc_message, data_model_path
-    ):
+    def test_missing_root_error(self, helpers, data_type, exc, exc_message, data_model_path):
         """
         Test for errors when either no DataType is provided or when a DataType is provided but not found in the schema
         """
@@ -239,9 +237,7 @@ class TestManifestGenerator:
     @pytest.mark.parametrize("sheet_url", [None, True, False])
     @pytest.mark.parametrize("dataset_id", [None, "syn27600056"])
     @pytest.mark.google_credentials_needed
-    def test_get_manifest_excel(
-        self, helpers, sheet_url, output_format, dataset_id, data_model_path
-    ):
+    def test_get_manifest_excel(self, helpers, sheet_url, output_format, dataset_id, data_model_path):
         """
         Purpose: the goal of this test is to make sure that output_format parameter and sheet_url parameter could function well;
         In addition, this test also makes sure that getting a manifest with an existing dataset_id is working
@@ -419,11 +415,12 @@ class TestManifestGenerator:
                 {"Filename": [], "Component": []},
                 {"Component": ["BulkRNA-seqAssay"]},
             ),
-        ],
+        ], 
     )
     def test_add_root_to_component_without_additional_metadata(
         self, helpers, data_type, required_metadata_fields, expected, data_model_path
     ):
+
         # Get graph data model
         graph_data_model = generate_graph_data_model(
             helpers,
@@ -460,6 +457,7 @@ class TestManifestGenerator:
     def test_add_root_to_component_with_additional_metadata(
         self, helpers, additional_metadata, data_model_path
     ):
+
         # Get graph data model
         graph_data_model = generate_graph_data_model(
             helpers,
@@ -533,9 +531,7 @@ class TestManifestGenerator:
         ],
     )
     @pytest.mark.google_credentials_needed
-    def test_update_dataframe_with_existing_df(
-        self, helpers, existing_manifest, data_model_path
-    ):
+    def test_update_dataframe_with_existing_df(self, helpers, existing_manifest, data_model_path):
         """
         Tests the following discrepancies with an existing schema:
             - schema has matching columns to existing_df
@@ -739,12 +735,13 @@ class TestManifestGenerator:
         test_data_types,
         dataset_ids,
         expected_result,
-        data_model_path,
+        data_model_path
     ):
         with patch(
             "schematic.manifest.generator.ManifestGenerator.create_single_manifest",
             return_value="mock google sheet link",
         ):
+            
             all_results = simple_manifest_generator.create_manifests(
                 path_to_data_model=data_model_path,
                 data_types=test_data_types,
@@ -785,7 +782,7 @@ class TestManifestGenerator:
         expected_file_based,
         expected_rows,
         expected_files,
-        data_model_path,
+        data_model_path
     ):
         """
         Test to ensure that
