@@ -9,6 +9,7 @@ import pytest
 from dotenv import load_dotenv
 
 from schematic.configuration.configuration import CONFIG
+from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.synapse import SynapseStorage
@@ -149,3 +150,13 @@ def DMGE(helpers: Helpers) -> DataModelGraphExplorer:
     """Fixture to instantiate a DataModelGraphExplorer object."""
     dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
     return dmge
+
+
+def metadata_model(helpers, data_model_labels):
+    metadata_model = MetadataModel(
+        inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
+        data_model_labels=data_model_labels,
+        inputMModelLocationType="local",
+    )
+
+    return metadata_model
