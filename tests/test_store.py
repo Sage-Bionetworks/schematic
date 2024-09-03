@@ -7,9 +7,10 @@ import logging
 import math
 import os
 import shutil
+from contextlib import nullcontext as does_not_raise
 from time import sleep
 from typing import Any, Generator
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pandas as pd
 import pytest
@@ -19,7 +20,7 @@ from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
 from synapseclient.models import Annotations
 
-from schematic.configuration.configuration import Configuration
+from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.base import BaseStorage
@@ -116,7 +117,7 @@ def dmge(
     yield dmge
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def synapse_store_special_scope():
     yield SynapseStorage(perform_query=False)
 
@@ -160,32 +161,57 @@ class TestSynapseStorage:
         shutil.rmtree("test_cache_dir")
 
     @pytest.mark.parametrize(
-        "project_scope,columns,where_clauses,expected",
+        "project_scope,columns,where_clauses,expected,expected_new_query",
         [
-            (None, None, None, "SELECT * FROM syn23643253 ;"),
+            (None, None, None, "SELECT * FROM syn23643253 ;", True),
             (
                 ["syn23643250"],
                 None,
                 None,
                 "SELECT * FROM syn23643253 WHERE projectId IN ('syn23643250', '') ;",
+                True,
             ),
             (
                 None,
                 None,
                 ["projectId IN ('syn23643250')"],
                 "SELECT * FROM syn23643253 WHERE projectId IN ('syn23643250') ;",
+                True,
             ),
             (
                 ["syn23643250"],
                 ["name", "id", "path"],
                 None,
                 "SELECT name,id,path FROM syn23643253 WHERE projectId IN ('syn23643250', '') ;",
+                True,
+            ),
+            (
+                None,
+                ["name", "id", "path"],
+                ["parentId='syn61682648'", "type='file'"],
+                "SELECT name,id,path FROM syn23643253 WHERE parentId='syn61682648' AND type='file' ;",
+                True,
+            ),
+            (
+                ["syn23643250"],
+                None,
+                ["parentId='syn61682648'", "type='file'"],
+                "SELECT * FROM syn23643253 WHERE parentId='syn61682648' AND type='file' AND projectId IN ('syn23643250', '') ;",
+                True,
             ),
             (
                 ["syn23643250"],
                 ["name", "id", "path"],
                 ["parentId='syn61682648'", "type='file'"],
                 "SELECT name,id,path FROM syn23643253 WHERE parentId='syn61682648' AND type='file' AND projectId IN ('syn23643250', '') ;",
+                True,
+            ),
+            (
+                ["syn23643250"],
+                ["name", "id", "path"],
+                ["parentId='syn61682648'", "type='file'"],
+                "SELECT name,id,path FROM syn23643253 WHERE parentId='syn61682648' AND type='file' AND projectId IN ('syn23643250', '') ;",
+                False,
             ),
         ],
     )
@@ -196,17 +222,67 @@ class TestSynapseStorage:
         columns: list,
         where_clauses: list,
         expected: str,
+        expected_new_query: bool,
     ) -> None:
-        # Ensure correct view is being utilized
+        # GIVEN a the correct fileview
         assert synapse_store_special_scope.storageFileview == "syn23643253"
 
+        # AND the approrpiate project scope
         synapse_store_special_scope.project_scope = project_scope
 
-        synapse_store_special_scope.query_fileview(columns, where_clauses)
-        # tests ._build_query()
-        assert synapse_store_special_scope.fileview_query == expected
-        # tests that the query was valid and successful, that a view subset has actually been retrived
-        assert synapse_store_special_scope.storageFileviewTable.empty is False
+        # WHEN the query is built and run
+        # THEN it should complete without raising an exception
+        with does_not_raise():
+            synapse_store_special_scope.query_fileview(columns, where_clauses)
+            # AND the query string should be as expected
+            assert synapse_store_special_scope.fileview_query == expected
+            # AND query should have recieved a non-empty table
+            assert synapse_store_special_scope.storageFileviewTable.empty is False
+            # AND the query should be new if expected
+            assert synapse_store_special_scope.new_query_different == expected_new_query
+
+    @pytest.mark.parametrize(
+        "asset_view,columns,message",
+        [
+            (
+                "syn62339865",
+                ["path"],
+                r"The path column has not been added to the fileview. .*",
+            ),
+            (
+                "syn62340177",
+                ["id"],
+                r"The columns id specified in the query do not exist in the fileview. .*",
+            ),
+        ],
+    )
+    def test_view_query_exception(
+        self,
+        asset_view: str,
+        columns: list[str],
+        message: str,
+    ) -> None:
+        # GIVEN a project scope
+        project_scope = ["syn23643250"]
+
+        # AND a test configuration
+        TEST_CONFIG = Configuration()
+        with patch(
+            "schematic.store.synapse.CONFIG", return_value=TEST_CONFIG
+        ) as mock_config:
+            # AND the appropriate test file view
+            mock_config.synapse_master_fileview_id = asset_view
+            # AND a real path to the synapse config file
+            mock_config.synapse_configuration_path = CONFIG.synapse_configuration_path
+            # AND a unique synapse storage object that uses the values modified in the test config
+            synapse_store = SynapseStorage(perform_query=False)
+            # AND the given project scope
+            synapse_store.project_scope = project_scope
+
+            # WHEN the query is built and run
+            # THEN it should raise a ValueError with the appropriate message
+            with pytest.raises(ValueError, match=message):
+                synapse_store.query_fileview(columns)
 
     def test_getFileAnnotations(self, synapse_store: SynapseStorage) -> None:
         expected_dict = {
@@ -429,42 +505,67 @@ class TestSynapseStorage:
             assert manifest_data == "syn51204513"
 
     @pytest.mark.parametrize(
-        "existing_manifest_df",
+        "existing_manifest_df,fill_in_return_value,expected_df",
         [
-            pd.DataFrame(),
-            pd.DataFrame(
-                {
-                    "Filename": ["existing_mock_file_path"],
-                    "entityId": ["existing_mock_entity_id"],
-                }
+            (
+                pd.DataFrame(),
+                [
+                    {
+                        "Filename": ["new_mock_file_path"],
+                        "entityId": ["new_mock_entity_id"],
+                    },
+                    {
+                        "Filename": ["new_mock_file_path"],
+                        "entityId": ["new_mock_entity_id"],
+                    },
+                ],
+                pd.DataFrame(
+                    {
+                        "Filename": ["new_mock_file_path"],
+                        "entityId": ["new_mock_entity_id"],
+                    }
+                ),
+            ),
+            (
+                pd.DataFrame(
+                    {
+                        "Filename": ["existing_mock_file_path"],
+                        "entityId": ["existing_mock_entity_id"],
+                    }
+                ),
+                [
+                    {
+                        "Filename": ["existing_mock_file_path", "new_mock_file_path"],
+                        "entityId": ["existing_mock_entity_id", "new_mock_entity_id"],
+                    },
+                    {
+                        "Filename": ["new_mock_file_path"],
+                        "entityId": ["new_mock_entity_id"],
+                    },
+                ],
+                pd.DataFrame(
+                    {
+                        "Filename": ["existing_mock_file_path", "new_mock_file_path"],
+                        "entityId": ["existing_mock_entity_id", "new_mock_entity_id"],
+                    }
+                ),
             ),
         ],
     )
-    def test_fill_in_entity_id_filename(self, synapse_store, existing_manifest_df):
+    def test_fill_in_entity_id_filename(
+        self, synapse_store, existing_manifest_df, fill_in_return_value, expected_df
+    ):
         with patch(
             "schematic.store.synapse.SynapseStorage.getFilesInStorageDataset",
             return_value=["syn123", "syn124", "syn125"],
         ) as mock_get_file_storage, patch(
             "schematic.store.synapse.SynapseStorage._get_file_entityIds",
-            return_value={
-                "Filename": ["mock_file_path"],
-                "entityId": ["mock_entity_id"],
-            },
+            side_effect=fill_in_return_value,
         ) as mock_get_file_entity_id:
             dataset_files, new_manifest = synapse_store.fill_in_entity_id_filename(
                 datasetId="test_syn_id", manifest=existing_manifest_df
             )
-            if not existing_manifest_df.empty:
-                expected_df = pd.DataFrame(
-                    {
-                        "Filename": ["existing_mock_file_path", "mock_file_path"],
-                        "entityId": ["existing_mock_entity_id", "mock_entity_id"],
-                    }
-                )
-            else:
-                expected_df = pd.DataFrame(
-                    {"Filename": ["mock_file_path"], "entityId": ["mock_entity_id"]}
-                )
+
             assert_frame_equal(new_manifest, expected_df)
             assert dataset_files == ["syn123", "syn124", "syn125"]
 
