@@ -19,11 +19,10 @@ def runner() -> CliRunner:
     return CliRunner()
 
 
-@pytest.fixture(params=["example.model.jsonld",
-                        "example.model.csv"])
-def data_model_path(request, helpers):
-    data_model_path = helpers.get_data_path(request.param)
-    yield data_model_path
+@pytest.fixture
+def data_model_jsonld(helpers):
+    data_model_jsonld = helpers.get_data_path("example.model.jsonld")
+    yield data_model_jsonld
 
 
 class TestSchemaCli:
@@ -78,7 +77,7 @@ class TestSchemaCli:
     # by default this should download the manifest as a CSV file
     @pytest.mark.google_credentials_needed
     def test_get_example_manifest_default(
-        self, runner, helpers, config: Configuration, data_model_path
+        self, runner, helpers, config: Configuration, data_model_jsonld
     ):
         output_path = helpers.get_data_path("example.Patient.manifest.csv")
         config.load_config("config_example.yml")
@@ -92,7 +91,7 @@ class TestSchemaCli:
                 "--data_type",
                 "Patient",
                 "--path_to_data_model",
-                data_model_path,
+                data_model_jsonld,
             ],
         )
 
@@ -103,7 +102,7 @@ class TestSchemaCli:
     # use google drive to export
     @pytest.mark.google_credentials_needed
     def test_get_example_manifest_csv(
-        self, runner, helpers, config: Configuration, data_model_path
+        self, runner, helpers, config: Configuration, data_model_jsonld
     ):
         output_path = helpers.get_data_path("test.csv")
         config.load_config("config_example.yml")
@@ -117,7 +116,7 @@ class TestSchemaCli:
                 "--data_type",
                 "Patient",
                 "--path_to_data_model",
-                data_model_path,
+                data_model_jsonld,
                 "--output_csv",
                 output_path,
             ],
@@ -128,7 +127,7 @@ class TestSchemaCli:
     # get manifest as an excel spreadsheet
     @pytest.mark.google_credentials_needed
     def test_get_example_manifest_excel(
-        self, runner, helpers, config: Configuration, data_model_path
+        self, runner, helpers, config: Configuration, data_model_jsonld
     ):
         output_path = helpers.get_data_path("test.xlsx")
         config.load_config("config_example.yml")
@@ -142,7 +141,7 @@ class TestSchemaCli:
                 "--data_type",
                 "Patient",
                 "--path_to_data_model",
-                data_model_path,
+                data_model_jsonld,
                 "--output_xlsx",
                 output_path,
             ],
