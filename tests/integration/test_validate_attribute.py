@@ -73,3 +73,16 @@ class TestValidateAttribute:
             ],
             [],
         )
+
+    def test__get_target_manifest_dataframes(
+        self, dmge: DataModelGraphExplorer
+    ) -> None:
+        """
+        This test checks that the method successfully returns manifests from Synapse
+
+        """
+        validator = ValidateAttribute(dmge=dmge)
+        manifests = validator._get_target_manifest_dataframes(  # pylint:disable= protected-access
+            "patient", project_scope=["syn54126707"]
+        )
+        assert list(manifests.keys()) == ["syn54126997", "syn54127001"]
