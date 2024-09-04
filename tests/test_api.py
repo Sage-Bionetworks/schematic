@@ -879,7 +879,11 @@ class TestManifestOperation:
         test_manifest_csv: str,
         request_headers: Dict[str, str],
     ) -> None:
-        params = {"schema_url": DATA_MODEL_JSON_LD, "restrict_rules": restrict_rules}
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "restrict_rules": restrict_rules,
+            "project_scope": "syn54126707",
+        }
 
         if json_str:
             params["json_str"] = json_str
