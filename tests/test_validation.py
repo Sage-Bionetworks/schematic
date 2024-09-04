@@ -691,6 +691,7 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode,
             project_scope=["syn23643250"],
+            dataset_scope="syn61682648",
         )
 
         # Check errors
