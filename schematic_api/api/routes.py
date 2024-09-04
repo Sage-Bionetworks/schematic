@@ -40,12 +40,15 @@ from schematic.utils.schema_utils import (
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.visualization.tangled_tree import TangledTree
 
+from schematic_api.api.tasks import get_manifest_task
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 trace.set_tracer_provider(
     TracerProvider(resource=Resource(attributes={SERVICE_NAME: "schematic-api"}))
 )
+
 
 
 # borrowed from: https://github.com/Sage-Bionetworks/synapsePythonClient/blob/develop/tests/integration/conftest.py
@@ -324,6 +327,123 @@ def get_temp_model_path(schema_url):
             "Did not provide a valid model type CSV or JSONLD, please check submission and try again."
         )
     return temp_path
+
+def get_manifest(task_id):
+    task = get_manifest_task.AsyncResult(task_id)
+    if task.state == 'PENDING':
+        # job did not start yet
+        response = {
+            'state': task.state,
+            'current': 0,
+            'total': 1,
+            'status': 'Pending...'
+        }
+    elif task.state != 'FAILURE':
+        # job is still running
+        response = {
+            'state': task.state,
+            'current': task.info.get('current', 0),
+            'total': task.info.get('total', 1),
+            'status': task.info.get('status', '')
+        }
+        if 'result' in task.info:
+            # job finished
+            response['result'] = task.info['result']
+    else:
+        # something went wrong in the background job
+        response = {
+            'state': task.state,
+            'current': 1,
+            'total': 1,
+            'status': str(task.info),  # this is the exception raised
+        }
+    from flask import jsonify
+    return jsonify(response)
+
+
+def post_manifest_route(
+    schema_url: str,
+    use_annotations: bool,
+    dataset_id=None,
+    asset_view=None,
+    output_format=None,
+    title=None,
+    strict_validation: bool = True,
+    data_model_labels: DisplayLabelType = "class_label",
+    data_type: str = None,
+):
+    """Get the immediate dependencies that are related to a given source node.
+    Args:
+        schema_url: link to data model in json ld or csv format
+        title: title of a given manifest.
+        dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
+        data_type: data model components.
+        output_format: contains three option: "excel", "google_sheet", and "dataframe". if set to "excel", return an excel spreadsheet
+        use_annotations: Whether to use existing annotations during manifest generation
+        asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
+        strict: bool, strictness with which to apply validation rules to google sheets.
+    Returns:
+        Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
+    """
+    # from schematic_api.api.tasks import get_manifest_route
+    access_token = get_access_token()
+    config_handler(asset_view=asset_view)
+    task = get_manifest_task.apply_async(
+        kwargs={
+            'schema_url': schema_url,
+            'use_annotations': use_annotations,
+            'dataset_id': dataset_id,
+            'asset_view': asset_view,
+            'output_format': output_format,
+            'title': title,
+            'strict_validation': strict_validation,
+            'data_model_labels': data_model_labels,
+            'data_type': data_type,
+            "access_token": access_token
+        }
+    )
+    from flask import jsonify
+    response = jsonify({'task_id': task.id})
+    response.status_code = 202
+    # response.headers['Location'] = url_for('taskstatus', task_id=task.id)
+    return response
+    # return jsonify({}), 20
+    # # Get access token from request header
+    # access_token = get_access_token()
+
+    # config_handler(asset_view=asset_view)
+
+    # all_results = ManifestGenerator.create_manifests(
+    #     path_to_data_model=schema_url,
+    #     output_format=output_format,
+    #     data_types=data_type,
+    #     title=title,
+    #     access_token=access_token,
+    #     dataset_ids=dataset_id,
+    #     strict=strict_validation,
+    #     use_annotations=use_annotations,
+    #     data_model_labels=data_model_labels,
+    # )
+
+    # # return an excel file if output_format is set to "excel"
+    # if output_format == "excel":
+    #     # should only contain one excel spreadsheet path
+    #     if len(all_results) > 0:
+    #         result = all_results[0]
+    #         dir_name = os.path.dirname(result)
+    #         file_name = os.path.basename(result)
+    #         mimetype = (
+    #             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    #         )
+    #         return send_from_directory(
+    #             directory=dir_name,
+    #             path=file_name,
+    #             as_attachment=True,
+    #             mimetype=mimetype,
+    #             max_age=0,
+    #         )
+
+    # return all_results
 
 
 # @before_request

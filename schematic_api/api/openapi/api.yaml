@@ -19,8 +19,48 @@ components:
 
 # TO DO: refactor query parameters and remove access_token
 paths:
-  /manifest/generate:
+  /manifest/{task_id}:
     get:
+      summary: Get the status or result of a manifest generation task
+      description: Retrieve the status or result of a manifest generation task based on the provided task ID.
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: The ID of the task for which to retrieve the status or result.
+          schema:
+            type: string
+      operationId: schematic_api.api.routes.get_manifest
+      responses:
+        '200':
+          description: Task status or result retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  state:
+                    type: string
+                    description: The current state of the task (e.g., PENDING, STARTED, SUCCESS, FAILURE).
+                    example: PENDING
+                  current:
+                    type: integer
+                    description: The current progress of the task.
+                    example: 0
+                  total:
+                    type: integer
+                    description: The total steps of the task.
+                    example: 1
+                  status:
+                    type: string
+                    description: A message describing the current status of the task.
+                    example: Pending...
+                  result:
+                    type: string
+                    description: The result of the task if it is completed.
+                    example: URL to the manifest or manifest data
+  /manifest/generate:
+    post:
       summary: Endpoint to facilitate manifest generation
       description: Endpoint to create dynamically create metadata manifest files
       security:
@@ -110,7 +150,7 @@ paths:
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
           required: false
-      operationId: schematic_api.api.routes.get_manifest_route
+      operationId: schematic_api.api.routes.post_manifest_route
       responses:
         "200":
           description: Googlesheet link created OR an excel file gets returned OR pandas dataframe gets returned
