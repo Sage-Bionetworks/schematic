@@ -4,9 +4,10 @@
 # pylint: disable=anomalous-backslash-in-string
 
 import logging
-import re
+
+from typing import Any, Mapping, Sequence, Union, Optional
 from functools import reduce
-from typing import Any, Mapping, Optional, Sequence, Union
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -68,13 +69,13 @@ def parse_syn_ids(
     if not syn_ids:
         return None
 
-    synID_regex = re.compile("(syn\d+\,?)+")
-    valid = synID_regex.fullmatch(syn_ids)
+    project_regex = re.compile("(syn\d+\,?)+")
+    valid = project_regex.fullmatch(syn_ids)
 
     if not valid:
         raise ValueError(
             f"The provided list of project synID(s): {syn_ids}, is not formatted correctly. "
-            "\nPlease check your list of synIDs for errors."
+            "\nPlease check your list of projects for errors."
         )
 
     return syn_ids.split(",")
