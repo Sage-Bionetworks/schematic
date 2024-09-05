@@ -36,7 +36,7 @@ def info_from_bearer_auth(token: str) -> Dict[str, Union[str, int]]:
         data = decode(
             jwt=token,
             key=signing_key.key,
-            algorithms=["RS256"],
+            algorithms=[signing_key.algorithm_name],
             options={"verify_aud": False},
         )
 
