@@ -1,4 +1,3 @@
-import configparser
 import json
 import logging
 import os
@@ -98,19 +97,6 @@ def get_MockComponent_attribute() -> Generator[str, None, None]:
 
     for MockComponent_attribute in attributes:
         yield MockComponent_attribute
-
-
-@pytest.fixture(scope="class")
-def syn_token(config: Configuration):
-    synapse_config_path = config.synapse_configuration_path
-    config_parser = configparser.ConfigParser()
-    config_parser.read(synapse_config_path)
-    # try using synapse access token
-    if "SYNAPSE_ACCESS_TOKEN" in os.environ:
-        token = os.environ["SYNAPSE_ACCESS_TOKEN"]
-    else:
-        token = config_parser["authentication"]["authtoken"]
-    return token
 
 
 @pytest.fixture
