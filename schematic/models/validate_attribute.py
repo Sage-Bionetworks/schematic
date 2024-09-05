@@ -2028,6 +2028,12 @@ class ValidateAttribute(object):
             errors: list[str] Error details for further storage.
             warnings: list[str] Warning details for further storage.
         """
+
+        if dataset_scope is None:
+            raise ValueError(
+                "A dataset is required to be specified for filename validation"
+            )
+
         errors = []
         warnings = []
 
