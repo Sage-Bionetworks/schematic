@@ -45,6 +45,14 @@ def valid_test_manifest_csv(helpers) -> str:
 
 
 @pytest.fixture(scope="class")
+def invalid_filename_manifest_csv(helpers) -> str:
+    test_manifest_path = helpers.get_data_path(
+        "mock_manifests/InvalidFilenameManifest.csv"
+    )
+    return test_manifest_path
+
+
+@pytest.fixture(scope="class")
 def test_manifest_submit(helpers) -> str:
     test_manifest_path = helpers.get_data_path(
         "mock_manifests/example_biospecimen_test.csv"
@@ -880,6 +888,14 @@ class TestManifestOperation:
                 None,
             ),
             ("patient_manifest_json_str", None, "Patient", False, None, None),
+            (
+                None,
+                "invalid_filename_manifest_csv",
+                "MockFilename",
+                True,
+                "syn23643250",
+                "syn61682648",
+            ),
         ],
     )
     @pytest.mark.parametrize("restrict_rules", [True, False, None])
@@ -896,7 +912,7 @@ class TestManifestOperation:
         request_headers: Dict[str, str],
         request: pytest.FixtureRequest,
     ) -> None:
-        # GIVEN a set of appropriate test prameters
+        # GIVEN a set of test prameters
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
             "restrict_rules": restrict_rules,
