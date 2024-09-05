@@ -105,7 +105,7 @@ class ValidateManifest(object):
         dmge: DataModelGraphExplorer,
         restrict_rules: bool,
         project_scope: list[str],
-        dataset_scope: Optional[str],
+        dataset_scope: Optional[str] = None,
         access_token: Optional[str] = None,
     ) -> (pd.core.frame.DataFrame, list[list[str]]):
         """
@@ -352,7 +352,7 @@ def validate_all(
     jsonSchema,
     restrict_rules,
     project_scope: List,
-    dataset_scope: List,
+    dataset_scope: str,
     access_token: str,
 ):
     # Run Validation Rules
