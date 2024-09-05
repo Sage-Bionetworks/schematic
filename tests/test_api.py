@@ -869,24 +869,24 @@ class TestManifestOperation:
         assert response_dt[0].startswith("https://docs.google.com/")
 
     @pytest.mark.parametrize(
-        "json_str_fixture,restrict_rules,data_type,update_headers,test_manifest_fixture",
+        "json_str_fixture,test_manifest_fixture,restrict_rules,data_type,update_headers",
         [
-            (None, False, "MockComponent", True, "valid_test_manifest_csv"),
-            (None, True, "MockComponent", True, "valid_test_manifest_csv"),
-            (None, None, "MockComponent", True, "valid_test_manifest_csv"),
-            ("patient_manifest_json_str", False, "Patient", False, None),
-            ("patient_manifest_json_str", True, "Patient", False, None),
-            ("patient_manifest_json_str", None, "Patient", False, None),
+            (None, "valid_test_manifest_csv", False, "MockComponent", True),
+            (None, "valid_test_manifest_csv", True, "MockComponent", True),
+            (None, "valid_test_manifest_csv", None, "MockComponent", True),
+            ("patient_manifest_json_str", None, False, "Patient", False),
+            ("patient_manifest_json_str", None, True, "Patient", False),
+            ("patient_manifest_json_str", None, None, "Patient", False),
         ],
     )
     def test_validate_manifest(
         self,
         client: FlaskClient,
         json_str_fixture: Union[str, None],
+        test_manifest_fixture: Union[str, None],
         restrict_rules: Union[bool, None],
         data_type: str,
         update_headers: bool,
-        test_manifest_fixture: str,
         request_headers: Dict[str, str],
         request: pytest.FixtureRequest,
     ) -> None:
