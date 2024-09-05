@@ -39,7 +39,7 @@ def client(app: flask.Flask) -> Generator[FlaskClient, None, None]:
 
 
 @pytest.fixture(scope="class")
-def test_manifest_csv(helpers) -> str:
+def valid_test_manifest_csv(helpers) -> str:
     test_manifest_path = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
     return test_manifest_path
 
@@ -845,10 +845,10 @@ class TestManifestOperation:
         assert "LookupError" in str(response.data)
 
     def test_populate_manifest(
-        self, client: FlaskClient, test_manifest_csv: str
+        self, client: FlaskClient, valid_test_manifest_csv: str
     ) -> None:
         # test manifest
-        test_manifest_data = open(test_manifest_csv, "rb")
+        test_manifest_data = open(valid_test_manifest_csv, "rb")
 
         params = {
             "data_type": "MockComponent",
@@ -869,14 +869,14 @@ class TestManifestOperation:
         assert response_dt[0].startswith("https://docs.google.com/")
 
     @pytest.mark.parametrize(
-        "json_str_fixture,restrict_rules",
+        "json_str_fixture,restrict_rules,data_type,update_headers,test_manifest_fixture",
         [
-            (None, False),
-            (None, True),
-            (None, None),
-            ("patient_manifest_json_str", False),
-            ("patient_manifest_json_str", True),
-            ("patient_manifest_json_str", None),
+            (None, False, "MockComponent", True, "valid_test_manifest_csv"),
+            (None, True, "MockComponent", True, "valid_test_manifest_csv"),
+            (None, None, "MockComponent", True, "valid_test_manifest_csv"),
+            ("patient_manifest_json_str", False, "Patient", False, None),
+            ("patient_manifest_json_str", True, "Patient", False, None),
+            ("patient_manifest_json_str", None, "Patient", False, None),
         ],
     )
     def test_validate_manifest(
@@ -884,52 +884,62 @@ class TestManifestOperation:
         client: FlaskClient,
         json_str_fixture: Union[str, None],
         restrict_rules: Union[bool, None],
-        test_manifest_csv: str,
+        data_type: str,
+        update_headers: bool,
+        test_manifest_fixture: str,
         request_headers: Dict[str, str],
         request: pytest.FixtureRequest,
     ) -> None:
+        # GIVEN a set of common prameters
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
             "restrict_rules": restrict_rules,
             "project_scope": "syn54126707",
         }
 
-        if json_str_fixture:
-            params["json_str"] = request.getfixturevalue(json_str_fixture)
-            params["data_type"] = "Patient"
-            response = client.post(
-                "http://localhost:3001/v1/model/validate", query_string=params
-            )
-            response_dt = json.loads(response.data)
-            assert response.status_code == 200
+        # AND a set of test specific parameters
+        params["data_type"] = data_type
 
-        else:
-            params["data_type"] = "MockComponent"
-
+        # AND the appropriate headers for the test
+        if update_headers:
             request_headers.update(
                 {"Content-Type": "multipart/form-data", "Accept": "application/json"}
             )
 
-            # test uploading a csv file
-            response_csv = client.post(
-                "http://localhost:3001/v1/model/validate",
-                query_string=params,
-                data={"file_name": (open(test_manifest_csv, "rb"), "test.csv")},
-                headers=request_headers,
-            )
-            response_dt = json.loads(response_csv.data)
-            assert response_csv.status_code == 200
+        # AND a test manifest as a json string
+        params["json_str"] = (
+            request.getfixturevalue(json_str_fixture) if json_str_fixture else None
+        )
 
-            # test uploading a json file
-            # change data type to patient since the testing json manifest is using Patient component
-            # WILL DEPRECATE uploading a json file for validation
-            # params["data_type"] = "Patient"
-            # response_json =  client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_json, 'rb'), "test.json")}, headers=headers)
-            # response_dt = json.loads(response_json.data)
-            # assert response_json.status_code == 200
+        # OR a test manifest as a file
+        data = None
+        if test_manifest_fixture:
+            test_manifest_path = request.getfixturevalue(test_manifest_fixture)
+            data = {"file_name": (open(test_manifest_path, "rb"), "test.csv")}
 
+        # WHEN the manifest is validated
+        response = client.post(
+            "http://localhost:3001/v1/model/validate",
+            query_string=params,
+            data=data,
+            headers=request_headers,
+        )
+
+        # THEN the request should be successful
+        assert response.status_code == 200
+
+        # AND the response should contain the expected error and warning lists
+        response_dt = json.loads(response.data)
         assert "errors" in response_dt.keys()
         assert "warnings" in response_dt.keys()
+
+        # test uploading a json file
+        # change data type to patient since the testing json manifest is using Patient component
+        # WILL DEPRECATE uploading a json file for validation
+        # params["data_type"] = "Patient"
+        # response_json =  client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_json, 'rb'), "test.json")}, headers=headers)
+        # response_dt = json.loads(response_json.data)
+        # assert response_json.status_code == 200
 
     @pytest.mark.synapse_credentials_needed
     def test_get_datatype_manifest(
@@ -1121,7 +1131,7 @@ class TestManifestOperation:
         "data_type, manifest_path_fixture",
         [
             ("Biospecimen", "test_manifest_submit"),
-            ("MockComponent", "test_manifest_csv"),
+            ("MockComponent", "valid_test_manifest_csv"),
         ],
     )
     def test_submit_manifest_file_only_replace(
