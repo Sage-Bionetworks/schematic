@@ -1520,6 +1520,59 @@ class SynapseStorage(BaseStorage):
         )
         return await annotation_class.store_async(synapse_client=self.syn)
 
+    def process_row_annotations(
+        self,
+        dmge: DataModelGraphExplorer,
+        metadataSyn: dict,
+        hideBlanks: bool,
+        csv_list_regex: str,
+        annos: dict,
+        annotation_keys: str,
+    ):
+        """processes metadata annotations
+
+        Args:
+            dmge (DataModelGraphExplorer): data model graph explorer
+            metadataSyn (dict): metadata used for Synapse storage
+            hideBlanks (bool): if true, does not upload annotation keys with blank values.
+            csv_list_regex (str):
+            annos (dict):
+            annotation_keys (str): display_label/class_label
+
+        Returns:
+            dict: annotations as a dictionary
+        """
+        for anno_k, anno_v in metadataSyn.items():
+            # Remove keys with nan or empty string values from dict of annotations to be uploaded
+            # if present on current data annotation
+            if hideBlanks and (
+                (isinstance(anno_v, str) and anno_v.strip() == "")
+                or (isinstance(anno_v, float) and np.isnan(anno_v))
+            ):
+                annos.pop(anno_k) if anno_k in annos.keys() else annos
+            # Otherwise save annotation as approrpriate
+            else:
+                if annotation_keys == "display_label":
+                    node_validation_rules = dmge.get_node_validation_rules(
+                        node_display_name=anno_k
+                    )
+                else:
+                    node_validation_rules = dmge.get_node_validation_rules(
+                        node_label=anno_k
+                    )
+
+                if isinstance(anno_v, float) and np.isnan(anno_v):
+                    annos[anno_k] = ""
+                elif (
+                    isinstance(anno_v, str)
+                    and re.fullmatch(csv_list_regex, anno_v)
+                    and rule_in_rule_list("list", node_validation_rules)
+                ):
+                    annos[anno_k] = anno_v.split(",")
+                else:
+                    annos[anno_k] = anno_v
+        return annos
+
     @async_missing_entity_handler
     async def format_row_annotations(
         self,
@@ -1573,34 +1626,14 @@ class SynapseStorage(BaseStorage):
         annos = await self.get_async_annotation(entityId)
 
         csv_list_regex = comma_separated_list_regex()
-        for anno_k, anno_v in metadataSyn.items():
-            # Remove keys with nan or empty string values from dict of annotations to be uploaded
-            # if present on current data annotation
-            if hideBlanks and (
-                anno_v == "" or (isinstance(anno_v, float) and np.isnan(anno_v))
-            ):
-                annos.pop(anno_k) if anno_k in annos.keys() else annos
-            # Otherwise save annotation as approrpriate
-            else:
-                if annotation_keys == "display_label":
-                    node_validation_rules = dmge.get_node_validation_rules(
-                        node_display_name=anno_k
-                    )
-                else:
-                    node_validation_rules = dmge.get_node_validation_rules(
-                        node_label=anno_k
-                    )
-
-                if isinstance(anno_v, float) and np.isnan(anno_v):
-                    annos[anno_k] = ""
-                elif (
-                    isinstance(anno_v, str)
-                    and re.fullmatch(csv_list_regex, anno_v)
-                    and rule_in_rule_list("list", node_validation_rules)
-                ):
-                    annos[anno_k] = anno_v.split(",")
-                else:
-                    annos[anno_k] = anno_v
+        annos = self.process_row_annotations(
+            dmge=dmge,
+            metadataSyn=metadataSyn,
+            hideBlanks=hideBlanks,
+            csv_list_regex=csv_list_regex,
+            annos=annos,
+            annotation_keys=annotation_keys,
+        )
 
         return annos
 
