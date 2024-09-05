@@ -13,13 +13,21 @@ logger = logging.getLogger(__name__)
 
 class TestMetadataModel:
     @pytest.mark.parametrize(
-        "manifest_path, dataset_id, validate_component, expected_manifest_id",
+        "manifest_path, dataset_id, validate_component, expected_manifest_id, dataset_scope",
         [
             (
                 "mock_manifests/filepath_submission_test_manifest.csv",
                 "syn62276880",
                 None,
                 "syn62280543",
+                None,
+            ),
+            (
+                "mock_manifests/ValidFilenameManifest.csv",
+                "syn62822337",
+                "MockFilename",
+                "syn62822975",
+                "syn62822337",
             ),
         ],
     )
@@ -30,6 +38,7 @@ class TestMetadataModel:
         dataset_id,
         validate_component,
         expected_manifest_id,
+        dataset_scope,
         mocker: MockerFixture,
     ):
         # spys
@@ -59,6 +68,7 @@ class TestMetadataModel:
                 file_annotations_upload=True,
                 hide_blanks=False,
                 validate_component=validate_component,
+                dataset_scope=dataset_scope,
             )
 
             # AND the manifest should be submitted to the correct place
