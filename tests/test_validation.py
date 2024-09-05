@@ -722,6 +722,21 @@ class TestManifestValidation:
         assert len(errors) == 2
         assert len(warnings) == 0
 
+    def test_filename_manifest_exception(self, helpers, dmge):
+        metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
+
+        manifestPath = helpers.get_data_path(
+            "mock_manifests/InvalidFilenameManifest.csv"
+        )
+        rootNode = "MockFilename"
+
+        with pytest.raises(ValueError):
+            errors, warnings = metadataModel.validateModelManifest(
+                manifestPath=manifestPath,
+                rootNode=rootNode,
+                project_scope=["syn23643250"],
+            )
+
     def test_missing_column(self, helpers, dmge: DataModelGraph):
         """Test that a manifest missing a column returns the proper error."""
         model_name = "example.model.csv"
