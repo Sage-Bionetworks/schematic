@@ -32,7 +32,6 @@ def info_from_bearerAuth(token: str) -> Dict[str, Union[str, int]]:
         dict: Decoded token information.
     """
     try:
-        jwks_client.get_signing_key_from_jwt(token)
         signing_key = jwks_client.get_signing_key_from_jwt(token)
         data = decode(
             jwt=token,
