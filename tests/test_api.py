@@ -45,6 +45,14 @@ def valid_test_manifest_csv(helpers) -> str:
 
 
 @pytest.fixture(scope="class")
+def valid_filename_manifest_csv(helpers) -> str:
+    test_manifest_path = helpers.get_data_path(
+        "mock_manifests/ValidFilenameManifest.csv"
+    )
+    return test_manifest_path
+
+
+@pytest.fixture(scope="class")
 def invalid_filename_manifest_csv(helpers) -> str:
     test_manifest_path = helpers.get_data_path(
         "mock_manifests/InvalidFilenameManifest.csv"
@@ -1258,32 +1266,35 @@ class TestManifestOperation:
 
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
-    def test_submit_manifest_table_and_file_upsert(
+    def test_submit_and_validate_filebased_manifest(
         self,
         client: FlaskClient,
         request_headers: Dict[str, str],
-        test_upsert_manifest_csv: str,
+        valid_filename_manifest_csv: str,
     ) -> None:
+        # GIVEN the appropriate upload parameters
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
-            "data_type": "MockRDB",
+            "data_type": "MockFilename",
             "restrict_rules": False,
-            "manifest_record_type": "table_and_file",
-            "asset_view": "syn51514557",
-            "dataset_id": "syn51514551",
-            "table_manipulation": "upsert",
+            "manifest_record_type": "file_and_entities",
+            "asset_view": "syn23643253",
+            "dataset_id": "syn62822337",
+            "project_scope": "syn23643250",
+            "dataset_scope": "syn62822337",
             "data_model_labels": "class_label",
-            # have to set table_column_names to display_name to ensure upsert feature works
-            "table_column_names": "display_name",
+            "table_column_names": "class_label",
         }
 
-        # test uploading a csv file
+        # WHEN a filebased manifest is validated with the filenameExists rule and uploaded
         response_csv = client.post(
             "http://localhost:3001/v1/model/submit",
             query_string=params,
-            data={"file_name": (open(test_upsert_manifest_csv, "rb"), "test.csv")},
+            data={"file_name": (open(valid_filename_manifest_csv, "rb"), "test.csv")},
             headers=request_headers,
         )
+
+        # THEN the validation and submission should be successful
         assert response_csv.status_code == 200
 
 
