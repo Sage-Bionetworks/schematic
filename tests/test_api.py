@@ -923,6 +923,7 @@ class TestManifestOperation:
         # GIVEN a set of test prameters
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
+            "asset_view": "syn23643253",
             "restrict_rules": restrict_rules,
             "project_scope": project_scope,
             "dataset_scope": dataset_scope,
