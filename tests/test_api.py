@@ -869,42 +869,41 @@ class TestManifestOperation:
         assert response_dt[0].startswith("https://docs.google.com/")
 
     @pytest.mark.parametrize(
-        "json_str_fixture,test_manifest_fixture,restrict_rules,data_type,update_headers",
+        "json_str_fixture, test_manifest_fixture, data_type, update_headers, project_scope, dataset_scope",
         [
-            (None, "valid_test_manifest_csv", False, "MockComponent", True),
-            (None, "valid_test_manifest_csv", True, "MockComponent", True),
-            (None, "valid_test_manifest_csv", None, "MockComponent", True),
-            ("patient_manifest_json_str", None, False, "Patient", False),
-            ("patient_manifest_json_str", None, True, "Patient", False),
-            ("patient_manifest_json_str", None, None, "Patient", False),
+            (
+                None,
+                "valid_test_manifest_csv",
+                "MockComponent",
+                True,
+                "syn54126707",
+                None,
+            ),
+            ("patient_manifest_json_str", None, "Patient", False, None, None),
         ],
     )
+    @pytest.mark.parametrize("restrict_rules", [True, False, None])
     def test_validate_manifest(
         self,
         client: FlaskClient,
         json_str_fixture: Union[str, None],
         test_manifest_fixture: Union[str, None],
-        restrict_rules: Union[bool, None],
         data_type: str,
         update_headers: bool,
+        project_scope: Union[str, None],
+        dataset_scope: Union[str, None],
+        restrict_rules: Union[bool, None],
         request_headers: Dict[str, str],
         request: pytest.FixtureRequest,
     ) -> None:
-        # GIVEN a set of common prameters
+        # GIVEN a set of appropriate test prameters
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
             "restrict_rules": restrict_rules,
-            "project_scope": "syn54126707",
+            "project_scope": project_scope,
+            "dataset_scope": dataset_scope,
+            "data_type": data_type,
         }
-
-        # AND a set of test specific parameters
-        params["data_type"] = data_type
-
-        # AND the appropriate headers for the test
-        if update_headers:
-            request_headers.update(
-                {"Content-Type": "multipart/form-data", "Accept": "application/json"}
-            )
 
         # AND a test manifest as a json string
         params["json_str"] = (
@@ -916,6 +915,12 @@ class TestManifestOperation:
         if test_manifest_fixture:
             test_manifest_path = request.getfixturevalue(test_manifest_fixture)
             data = {"file_name": (open(test_manifest_path, "rb"), "test.csv")}
+
+        # AND the appropriate headers for the test
+        if update_headers:
+            request_headers.update(
+                {"Content-Type": "multipart/form-data", "Accept": "application/json"}
+            )
 
         # WHEN the manifest is validated
         response = client.post(
