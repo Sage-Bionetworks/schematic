@@ -933,14 +933,6 @@ class TestManifestOperation:
         assert "errors" in response_dt.keys()
         assert "warnings" in response_dt.keys()
 
-        # test uploading a json file
-        # change data type to patient since the testing json manifest is using Patient component
-        # WILL DEPRECATE uploading a json file for validation
-        # params["data_type"] = "Patient"
-        # response_json =  client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_json, 'rb'), "test.json")}, headers=headers)
-        # response_dt = json.loads(response_json.data)
-        # assert response_json.status_code == 200
-
     @pytest.mark.synapse_credentials_needed
     def test_get_datatype_manifest(
         self, client: FlaskClient, request_headers: Dict[str, str]
