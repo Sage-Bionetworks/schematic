@@ -76,6 +76,11 @@ def test_manifest_json(helpers) -> str:
     return test_manifest_path
 
 
+@pytest.fixture(scope="class")
+def patient_manifest_json_str() -> str:
+    return '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]'
+
+
 def get_MockComponent_attribute() -> Generator[str, None, None]:
     """
     Yield all of the mock conponent attributes one at a time
@@ -863,21 +868,25 @@ class TestManifestOperation:
         assert isinstance(response_dt[0], str)
         assert response_dt[0].startswith("https://docs.google.com/")
 
-    @pytest.mark.parametrize("restrict_rules", [False, True, None])
     @pytest.mark.parametrize(
-        "json_str",
+        "json_str_fixture,restrict_rules",
         [
-            None,
-            '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]',
+            (None, False),
+            (None, True),
+            (None, None),
+            ("patient_manifest_json_str", False),
+            ("patient_manifest_json_str", True),
+            ("patient_manifest_json_str", None),
         ],
     )
     def test_validate_manifest(
         self,
         client: FlaskClient,
-        json_str: Union[str, None],
+        json_str_fixture: Union[str, None],
         restrict_rules: Union[bool, None],
         test_manifest_csv: str,
         request_headers: Dict[str, str],
+        request: pytest.FixtureRequest,
     ) -> None:
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
@@ -885,8 +894,8 @@ class TestManifestOperation:
             "project_scope": "syn54126707",
         }
 
-        if json_str:
-            params["json_str"] = json_str
+        if json_str_fixture:
+            params["json_str"] = request.getfixturevalue(json_str_fixture)
             params["data_type"] = "Patient"
             response = client.post(
                 "http://localhost:3001/v1/model/validate", query_string=params
