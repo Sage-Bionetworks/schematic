@@ -273,7 +273,11 @@ class ValidateManifest(object):
                         )
                     elif validation_type == "filenameExists":
                         vr_errors, vr_warnings = validation_method(
-                            rule, manifest, access_token, project_scope, dataset_scope
+                            rule,
+                            manifest,
+                            access_token,
+                            dataset_scope,
+                            project_scope,
                         )
                     else:
                         vr_errors, vr_warnings = validation_method(
