@@ -9,21 +9,6 @@ from schematic.utils.validate_utils import comma_separated_list_regex
 from tests.conftest import Helpers
 
 
-@pytest.fixture
-def metadataSyn():
-    return {
-        "key1": "value1",
-        "key2": np.nan,
-        "key3": "val1,val2,val3",  # Simulate a CSV-like string
-        "key4": "another_value",
-    }
-
-
-@pytest.fixture
-def annos():
-    return {"key1": "old_value1", "key2": "old_value2", "key3": "old_value3"}
-
-
 @pytest.fixture(name="dmge", scope="function")
 def DMGE(helpers: Helpers) -> DataModelGraphExplorer:
     """Fixture to instantiate a DataModelGraphExplorer object."""
