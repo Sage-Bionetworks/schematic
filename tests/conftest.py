@@ -1,4 +1,5 @@
 """Fixtures and helpers for use across all tests"""
+import configparser
 import logging
 import os
 import shutil
@@ -19,7 +20,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
 from pytest_asyncio import is_async_test
 
-from schematic.configuration.configuration import CONFIG
+from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
@@ -164,6 +165,19 @@ def DMGE(helpers: Helpers) -> DataModelGraphExplorer:
     """Fixture to instantiate a DataModelGraphExplorer object."""
     dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
     return dmge
+
+
+@pytest.fixture(scope="class")
+def syn_token(config: Configuration):
+    synapse_config_path = config.synapse_configuration_path
+    config_parser = configparser.ConfigParser()
+    config_parser.read(synapse_config_path)
+    # try using synapse access token
+    if "SYNAPSE_ACCESS_TOKEN" in os.environ:
+        token = os.environ["SYNAPSE_ACCESS_TOKEN"]
+    else:
+        token = config_parser["authentication"]["authtoken"]
+    return token
 
 
 def metadata_model(helpers, data_model_labels):
