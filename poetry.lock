@@ -1060,13 +1060,13 @@ pyflakes = ">=3.1.0,<3.2.0"
 
 [[package]]
 name = "flask"
-version = "2.1.3"
+version = "2.2.5"
 description = "A simple framework for building complex web applications."
 optional = true
 python-versions = ">=3.7"
 files = [
-    {file = "Flask-2.1.3-py3-none-any.whl", hash = "sha256:9013281a7402ad527f8fd56375164f3aa021ecfaff89bfe3825346c24f87e04c"},
-    {file = "Flask-2.1.3.tar.gz", hash = "sha256:15972e5017df0575c3d6c090ba168b6db90259e620ac8d7ea813a396bad5b6cb"},
+    {file = "Flask-2.2.5-py3-none-any.whl", hash = "sha256:58107ed83443e86067e41eff4631b058178191a355886f8e479e347fa1285fdf"},
+    {file = "Flask-2.2.5.tar.gz", hash = "sha256:edee9b0a7ff26621bd5a8c10ff484ae28737a2410d99b0bb9a6850c7fb977aa0"},
 ]
 
 [package.dependencies]
@@ -1074,7 +1074,7 @@ click = ">=8.0"
 importlib-metadata = {version = ">=3.6.0", markers = "python_version < \"3.10\""}
 itsdangerous = ">=2.0"
 Jinja2 = ">=3.0"
-Werkzeug = ">=2.0"
+Werkzeug = ">=2.2.2"
 
 [package.extras]
 async = ["asgiref (>=3.2)"]
@@ -5038,4 +5038,4 @@ aws = ["uWSGI"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.0,<3.11"
-content-hash = "3d9d2fe8fa5fa8ef6328133f3b510bd5a6ec42632b3972442223093bfeaf59b8"
+content-hash = "88ac9ec4adf10af2185290fd82a310733d6616553362740db5a37118d18de46c"
