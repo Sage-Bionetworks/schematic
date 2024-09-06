@@ -2013,8 +2013,8 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest: pd.core.frame.DataFrame,
         access_token: str,
+        dataset_scope: str,
         project_scope: Optional[list] = None,
-        dataset_scope: Optional[str] = None,
     ):
         """
         Purpose:
@@ -2023,6 +2023,7 @@ class ValidateAttribute(object):
             val_rule: str, Validation rule for the component
             manifest: pd.core.frame.DataFrame, manifest
             access_token: str, Asset Store access token
+            dataset_scope: str, Dataset with files to validate against
             project_scope: Optional[list] = None: Projects to limit the scope of cross manifest validation to.
         Returns:
             errors: list[str] Error details for further storage.
