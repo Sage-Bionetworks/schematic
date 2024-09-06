@@ -683,7 +683,7 @@ class TestManifestValidation:
         metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
 
         manifestPath = helpers.get_data_path(
-            "mock_manifests/InvalidFilenameAndEntityIDManifest.csv"
+            "mock_manifests/InvalidFilenameManifest.csv"
         )
         rootNode = "MockFilename"
 
