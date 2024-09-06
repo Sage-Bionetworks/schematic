@@ -1550,27 +1550,28 @@ class SynapseStorage(BaseStorage):
                 or (isinstance(anno_v, float) and np.isnan(anno_v))
             ):
                 annos.pop(anno_k) if anno_k in annos.keys() else annos
+
             # Otherwise save annotation as approrpriate
             else:
-                if annotation_keys == "display_label":
-                    node_validation_rules = dmge.get_node_validation_rules(
-                        node_display_name=anno_k
-                    )
-                else:
-                    node_validation_rules = dmge.get_node_validation_rules(
-                        node_label=anno_k
-                    )
-
                 if isinstance(anno_v, float) and np.isnan(anno_v):
                     annos[anno_k] = ""
-                elif (
-                    isinstance(anno_v, str)
-                    and re.fullmatch(csv_list_regex, anno_v)
-                    and rule_in_rule_list("list", node_validation_rules)
-                ):
-                    annos[anno_k] = anno_v.split(",")
-                else:
-                    annos[anno_k] = anno_v
+                    continue
+
+                # Handle strings that match the csv_list_regex and pass the validation rule
+                if isinstance(anno_v, str) and re.fullmatch(csv_list_regex, anno_v):
+                    # Use a dictionary to dynamically choose the argument
+                    param = (
+                        {"node_display_name": anno_k}
+                        if annotation_keys == "display_label"
+                        else {"node_label": anno_k}
+                    )
+                    node_validation_rules = dmge.get_node_validation_rules(**param)
+
+                    if rule_in_rule_list("list", node_validation_rules):
+                        annos[anno_k] = anno_v.split(",")
+                        continue
+                # If none of the conditions are met, assign the original value
+                annos[anno_k] = anno_v
         return annos
 
     @async_missing_entity_handler
@@ -1626,6 +1627,30 @@ class SynapseStorage(BaseStorage):
         annos = await self.get_async_annotation(entityId)
 
         csv_list_regex = comma_separated_list_regex()
+        # for anno_k, anno_v in metadataSyn.items():
+        #     # Remove keys with nan or empty string values from dict of annotations to be uploaded
+        #     # if present on current data annotation
+        #     if hideBlanks and (
+        #         anno_v == "" or (isinstance(anno_v, float) and np.isnan(anno_v))
+        #     ):
+        #         annos.pop(anno_k) if anno_k in annos.keys() else annos
+        #     # Otherwise save annotation as approrpriate
+        #     else:
+        #         if isinstance(anno_v, float) and np.isnan(anno_v):
+        #             annos[anno_k] = ""
+        #         elif (
+        #             isinstance(anno_v, str)
+        #             and re.fullmatch(csv_list_regex, anno_v)
+        #             and rule_in_rule_list(
+        #                 "list", dmge.get_node_validation_rules(anno_k)
+        #             )
+        #         ):
+        #             annos[anno_k] = anno_v.split(",")
+        #         else:
+        #             annos[anno_k] = anno_v
+
+        # return annos
+
         annos = self.process_row_annotations(
             dmge=dmge,
             metadataSyn=metadataSyn,
@@ -1907,6 +1932,34 @@ class SynapseStorage(BaseStorage):
                 except Exception as e:
                     raise RuntimeError(f"failed with { repr(e) }.") from e
 
+    def count_entity_id(self, manifest: pd.DataFrame) -> int:
+        """Check if there are any non-NaN values in the original manifest's entityId column
+
+        Args:
+            manifest (pd.DataFrame): manifest dataframe
+
+        Returns:
+            int: The count of non-NaN entityId values.
+        """
+        # Normalize the column names to lowercase
+        normalized_columns = {col.lower(): col for col in manifest.columns}
+
+        # Check if a case-insensitive 'entityid' column exists
+        if "entityid" in normalized_columns:
+            entity_id_column = normalized_columns["entityid"]
+            entity_id_count = manifest[entity_id_column].notna().sum()
+        else:
+            entity_id_count = 0
+        return entity_id_count
+
+    def handle_missing_entity_ids(
+        original_entity_id_count: int, merged_entity_id_count: int
+    ):
+        if original_entity_id_count != merged_entity_id_count:
+            raise LookupError(
+                "Some entityId values became NaN due to unmatched Filename"
+            )
+
     @tracer.start_as_current_span("SynapseStorage::add_annotations_to_entities_files")
     async def add_annotations_to_entities_files(
         self,
@@ -1943,20 +1996,26 @@ class SynapseStorage(BaseStorage):
             )
             file_df = pd.DataFrame(files_and_entityIds)
 
+            # count entity ids of the original manifest
+            original_manifest_entity_id_count = self.count_entity_id(manifest)
+
             # Merge dataframes to add entityIds
             manifest = manifest.merge(
                 file_df, how="left", on="Filename", suffixes=["_x", None]
-            )
+            ).drop("entityId_x", axis=1)
+
+            # count entity ids after manifest gets merged
+            merged_manifest_entity_id_count = self.count_entity_id(manifest)
 
             # drop the duplicate entity column with NA values
-            col_to_drop = "entityId_x"
-            if manifest.entityId.isnull().all():
-                col_to_drop = "entityId"
+            # col_to_drop = "entityId_x"
+            # if manifest.entityId.isnull().all():
+            #     col_to_drop = "entityId"
 
-            # If the original entityId column is empty after the merge, drop it and rename the duplicate column
-            manifest.drop(columns=[col_to_drop], inplace=True)
-            if col_to_drop == "entityId":
-                manifest.rename(columns={"entityId_x": "entityId"}, inplace=True)
+            # # If the original entityId column is empty after the merge, drop it and rename the duplicate column
+            # manifest.drop(columns=[col_to_drop], inplace=True)
+            # if col_to_drop == "entityId":
+            #     manifest.rename(columns={"entityId_x": "entityId"}, inplace=True)
 
         # Fill `entityId` for each row if missing and annotate entity as appropriate
         requests = set()

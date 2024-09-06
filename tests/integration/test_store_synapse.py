@@ -86,34 +86,34 @@ class TestStoreSynapse:
         self,
         dmge: DataModelGraphExplorer,
         synapse_store: SynapseStorage,
+        hideBlanks: bool,
         label_options: str,
     ):
         """ensure that get_node_validation_rules is called with the correct arguments"""
         comma_separated_list = comma_separated_list_regex()
         metadata_syn = {
-            "PatientID": "value1",
+            "FamilyHistory": "value1,value2,value3",
         }
-        annos = {"PatientID": "old_value"}
+        annos = {"FamilyHistory": "old_value"}
 
         dmge.get_node_validation_rules = MagicMock()
         process_row_annos = synapse_store.process_row_annotations(
             dmge=dmge,
             metadataSyn=metadata_syn,
             csv_list_regex=comma_separated_list,
-            hideBlanks=True,
+            hideBlanks=hideBlanks,
             annos=annos,
             annotation_keys=label_options,
         )
 
         if label_options == "display_label":
-            # get_node_validation_rules was called with node_display_name="PatientID" at least once
+            # get_node_validation_rules was called with node_display_name
             dmge.get_node_validation_rules.assert_any_call(
-                node_display_name="PatientID"
+                node_display_name="FamilyHistory"
             )
-            # get_node_validation_rules was called with node_display_name="Sex" at least once
-            dmge.get_node_validation_rules.assert_any_call(node_display_name="Sex")
+            dmge.get_node_validation_rules.assert_any_call(
+                node_display_name="FamilyHistory"
+            )
         else:
-            # get_node_validation_rules was called with node_label="PatientID" at least once
-            dmge.get_node_validation_rules.assert_any_call(node_label="PatientID")
-            # get_node_validation_rules was called with node_label="Sex" at least once
-            dmge.get_node_validation_rules.assert_any_call(node_label="Sex")
+            # get_node_validation_rules was called with node_label
+            dmge.get_node_validation_rules.assert_any_call(node_label="FamilyHistory")
