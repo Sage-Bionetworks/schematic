@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
+from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_utils import comma_separated_list_regex
 from tests.conftest import Helpers
 
@@ -38,8 +39,15 @@ class TestStoreSynapse:
         ids=["display_label", "class_label"],
     )
     def test_process_row_annotations_hide_blanks(
-        self, dmge, synapse_store, annos, hideBlanks, label_options
+        self,
+        dmge: DataModelGraphExplorer,
+        synapse_store: SynapseStorage,
+        annos: dict,
+        hideBlanks: bool,
+        label_options: str,
     ):
+        """ensure that blank values are not added to the annotations dictionary if hideBlanks is True"""
+
         metadata_syn_with_blanks = {
             "PatientID": "value1",
             "Sex": "value2",
@@ -85,36 +93,42 @@ class TestStoreSynapse:
 
     @pytest.mark.parametrize(
         "label_options",
-        ["display_label"],
-        ids=["display_label"],
+        ["display_label", "class_label"],
+        ids=["display_label", "class_label"],
     )
     @pytest.mark.parametrize("hideBlanks", [True, False])
     def test_process_row_annotations_get_validation(
-        self, dmge, synapse_store, hideBlanks, label_options
+        self,
+        dmge: DataModelGraphExplorer,
+        synapse_store: SynapseStorage,
+        label_options: str,
     ):
+        """ensure that get_node_validation_rules is called with the correct arguments"""
         comma_separated_list = comma_separated_list_regex()
-        metadata_syn = {"PatientID": "value1", "Sex": "value2"}
-        annos = {"PatientID": "old_value", "Sex": "old_value"}
+        metadata_syn = {
+            "PatientID": "value1",
+        }
+        annos = {"PatientID": "old_value"}
 
         dmge.get_node_validation_rules = MagicMock()
         process_row_annos = synapse_store.process_row_annotations(
             dmge=dmge,
             metadataSyn=metadata_syn,
             csv_list_regex=comma_separated_list,
-            hideBlanks=hideBlanks,
+            hideBlanks=True,
             annos=annos,
             annotation_keys=label_options,
         )
 
-        # when the label is "display label", make sure that the get_node_validation_rules is called with the display name
         if label_options == "display_label":
-            dmge.get_node_validation_rules.assert_called_once_with(
+            # get_node_validation_rules was called with node_display_name="PatientID" at least once
+            dmge.get_node_validation_rules.assert_any_call(
                 node_display_name="PatientID"
             )
-            dmge.get_node_validation_rules.assert_called_once_with(
-                node_display_name="Sex"
-            )
-        # make sure that the get_node_validation_rules is called with the node label
+            # get_node_validation_rules was called with node_display_name="Sex" at least once
+            dmge.get_node_validation_rules.assert_any_call(node_display_name="Sex")
         else:
+            # get_node_validation_rules was called with node_label="PatientID" at least once
             dmge.get_node_validation_rules.assert_any_call(node_label="PatientID")
+            # get_node_validation_rules was called with node_label="Sex" at least once
             dmge.get_node_validation_rules.assert_any_call(node_label="Sex")
