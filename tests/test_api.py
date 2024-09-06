@@ -1267,6 +1267,36 @@ class TestManifestOperation:
 
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
+    def test_submit_manifest_table_and_file_upsert(
+        self,
+        client: FlaskClient,
+        request_headers: Dict[str, str],
+        test_upsert_manifest_csv: str,
+    ) -> None:
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "data_type": "MockRDB",
+            "restrict_rules": False,
+            "manifest_record_type": "table_and_file",
+            "asset_view": "syn51514557",
+            "dataset_id": "syn51514551",
+            "table_manipulation": "upsert",
+            "data_model_labels": "class_label",
+            # have to set table_column_names to display_name to ensure upsert feature works
+            "table_column_names": "display_name",
+        }
+
+        # test uploading a csv file
+        response_csv = client.post(
+            "http://localhost:3001/v1/model/submit",
+            query_string=params,
+            data={"file_name": (open(test_upsert_manifest_csv, "rb"), "test.csv")},
+            headers=request_headers,
+        )
+        assert response_csv.status_code == 200
+
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
     def test_submit_and_validate_filebased_manifest(
         self,
         client: FlaskClient,
