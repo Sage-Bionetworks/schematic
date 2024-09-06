@@ -1,15 +1,15 @@
 """Unit testing for the ValidateAttribute class"""
 
 from typing import Generator
-from unittest.mock import patch
-import pytest
+from unittest.mock import Mock, patch
 
-from pandas import Series, DataFrame, concat
 import numpy as np
+import pytest
+from pandas import DataFrame, Series, concat
 
+import schematic.models.validate_attribute
 from schematic.models.validate_attribute import ValidateAttribute
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
-import schematic.models.validate_attribute
 
 # pylint: disable=protected-access
 # pylint: disable=too-many-public-methods
@@ -96,6 +96,37 @@ TEST_DF_EMPTY_COLS = DataFrame(
         "component": [],
         "id": [],
         "entityid": [],
+    }
+)
+
+TEST_DF_FILEVIEW = DataFrame(
+    {
+        "id": ["syn1", "syn2", "syn3"],
+        "path": ["test1.txt", "test2.txt", "test3.txt"],
+    }
+)
+
+TEST_MANIFEST_GOOD = DataFrame(
+    {
+        "Component": ["Mockfilename", "Mockfilename", "Mockfilename"],
+        "Filename": ["test1.txt", "test2.txt", "test3.txt"],
+        "entityId": ["syn1", "syn2", "syn3"],
+    }
+)
+
+TEST_MANIFEST_BAD_FILENAME = DataFrame(
+    {
+        "Component": ["Mockfilename", "Mockfilename", "Mockfilename"],
+        "Filename": ["test1.txt", "test2.txt", "test_bad.txt"],
+        "entityId": ["syn1", "syn2", "syn3"],
+    }
+)
+
+TEST_MANIFEST_BAD_ENTITY_ID = DataFrame(
+    {
+        "Component": ["Mockfilename", "Mockfilename", "Mockfilename"],
+        "Filename": ["test1.txt", "test2.txt", "test3.txt"],
+        "entityId": ["syn1", "syn2", "syn_bad"],
     }
 )
 
@@ -531,6 +562,64 @@ class TestValidateAttributeObject:
             else:
                 assert errors == []
                 assert len(warnings) == 1
+
+    #########################################
+    # filename_validation
+    #########################################
+
+    @pytest.mark.parametrize(
+        "manifest_df, expected_errors, expected_warnings",
+        [
+            (TEST_MANIFEST_GOOD, [], []),
+            (
+                TEST_MANIFEST_BAD_FILENAME,
+                [
+                    [
+                        "2",
+                        "Filename",
+                        "The file path 'test_bad.txt' on row 2 does not exist in the file view.",
+                        "test_bad.txt",
+                    ]
+                ],
+                [],
+            ),
+            (
+                TEST_MANIFEST_BAD_ENTITY_ID,
+                [
+                    [
+                        "2",
+                        "Filename",
+                        "The entityId for file path 'test3.txt' on row 2"
+                        " does not match the entityId for the file in the file view",
+                        "test3.txt",
+                    ]
+                ],
+                [],
+            ),
+        ],
+        ids=["valid_manifest", "bad_filename", "bad_entity_id"],
+    )
+    def test_filename_validation(
+        self,
+        va_obj: ValidateAttribute,
+        manifest_df: DataFrame,
+        expected_errors: list,
+        expected_warnings: list,
+    ):
+        mock_synapse_storage = Mock()
+        mock_synapse_storage.storageFileviewTable = TEST_DF_FILEVIEW
+        va_obj.synStore = mock_synapse_storage
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_login",
+        ), patch.object(
+            mock_synapse_storage, "reset_index", return_value=TEST_DF_FILEVIEW
+        ):
+            assert va_obj.filename_validation(
+                val_rule="filenameExists syn61682648",
+                manifest=manifest_df,
+                access_token="test_access_token",
+            ) == (expected_errors, expected_warnings)
 
     #########################################
     # _run_validation_across_target_manifests
