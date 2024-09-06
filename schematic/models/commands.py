@@ -4,7 +4,7 @@ import logging
 import sys
 from gc import callbacks
 from time import perf_counter
-from typing import get_args
+from typing import Optional, get_args
 
 import click
 import click_log
@@ -148,19 +148,19 @@ def model(ctx, config):  # use as `schematic model ...`
 @click.pass_obj
 def submit_manifest(
     ctx,
-    manifest_path,
-    dataset_id,
-    validate_component,
-    manifest_record_type,
-    hide_blanks,
-    restrict_rules,
-    project_scope,
-    dataset_scope,
-    table_manipulation,
-    data_model_labels,
-    table_column_names,
-    annotation_keys,
-    file_annotations_upload: bool,
+    manifest_path: str,
+    dataset_id: str,
+    validate_component: Optional[str],
+    manifest_record_type: Optional[str],
+    hide_blanks: Optional[bool],
+    restrict_rules: Optional[bool],
+    project_scope: Optional[list[str]],
+    dataset_scope: Optional[str],
+    table_manipulation: Optional[str],
+    data_model_labels: Optional[str],
+    table_column_names: Optional[str],
+    annotation_keys: Optional[str],
+    file_annotations_upload: Optional[bool],
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -243,19 +243,20 @@ def submit_manifest(
 @click.option(
     "--data_model_labels",
     "-dml",
-    is_flag=True,
+    default="class_label",
+    type=click.Choice(list(get_args(DisplayLabelType)), case_sensitive=True),
     help=query_dict(model_commands, ("model", "validate", "data_model_labels")),
 )
 @click.pass_obj
 def validate_manifest(
     ctx,
-    manifest_path,
-    data_type,
-    json_schema,
-    restrict_rules,
-    project_scope,
-    dataset_scope,
-    data_model_labels,
+    manifest_path: str,
+    data_type: Optional[list[str]],
+    json_schema: Optional[str],
+    restrict_rules: Optional[bool],
+    project_scope: Optional[list[str]],
+    dataset_scope: Optional[str],
+    data_model_labels: Optional[str],
 ):
     """
     Running CLI for manifest validation.
