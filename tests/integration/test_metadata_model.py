@@ -37,9 +37,6 @@ class TestMetadataModel:
         )
         manifest_full_path = helpers.get_data_path(manifest_path)
 
-        # AND datafiles on synapse that should be annotated
-        entityIds = manifest["entityId"].tolist()
-
         # WHEN the manifest it submitted and files are annotated
         # THEN submission should complete without error
         with does_not_raise():
@@ -54,6 +51,7 @@ class TestMetadataModel:
 
         # AND the files should be annotated
         spy_add_annotations.assert_called_once()
+
         # AND the annotations should have the correct metadata
         for row in manifest.itertuples():
             entityId = row.entityId
