@@ -699,8 +699,8 @@ class TestManifestValidation:
                 val_rule="filenameExists syn61682648",
                 attribute_name="Filename",
                 row_num="3",
-                invalid_entry="schematic - main/MockFilenameComponent/txt5.txt",
-                error_type="path does not exist",
+                invalid_entry="schematic - main/MockFilenameComponent/txt4.txt",
+                error_type="mismatched entityId",
                 dmge=dmge,
             )[0]
             in errors
@@ -711,8 +711,8 @@ class TestManifestValidation:
                 val_rule="filenameExists syn61682648",
                 attribute_name="Filename",
                 row_num="4",
-                invalid_entry="schematic - main/MockFilenameComponent/txt4.txt",
-                error_type="mismatched entityId",
+                invalid_entry="schematic - main/MockFilenameComponent/txt5.txt",
+                error_type="path does not exist",
                 dmge=dmge,
             )[0]
             in errors
