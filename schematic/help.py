@@ -3,9 +3,9 @@
 #!/usr/bin/env python3
 
 from typing import get_args
+
 from schematic.utils.schema_utils import DisplayLabelType
 from schematic.visualization.tangled_tree import FigureType, TextType
-
 
 DATA_MODEL_LABELS_DICT = {
     "display_label": "use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.",
@@ -199,6 +199,9 @@ model_commands = {
             ),
             "project_scope": (
                 "Specify a comma-separated list of projects to search through for cross manifest validation."
+            ),
+            "dataset_scope": (
+                "Specify a dataset to validate against for filename validation."
             ),
             "data_model_labels": DATA_MODEL_LABELS_HELP,
         },

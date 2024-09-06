@@ -401,6 +401,7 @@ def validate_manifest_route(
     json_str=None,
     asset_view=None,
     project_scope=None,
+    dataset_scope=None,
 ):
     # Access token now stored in request header
     access_token = get_access_token()
@@ -441,6 +442,7 @@ def validate_manifest_route(
         restrict_rules=restrict_rules,
         project_scope=project_scope,
         access_token=access_token,
+        dataset_scope=dataset_scope,
     )
 
     res_dict = {"errors": errors, "warnings": warnings}
@@ -460,6 +462,7 @@ def submit_manifest_route(
     data_type=None,
     hide_blanks=False,
     project_scope=None,
+    dataset_scope=None,
     table_column_names=None,
     annotation_keys=None,
     file_annotations_upload: bool = True,
@@ -517,6 +520,7 @@ def submit_manifest_route(
         hide_blanks=hide_blanks,
         table_manipulation=table_manipulation,
         project_scope=project_scope,
+        dataset_scope=dataset_scope,
         table_column_names=table_column_names,
         annotation_keys=annotation_keys,
         file_annotations_upload=file_annotations_upload,

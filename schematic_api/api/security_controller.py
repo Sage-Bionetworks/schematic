@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 syn = Synapse(
     configPath=CONFIG.synapse_configuration_path,
     cache_client=False,
+    skip_checks=True,
 )
 jwks_client = PyJWKClient(
     uri=syn.authEndpoint + "/oauth2/jwks", headers=syn._generate_headers()

@@ -12,7 +12,7 @@ Biospecimen,,,"Sample ID, Patient ID, Tissue Status, Component",,FALSE,DataType,
 Sample ID,,,,,TRUE,DataProperty,,,
 Tissue Status,,"Healthy, Malignant",,,TRUE,DataProperty,,,
 Bulk RNA-seq Assay,,,"Filename, Sample ID, File Format, Component",,FALSE,DataType,Biospecimen,,
-Filename,,,,,TRUE,DataProperty,,,#MockFilename filenameExists syn61682648^^
+Filename,,,,,TRUE,DataProperty,,,#MockFilename filenameExists^^
 File Format,,"FASTQ, BAM, CRAM, CSV/TSV",,,TRUE,DataProperty,,,
 BAM,,,Genome Build,,FALSE,ValidValue,,,
 CRAM,,,"Genome Build, Genome FASTA",,FALSE,ValidValue,,,
