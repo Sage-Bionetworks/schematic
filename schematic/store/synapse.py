@@ -1430,13 +1430,15 @@ class SynapseStorage(BaseStorage):
     @tracer.start_as_current_span("SynapseStorage::upload_manifest_file")
     def upload_manifest_file(
         self,
-        manifest,
-        metadataManifestPath,
+        manifest: pd.DataFrame,
+        metadataManifestPath: str,
         datasetId,
         restrict_manifest,
         component_name="",
     ):
         # Update manifest to have the new entityId column
+        # TODO: Update this code to allow saving the manifest to disk via an in memory buffer
+        # so that we can avoid writing to disk
         manifest.to_csv(metadataManifestPath, index=False)
 
         # store manifest to Synapse as a CSV
@@ -1463,22 +1465,29 @@ class SynapseStorage(BaseStorage):
                 + file_extension
             )
 
-        manifestSynapseFile = File(
-            metadataManifestPath,
-            description="Manifest for dataset " + datasetId,
-            parent=datasetId,
-            name=file_name_new,
-        )
-        manifest_synapse_file_id = self.syn.store(
-            manifestSynapseFile, isRestricted=restrict_manifest
-        ).id
+        try:
+            # Rename the file to file_name_new
+            original_file_path = metadataManifestPath
+            new_file_path = os.path.join(os.path.dirname(metadataManifestPath), file_name_new)
+            os.rename(original_file_path, new_file_path)
 
-        synapseutils.copy_functions.changeFileMetaData(
-            syn=self.syn,
-            entity=manifest_synapse_file_id,
-            downloadAs=file_name_new,
-            forceVersion=False,
-        )
+            # Create the Synapse File object with the new file name
+            manifestSynapseFile = File(
+                new_file_path,
+                description="Manifest for dataset " + datasetId,
+                parent=datasetId,
+                name=file_name_new,
+            )
+            
+            # Store the file in Synapse
+            manifest_synapse_file_id = self.syn.store(
+                manifestSynapseFile, isRestricted=restrict_manifest
+            ).id
+
+        finally:
+            # Revert the file name back to the original
+            os.rename(new_file_path, original_file_path)
+
 
         return manifest_synapse_file_id
 
