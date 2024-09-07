@@ -1523,17 +1523,17 @@ class SynapseStorage(BaseStorage):
     def process_row_annotations(
         self,
         dmge: DataModelGraphExplorer,
-        metadataSyn: dict,
-        hideBlanks: bool,
+        metadata_syn: Dict[str, Any],
+        hide_blanks: bool,
         csv_list_regex: str,
-        annos: dict,
+        annos: Dict[str, Any],
         annotation_keys: str,
-    ):
+    ) -> Dict[str, Any]:
         """processes metadata annotations
 
         Args:
             dmge (DataModelGraphExplorer): data model graph explorer
-            metadataSyn (dict): metadata used for Synapse storage
+            metadata_syn (dict): metadata used for Synapse storage
             hideBlanks (bool): if true, does not upload annotation keys with blank values.
             csv_list_regex (str):
             annos (dict):
@@ -1542,36 +1542,36 @@ class SynapseStorage(BaseStorage):
         Returns:
             dict: annotations as a dictionary
         """
-        for anno_k, anno_v in metadataSyn.items():
+        for anno_k, anno_v in metadata_syn.items():
             # Remove keys with nan or empty string values from dict of annotations to be uploaded
             # if present on current data annotation
-            if hideBlanks and (
+            if hide_blanks and (
                 (isinstance(anno_v, str) and anno_v.strip() == "")
                 or (isinstance(anno_v, float) and np.isnan(anno_v))
             ):
                 annos.pop(anno_k) if anno_k in annos.keys() else annos
+                continue
 
             # Otherwise save annotation as approrpriate
-            else:
-                if isinstance(anno_v, float) and np.isnan(anno_v):
-                    annos[anno_k] = ""
+            if isinstance(anno_v, float) and np.isnan(anno_v):
+                annos[anno_k] = ""
+                continue
+
+            # Handle strings that match the csv_list_regex and pass the validation rule
+            if isinstance(anno_v, str) and re.fullmatch(csv_list_regex, anno_v):
+                # Use a dictionary to dynamically choose the argument
+                param = (
+                    {"node_display_name": anno_k}
+                    if annotation_keys == "display_label"
+                    else {"node_label": anno_k}
+                )
+                node_validation_rules = dmge.get_node_validation_rules(**param)
+
+                if rule_in_rule_list("list", node_validation_rules):
+                    annos[anno_k] = anno_v.split(",")
                     continue
-
-                # Handle strings that match the csv_list_regex and pass the validation rule
-                if isinstance(anno_v, str) and re.fullmatch(csv_list_regex, anno_v):
-                    # Use a dictionary to dynamically choose the argument
-                    param = (
-                        {"node_display_name": anno_k}
-                        if annotation_keys == "display_label"
-                        else {"node_label": anno_k}
-                    )
-                    node_validation_rules = dmge.get_node_validation_rules(**param)
-
-                    if rule_in_rule_list("list", node_validation_rules):
-                        annos[anno_k] = anno_v.split(",")
-                        continue
-                # If none of the conditions are met, assign the original value
-                annos[anno_k] = anno_v
+            # default: assign the original value
+            annos[anno_k] = anno_v
         return annos
 
     @async_missing_entity_handler
@@ -1627,34 +1627,10 @@ class SynapseStorage(BaseStorage):
         annos = await self.get_async_annotation(entityId)
 
         csv_list_regex = comma_separated_list_regex()
-        # for anno_k, anno_v in metadataSyn.items():
-        #     # Remove keys with nan or empty string values from dict of annotations to be uploaded
-        #     # if present on current data annotation
-        #     if hideBlanks and (
-        #         anno_v == "" or (isinstance(anno_v, float) and np.isnan(anno_v))
-        #     ):
-        #         annos.pop(anno_k) if anno_k in annos.keys() else annos
-        #     # Otherwise save annotation as approrpriate
-        #     else:
-        #         if isinstance(anno_v, float) and np.isnan(anno_v):
-        #             annos[anno_k] = ""
-        #         elif (
-        #             isinstance(anno_v, str)
-        #             and re.fullmatch(csv_list_regex, anno_v)
-        #             and rule_in_rule_list(
-        #                 "list", dmge.get_node_validation_rules(anno_k)
-        #             )
-        #         ):
-        #             annos[anno_k] = anno_v.split(",")
-        #         else:
-        #             annos[anno_k] = anno_v
-
-        # return annos
-
         annos = self.process_row_annotations(
             dmge=dmge,
-            metadataSyn=metadataSyn,
-            hideBlanks=hideBlanks,
+            metadata_syn=metadataSyn,
+            hide_blanks=hideBlanks,
             csv_list_regex=csv_list_regex,
             annos=annos,
             annotation_keys=annotation_keys,
