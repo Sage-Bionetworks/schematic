@@ -7,7 +7,7 @@ name: Test schematic
 
 on:
   push:
-    branches: ['main']
+    branches: ['main', 'develop']
   pull_request:
     branches: ['*']
   workflow_dispatch:  # Allow manually triggering the workflow
@@ -45,6 +45,18 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+
+      #----------------------------------------------
+      #       verify runner environment
+      #----------------------------------------------
+      # - name: Print runner environment information
+      #   run: |
+      #     echo "Running on runner: $RUNNER_NAME"
+      #     echo "Runner OS: $RUNNER_OS"
+      #     echo "Runner OS version: $RUNNER_OS_VERSION"
+      #     echo "Runner architecture: $RUNNER_ARCH"
+      #     echo "Total memory: $(free -h)"
+      #     echo "CPU info: $(lscpu)"
 
       #----------------------------------------------
       #          install & configure poetry
@@ -122,7 +134,7 @@ jobs:
         run: >
           source .venv/bin/activate;
           pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-          -m "not (rule_benchmark or table_operations)" --reruns 2 -n auto
+          -m "not (rule_benchmark)" --reruns 4 -n 8
 
 
       - name: Upload pytest test results
