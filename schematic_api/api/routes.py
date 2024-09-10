@@ -292,10 +292,8 @@ def initalize_metadata_model(schema_url, data_model_labels):
     )
     return metadata_model
 
-def get_temp_file(
-        url: str,
-        suffix: str
-) -> str:
+
+def get_temp_file(url: str, suffix: str) -> str:
     """
     Retrieve a file via URL and store it in a temporary location
     :param url str: URL to the file
@@ -307,6 +305,7 @@ def get_temp_file(
             shutil.copyfileobj(response, tmp_file)
 
     return tmp_file.name
+
 
 def get_temp_model_path(schema_url):
     # Get model type:
