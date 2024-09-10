@@ -36,7 +36,12 @@ class AttributesExplorer:
         if graph_data_model is not None:
             self.graph_data_model = graph_data_model
         elif data_model_graph_pickle is not None:
-            self.graph_data_model = read_pickle(data_model_graph_pickle)
+            data_model_graph = read_pickle(data_model_graph_pickle)
+            if not isinstance(data_model_graph, nx.MultiDiGraph):
+                raise ValueError(
+                    "The data model graph must be a networkx MultiDiGraph object."
+                )
+            self.graph_data_model = data_model_graph
 
         # Parse Model
         if parsed_data_model is None:
