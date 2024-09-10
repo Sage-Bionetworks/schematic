@@ -141,11 +141,10 @@ def convert(
     )
 
     if output_type in ["graph", "all"]:
-        click.echo("Export graph to pickle.")
         output_graph = output_file_no_ext + ".pickle"
+        click.echo(f"Saving data model graph to '{output_graph}'.")
         export_graph(graph_data_model, output_graph)
         if output_type == "graph":
-            click.echo(f"Graph created {output_graph}")
             return 0
 
     click.echo("Converting data model to JSON-LD")
