@@ -172,4 +172,4 @@ def convert(
     # get the execution time
     elapsed_time = time.strftime("%M:%S", time.gmtime(end_time - start_time))
     click.echo(f"Execution time: {elapsed_time} (M:S)")
-    return 0
+    return
