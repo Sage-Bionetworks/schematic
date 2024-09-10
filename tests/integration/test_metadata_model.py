@@ -3,6 +3,7 @@ import pytest
 
 from contextlib import nullcontext as does_not_raise
 
+import pytest
 from pytest_mock import MockerFixture
 
 from schematic.store.synapse import SynapseStorage
@@ -14,14 +15,40 @@ logger = logging.getLogger(__name__)
 
 class TestMetadataModel:
     @pytest.mark.parametrize(
-        "manifest_path",
+        "manifest_path, dataset_id, validate_component, expected_manifest_id, dataset_scope",
         [
-            "mock_manifests/filepath_submission_test_manifest.csv",
-            "mock_manifests/filepath_submission_test_manifest_sampleidx10.csv",
+            (
+                "mock_manifests/filepath_submission_test_manifest.csv",
+                "syn62276880",
+                None,
+                "syn62280543",
+                None,
+            ),
+            (
+                "mock_manifests/filepath_submission_test_manifest_sampleidx10.csv",
+                "syn62276880",
+                None,
+                "syn62280543",
+                None,
+            ),
+            (
+                "mock_manifests/ValidFilenameManifest.csv",
+                "syn62822337",
+                "MockFilename",
+                "syn62822975",
+                "syn62822337",
+            ),
         ],
     )
     def test_submit_filebased_manifest(
-        self, helpers, mocker: MockerFixture, synapse_store, manifest_path
+        self,
+        helpers,
+        manifest_path,
+        dataset_id,
+        validate_component,
+        expected_manifest_id,
+        dataset_scope,
+        mocker: MockerFixture,
     ):
         # spys
         spy_upload_file_as_csv = mocker.spy(SynapseStorage, "upload_manifest_as_csv")
@@ -50,11 +77,13 @@ class TestMetadataModel:
         with does_not_raise():
             manifest_id = meta_data_model.submit_metadata_manifest(
                 manifest_path=manifest_full_path,
-                dataset_id="syn62276880",
+                dataset_id=dataset_id,
                 manifest_record_type="file_and_entities",
                 restrict_rules=False,
                 file_annotations_upload=True,
                 hide_blanks=False,
+                validate_component=validate_component,
+                dataset_scope=dataset_scope,
             )
 
         # AND the files should be annotated
@@ -69,7 +98,7 @@ class TestMetadataModel:
             assert sample_id == expected_sample_id
 
         # AND the manifest should be submitted to the correct place
-        assert manifest_id == "syn62280543"
+        assert manifest_id == expected_manifest_id
 
         # AND the manifest should be uploaded as a CSV
         spy_upload_file_as_csv.assert_called_once()

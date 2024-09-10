@@ -3,7 +3,6 @@ import logging
 import os
 import random
 from copy import deepcopy
-from typing import Optional
 
 import networkx as nx
 import numpy as np
@@ -614,9 +613,6 @@ class TestDataModelGraphExplorer:
         return
 
     def test_get_node_required(self):
-        return
-
-    def test_get_node_validation_rules(self):
         return
 
     def test_get_subgraph_by_edge_type(self):
