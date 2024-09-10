@@ -1,25 +1,24 @@
 """DataModel Graph"""
 
 import logging
-from typing import Optional, Union, Any
+from typing import Any, Optional, Union
 
-import networkx as nx  # type: ignore
 import graphviz  # type: ignore
+import networkx as nx  # type: ignore
 from opentelemetry import trace
 
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes
 from schematic.schemas.data_model_relationships import DataModelRelationships
-
+from schematic.utils.general import unlist
 from schematic.utils.schema_utils import (
-    get_property_label_from_display_name,
-    get_class_label_from_display_name,
     DisplayLabelType,
     extract_component_validation_rules,
+    get_class_label_from_display_name,
+    get_property_label_from_display_name,
 )
-from schematic.utils.general import unlist
-from schematic.utils.viz_utils import visualize
 from schematic.utils.validate_utils import rule_in_rule_list
+from schematic.utils.viz_utils import visualize
 
 logger = logging.getLogger(__name__)
 
@@ -780,16 +779,26 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             node_label: Label of the node for which you need to look up.
             node_display_name: Display name of the node which you want to get the label for.
         Returns:
-            A set of validation rules associated with node, as a list.
+            A set of validation rules associated with node, as a list or a dictionary.
         """
         if not node_label:
-            assert node_display_name is not None
+            if node_display_name is None:
+                raise ValueError(
+                    "Either node_label or node_display_name must be provided."
+                )
+
+            # try search node label using display name
             node_label = self.get_node_label(node_display_name)
 
         if not node_label:
             return []
 
-        node_validation_rules = self.graph.nodes[node_label]["validationRules"]
+        try:
+            node_validation_rules = self.graph.nodes[node_label]["validationRules"]
+        except KeyError as key_error:
+            raise ValueError(
+                f"{node_label} is not in the graph, please provide a proper node label"
+            ) from key_error
 
         return node_validation_rules
 

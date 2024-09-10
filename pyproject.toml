@@ -54,7 +54,7 @@ pygsheets = "^2.0.4"
 PyYAML = "^6.0.0"
 rdflib = "^6.0.0"
 setuptools = "^66.0.0"
-synapseclient = "4.4.0"
+synapseclient = "4.4.1"
 tenacity = "^8.0.1"
 toml = "^0.10.2"
 great-expectations = "^0.15.0"
@@ -62,7 +62,7 @@ sphinx-click = "^4.0.0"
 itsdangerous = "^2.0.0"
 openpyxl = "^3.0.9"
 "backports.zoneinfo" = {markers = "python_version < \"3.9\"", version = "^0.2.1"}
-pdoc = "^12.2.0"
+pdoc = "^14.0.0"
 dateparser = "^1.1.4"
 pandarallel = "^1.6.4"
 schematic-db = {version = "0.0.41", extras = ["synapse"]}
@@ -75,20 +75,22 @@ Flask-Cors = {version = "^3.0.10", optional = true}
 uWSGI = {version = "^2.0.21", optional = true}
 Jinja2 = {version = ">2.11.3", optional = true}
 asyncio = "^3.4.3"
-pytest-asyncio = "^0.23.7"
 jaeger-client = {version = "^4.8.0", optional = true}
 flask-opentracing = {version="^2.0.0", optional = true}
+PyJWT = "^2.9.0"
+opentelemetry-exporter-otlp-proto-grpc = {version="^1.0.0", optional = true}
 
 [tool.poetry.extras]
-api = ["connexion", "Flask", "Flask-Cors", "Jinja2", "pyopenssl", "jaeger-client", "flask-opentracing"]
+api = ["connexion", "Flask", "Flask-Cors", "Jinja2", "pyopenssl", "jaeger-client", "flask-opentracing", "opentelemetry-exporter-otlp-proto-grpc"]
 aws = ["uWSGI"]
 
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.0.0"
+pytest = "^8.0.0"
 pytest-cov = "^4.0.0"
 pytest-mock = "^3.5.1"
 pytest-rerunfailures = "^12.0"
+pytest-asyncio = "^0.24.0"
 flake8 = "^6.0.0"
 python-dotenv = "^0.21.0"
 black = "^23.7.0" #If the version spec of black is changed here, the version specified in .pre-commit-config.yaml should be updated to match

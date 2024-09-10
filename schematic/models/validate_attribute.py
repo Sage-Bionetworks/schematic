@@ -12,6 +12,7 @@ import pandas as pd
 import requests
 from jsonschema import ValidationError
 from synapseclient.core.exceptions import SynapseNoCredentialsError
+from synapseclient import File
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
@@ -831,9 +832,52 @@ class ValidateAttribute(object):
             node_display_name,
         )
 
+    def _get_target_manifest_dataframes(
+        self,
+        target_component: str,
+        project_scope: Optional[list[str]] = None,
+        access_token: Optional[str] = None,
+    ) -> dict[str, pd.DataFrame]:
+        """Returns target manifest dataframes in the form of a dictionary
+
+        Args:
+            target_component (str): The component to get manifests for
+            project_scope (Optional[list[str]], optional):
+             Projects to limit the scope of cross manifest validation to. Defaults to None.
+            access_token (Optional[str], optional): Asset Store access token. Defaults to None.
+
+        Returns:
+            dict[str, pd.DataFrame]: Keys are synapse ids, values are datframes of the synapse id
+        """
+        manifest_ids, dataset_ids = self.get_target_manifests(
+            target_component, project_scope, access_token
+        )
+        manifests: list[pd.DataFrame] = []
+        for dataset_id in dataset_ids:
+            entity: File = self.synStore.getDatasetManifest(
+                datasetId=dataset_id, downloadFile=True
+            )
+            manifests.append(pd.read_csv(entity.path))
+        return dict(zip(manifest_ids, manifests))
+
     def get_target_manifests(
-        self, target_component: str, project_scope: list[str], access_token: str = None
-    ):
+        self,
+        target_component: str,
+        project_scope: Optional[list[str]],
+        access_token: Optional[str] = None,
+    ) -> tuple[list[str], list[str]]:
+        """Gets a list of synapse ids of mainfests to check against
+
+        Args:
+            target_component (str): Manifet ids are gotten fo this type
+            project_scope (Optional[list[str]]): Projects to limit the scope
+              of cross manifest validation to. Defaults to None.
+            access_token (Optional[str], optional): Synapse access token Defaults to None.
+
+        Returns:
+            tuple[list[str], list[str]]:
+              A list of manifest synapse ids, and their dataset synapse ids
+        """
         t_manifest_search = perf_counter()
         target_manifest_ids = []
         target_dataset_ids = []
@@ -1314,19 +1358,19 @@ class ValidateAttribute(object):
         val_rule: str,
         source_attribute: str,
         set_validation_store: tuple[
-            dict[str, pd.core.series.Series],
+            dict[str, pd.Series],
             list[str],
-            dict[str, pd.core.series.Series],
+            dict[str, pd.Series],
         ],
-    ) -> tuple[[list[str], list[str]]]:
+    ) -> tuple[list[str], list[str]]:
         """Based on the cross manifest validation rule, and in set rule scope, pass variables to
         _get_cross_errors_warnings
             to log appropriate error or warning.
         Args:
             val_rule, str: Validation Rule
             source_attribute, str: Source manifest column name
-            set_validation_store, tuple[dict[str, pd.core.series.Series], list[string],
-            dict[str, pd.core.series.Series]]:
+            set_validation_store, tuple[dict[str, pd.Series], list[string],
+            dict[str, pd.Series]]:
                 contains the missing_manifest_log, present_manifest_log, and repeat_manifest_log
             dmge: DataModelGraphExplorer Object.
 
@@ -1336,7 +1380,8 @@ class ValidateAttribute(object):
             warnings, list[str]: list of warnings to raise, as appropriate, if values in current manifest do
             not pass relevant cross mannifest validation across the target manifest(s)
         """
-        errors, warnings = [], []
+        errors: list[str] = []
+        warnings: list[str] = []
 
         (
             missing_manifest_log,
@@ -1476,18 +1521,13 @@ class ValidateAttribute(object):
         self,
         val_rule: str,
         source_attribute: str,
-        value_validation_store: tuple[
-            dict[str, pd.core.series.Series],
-            dict[str, pd.core.series.Series],
-            dict[str, pd.core.series.Series],
-        ],
-    ) -> tuple[[list[str], list[str]]]:
+        value_validation_store: tuple[pd.Series, pd.Series, pd.Series],
+    ) -> tuple[list[str], list[str]]:
         """For value rule scope, find invalid rows and entries, and generate appropriate errors and warnings
         Args:
             val_rule, str: Validation rule
             source_attribute, str: source manifest column name
-            value_validation_store, tuple(dict[str, pd.core.series.Series], dict[str, pd.core.series.Series],
-                dict[str, pd.core.series.Series]):
+            value_validation_store, tuple(pd.Series, pd.Series, pd.Series]):
                 contains missing_values, duplicated_values, and repeat values
         Returns:
             errors, list[str]: list of errors to raise, as appropriate, if values in current manifest do
@@ -1564,20 +1604,20 @@ class ValidateAttribute(object):
         self,
         val_rule: str,
         column_names: dict[str, str],
-        manifest_col: pd.core.series.Series,
+        manifest_col: pd.Series,
         target_attribute: str,
-        target_manifest: pd.core.series.Series,
+        target_manifest: pd.DataFrame,
         target_manifest_id: str,
-        missing_manifest_log: dict[str, pd.core.series.Series],
+        missing_manifest_log: dict[str, pd.Series],
         present_manifest_log: list[str],
-        repeat_manifest_log: dict[str, pd.core.series.Series],
+        repeat_manifest_log: dict[str, pd.Series],
         target_attribute_in_manifest_list: list[bool],
         target_manifest_empty: list[bool],
     ) -> tuple[
         tuple[
-            dict[str, pd.core.series.Series],
+            dict[str, pd.Series],
             list[str],
-            dict[str, pd.core.series.Series],
+            dict[str, pd.Series],
         ],
         list[bool],
         list[bool],
@@ -1586,26 +1626,26 @@ class ValidateAttribute(object):
         Args:
             val_rule, str: Validation rule
             column_names, dict[str,str]: {stripped_col_name:original_column_name}
-            target_column, pd.core.series.Series: Empty target_column to fill out in this function
-            manifest_col, pd.core.series.Series: Source manifest column
+            target_column, pd.Series: Empty target_column to fill out in this function
+            manifest_col, pd.Series: Source manifest column
             target_attribute, str: current target attribute
-            target_column, pd.core.series.Series: Current target column
-            target_manifest, pd.core.series.Series: Current target manifest
+            target_column, pd.Series: Current target column
+            target_manifest, pd.DataFrame: Current target manifest
             target_manifest_id, str: Current target manifest Synapse ID
-            missing_manifest_log, dict[str, pd.core.series.Series]:
+            missing_manifest_log, dict[str, pd.Series]:
                 Log of manifests with missing values, {synapse_id: index,missing value}, updated.
             present_manifest_log, list[str]
                 Log of present manifests, [synapse_id present manifest], updated.
-            repeat_manifest_log, dict[str, pd.core.series.Series]
+            repeat_manifest_log, dict[str, pd.Series]
                 Log of manifests with repeat values, {synapse_id: index,repeat value}, updated.
 
         Returns:
             tuple(
-            missing_manifest_log, dict[str, pd.core.series.Series]:
+            missing_manifest_log, dict[str, pd.Series]:
                 Log of manifests with missing values, {synapse_id: index,missing value}, updated.
             present_manifest_log, list[str]
                 Log of present manifests, [synapse_id present manifest], updated.
-            repeat_manifest_log, dict[str, pd.core.series.Series]
+            repeat_manifest_log, dict[str, pd.Series]
                 Log of manifests with repeat values, {synapse_id: index,repeat value}, updated.)
             target_attribute_in_manifest, bool: True if the target attribute is in the current manifest.
         """
@@ -1656,11 +1696,11 @@ class ValidateAttribute(object):
         self,
         column_names: dict[str, str],
         target_attribute: str,
-        concatenated_target_column: pd.core.series.Series,
-        target_manifest: pd.core.series.Series,
+        concatenated_target_column: pd.Series,
+        target_manifest: pd.DataFrame,
         target_attribute_in_manifest_list: list[bool],
         target_manifest_empty: list[bool],
-    ) -> tuple[pd.core.series.Series, list[bool], list[bool],]:
+    ) -> tuple[pd.Series, list[bool], list[bool],]:
         """A helper function for creating a concatenating all target attribute columns across all target manifest.
             This function checks if the target attribute is in the current target manifest. If it is, and is the
             first manifest with this column, start recording it, if it has already been recorded from
@@ -1668,11 +1708,11 @@ class ValidateAttribute(object):
         Args:
             column_names, dict: {stripped_col_name:original_column_name}
             target_attribute, str: current target attribute
-            concatenated_target_column, pd.core.series.Series: target column in the process of being built, possibly
+            concatenated_target_column, pd.Series: target column in the process of being built, possibly
                 passed through this function multiple times based on the number of manifests
-            target_manifest, pd.core.series.Series: current target manifest
+            target_manifest, pd.DataFrame: current target manifest
         Returns:
-            concatenated_target_column, pd.core.series.Series: All target columns concatenated into a single column
+            concatenated_target_column, pd.Series: All target columns concatenated into a single column
         """
         # Check if the target_attribute is in the current target manifest.
         target_attribute_in_manifest = False
@@ -1713,20 +1753,20 @@ class ValidateAttribute(object):
 
     def _run_validation_across_targets_value(
         self,
-        manifest_col: pd.core.series.Series,
-        concatenated_target_column: pd.core.series.Series,
-    ) -> tuple[[pd.core.series.Series, pd.core.series.Series, pd.core.series.Series]]:
+        manifest_col: pd.Series,
+        concatenated_target_column: pd.Series,
+    ) -> tuple[pd.Series, pd.Series, pd.Series]:
         """Get missing values, duplicated values and repeat values assesed comapring the source manifest to all
             the values in all target columns.
         Args:
-            manifest_col, pd.core.series.Series: Current source manifest column
-            concatenated_target_column, pd.core.series.Series: All target columns concatenated into a single column
+            manifest_col, pd.Series: Current source manifest column
+            concatenated_target_column, pd.Series: All target columns concatenated into a single column
         Returns:
-            missing_values, pd.core.series.Series: values that are present in the source manifest, but not present
+            missing_values, pd.Series: values that are present in the source manifest, but not present
                 in the target manifest
-            duplicated_values, pd.core.series.Series: values that duplicated in the concatenated target column, and
+            duplicated_values, pd.Series: values that duplicated in the concatenated target column, and
                 also present in the source manifest column
-            repeat_values, pd.core.series.Series: values that are repeated between the manifest column and
+            repeat_values, pd.Series: values that are repeated between the manifest column and
                 concatenated target column
         """
         # Find values that are present in the source manifest, but not present in the target manifest
@@ -1744,12 +1784,10 @@ class ValidateAttribute(object):
 
         return missing_values, duplicated_values, repeat_values
 
-    def _get_column_names(
-        self, target_manifest: pd.core.series.Series
-    ) -> dict[str, str]:
+    def _get_column_names(self, target_manifest: pd.DataFrame) -> dict[str, str]:
         """Convert manifest column names into validation rule input format
         Args:
-            target_manifest, pd.core.series.Series: Current target manifest
+            target_manifest, pd.DataFrame: Current target manifest
         Returns:
             column_names, dict[str,str]: {stripped_col_name:original_column_name}
         """
@@ -1771,27 +1809,21 @@ class ValidateAttribute(object):
 
     def _run_validation_across_target_manifests(
         self,
-        project_scope: Optional[list[str]],
         rule_scope: ScopeTypes,
-        access_token: str,
         val_rule: str,
-        manifest_col: pd.core.series.Series,
-        target_column: pd.core.series.Series,
+        manifest_col: pd.Series,
+        target_column: pd.Series,
+        access_token: Optional[str] = None,
+        project_scope: Optional[list[str]] = None,
     ) -> tuple[
         float,
         Union[
-            Union[
-                tuple[
-                    dict[str, pd.core.series.Series],
-                    list[str],
-                    dict[str, pd.core.series.Series],
-                ],
-                tuple[
-                    dict[str, pd.core.series.Series],
-                    dict[str, pd.core.series.Series],
-                    dict[str, pd.core.series.Series],
-                ],
+            tuple[
+                dict[str, pd.Series],
+                list[str],
+                dict[str, pd.Series],
             ],
+            tuple[pd.Series, pd.Series, pd.Series],
             bool,
             str,
         ],
@@ -1801,10 +1833,10 @@ class ValidateAttribute(object):
         Args:
             project_scope, Optional[list]: Projects to limit the scope of cross manifest validation to.
             rule_scope, ScopeTypes: The scope of the rule, taken from validation rule
-            access_token, str: Asset Store access token
+            access_token, Optional[str]: Asset Store access token
             val_rule, str: Validation rule.
-            manifest_col, pd.core.series.Series: Source manifest column for a given source component
-            target_column, pd.core.series.Series: Empty target_column to fill out in this function
+            manifest_col, pd.Series: Source manifest column for a given source component
+            target_column, pd.Series: Empty target_column to fill out in this function
         Returns:
             start_time, float: start time in fractional seconds
             valdiation_output:
@@ -1813,9 +1845,9 @@ class ValidateAttribute(object):
                     "values not recorded in targets stored", str, will return a string if targets were found, but there
                         was no data in the target.
                     Union[
-                        tuple[dict[str, pd.core.series.Series], list[str], dict[str, pd.core.series.Series]],
-                        tuple[dict[str, pd.core.series.Series], dict[str, pd.core.series.Series],
-                            dict[str, pd.core.series.Series]]:
+                        tuple[dict[str, pd.Series], list[str], dict[str, pd.Series]],
+                        tuple[dict[str, pd.Series], dict[str, pd.Series],
+                            dict[str, pd.Series]]:
                             validation outputs, exact types depend on scope,
         """
         # Initialize variables
@@ -1834,27 +1866,16 @@ class ValidateAttribute(object):
         [target_component, target_attribute] = val_rule.lower().split(" ")[1].split(".")
         target_column.name = target_attribute
 
-        # Get IDs of manifests with target component
-        (
-            target_manifest_ids,
-            target_dataset_ids,
-        ) = self.get_target_manifests(target_component, project_scope, access_token)
-
         # Start timer
         start_time = perf_counter()
 
+        manifest_dict = self._get_target_manifest_dataframes(
+            target_component, project_scope, access_token
+        )
+
         # For each target manifest, gather target manifest column and compare to the source manifest column
         # Save relevant data as appropriate for the given scope
-        for target_manifest_id, target_dataset_id in zip(
-            target_manifest_ids, target_dataset_ids
-        ):
-            # Pull manifest from Synapse
-            entity = self.synStore.getDatasetManifest(
-                datasetId=target_dataset_id, downloadFile=True
-            )
-            # Load manifest
-            target_manifest = pd.read_csv(entity.path)
-
+        for target_manifest_id, target_manifest in manifest_dict.items():
             # Get manifest column names
             column_names = self._get_column_names(target_manifest=target_manifest)
 
@@ -1931,14 +1952,15 @@ class ValidateAttribute(object):
                     concatenated_target_column=target_column,
                 )
                 validation_store = (missing_values, duplicated_values, repeat_values)
+
             return (start_time, validation_store)
 
     def cross_validation(
         self,
         val_rule: str,
-        manifest_col: pd.core.series.Series,
-        project_scope: Optional[list[str]],
-        access_token: str,
+        manifest_col: pd.Series,
+        project_scope: Optional[list[str]] = None,
+        access_token: Optional[str] = None,
     ) -> list[list[str]]:
         """
         Purpose:
@@ -1946,11 +1968,11 @@ class ValidateAttribute(object):
                 by project scope, if provided).
         Args:
             val_rule, str: Validation rule
-            manifest_col, pd.core.series.Series: column for a given
+            manifest_col, pd.Series: column for a given
                 attribute in the manifest
             project_scope, Optional[list] = None: Projects to limit the scope of cross manifest validation to.
             dmge: DataModelGraphExplorer Object
-            access_token, str: Asset Store access token
+            access_token, Optional[str]: Asset Store access token
         Returns:
             errors, warnings, list[list[str]]: raise warnings and errors as appropriate if values in current manifest do
             no pass relevant cross mannifest validation across the target manifest(s)
@@ -2013,6 +2035,7 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest: pd.core.frame.DataFrame,
         access_token: str,
+        dataset_scope: str,
         project_scope: Optional[list] = None,
     ):
         """
@@ -2022,18 +2045,24 @@ class ValidateAttribute(object):
             val_rule: str, Validation rule for the component
             manifest: pd.core.frame.DataFrame, manifest
             access_token: str, Asset Store access token
+            dataset_scope: str, Dataset with files to validate against
             project_scope: Optional[list] = None: Projects to limit the scope of cross manifest validation to.
         Returns:
             errors: list[str] Error details for further storage.
             warnings: list[str] Warning details for further storage.
         """
+
+        if dataset_scope is None:
+            raise ValueError(
+                "A dataset is required to be specified for filename validation"
+            )
+
         errors = []
         warnings = []
 
         where_clauses = []
-        rule_parts = val_rule.split(" ")
 
-        dataset_clause = f"parentId='{rule_parts[1]}'"
+        dataset_clause = f"parentId='{dataset_scope}'"
         where_clauses.append(dataset_clause)
 
         self._login(
