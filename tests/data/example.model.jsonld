@@ -615,7 +615,7 @@
             "sms:displayName": "Filename",
             "sms:required": "sms:true",
             "sms:validationRules": {
-                "MockFilename": "filenameExists syn61682648"
+                "MockFilename": "filenameExists"
             }
         },
         {

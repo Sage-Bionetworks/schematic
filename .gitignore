@@ -146,7 +146,7 @@ dmypy.json
 # End of https://www.toptal.com/developers/gitignore/api/python
 
 # Synapse configuration file
-.synapseConfig
+.synapseConfig*
 
 # Google services authorization credentials file
 credentials.json

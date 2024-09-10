@@ -15,7 +15,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      x-bearerInfoFunc: schematic_api.api.security_controller_.info_from_bearerAuth
+      x-bearerInfoFunc: schematic_api.api.security_controller.info_from_bearer_auth
 
 # TO DO: refactor query parameters and remove access_token
 paths:
@@ -312,6 +312,14 @@ paths:
           description: List, a subset of the projects contained within the asset view that are relevant for the current operation. Speeds up some operations that interact with Synapse. Relevant for validating manifests involving cross-manifest validation, but optional.
           example: ['syn23643250', 'syn47218127', 'syn47218347']
           required: false
+        - in: query
+          name: dataset_scope
+          schema:
+            type: string
+            nullable: true
+          description: Specify a dataset to validate against for filename validation.
+          example: 'syn61682648'
+          required: false
 
       operationId: schematic_api.api.routes.validate_manifest_route
       responses:
@@ -467,6 +475,14 @@ paths:
             nullable: false
           description: List, a subset of the projects contained within the asset view that are relevant for the current operation. Speeds up some operations that interact with Synapse.
           example: ['syn23643250', 'syn47218127', 'syn47218347']
+          required: false
+        - in: query
+          name: dataset_scope
+          schema:
+            type: string
+            nullable: true
+          description: Specify a dataset to validate against for filename validation.
+          example: 'syn61682648'
           required: false
       operationId: schematic_api.api.routes.submit_manifest_route
       responses:

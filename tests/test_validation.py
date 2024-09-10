@@ -691,12 +691,13 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode,
             project_scope=["syn23643250"],
+            dataset_scope="syn61682648",
         )
 
         # Check errors
         assert (
             GenerateError.generate_filename_error(
-                val_rule="filenameExists syn61682648",
+                val_rule="filenameExists",
                 attribute_name="Filename",
                 row_num="3",
                 invalid_entry="schematic - main/MockFilenameComponent/txt4.txt",
@@ -708,7 +709,7 @@ class TestManifestValidation:
 
         assert (
             GenerateError.generate_filename_error(
-                val_rule="filenameExists syn61682648",
+                val_rule="filenameExists",
                 attribute_name="Filename",
                 row_num="4",
                 invalid_entry="schematic - main/MockFilenameComponent/txt5.txt",
@@ -720,6 +721,21 @@ class TestManifestValidation:
 
         assert len(errors) == 2
         assert len(warnings) == 0
+
+    def test_filename_manifest_exception(self, helpers, dmge):
+        metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
+
+        manifestPath = helpers.get_data_path(
+            "mock_manifests/InvalidFilenameManifest.csv"
+        )
+        rootNode = "MockFilename"
+
+        with pytest.raises(ValueError):
+            errors, warnings = metadataModel.validateModelManifest(
+                manifestPath=manifestPath,
+                rootNode=rootNode,
+                project_scope=["syn23643250"],
+            )
 
     def test_missing_column(self, helpers, dmge: DataModelGraph):
         """Test that a manifest missing a column returns the proper error."""
