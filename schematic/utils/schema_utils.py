@@ -513,8 +513,8 @@ def export_graph(schema: dict, file_path: str) -> None:
         with open(file_path, "wb") as file:
             pickle.dump(schema, file)
         logger.info(
-            f"The data model graph was created and saved "
-            "to a pickle file located at: '{file_path}'."
+            "The data model graph was created and saved "
+            f"to a pickle file located at: '{file_path}'."
         )
     except SystemExit as error:
         logger.exception(
