@@ -1831,40 +1831,40 @@ class ManifestGenerator(object):
 
         ```mermaid
         flowchart TD
-            A[Start] --> B{Dataset ID provided?}
-            B -- No --> C[Get Empty Manifest URL]
-            C --> D{Output Format is 'excel'?}
-            D -- Yes --> E[Export to Excel]
-            D -- No --> F[Return Manifest URL]
-            B -- Yes --> G[Instantiate SynapseStorage]
-            G --> H[Update Dataset Manifest Files]
-            H --> I[Get Empty Manifest URL]
-            I --> J{Manifest Record exists?}
-            J -- Yes --> K[Update Dataframe]
-            K --> L[Handle Output Format Logic]
-            L --> M[Return Result]
-            J -- No --> AN{Use Annotations?}
+            Start[Start] --> DatasetIDCheck{Dataset ID provided?}
+            DatasetIDCheck -- No --> EmptyManifestURL[Get Empty Manifest URL]
+            EmptyManifestURL --> OutputFormatCheck{Output Format is 'excel'?}
+            OutputFormatCheck -- Yes --> ExportToExcel[Export to Excel]
+            OutputFormatCheck -- No --> ReturnManifestURL[Return Manifest URL]
+            DatasetIDCheck -- Yes --> InstantiateSynapseStorage[Instantiate SynapseStorage]
+            InstantiateSynapseStorage --> UpdateManifestFiles[Update Dataset Manifest Files]
+            UpdateManifestFiles --> GetEmptyManifestURL[Get Empty Manifest URL]
+            GetEmptyManifestURL --> ManifestRecordCheck{Manifest Record exists?}
+            ManifestRecordCheck -- Yes --> UpdateDataframe[Update Dataframe]
+            UpdateDataframe --> HandleOutputFormatLogic[Handle Output Format Logic]
+            HandleOutputFormatLogic --> ReturnResult[Return Result]
+            ManifestRecordCheck -- No --> UseAnnotationsCheck{Use Annotations?}
 
-            AN -- No --> Q[Create dataframe from empty manifest on Google]
-            Q --> AJ{Manifest file-based?}
-            AJ -- Yes --> P[Add entityId and filename to manifest df]
-            AJ -- No --> R[Use dataframe from an empty manifest]
+            UseAnnotationsCheck -- No --> CreateDataframe[Create dataframe from empty manifest on Google]
+            CreateDataframe --> ManifestFileBasedCheck1{Manifest file-based?}
+            ManifestFileBasedCheck1 -- Yes --> AddEntityID[Add entityId and filename to manifest df]
+            ManifestFileBasedCheck1 -- No --> UseDataframe[Use dataframe from an empty manifest]
 
-            P --> L[Handle Output Format Logic]
-            R -->  L[Handle Output Format Logic]
+            AddEntityID --> HandleOutputFormatLogic
+            UseDataframe --> HandleOutputFormatLogic
 
-            AN -- Yes --> AM{Manifest file-based?}
-            AM -- No --> L[Handle Output Format Logic]
-            AM -- Yes --> AO[Process Annotations]
-            AO --> AP{Annotations Empty?}
-            AP -- Yes --> AQ[Create dataframe from an empty manifest on Google]
-            AQ --> AR[Update dataframe]
-            AP -- No --> AS[Get Manifest with Annotations]
-            AS --> AR
-            AR --> L[Handle Output Format Logic]
-            M --> T[End]
-            F --> T
-            E --> T
+            UseAnnotationsCheck -- Yes --> ManifestFileBasedCheck2{Manifest file-based?}
+            ManifestFileBasedCheck2 -- No --> HandleOutputFormatLogic
+            ManifestFileBasedCheck2 -- Yes --> ProcessAnnotations[Process Annotations]
+            ProcessAnnotations --> AnnotationsEmptyCheck{Annotations Empty?}
+            AnnotationsEmptyCheck -- Yes --> CreateDataframeFromEmpty[Create dataframe from an empty manifest on Google]
+            CreateDataframeFromEmpty --> UpdateDataframeWithAnnotations[Update dataframe]
+            AnnotationsEmptyCheck -- No --> GetManifestWithAnnotations[Get Manifest with Annotations]
+            GetManifestWithAnnotations --> UpdateDataframeWithAnnotations
+            UpdateDataframeWithAnnotations --> HandleOutputFormatLogic
+            ReturnResult --> End[End]
+            ReturnManifestURL --> End
+            ExportToExcel --> End
         ```
         """
         # Handle case when no dataset ID is provided
