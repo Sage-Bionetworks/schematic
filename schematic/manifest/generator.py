@@ -1650,8 +1650,8 @@ class ManifestGenerator(object):
 
         Args:
             path_to_data_model (str): str path to data model
-            data_model_graph_pickle (str): path to pickled networkx MultiDiGraph object
-            graph_data_model (str): An networkx MultiDiGraph object
+            data_model_graph_pickle (str, optional): path to pickled networkx MultiDiGraph object. Defaults to None.
+            graph_data_model (str, optional): An networkx MultiDiGraph object. Defaults to None.
             data_types (list): a list of data types
             access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
             dataset_ids (list, optional): a list of dataset ids when generating an existing manifest. Defaults to None.
