@@ -1690,13 +1690,16 @@ class ManifestGenerator(object):
             Function->>DataModelGraph: generate graph
             DataModelGraph-->>Function: return graph data model
             alt data_types == "all manifests"
-                Function->>ManifestGenerator: create manifests for all components
+                loop for each component
+                    Function->>ManifestGenerator: create manifest for component
+                    ManifestGenerator-->>Function: single manifest
+                end
             else
                 loop for each data_type
                     Function->>ManifestGenerator: create single manifest
+                    ManifestGenerator-->>Function: single manifest
                 end
             end
-            ManifestGenerator-->>Function: return results
             Function-->>User: return manifests based on output_format
         ```
         """
