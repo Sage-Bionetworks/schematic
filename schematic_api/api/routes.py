@@ -313,7 +313,9 @@ def get_temp_csv(schema_url):
     return tmp_file.name
 
 
-def get_temp_pickle(graph_url):
+def get_temp_pickle(
+    graph_url: str
+) -> str:
     # retrieve a pickle via URL and store it in a temporary location
     with urllib.request.urlopen(graph_url) as response:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pickle") as tmp_file:
