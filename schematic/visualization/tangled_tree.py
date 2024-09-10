@@ -62,19 +62,13 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes disable=too-m
 
         parsed_data_model = None
 
-        # Instantiate Data Model Parser
+        # Instantiate Data Model Parser and generate graph
         if data_model_graph_pickle is None:
             data_model_parser = DataModelParser(
                 path_to_data_model=self.path_to_json_ld,
             )
-
-            # Parse Model
             parsed_data_model = data_model_parser.parse_model()
-
-            # Instantiate DataModelGraph
             data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
-
-            # Generate graph
             self.graph_data_model = data_model_grapher.graph
 
         else:
