@@ -1069,7 +1069,8 @@ class TestExportGraph:
         invalid_file_path = str(tmp_path / "non_existent_directory" / "graph.pickle")
 
         # Call the export_graph function with an invalid file path
-        with pytest.raises(Exception):
+        # and catch the exception
+        with pytest.raises(FileNotFoundError):
             export_graph(schema, invalid_file_path)
 
     @pytest.mark.parametrize(
