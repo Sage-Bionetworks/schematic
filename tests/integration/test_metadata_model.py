@@ -48,7 +48,7 @@ class TestMetadataModel:
             ),
         ],
     )
-    def test_submit_filebased_manifest(
+    async def test_submit_filebased_manifest(
         self,
         helpers,
         manifest_path,
@@ -98,11 +98,21 @@ class TestMetadataModel:
         # AND the files should be annotated
         spy_add_annotations.assert_called_once()
 
+        import asyncio
+        async def get_annotations_async(entityId, synapse_store):
+            return await asyncio.to_thread(synapse_store.syn.get_annotations, entityId)
+
+        tasks = [
+            get_annotations_async(row.entityId, synapse_store)
+            for row in manifest.itertuples()
+        ]
+
+        annotations = await asyncio.gather(*tasks)
+
         # AND the annotations should have the correct metadata
-        for row in manifest.itertuples():
-            entityId = row.entityId
+        #for row in manifest.itertuples():
+        for annos, row in zip(annotations, manifest.itertuples()):
             expected_sample_id = row.SampleID
-            annos = synapse_store.syn.get_annotations(entityId)
             sample_id = annos["SampleID"][0]
             assert sample_id == expected_sample_id
 
