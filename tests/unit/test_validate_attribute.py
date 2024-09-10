@@ -4,6 +4,7 @@ from typing import Generator
 from unittest.mock import patch
 import pytest
 
+from jsonschema import ValidationError
 from pandas import Series, DataFrame, concat
 import numpy as np
 
@@ -73,6 +74,15 @@ TEST_DF2 = DataFrame(
     }
 )
 
+TEST_DF3 = DataFrame(
+    {
+        "PatientID": ["A", "A", "A", "B", "C"],
+        "component": ["comp1", "comp1", "comp1", "comp1", "comp1"],
+        "id": ["id1", "id2", "id3", "id4", "id5"],
+        "entityid": ["x", "x", "x", "x", "x"],
+    }
+)
+
 TEST_DF_MISSING_VALS = DataFrame(
     {
         "PatientID": [np.isnan, ""],
@@ -108,10 +118,10 @@ def fixture_va_obj(
     yield ValidateAttribute(dmge)
 
 
-@pytest.fixture(name="cross_val_df1")
-def fixture_cross_val_df1() -> Generator[DataFrame, None, None]:
+@pytest.fixture(name="test_df1")
+def fixture_test_df1() -> Generator[DataFrame, None, None]:
     """Yields a dataframe"""
-    df = DataFrame(
+    yield DataFrame(
         {
             "PatientID": ["A", "B", "C"],
             "component": ["comp1", "comp1", "comp1"],
@@ -119,44 +129,9 @@ def fixture_cross_val_df1() -> Generator[DataFrame, None, None]:
             "entityid": ["x", "x", "x"],
         }
     )
-    yield df
 
-
-@pytest.fixture(name="cross_val_df2")
-def fixture_cross_val_df2(cross_val_df1: DataFrame) -> Generator[DataFrame, None, None]:
-    """Yields dataframe df1 with an extra row"""
-    df = concat(
-        [
-            cross_val_df1,
-            DataFrame(
-                {
-                    "PatientID": ["D"],
-                    "component": ["comp1"],
-                    "id": ["id4"],
-                    "entityid": ["x"],
-                }
-            ),
-        ]
-    )
-    yield df
-
-
-@pytest.fixture(name="cross_val_df3")
-def fixture_cross_val_df3() -> Generator[DataFrame, None, None]:
-    """Yields empty dataframe"""
-    df = DataFrame(
-        {
-            "PatientID": [],
-            "component": [],
-            "id": [],
-            "entityid": [],
-        }
-    )
-    yield df
-
-
-@pytest.fixture(name="cross_val_col_names")
-def fixture_cross_val_col_names() -> Generator[dict[str, str], None, None]:
+@pytest.fixture(name="test_df_col_names")
+def fixture_test_df_col_names() -> Generator[dict[str, str], None, None]:
     """
     Yields:
         Generator[dict[str, str], None, None]: A dicitonary of column names
@@ -180,10 +155,10 @@ class TestValidateAttributeObject:
 
     @pytest.mark.parametrize("series", EXACTLY_ATLEAST_PASSING_SERIES)
     @pytest.mark.parametrize("rule", MATCH_ATLEAST_ONE_SET_RULES)
-    def test_cross_validation_match_atleast_one_set_rules_passing(
+    def test_cross_validation_match_atleast_one_set_passing_one_df(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         series: Series,
         rule: str,
     ):
@@ -194,16 +169,16 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": test_df1},
         ):
             assert va_obj.cross_validation(rule, series) == ([], [])
 
     @pytest.mark.parametrize("series", EXACTLY_ATLEAST_PASSING_SERIES)
     @pytest.mark.parametrize("rule", MATCH_EXACTLY_ONE_SET_RULES)
-    def test_cross_validation_match_exactly_one_set_rules_passing(
+    def test_cross_validation_match_exactly_one_set_passing_one_df(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         series: Series,
         rule: str,
     ):
@@ -214,7 +189,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": test_df1},
         ):
             assert va_obj.cross_validation(rule, series) == ([], [])
 
@@ -228,10 +203,10 @@ class TestValidateAttributeObject:
         ],
     )
     @pytest.mark.parametrize("rule", MATCH_ATLEAST_ONE_SET_RULES)
-    def test_cross_validation_match_atleast_one_set_rules_errors(
+    def test_cross_validation_match_atleast_one_set_errors_one_df(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         series: Series,
         rule: str,
     ):
@@ -242,7 +217,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": test_df1},
         ):
             errors, warnings = va_obj.cross_validation(rule, series)
             if rule.endswith("error"):
@@ -260,10 +235,10 @@ class TestValidateAttributeObject:
         ],
     )
     @pytest.mark.parametrize("rule", MATCH_EXACTLY_ONE_SET_RULES)
-    def test_cross_validation_match_exactly_one_set_rules_errors(
+    def test_cross_validation_match_exactly_one_set_errors_one_df(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         series: Series,
         rule: str,
     ):
@@ -274,7 +249,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1, "syn2": cross_val_df1},
+            return_value={"syn1": test_df1, "syn2": test_df1},
         ):
             errors, warnings = va_obj.cross_validation(rule, series)
             if rule.endswith("error"):
@@ -295,10 +270,10 @@ class TestValidateAttributeObject:
         ],
     )
     @pytest.mark.parametrize("rule", MATCH_NONE_SET_RULES)
-    def test_cross_validation_match_none_set_rules_passing(
+    def test_cross_validation_match_none_set_passing_one_df(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         series: Series,
         rule: str,
     ):
@@ -309,7 +284,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": test_df1},
         ):
             assert va_obj.cross_validation(rule, series) == ([], [])
 
@@ -323,10 +298,10 @@ class TestValidateAttributeObject:
         ],
     )
     @pytest.mark.parametrize("rule", MATCH_NONE_SET_RULES)
-    def test_cross_validation_match_none_set_rules_errors(
+    def test_cross_validation_match_none_set_errors_one_df(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         series: Series,
         rule: str,
     ):
@@ -337,7 +312,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": test_df1},
         ):
             errors, warnings = va_obj.cross_validation(rule, series)
             if rule.endswith("error"):
@@ -348,6 +323,7 @@ class TestValidateAttributeObject:
                 assert errors == []
 
     @pytest.mark.parametrize("rule", MATCH_ATLEAST_ONE_VALUE_RULES)
+    @pytest.mark.parametrize("target_manifest", [TEST_DF1, TEST_DF3])
     @pytest.mark.parametrize(
         "tested_column",
         [
@@ -359,12 +335,12 @@ class TestValidateAttributeObject:
             (["A", "B", "C", "C"]),
         ],
     )
-    def test_cross_validation_value_match_atleast_one_rules_passing(
+    def test_cross_validation_match_atleast_one_value_passing_one_df(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
         rule: str,
         tested_column: list,
+        target_manifest: DataFrame
     ):
         """
         Tests ValidateAttribute.cross_validation
@@ -373,7 +349,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": target_manifest},
         ):
             assert va_obj.cross_validation(rule, Series(tested_column)) == ([], [])
 
@@ -388,10 +364,10 @@ class TestValidateAttributeObject:
             Series([1], index=[0], name="PatientID"),
         ],
     )
-    def test_cross_validation_value_match_atleast_one_rules_errors(
+    def test_cross_validation_match_atleast_one_value_errors_one_df(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         rule: str,
         tested_column: Series,
     ):
@@ -402,7 +378,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": test_df1},
         ):
             errors, warnings = va_obj.cross_validation(rule, tested_column)
             if rule.endswith("error"):
@@ -414,31 +390,39 @@ class TestValidateAttributeObject:
 
     @pytest.mark.parametrize("rule", MATCH_EXACTLY_ONE_VALUE_RULES)
     @pytest.mark.parametrize(
-        "tested_column",
+        "tested_column, target_manifest",
         [
-            ([]),
-            (["A"]),
-            (["A", "A"]),
-            (["A", "B"]),
-            (["A", "B", "C"]),
-            (["A", "B", "C", "C"]),
+            ([], TEST_DF1),
+            ([], TEST_DF3),
+            (["C"], TEST_DF1),
+            (["C"], TEST_DF3),
+            (["C", "C"], TEST_DF1),
+            (["C", "C"], TEST_DF3),
+
+            (["A"], TEST_DF1),
+            (["A", "A"], TEST_DF1),
+            (["A", "B"], TEST_DF1),
+            (["A", "B", "C"], TEST_DF1),
+            (["A", "B", "C", "C"], TEST_DF1),
         ],
     )
-    def test_cross_validation_match_exactly_one_value_rules_passing(
+    def test_cross_validation_match_exactly_one_value_passing_one_df(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
         rule: str,
         tested_column: list,
+        target_manifest: DataFrame
     ):
         """
         Tests ValidateAttribute.cross_validation
         These tests show what columns pass for matchExactlyOne
+        The first group are ones that pass for TEST_DF1 and TEST_DF3
+        The second group are those that pass only for test
         """
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": target_manifest},
         ):
             assert va_obj.cross_validation(rule, Series(tested_column)) == ([], [])
 
@@ -452,10 +436,10 @@ class TestValidateAttributeObject:
             Series([1], index=[0], name="PatientID"),
         ],
     )
-    def test_cross_validation_value_match_exactly_one_rules_errors(
+    def test_cross_validation_match_exactly_one_value_errors_one_df(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         rule: str,
         tested_column: Series,
     ):
@@ -466,7 +450,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": test_df1},
         ):
             errors, warnings = va_obj.cross_validation(rule, tested_column)
             if rule.endswith("error"):
@@ -481,10 +465,10 @@ class TestValidateAttributeObject:
         "tested_column",
         [([]), (["D"]), (["D", "D"]), (["D", "F"]), ([1]), ([np.nan])],
     )
-    def test_cross_validation_match_none_value_rules_passing(
+    def test_cross_validation_match_none_value_passing_one_df(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         rule: str,
         tested_column: list,
     ):
@@ -495,7 +479,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": test_df1},
         ):
             assert va_obj.cross_validation(rule, Series(tested_column)) == ([], [])
 
@@ -508,10 +492,10 @@ class TestValidateAttributeObject:
             Series(["A", "A"], index=[0, 1], name="PatientID"),
         ],
     )
-    def test_cross_validation_value_match_none_rules_errors(
+    def test_cross_validation_value_match_none_errors_one_df(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         rule: str,
         tested_column: Series,
     ):
@@ -522,7 +506,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": test_df1},
         ):
             errors, warnings = va_obj.cross_validation(rule, tested_column)
             if rule.endswith("error"):
@@ -591,7 +575,7 @@ class TestValidateAttributeObject:
 
     @pytest.mark.parametrize("rule", ALL_VALUE_RULES)
     def test__run_validation_across_target_manifests_value_scope(
-        self, va_obj: ValidateAttribute, cross_val_df1: DataFrame, rule: str
+        self, va_obj: ValidateAttribute, test_df1: DataFrame, rule: str
     ) -> None:
         """Tests for ValidateAttribute._run_validation_across_target_manifests with value rule"""
 
@@ -599,7 +583,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": test_df1},
         ):
             _, validation_output = va_obj._run_validation_across_target_manifests(
                 rule_scope="value",
@@ -634,7 +618,7 @@ class TestValidateAttributeObject:
     def test__run_validation_across_target_manifests_match_atleast_exactly_with_one_target(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         input_column: list,
         missing_ids: list[str],
         present_ids: list[str],
@@ -652,7 +636,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": test_df1},
         ):
             _, validation_output = va_obj._run_validation_across_target_manifests(
                 rule_scope="set",
@@ -679,7 +663,7 @@ class TestValidateAttributeObject:
     def test__run_validation_across_target_manifests_match_atleast_exactly_with_two_targets(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         input_column: list,
         missing_ids: list[str],
         present_ids: list[str],
@@ -696,7 +680,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1, "syn2": cross_val_df1},
+            return_value={"syn1": test_df1, "syn2": test_df1},
         ):
             _, validation_output = va_obj._run_validation_across_target_manifests(
                 rule_scope="set",
@@ -726,7 +710,7 @@ class TestValidateAttributeObject:
     def test__run_validation_across_target_manifests_set_rules_match_none_with_one_target(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         input_column: list,
         missing_ids: list[str],
         present_ids: list[str],
@@ -743,7 +727,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1},
+            return_value={"syn1": test_df1},
         ):
             _, validation_output = va_obj._run_validation_across_target_manifests(
                 rule_scope="set",
@@ -773,7 +757,7 @@ class TestValidateAttributeObject:
     def test__run_validation_across_target_manifests_set_rules_match_none_with_two_targets(
         self,
         va_obj: ValidateAttribute,
-        cross_val_df1: DataFrame,
+        test_df1: DataFrame,
         input_column: list,
         missing_ids: list[str],
         present_ids: list[str],
@@ -790,7 +774,7 @@ class TestValidateAttributeObject:
         with patch.object(
             schematic.models.validate_attribute.ValidateAttribute,
             "_get_target_manifest_dataframes",
-            return_value={"syn1": cross_val_df1, "syn2": cross_val_df1},
+            return_value={"syn1": test_df1, "syn2": test_df1},
         ):
             _, validation_output = va_obj._run_validation_across_target_manifests(
                 rule_scope="set",
@@ -870,8 +854,8 @@ class TestValidateAttributeObject:
     def test__run_validation_across_targets_set_match_exactly_atleaset_one_no_missing_values(
         self,
         va_obj: ValidateAttribute,
-        cross_val_col_names: dict[str, str],
-        cross_val_df1: DataFrame,
+        test_df_col_names: dict[str, str],
+        test_df1: DataFrame,
         rule: str,
         tested_column: list,
         target_id: str,
@@ -886,10 +870,10 @@ class TestValidateAttributeObject:
         """
         output, bool_list1, bool_list2 = va_obj._run_validation_across_targets_set(
             val_rule=rule,
-            column_names=cross_val_col_names,
+            column_names=test_df_col_names,
             manifest_col=Series(tested_column),
             target_attribute="patientid",
-            target_manifest=cross_val_df1,
+            target_manifest=test_df1,
             target_manifest_id=target_id,
             missing_manifest_log={},
             present_manifest_log=present_log_input.copy(),
@@ -917,8 +901,8 @@ class TestValidateAttributeObject:
     def test__run_validation_across_targets_set_match_exactly_atleaset_one_missing_values(
         self,
         va_obj: ValidateAttribute,
-        cross_val_col_names: dict[str, str],
-        cross_val_df1: DataFrame,
+        test_df_col_names: dict[str, str],
+        test_df1: DataFrame,
         rule: str,
         tested_column: list,
         target_id: str,
@@ -931,10 +915,10 @@ class TestValidateAttributeObject:
         """
         output, bool_list1, bool_list2 = va_obj._run_validation_across_targets_set(
             val_rule=rule,
-            column_names=cross_val_col_names,
+            column_names=test_df_col_names,
             manifest_col=Series(tested_column),
             target_attribute="patientid",
-            target_manifest=cross_val_df1,
+            target_manifest=test_df1,
             target_manifest_id=target_id,
             missing_manifest_log={},
             present_manifest_log=present_log_input.copy(),
@@ -951,17 +935,17 @@ class TestValidateAttributeObject:
     def test__run_validation_across_targets_set_match_none(
         self,
         va_obj: ValidateAttribute,
-        cross_val_col_names: dict[str, str],
-        cross_val_df1: DataFrame,
+        test_df_col_names: dict[str, str],
+        test_df1: DataFrame,
     ) -> None:
         """Tests for ValidateAttribute._run_validation_across_targets_set for matchAtLeastOne"""
 
         output, bool_list1, bool_list2 = va_obj._run_validation_across_targets_set(
             val_rule="matchNone, Patient.PatientID, set",
-            column_names=cross_val_col_names,
+            column_names=test_df_col_names,
             manifest_col=Series(["A", "B", "C"]),
             target_attribute="patientid",
-            target_manifest=cross_val_df1,
+            target_manifest=test_df1,
             target_manifest_id="syn1",
             missing_manifest_log={},
             present_manifest_log=[],
@@ -978,10 +962,10 @@ class TestValidateAttributeObject:
 
         output, bool_list1, bool_list2 = va_obj._run_validation_across_targets_set(
             val_rule="matchNone, Patient.PatientID, set",
-            column_names=cross_val_col_names,
+            column_names=test_df_col_names,
             manifest_col=Series(["A"]),
             target_attribute="patientid",
-            target_manifest=cross_val_df1,
+            target_manifest=test_df1,
             target_manifest_id="syn2",
             missing_manifest_log={},
             present_manifest_log=[],
@@ -1326,3 +1310,288 @@ class TestValidateAttributeObject:
     ) -> None:
         """Tests for ValidateAttribute._get_column_names"""
         assert va_obj._get_column_names(DataFrame(input_dict)) == expected_dict
+
+    ##############
+    # get_no_entry
+    ##############
+
+    @pytest.mark.parametrize(
+        "input_entry, node_name, expected",
+        [
+            ("entry", "Check NA", False),
+            ("entry", "Check Date", False),
+            ("<NA>", "Check NA", False),
+            ("<NA>", "Check Date", True),
+        ],
+    )
+    def test_get_no_entry(
+        self,
+        va_obj: ValidateAttribute,
+        input_entry: str,
+        node_name: str,
+        expected: bool
+    ) -> None:
+        """
+        This test shows that:
+        - if the entry is a normal string the result is always False(not no entry),
+        - if the entry is "<NA>" the result is False if the attribute has the "isNA" rule
+        - if the entry is "<NA>" the result is True if the attribute does not have the "isNA" rule
+        
+        """
+        assert va_obj.get_no_entry(input_entry, node_name) is expected
+
+    #####################
+    # get_entry_has_value
+    #####################
+
+    @pytest.mark.parametrize(
+        "input_entry, node_name, expected",
+        [
+            ("entry", "Check NA", True),
+            ("entry", "Check Date", True),
+            ("<NA>", "Check NA", True),
+            ("<NA>", "Check Date", False),
+        ],
+    )
+    def test_get_entry_has_value(
+        self,
+        va_obj: ValidateAttribute,
+        input_entry: str,
+        node_name: str,
+        expected: bool
+    ) -> None:
+        """
+        This test shows that:
+        - if the entry is a normal string the result is always True,
+        - if the entry is "<NA>" the result is True if the attribute has the "isNA" rule
+        - if the entry is "<NA>" the result is False if the attribute does not have the "isNA" rule
+        
+        """
+        assert va_obj.get_entry_has_value(input_entry, node_name) is expected
+
+    #################
+    # list_validation
+    #################
+
+    @pytest.mark.parametrize(
+        "input_column, rule",
+        [
+            (Series(["x,x,x"], name="Check List"), "list like"),
+            (Series(["x,x,x"], name="Check List"), "list strict"),
+            (Series([], name="Check List"), "list like"),
+            (Series([], name="Check List"), "list strict"),
+
+            (Series(["x"], name="Check List"), "list like"),
+            (Series(["xxx"], name="Check List"), "list like"),
+            (Series(["1"], name="Check List"), "list like"),
+            (Series([1], name="Check List"), "list like"),
+            (Series([1.1], name="Check List"), "list like"),
+            (Series([1,1,1], name="Check List"), "list like"),
+            (Series([np.nan], name="Check List"), "list like"),
+            (Series([True], name="Check List"), "list like"),
+        ],
+    )
+    def test_list_validation_passing(
+        self,
+        va_obj: ValidateAttribute,
+        input_column: Series,
+        rule: str
+    ) -> None:
+        """
+        This tests ValidateAttribute.list_validation
+        This test shows that:
+        - when using list like, just about anything is validated
+        - when using list strict, empty columns, and comma separated strings pass
+
+        """
+        errors, warnings, _ = va_obj.list_validation(rule, input_column) 
+        assert len(errors) == 0
+        assert len(warnings) == 0
+
+    @pytest.mark.parametrize(
+        "input_column",
+        [
+            (Series(["x"], name="Check List")),
+            (Series(["xxxx"], name="Check List")),
+            (Series([1], name="Check List")),
+            (Series([1.1], name="Check List")),
+            (Series([1,1,1], name="Check List")),
+            (Series([np.nan], name="Check List")),
+            (Series([True], name="Check List")),
+        ],
+    )
+    @pytest.mark.parametrize("rule", ["list strict", "list strict warning"])
+    def test_list_validation_not_passing(
+        self,
+        va_obj: ValidateAttribute,
+        input_column: Series,
+        rule: str
+    ) -> None:
+        """
+        This tests ValidateAttribute.list_validation
+        This test shows what doesn't pass when using list strict
+        """
+        errors, warnings, _ = va_obj.list_validation(rule, input_column)
+        if rule.endswith("warning"):
+            assert len(errors) == 0
+            assert len(warnings) > 0
+        else:
+            assert len(errors) > 0
+            assert len(warnings) == 0
+
+    ##################
+    # regex_validation
+    ##################
+
+    @pytest.mark.parametrize(
+        "input_column, rule",
+        [
+            (Series(["a"], name="Check List"), "regex match [a-f]"),
+            (Series(["a,b,<NA>"], name="Check Regex List Strict"), "regex match [a-f]"),
+        ],
+    )
+    def test_regex_validation_passing(
+        self,
+        va_obj: ValidateAttribute,
+        input_column: Series,
+        rule: str
+    ) -> None:
+        """
+        This tests ValidateAttribute.regex_validation
+        This test shows passing examples using the match rule
+        """
+        errors, warnings = va_obj.regex_validation(rule, input_column)
+        assert len(errors) == 0
+        assert len(warnings) == 0
+
+    @pytest.mark.parametrize(
+        "input_column, rule",
+        [
+            (Series(["g"], name="Check List"), "regex match [a-f]"),
+            (Series(["a,b,c,g"], name="Check Regex List Strict"), "regex match [a-f]"),
+        ],
+    )
+    def test_regex_validation_failing(
+        self,
+        va_obj: ValidateAttribute,
+        input_column: Series,
+        rule: str
+    ) -> None:
+        """
+        This tests ValidateAttribute.regex_validation
+        This test shows failing examples using the match rule
+        """
+        errors, warnings = va_obj.regex_validation(rule, input_column)
+        assert len(errors) == 1
+        assert len(warnings) == 0
+
+    @pytest.mark.parametrize(
+        "input_column, rule, exception",
+        [
+            (Series(["a"]), "", ValidationError),
+            (Series(["a"]), "regex", ValidationError),
+            (Series(["a"]), "regex match", ValidationError),
+
+            (Series(["a"]), "regex match [a-f]", ValueError),
+        ],
+    )
+    def test_regex_validation_exceptions(
+        self,
+        va_obj: ValidateAttribute,
+        input_column: Series,
+        rule: str,
+        exception
+    ) -> None:
+        """
+        This tests ValidateAttribute.regex_validation
+        This test shows that:
+        - when the rule is malformed, a ValidationError is raised
+        - when the input series has no name, a ValueError is raised
+
+        """
+        with pytest.raises(exception):
+            va_obj.regex_validation(rule, input_column)
+
+        
+    #################
+    # type_validation
+    #################
+
+    @pytest.mark.parametrize(
+        "input_column, rule",
+        [
+            (Series(["a"], name="Check String"), "str"),
+            (Series([1], name="Check Num"), "num"),
+            (Series([1], name="Check Int"), "int"),
+            (Series([1.1], name="Check Float"), "float"),
+            (Series([np.nan], name="Check String"), "str"),
+            (Series([np.nan], name="Check Num"), "num"),
+            (Series([np.nan], name="Check Int"), "int"),
+            (Series([np.nan], name="Check Float"), "float"),
+        ]
+    )
+    def test_type_validation_passing(
+        self,
+        va_obj: ValidateAttribute,
+        input_column: Series,
+        rule: str
+    ) -> None:
+        """
+        This tests ValidateAttribute.type_validation
+        This test shows passing examples using the type rule
+        """
+        errors, warnings = va_obj.type_validation(rule, input_column)
+        assert len(errors) == 0
+        assert len(warnings) == 0
+
+
+    @pytest.mark.parametrize(
+        "input_column, rule",
+        [
+            (Series([1], name="Check String"), "str"),
+            (Series(["a"], name="Check Num"), "num"),
+            (Series(["20"], name="Check Num"), "num"),
+            (Series([1.1], name="Check Int"), "int"),
+            (Series(["a"], name="Check Int"), "int"),
+            (Series([1], name="Check Float"), "float"),
+            (Series(["a"], name="Check Float"), "float"),
+        ]
+    )
+    def test_type_validation_failing(
+        self,
+        va_obj: ValidateAttribute,
+        input_column: Series,
+        rule: str
+    ) -> None:
+        """
+        This tests ValidateAttribute.type_validation
+        This test shows failing examples using the type rule
+        """
+        errors, warnings = va_obj.type_validation(rule, input_column)
+        assert len(errors) == 1
+        assert len(warnings) == 0 
+
+
+    ################
+    # url_validation
+    ################
+
+    @pytest.mark.parametrize(
+        "input_column",
+        [
+            (Series([], name="Check URL")),
+            (Series([np.nan], name="Check URL"))
+        ]
+    )
+    def test_url_validation_passing(
+        self,
+        va_obj: ValidateAttribute,
+        input_column: Series,
+    ) -> None:
+        """
+        This tests ValidateAttribute.type_validation
+        This test shows passing examples using the type rule
+        """
+        errors, warnings = va_obj.url_validation("url", input_column)
+        assert len(errors) == 0
+        assert len(warnings) == 0

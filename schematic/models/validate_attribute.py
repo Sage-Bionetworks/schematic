@@ -907,14 +907,14 @@ class ValidateAttribute(object):
     def list_validation(
         self,
         val_rule: str,
-        manifest_col: pd.core.series.Series,
-    ) -> tuple[list[list[str]], list[list[str]], pd.core.series.Series]:
+        manifest_col: pd.Series,
+    ) -> tuple[list[list[str]], list[list[str]], pd.Series]:
         """
         Purpose:
             Determine if values for a particular attribute are comma separated.
         Input:
             - val_rule: str, Validation rule
-            - manifest_col: pd.core.series.Series, column for a given attribute
+            - manifest_col: pd.Series, column for a given attribute
         Returns:
             - manifest_col: Input values in manifest arere-formatted to a list
             logger.error or logger.warning.
@@ -925,8 +925,8 @@ class ValidateAttribute(object):
         # For each 'list' (input as a string with a , delimiter) entered,
         # convert to a real list of strings, with leading and trailing
         # white spaces removed.
-        errors = []
-        warnings = []
+        errors:list[list[str]] = []
+        warnings:list[list[str]] = []
         replace_null = True
 
         csv_re = comma_separated_list_regex()
@@ -947,7 +947,8 @@ class ValidateAttribute(object):
                     entry=list_string,
                     node_display_name=manifest_col.name,
                 )
-
+                # Since this column has been turned into a string, it's unclear if this can ever be
+                # anything other than a string
                 if not isinstance(list_string, str) and entry_has_value:
                     list_error = "not_a_string"
                 elif not re.fullmatch(csv_re, list_string) and entry_has_value:
@@ -976,7 +977,7 @@ class ValidateAttribute(object):
     def regex_validation(
         self,
         val_rule: str,
-        manifest_col: pd.core.series.Series,
+        manifest_col: pd.Series,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
@@ -984,7 +985,7 @@ class ValidateAttribute(object):
             provided in val_rule.
         Input:
             - val_rule: str, Validation rule
-            - manifest_col: pd.core.series.Series, column for a given
+            - manifest_col: pd.Series, column for a given
                 attribute in the manifest
             - dmge: DataModelGraphExplorer Object
             Using this module requres validation rules written in the following manner:
@@ -998,8 +999,8 @@ class ValidateAttribute(object):
             - This function will return errors when the user input value
             does not match schema specifications.
             logger.error or logger.warning.
-            Errors: list[str] Error details for further storage.
-            warnings: list[str] Warning details for further storage.
+            Errors: list[list[str]] Error details for further storage.
+            warnings: list[list[str]] Warning details for further storage.
         TODO:
             move validation to convert step.
         """
@@ -1015,13 +1016,13 @@ class ValidateAttribute(object):
                 f" They should be provided as follows ['regex', 'module name', 'regular expression']"
             )
 
-        errors = []
-        warnings = []
+        errors:list[list[str]] = []
+        warnings:list[list[str]] = []
 
         validation_rules = self.dmge.get_node_validation_rules(
             node_display_name=manifest_col.name
         )
-
+        # TODO: Write test to trigger this if statemment:
         if validation_rules and "::" in validation_rules[0]:
             validation_rules = validation_rules[0].split("::")
         # Handle case where validating re's within a list.
@@ -1089,7 +1090,7 @@ class ValidateAttribute(object):
     def type_validation(
         self,
         val_rule: str,
-        manifest_col: pd.core.series.Series,
+        manifest_col: pd.Series,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
@@ -1098,7 +1099,7 @@ class ValidateAttribute(object):
         Input:
             - val_rule: str, Validation rule, specifying input type, either
                 'float', 'int', 'num', 'str'
-            - manifest_col: pd.core.series.Series, column for a given
+            - manifest_col: pd.Series, column for a given
                 attribute in the manifest
         Returns:
             -This function will return errors when the user input value
@@ -1116,8 +1117,8 @@ class ValidateAttribute(object):
             "str": (str),
         }
 
-        errors = []
-        warnings = []
+        errors:list[list[str]] = []
+        warnings:list[list[str]] = []
 
         # num indicates either a float or int.
         if val_rule == "num":
@@ -1140,6 +1141,7 @@ class ValidateAttribute(object):
                     )
                     if vr_errors:
                         errors.append(vr_errors)
+                    # It seems impossible to get warnings with type rules
                     if vr_warnings:
                         warnings.append(vr_warnings)
         elif val_rule in ["int", "float", "str"]:
@@ -1162,6 +1164,7 @@ class ValidateAttribute(object):
                     )
                     if vr_errors:
                         errors.append(vr_errors)
+                    # It seems impossible to get warnings with type rules
                     if vr_warnings:
                         warnings.append(vr_warnings)
         return errors, warnings
