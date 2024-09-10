@@ -1,3 +1,11 @@
+"""
+This script contains a test suite for verifying the submission and annotation of file-based manifests using the `TestMetadataModel` class
+to communicate with Synapse and verify the expected behavior of uploading annotation manifest CSVs using the metadata model.
+
+It utilizes the `pytest` framework along with `pytest-mock` to mock and spy on methods of the `SynapseStorage` class,
+which is responsible for handling file uploads and annotations in Synapse.
+"""
+
 import logging
 import pytest
 
