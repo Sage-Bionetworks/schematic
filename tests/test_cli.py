@@ -50,12 +50,22 @@ class TestSchemaCli:
 
     @pytest.mark.parametrize(
         "output_path",
-        ["tests/data/example.model.pickle", "tests/data/example.model.jsonld"],
+        [
+            # Test case 1: pickle file passed to output_path
+            "tests/data/example.model.pickle", 
+            # Test case 2: jsonld file passed to output_path
+            "tests/data/example.model.jsonld"],
         ids=["output_path_pickle", "output_path_jsonld"],
     )
     @pytest.mark.parametrize(
         "output_type",
-        ["jsonld", "graph", "all"],
+        [
+            # Test case 1: jsonld passed to output_type
+            "jsonld",
+            # Test case 2: graph passed to output_type
+            "graph",
+            # Test case 3: both jsonld and graph are created
+            "all"],
         ids=["output_type_jsonld", "output_type_graph", "output_type_all"],
     )
     def test_schema_convert_cli(self, runner, output_path, output_type):
