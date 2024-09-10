@@ -1,5 +1,6 @@
 import logging
 import pytest
+
 from contextlib import nullcontext as does_not_raise
 
 from pytest_mock import MockerFixture
@@ -12,7 +13,13 @@ logger = logging.getLogger(__name__)
 
 
 class TestMetadataModel:
-    @pytest.mark.parametrize("manifest_path", ["mock_manifests/filepath_submission_test_manifest.csv", "mock_manifests/filepath_submission_test_manifest_sampleidx10.csv"])
+    @pytest.mark.parametrize(
+        "manifest_path",
+        [
+            "mock_manifests/filepath_submission_test_manifest.csv",
+            "mock_manifests/filepath_submission_test_manifest_sampleidx10.csv",
+        ],
+    )
     def test_submit_filebased_manifest(
         self, helpers, mocker: MockerFixture, synapse_store, manifest_path
     ):
