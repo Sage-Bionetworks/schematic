@@ -49,7 +49,7 @@ class TestMetadataModel:
         expected_manifest_id,
         dataset_scope,
         mocker: MockerFixture,
-        synapse_store
+        synapse_store,
     ):
         # spys
         spy_upload_file_as_csv = mocker.spy(SynapseStorage, "upload_manifest_as_csv")
