@@ -160,11 +160,11 @@ def convert(
         click.echo(
             f"The Data Model was created and saved to '{output_jsonld}' location."
         )
-    except:  # pylint: disable=bare-except
+    except Exception as exc:
         raise ValueError(
             f"The Data Model could not be created by using '{output_jsonld}' location. "
             "Please check your file path again"
-        )
+        ) from exc
 
     # get the end time
     end_time = time.time()
