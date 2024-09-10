@@ -15,9 +15,13 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture(
     params=[
+        # Test case 1: pass jsonld and pickle file
         ("example.model.jsonld", "example.model.pickle"),
+        # Test case 2: only pass jsonld file
         ("example.model.jsonld", ""),
+        # Test case 3: don't provide jsonld or pickle file; should fail
         pytest.param(("", ""), marks=pytest.mark.xfail),
+        # Test case 4: pass only pickle file; should fail
         pytest.param(("", "example.model.pickle"), marks=pytest.mark.xfail),
     ]
 )
