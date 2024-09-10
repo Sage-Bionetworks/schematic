@@ -216,7 +216,13 @@ schema_commands = {
             "output_jsonld": (
                 "Path to where the generated JSON-LD file needs to be outputted."
             ),
-            "output_type": ("Output format to export the schema."),
+            "output_type": (
+                "Output format to export the schema. "
+                "Options are 'jsonld', 'graph', 'all'. Default is 'jsonld'."
+                "'jsonld' will output the schema as a JSON-LD file. "
+                "'graph' will output an nx graph object of the schema as a pickle file."
+                "'all' will output both the JSON-LD file and the graph object."
+            ),
             "data_model_labels": DATA_MODEL_LABELS_HELP,
         }
     }
