@@ -1532,15 +1532,15 @@ class SynapseStorage(BaseStorage):
             dmge (DataModelGraphExplorer): data model graph explorer
             metadata_syn (dict): metadata used for Synapse storage
             hideBlanks (bool): if true, does not upload annotation keys with blank values.
-            csv_list_regex (str):
-            annos (dict):
+            csv_list_regex (str): Regex to match with comma separated list
+            annos (Dict[str, Any]): dictionary of annotation returned from synapse
             annotation_keys (str): display_label/class_label
 
         Returns:
-            dict: annotations as a dictionary
+            Dict[str, Any]: annotations as a dictionary
         """
         for anno_k, anno_v in metadata_syn.items():
-            # Remove keys with nan or empty string values from dict of annotations to be uploaded
+            # Remove keys with nan or empty string values or string that only contains white space from dict of annotations to be uploaded
             # if present on current data annotation
             if hide_blanks and (
                 (isinstance(anno_v, str) and anno_v.strip() == "")
