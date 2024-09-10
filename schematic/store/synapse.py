@@ -1941,9 +1941,6 @@ class SynapseStorage(BaseStorage):
             )
             file_df = pd.DataFrame(files_and_entityIds)
 
-            # count entity ids of the original manifest
-            original_manifest_entity_id_count = self.count_entity_id(manifest)
-
             # Merge dataframes to add entityIds
             manifest = manifest.merge(
                 file_df, how="left", on="Filename", suffixes=["_x", None]
