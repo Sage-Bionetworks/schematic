@@ -49,6 +49,7 @@ class TestMetadataModel:
         expected_manifest_id,
         dataset_scope,
         mocker: MockerFixture,
+        synapse_store
     ):
         # spys
         spy_upload_file_as_csv = mocker.spy(SynapseStorage, "upload_manifest_as_csv")
@@ -92,7 +93,7 @@ class TestMetadataModel:
         # AND the annotations should have the correct metadata
         for row in manifest.itertuples():
             entityId = row.entityId
-            expected_sample_id = row._2
+            expected_sample_id = row.SampleID
             annos = synapse_store.syn.get_annotations(entityId)
             sample_id = annos["SampleID"][0]
             assert sample_id == expected_sample_id
