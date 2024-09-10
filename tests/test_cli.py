@@ -63,29 +63,29 @@ class TestSchemaCli:
         label_type = "class_label"
         expected = 0
 
-        resultOne = runner.invoke(schema, ["convert", model])
+        result_one = runner.invoke(schema, ["convert", model])
 
-        assert resultOne.exit_code == expected
+        assert result_one.exit_code == expected
         # check output_path file is created then remove it
         assert os.path.exists(output_path)
 
-        resultTwo = runner.invoke(
+        result_two = runner.invoke(
             schema, ["convert", model, "--output_path", output_path]
         )
 
-        assert resultTwo.exit_code == expected
+        assert result_two.exit_code == expected
         # check output_path file is created then remove it
         assert os.path.exists(output_path)
 
-        resultThree = runner.invoke(
+        result_three = runner.invoke(
             schema, ["convert", model, "--output_type", output_type]
         )
 
-        assert resultThree.exit_code == expected
+        assert result_three.exit_code == expected
         # check output_path file is created then remove it
         assert os.path.exists(output_path)
 
-        resultFour = runner.invoke(
+        result_four = runner.invoke(
             schema,
             [
                 "convert",
@@ -97,7 +97,7 @@ class TestSchemaCli:
             ],
         )
 
-        assert resultFour.exit_code == expected
+        assert result_four.exit_code == expected
         # check output_path file is created then remove it
         assert os.path.exists(output_path)
 
@@ -117,7 +117,7 @@ class TestSchemaCli:
         # check output_path file is created then remove it
         assert os.path.exists(output_path)
 
-        resultFive = runner.invoke(
+        result_five = runner.invoke(
             schema,
             [
                 "convert",
@@ -129,15 +129,15 @@ class TestSchemaCli:
             ],
         )
 
-        assert resultFive.exit_code == expected
+        assert result_five.exit_code == expected
         # check output_path file is created then remove it
         assert os.path.exists(output_path)
 
-        resultSix = runner.invoke(
+        result_six = runner.invoke(
             schema, ["convert", model, "--output_jsonld", "", "--output_path", ""]
         )
 
-        assert resultSix.exit_code == expected
+        assert result_six.exit_code == expected
         # check output_path file is created then remove it
         assert os.path.exists(output_path)
 
