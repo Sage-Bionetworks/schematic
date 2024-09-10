@@ -92,7 +92,7 @@ def convert(
     data_model_parser = DataModelParser(schema)
 
     # Parse Model
-    logger.info("Parsing data model.")
+    click.echo("Parsing data model.")
     parsed_data_model = data_model_parser.parse_model()
 
     # Convert parsed model to graph
@@ -100,11 +100,11 @@ def convert(
     data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graphschema
-    logger.info("Generating data model graph.")
+    click.echo("Generating data model graph.")
     graph_data_model = data_model_grapher.graph
 
     # Validate generated data model.
-    logger.info("Validating the data model internally.")
+    click.echo("Validating the data model internally.")
     data_model_validator = DataModelValidator(graph=graph_data_model)
     data_model_errors, data_model_warnings = data_model_validator.run_checks()
 
@@ -134,21 +134,21 @@ def convert(
     else:
         output_file_no_ext = re.sub("[.](jsonld|csv|pickle)$", "", output_jsonld)
 
-    logger.info(
+    click.echo(
         "By default, the JSON-LD output will be stored alongside the first "
         f"input CSV or JSON-LD file. In this case, it will appear here: '{output_jsonld}'. "
         "You can use the `--output_jsonld` argument to specify another file path."
     )
 
     if output_type in ["graph", "all"]:
-        logger.info("Export graph to pickle.")
+        click.echo("Export graph to pickle.")
         output_graph = output_file_no_ext + ".pickle"
         export_graph(graph_data_model, output_graph)
         if output_type == "graph":
             click.echo(f"Graph created {output_graph}")
             return 0
 
-    logger.info("Converting data model to JSON-LD")
+    click.echo("Converting data model to JSON-LD")
     jsonld_data_model = convert_graph_to_jsonld(graph=graph_data_model)
 
     # output JSON-LD file alongside CSV file by default, get path.
@@ -157,7 +157,7 @@ def convert(
     # saving updated schema.org schema
     try:
         export_schema(jsonld_data_model, output_jsonld)
-        logger.info(
+        click.echo(
             f"The Data Model was created and saved to '{output_jsonld}' location."
         )
     except:  # pylint: disable=bare-except
