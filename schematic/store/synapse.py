@@ -1908,34 +1908,6 @@ class SynapseStorage(BaseStorage):
                 except Exception as e:
                     raise RuntimeError(f"failed with { repr(e) }.") from e
 
-    def count_entity_id(self, manifest: pd.DataFrame) -> int:
-        """Check if there are any non-NaN values in the original manifest's entityId column
-
-        Args:
-            manifest (pd.DataFrame): manifest dataframe
-
-        Returns:
-            int: The count of non-NaN entityId values.
-        """
-        # Normalize the column names to lowercase
-        normalized_columns = {col.lower(): col for col in manifest.columns}
-
-        # Check if a case-insensitive 'entityid' column exists
-        if "entityid" in normalized_columns:
-            entity_id_column = normalized_columns["entityid"]
-            entity_id_count = manifest[entity_id_column].notna().sum()
-        else:
-            entity_id_count = 0
-        return entity_id_count
-
-    def handle_missing_entity_ids(
-        original_entity_id_count: int, merged_entity_id_count: int
-    ):
-        if original_entity_id_count != merged_entity_id_count:
-            raise LookupError(
-                "Some entityId values became NaN due to unmatched Filename"
-            )
-
     @tracer.start_as_current_span("SynapseStorage::add_annotations_to_entities_files")
     async def add_annotations_to_entities_files(
         self,
@@ -1979,19 +1951,6 @@ class SynapseStorage(BaseStorage):
             manifest = manifest.merge(
                 file_df, how="left", on="Filename", suffixes=["_x", None]
             ).drop("entityId_x", axis=1)
-
-            # count entity ids after manifest gets merged
-            merged_manifest_entity_id_count = self.count_entity_id(manifest)
-
-            # drop the duplicate entity column with NA values
-            # col_to_drop = "entityId_x"
-            # if manifest.entityId.isnull().all():
-            #     col_to_drop = "entityId"
-
-            # # If the original entityId column is empty after the merge, drop it and rename the duplicate column
-            # manifest.drop(columns=[col_to_drop], inplace=True)
-            # if col_to_drop == "entityId":
-            #     manifest.rename(columns={"entityId_x": "entityId"}, inplace=True)
 
         # Fill `entityId` for each row if missing and annotate entity as appropriate
         requests = set()
