@@ -292,47 +292,31 @@ def initalize_metadata_model(schema_url, data_model_labels):
     )
     return metadata_model
 
-
-def get_temp_jsonld(schema_url):
-    # retrieve a JSON-LD via URL and store it in a temporary location
-    with urllib.request.urlopen(schema_url) as response:
-        with tempfile.NamedTemporaryFile(
-            delete=False, suffix=".model.jsonld"
-        ) as tmp_file:
-            shutil.copyfileobj(response, tmp_file)
-
-    # get path to temporary JSON-LD file
-    return tmp_file.name
-
-
-def get_temp_csv(schema_url):
-    # retrieve a CSV via URL and store it in a temporary location
-    with urllib.request.urlopen(schema_url) as response:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".model.csv") as tmp_file:
-            shutil.copyfileobj(response, tmp_file)
-
-    # get path to temporary csv file
-    return tmp_file.name
-
-
-def get_temp_pickle(graph_url: str) -> str:
-    # retrieve a pickle via URL and store it in a temporary location
-    with urllib.request.urlopen(graph_url) as response:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pickle") as tmp_file:
+def get_temp_file(
+        url: str,
+        suffix: str
+) -> str:
+    """
+    Retrieve a file via URL and store it in a temporary location
+    :param url str: URL to the file
+    :param suffix str: Suffix of the file
+    :return: Path to the temporary file
+    """
+    with urllib.request.urlopen(url) as response:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
             shutil.copyfileobj(response, tmp_file)
 
     return tmp_file.name
-
 
 def get_temp_model_path(schema_url):
     # Get model type:
     model_extension = pathlib.Path(schema_url).suffix.replace(".", "").upper()
     if model_extension == "CSV":
-        temp_path = get_temp_csv(schema_url)
+        temp_path = get_temp_file(schema_url, ".model.csv")
     elif model_extension == "JSONLD":
-        temp_path = get_temp_jsonld(schema_url)
+        temp_path = get_temp_file(schema_url, ".model.jsonld")
     elif model_extension == "PICKLE":
-        temp_path = get_temp_pickle(schema_url)
+        temp_path = get_temp_file(schema_url, ".model.pickle")
     else:
         raise ValueError(
             "Did not provide a valid model type CSV or JSONLD or PICKLE, please check submission and try again."
