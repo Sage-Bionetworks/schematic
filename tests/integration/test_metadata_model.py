@@ -99,6 +99,7 @@ class TestMetadataModel:
         spy_add_annotations.assert_called_once()
 
         import asyncio
+
         async def get_annotations_async(entityId, synapse_store):
             return await asyncio.to_thread(synapse_store.syn.get_annotations, entityId)
 
@@ -110,7 +111,7 @@ class TestMetadataModel:
         annotations = await asyncio.gather(*tasks)
 
         # AND the annotations should have the correct metadata
-        #for row in manifest.itertuples():
+        # for row in manifest.itertuples():
         for annos, row in zip(annotations, manifest.itertuples()):
             expected_sample_id = row.SampleID
             sample_id = annos["SampleID"][0]
