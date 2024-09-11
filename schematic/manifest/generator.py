@@ -28,12 +28,11 @@ from schematic.utils.google_api_utils import (
     execute_google_api_requests,
     export_manifest_drive_service,
 )
+from schematic.utils.io_utils import read_pickle
 from schematic.utils.schema_utils import (
     DisplayLabelType,
     extract_component_validation_rules,
 )
-from schematic.utils.df_utils import update_df, load_df
-from schematic.utils.io_utils import read_pickle
 from schematic.utils.validate_utils import rule_in_rule_list
 
 logger = logging.getLogger(__name__)
@@ -1662,13 +1661,11 @@ class ManifestGenerator(object):
         title: Optional[str] = None,
         strict: Optional[bool] = True,
         use_annotations: Optional[bool] = False,
-        graph_data_model: Optional[nx.MultiDiGraph] = None,
         data_model_graph_pickle: Optional[str] = None,
     ) -> Union[List[str], List[pd.DataFrame]]:
         """Create multiple manifests
 
         Args:
-            path_to_data_model (str): str path to data model
             data_model_graph_pickle (str, optional): path to pickled networkx MultiDiGraph object. Defaults to None.
             graph_data_model (str, optional): An networkx MultiDiGraph object. Defaults to None.
             data_types (list): a list of data types
@@ -1728,25 +1725,20 @@ class ManifestGenerator(object):
                     "Please check your submission and try again."
                 )
 
-        if graph_data_model is None:
-            if data_model_graph_pickle:
-                """What if pickle file does not fit in memory?"""
-                graph_data_model = read_pickle(data_model_graph_pickle)
-            else:
-                data_model_parser = DataModelParser(
-                    path_to_data_model=path_to_data_model
-                )
+        if data_model_graph_pickle:
+            """What if pickle file does not fit in memory?"""
+            graph_data_model = read_pickle(data_model_graph_pickle)
+        else:
+            data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
 
-                # Parse Model
-                parsed_data_model = data_model_parser.parse_model()
+            # Parse Model
+            parsed_data_model = data_model_parser.parse_model()
 
-                # Instantiate DataModelGraph
-                data_model_grapher = DataModelGraph(
-                    parsed_data_model, data_model_labels
-                )
+            # Instantiate DataModelGraph
+            data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
-                # Generate graph
-                graph_data_model = data_model_grapher.graph
+            # Generate graph
+            graph_data_model = data_model_grapher.graph
 
         # Gather all returned result urls
         all_results = []
