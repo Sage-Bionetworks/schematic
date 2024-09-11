@@ -33,11 +33,11 @@ from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExp
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.synapse import ManifestDownload, SynapseStorage
 from schematic.utils.general import entity_type_mapping
+from schematic.utils.io_utils import read_pickle
 from schematic.utils.schema_utils import (
     DisplayLabelType,
     get_property_label_from_display_name,
 )
-from schematic.utils.io_utils import read_pickle
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.visualization.tangled_tree import TangledTree
 
@@ -292,10 +292,8 @@ def initalize_metadata_model(schema_url, data_model_labels):
     )
     return metadata_model
 
-def get_temp_file(
-        url: str,
-        suffix: str
-) -> str:
+
+def get_temp_file(url: str, suffix: str) -> str:
     """
     Retrieve a file via URL and store it in a temporary location
     :param url str: URL to the file
@@ -307,6 +305,7 @@ def get_temp_file(
             shutil.copyfileobj(response, tmp_file)
 
     return tmp_file.name
+
 
 def get_temp_model_path(schema_url):
     # Get model type:
@@ -357,10 +356,8 @@ def get_manifest_route(
 
     config_handler(asset_view=asset_view)
 
-    graph_data_model = None
     if graph_url is not None:
         graph_path = get_temp_model_path(graph_url)
-        graph_data_model = read_pickle(graph_path)
 
     all_results = ManifestGenerator.create_manifests(
         path_to_data_model=schema_url,
@@ -372,7 +369,7 @@ def get_manifest_route(
         strict=strict_validation,
         use_annotations=use_annotations,
         data_model_labels=data_model_labels,
-        graph_data_model=graph_data_model,
+        data_model_graph_pickle=graph_path,
     )
 
     # return an excel file if output_format is set to "excel"
