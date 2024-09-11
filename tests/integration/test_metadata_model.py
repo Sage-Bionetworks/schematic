@@ -48,7 +48,7 @@ class TestMetadataModel:
             ),
         ],
     )
-    async def test_submit_filebased_manifest(
+    def test_submit_filebased_manifest(
         self,
         helpers,
         manifest_path,
