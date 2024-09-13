@@ -766,11 +766,24 @@ class TestValidateAttributeObject:
                 val_rule="filenameExists syn61682648",
                 manifest=manifest,
                 access_token="test_access_token",
+                dataset_scope="syn1",
             )
             mock_generate_filename_error.assert_called_once() if generates_error else mock_generate_filename_error.assert_not_called()
             assert (actual_errors, actual_warnings) == (
                 expected_errors,
                 expected_warnings,
+            )
+
+    def test_filename_validation_null_dataset_scope(self, va_obj: ValidateAttribute):
+        with pytest.raises(
+            ValueError,
+            match="A dataset is required to be specified for filename validation",
+        ):
+            va_obj.filename_validation(
+                val_rule="filenameExists syn61682648",
+                manifest=TEST_MANIFEST_GOOD,
+                access_token="test_access_token",
+                dataset_scope=None,
             )
 
     #########################################
