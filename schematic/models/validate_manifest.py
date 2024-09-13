@@ -105,6 +105,7 @@ class ValidateManifest(object):
         dmge: DataModelGraphExplorer,
         restrict_rules: bool,
         project_scope: list[str],
+        dataset_scope: Optional[str] = None,
         access_token: Optional[str] = None,
     ) -> (pd.core.frame.DataFrame, list[list[str]]):
         """
@@ -272,7 +273,11 @@ class ValidateManifest(object):
                         )
                     elif validation_type == "filenameExists":
                         vr_errors, vr_warnings = validation_method(
-                            rule, manifest, access_token, project_scope
+                            rule,
+                            manifest,
+                            access_token,
+                            dataset_scope,
+                            project_scope,
                         )
                     else:
                         vr_errors, vr_warnings = validation_method(
@@ -351,12 +356,13 @@ def validate_all(
     jsonSchema,
     restrict_rules,
     project_scope: List,
+    dataset_scope: str,
     access_token: str,
 ):
     # Run Validation Rules
     vm = ValidateManifest(errors, manifest, manifestPath, dmge, jsonSchema)
     manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(
-        manifest, dmge, restrict_rules, project_scope, access_token
+        manifest, dmge, restrict_rules, project_scope, dataset_scope, access_token
     )
 
     if vmr_errors:

@@ -2040,6 +2040,7 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest: pd.core.frame.DataFrame,
         access_token: str,
+        dataset_scope: str,
         project_scope: Optional[list] = None,
     ):
         """
@@ -2049,18 +2050,24 @@ class ValidateAttribute(object):
             val_rule: str, Validation rule for the component
             manifest: pd.core.frame.DataFrame, manifest
             access_token: str, Asset Store access token
+            dataset_scope: str, Dataset with files to validate against
             project_scope: Optional[list] = None: Projects to limit the scope of cross manifest validation to.
         Returns:
             errors: list[str] Error details for further storage.
             warnings: list[str] Warning details for further storage.
         """
+
+        if dataset_scope is None:
+            raise ValueError(
+                "A dataset is required to be specified for filename validation"
+            )
+
         errors = []
         warnings = []
 
         where_clauses = []
-        rule_parts = val_rule.split(" ")
 
-        dataset_clause = f"parentId='{rule_parts[1]}'"
+        dataset_clause = f"parentId='{dataset_scope}'"
         where_clauses.append(dataset_clause)
 
         self._login(

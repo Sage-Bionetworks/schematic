@@ -189,6 +189,7 @@ class SynapseStorage(BaseStorage):
     TODO: Need to define the interface and rename and/or refactor some of the methods below.
     """
 
+    @tracer.start_as_current_span("SynapseStorage::__init__")
     def __init__(
         self,
         token: Optional[str] = None,  # optional parameter retrieved from browser cookie
@@ -223,6 +224,7 @@ class SynapseStorage(BaseStorage):
         if perform_query:
             self.query_fileview(columns=columns, where_clauses=where_clauses)
 
+    @tracer.start_as_current_span("SynapseStorage::_purge_synapse_cache")
     def _purge_synapse_cache(
         self, maximum_storage_allowed_cache_gb: int = 1, minute_buffer: int = 15
     ) -> None:
@@ -1207,6 +1209,7 @@ class SynapseStorage(BaseStorage):
             )
         return manifests, manifest_loaded
 
+    @tracer.start_as_current_span("SynapseStorage::get_synapse_table")
     def get_synapse_table(self, synapse_id: str) -> Tuple[pd.DataFrame, CsvFileTable]:
         """Download synapse table as a pd dataframe; return table schema and etags as results too
 
@@ -1219,6 +1222,7 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
+    @tracer.start_as_current_span("SynapseStorage::_get_tables")
     def _get_tables(self, datasetId: str = None, projectId: str = None) -> List[Table]:
         if projectId:
             project = projectId
@@ -1790,8 +1794,10 @@ class SynapseStorage(BaseStorage):
 
     def _generate_table_name(self, manifest):
         """Helper function to generate a table name for upload to synapse.
+
         Args:
             Manifest loaded as a pd.Dataframe
+
         Returns:
             table_name (str): Name of the table to load
             component_name (str): Name of the manifest component (if applicable)
@@ -2239,9 +2245,9 @@ class SynapseStorage(BaseStorage):
         # Upload manifest to synapse based on user input (manifest_record_type)
         if manifest_record_type == "file_only":
             manifest_synapse_file_id = self.upload_manifest_as_csv(
-                dmge,
-                manifest,
-                metadataManifestPath,
+                dmge=dmge,
+                manifest=manifest,
+                metadataManifestPath=metadataManifestPath,
                 datasetId=datasetId,
                 restrict=restrict_manifest,
                 hideBlanks=hideBlanks,
@@ -2252,9 +2258,9 @@ class SynapseStorage(BaseStorage):
             )
         elif manifest_record_type == "table_and_file":
             manifest_synapse_file_id = self.upload_manifest_as_table(
-                dmge,
-                manifest,
-                metadataManifestPath,
+                dmge=dmge,
+                manifest=manifest,
+                metadataManifestPath=metadataManifestPath,
                 datasetId=datasetId,
                 table_name=table_name,
                 component_name=component_name,
@@ -2268,9 +2274,9 @@ class SynapseStorage(BaseStorage):
             )
         elif manifest_record_type == "file_and_entities":
             manifest_synapse_file_id = self.upload_manifest_as_csv(
-                dmge,
-                manifest,
-                metadataManifestPath,
+                dmge=dmge,
+                manifest=manifest,
+                metadataManifestPath=metadataManifestPath,
                 datasetId=datasetId,
                 restrict=restrict_manifest,
                 hideBlanks=hideBlanks,
@@ -2281,9 +2287,9 @@ class SynapseStorage(BaseStorage):
             )
         elif manifest_record_type == "table_file_and_entities":
             manifest_synapse_file_id = self.upload_manifest_combo(
-                dmge,
-                manifest,
-                metadataManifestPath,
+                dmge=dmge,
+                manifest=manifest,
+                metadataManifestPath=metadataManifestPath,
                 datasetId=datasetId,
                 table_name=table_name,
                 component_name=component_name,
@@ -2465,6 +2471,7 @@ class SynapseStorage(BaseStorage):
         else:
             return False
 
+    @tracer.start_as_current_span("SynapseStorage::getDatasetProject")
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_chain(
@@ -2602,6 +2609,7 @@ class TableOperations:
         self.existingTableId = existingTableId
         self.restrict = restrict
 
+    @tracer.start_as_current_span("TableOperations::createTable")
     def createTable(
         self,
         columnTypeDict: dict = None,
@@ -2670,6 +2678,7 @@ class TableOperations:
             table = self.synStore.syn.store(table, isRestricted=self.restrict)
             return table.schema.id
 
+    @tracer.start_as_current_span("TableOperations::replaceTable")
     def replaceTable(
         self,
         specifySchema: bool = True,
@@ -2764,6 +2773,7 @@ class TableOperations:
         existing_table.drop(columns=["ROW_ID", "ROW_VERSION"], inplace=True)
         return self.existingTableId
 
+    @tracer.start_as_current_span("TableOperations::_get_auth_token")
     def _get_auth_token(
         self,
     ):
@@ -2807,6 +2817,7 @@ class TableOperations:
 
         return authtoken
 
+    @tracer.start_as_current_span("TableOperations::upsertTable")
     def upsertTable(self, dmge: DataModelGraphExplorer):
         """
         Method to upsert rows from a new manifest into an existing table on synapse
@@ -2847,6 +2858,7 @@ class TableOperations:
 
         return self.existingTableId
 
+    @tracer.start_as_current_span("TableOperations::_update_table_uuid_column")
     def _update_table_uuid_column(
         self,
         dmge: DataModelGraphExplorer,
@@ -2912,6 +2924,7 @@ class TableOperations:
 
         return
 
+    @tracer.start_as_current_span("TableOperations::updateTable")
     def updateTable(
         self,
         update_col: str = "Id",
