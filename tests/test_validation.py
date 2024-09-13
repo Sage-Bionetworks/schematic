@@ -734,7 +734,7 @@ class TestManifestValidation:
                 val_rule="filenameExists syn61682648",
                 attribute_name="Filename",
                 row_num="7",
-                invalid_entry="schematic - main/MockFilenameComponent/txt5.txt",
+                invalid_entry="schematic - main/MockFilenameComponent/txt6.txt",
                 error_type="missing entityId",
                 dmge=dmge,
             )[0]
