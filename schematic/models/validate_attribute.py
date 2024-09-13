@@ -11,8 +11,8 @@ import numpy as np
 import pandas as pd
 import requests
 from jsonschema import ValidationError
-from synapseclient.core.exceptions import SynapseNoCredentialsError
 from synapseclient import File
+from synapseclient.core.exceptions import SynapseNoCredentialsError
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
@@ -479,10 +479,15 @@ class GenerateError:
             Errors: list[str] Error details for further storage.
             warnings: list[str] Warning details for further storage.
         """
-        if error_type == "path does not exist":
-            error_message = f"The file path '{invalid_entry}' on row {row_num} does not exist in the file view."
-        elif error_type == "mismatched entityId":
-            error_message = f"The entityId for file path '{invalid_entry}' on row {row_num} does not match the entityId for the file in the file view"
+        error_messages = {
+            "mismatched entityId": f"The entityId for file path '{invalid_entry}' on row {row_num} does not match the entityId for the file in the file view.",
+            "path does not exist": f"The file path '{invalid_entry}' on row {row_num} does not exist in the file view.",
+            "entityId does not exist": f"The entityId for file path '{invalid_entry}' on row {row_num} does not exist in the file view.",
+            "missing entityId": f"The entityId is missing for file path '{invalid_entry}' on row {row_num}.",
+        }
+        error_message = error_messages.get(error_type, None)
+        if not error_message:
+            raise KeyError(f"Unsupported error type provided: '{error_type}'")
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
@@ -2068,12 +2073,11 @@ class ValidateAttribute(object):
         fileview = self.synStore.storageFileviewTable.reset_index(drop=True)
         # filename in dataset?
         files_in_view = manifest["Filename"].isin(fileview["path"])
+        entity_ids_in_view = manifest["entityId"].isin(fileview["id"])
         # filenames match with entity IDs in dataset
         joined_df = manifest.merge(
-            fileview, how="outer", left_on="Filename", right_on="path"
+            fileview, how="left", left_on="Filename", right_on="path"
         )
-        # cover case where there are more files in dataset than in manifest
-        joined_df = joined_df.loc[~joined_df["Component"].isna()].reset_index(drop=True)
 
         entity_id_match = joined_df["id"] == joined_df["entityId"]
 
@@ -2082,6 +2086,12 @@ class ValidateAttribute(object):
         manifest_with_errors["Error"] = pd.NA
         manifest_with_errors.loc[~entity_id_match, "Error"] = "mismatched entityId"
         manifest_with_errors.loc[~files_in_view, "Error"] = "path does not exist"
+        manifest_with_errors.loc[
+            ~entity_ids_in_view, "Error"
+        ] = "entityId does not exist"
+        manifest_with_errors.loc[
+            manifest_with_errors["entityId"].isna(), "Error"
+        ] = "missing entityId"
 
         # Generate errors
         invalid_entries = manifest_with_errors.loc[
@@ -2091,7 +2101,7 @@ class ValidateAttribute(object):
             vr_errors, vr_warnings = GenerateError.generate_filename_error(
                 val_rule=val_rule,
                 attribute_name="Filename",
-                row_num=str(index),
+                row_num=str(index + 2),
                 invalid_entry=data["Filename"],
                 error_type=data["Error"],
                 dmge=self.dmge,
