@@ -774,10 +774,6 @@ class TestValidateAttributeObject:
             )
 
     #########################################
-    # generate_filename_error
-    #########################################
-
-    #########################################
     # _run_validation_across_target_manifests
     #########################################
 
