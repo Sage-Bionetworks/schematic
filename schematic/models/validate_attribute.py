@@ -480,9 +480,11 @@ class GenerateError:
             warnings: list[str] Warning details for further storage.
         """
         error_messages = {
-            "mismatched entityId": f"The entityId for file path '{invalid_entry}' on row {row_num} does not match the entityId for the file in the file view.",
+            "mismatched entityId": f"The entityId for file path '{invalid_entry}' on row {row_num}"
+            " does not match the entityId for the file in the file view.",
             "path does not exist": f"The file path '{invalid_entry}' on row {row_num} does not exist in the file view.",
-            "entityId does not exist": f"The entityId for file path '{invalid_entry}' on row {row_num} does not exist in the file view.",
+            "entityId does not exist": f"The entityId for file path '{invalid_entry}' on row {row_num}"
+            " does not exist in the file view.",
             "missing entityId": f"The entityId is missing for file path '{invalid_entry}' on row {row_num}.",
         }
         error_message = error_messages.get(error_type, None)
