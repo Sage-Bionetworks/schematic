@@ -78,7 +78,7 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs/schematic
-          name: github-pages-${{ env.PYTHON_VERSION }}
+          name: github-pages
 
   # Deploy the artifact to GitHub pages.
   # This is a separate job so that only actions/deploy-pages has the necessary permissions.
