@@ -25,6 +25,7 @@ class TestMetadataModel:
     @pytest.mark.parametrize(
         "manifest_path, dataset_id, validate_component, expected_manifest_id, dataset_scope",
         [
+            # Test 1: Check that a valid manifest can be submitted, and corresponding entities annotated from it
             (
                 "mock_manifests/filepath_submission_test_manifest.csv",
                 "syn62276880",
@@ -32,6 +33,7 @@ class TestMetadataModel:
                 "syn62280543",
                 None,
             ),
+            # Test 2: Change the Sample ID annotation from the previous test to ensure the manifest file is getting updated
             (
                 "mock_manifests/filepath_submission_test_manifest_sampleidx10.csv",
                 "syn62276880",
@@ -39,6 +41,7 @@ class TestMetadataModel:
                 "syn62280543",
                 None,
             ),
+            # Test 3: Test manifest file upload with validation based on the MockFilename component and given dataset_scope
             (
                 "mock_manifests/ValidFilenameManifest.csv",
                 "syn62822337",
@@ -110,11 +113,14 @@ class TestMetadataModel:
         manifest_annos = synapse_store.syn.get_annotations(manifest_id)
         for annotation in manifest_annos.keys():
             # We ignore eTag since this is not part of the manifest file annotations
-            if annotation == "eTag": continue
+            if annotation == "eTag":
+                continue
             # Ensure that the entityId annotation is the manifest file's own synapse ID
-            if annotation == "entityId": assert manifest_annos[annotation] == expected_manifest_id
+            if annotation == "entityId":
+                assert manifest_annos[annotation][0] == expected_manifest_id
             # The rest of the manifest annotations should be from the manifest file itself
-            else: assert manifest_annos[annotation] == manifest[annotation].unique()
+            else:
+                assert manifest_annos[annotation][0] == manifest[annotation].unique()
 
         # AND the manifest should be submitted to the correct place
         assert manifest_id == expected_manifest_id
