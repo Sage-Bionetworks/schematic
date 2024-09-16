@@ -77,11 +77,11 @@ class TestMetadataModel:
             "dtype": "string",
         }
         manifest = helpers.get_data_frame(
-            manifest_path, preserve_raw_input=False, **load_args
+            manifest_path, preserve_raw_input=True, **load_args
         )
         manifest_full_path = helpers.get_data_path(manifest_path)
 
-        # WHEN the manifest it submitted and files are annotated
+        # WHEN the manifest is submitted and files are annotated
         # THEN submission should complete without error
         with does_not_raise():
             manifest_id = meta_data_model.submit_metadata_manifest(
@@ -99,12 +99,12 @@ class TestMetadataModel:
         spy_add_annotations.assert_called_once()
 
         # AND the annotations should have the correct metadata
-        for row in manifest.itertuples():
-            entityId = row.entityId
-            expected_sample_id = row.SampleID
+        for index, row in manifest.iterrows():
+            entityId = row["entityId"]
+            expected_sample_id = row["Sample ID"]
             annos = synapse_store.syn.get_annotations(entityId)
             sample_id = annos["SampleID"][0]
-            assert sample_id == expected_sample_id
+            assert str(sample_id) == str(expected_sample_id)
 
         # AND the manifest should be submitted to the correct place
         assert manifest_id == expected_manifest_id

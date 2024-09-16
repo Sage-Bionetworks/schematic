@@ -1,4 +1,4 @@
-Component,SampleID,Filename,Id,entityId
+Component,Sample ID,Filename,Id,entityId
 MockFilename,1.0,schematic - main/TestSubmitMockFilename/txt1.txt,3c4c384b-5c49-4a7c-90a6-43f03a5ddbdc,syn62822369
 MockFilename,2.0,schematic - main/TestSubmitMockFilename/txt2.txt,3b45f5f3-408f-47ff-945e-9badf0a43195,syn62822368
 MockFilename,3.0,schematic - main/TestSubmitMockFilename/txt3.txt,2bbc898f-2651-4af3-834a-10c506de0fbd,syn62822366
