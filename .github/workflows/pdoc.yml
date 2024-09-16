@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - develop
-      - bwmac/FDS-2415/fix-pdoc-workflow
   workflow_dispatch:  # Allow manually triggering the workflow
 
 # security: restrict permissions for CI jobs.
