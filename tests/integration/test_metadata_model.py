@@ -98,13 +98,23 @@ class TestMetadataModel:
         # AND the files should be annotated
         spy_add_annotations.assert_called_once()
 
-        # AND the annotations should have the correct metadata
+        # AND the annotations on the entities should have the correct metadata
         for index, row in manifest.iterrows():
             entityId = row["entityId"]
             expected_sample_id = row["Sample ID"]
             annos = synapse_store.syn.get_annotations(entityId)
             sample_id = annos["SampleID"][0]
             assert str(sample_id) == str(expected_sample_id)
+
+        # AND the annotations on the manifest file itself should have the correct metadata
+        manifest_annos = synapse_store.syn.get_annotations(manifest_id)
+        for annotation in manifest_annos.keys():
+            # We ignore eTag since this is not part of the manifest file annotations
+            if annotation == "eTag": continue
+            # Ensure that the entityId annotation is the manifest file's own synapse ID
+            if annotation == "entityId": assert manifest_annos[annotation] == expected_manifest_id
+            # The rest of the manifest annotations should be from the manifest file itself
+            else: assert manifest_annos[annotation] == manifest[annotation].unique()
 
         # AND the manifest should be submitted to the correct place
         assert manifest_id == expected_manifest_id
