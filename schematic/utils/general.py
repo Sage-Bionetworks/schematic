@@ -183,7 +183,9 @@ def clear_synapse_cache(synapse_cache: cache.Cache, minutes: int) -> int:
 
 
 def entity_type_mapping(
-    syn: Synapse, entity_id: str, synapse_entity_tracker: SynapseEntiyTracker = None
+    syn: Synapse,
+    entity_id: str,
+    synapse_entity_tracker: Optional[SynapseEntiyTracker] = None,
 ) -> str:
     """Return the entity type of manifest
 
@@ -226,7 +228,7 @@ def entity_type_mapping(
     return entity_type
 
 
-def create_temp_folder(path: str, prefix: str = None) -> str:
+def create_temp_folder(path: str, prefix: Optional[str] = None) -> str:
     """This function creates a temporary directory in the specified directory
     Args:
         path(str): a directory path where all the temporary files will live
