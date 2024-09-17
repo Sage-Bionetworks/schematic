@@ -152,15 +152,9 @@ class GreatExpectationsHelpers(object):
             saves expectation suite and identifier to self
         """
         self.expectation_suite_name = f"Manifest_test_suite_{uuid.uuid4()}"
-
-        try:
-            expectation_suite = self.context.get_expectation_suite(
-                expectation_suite_name=self.expectation_suite_name
-            )
-        except DataContextError:
-            expectation_suite = self.context.add_expectation_suite(
-                expectation_suite_name=self.expectation_suite_name,
-            )
+        expectation_suite = self.context.add_expectation_suite(
+            expectation_suite_name=self.expectation_suite_name,
+        )
         self.suite = expectation_suite
 
         return self.suite
