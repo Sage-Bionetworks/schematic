@@ -1554,6 +1554,22 @@ class SynapseStorage(BaseStorage):
 
         Returns:
             Dict[str, Any]: annotations as a dictionary
+
+        ```mermaid
+        flowchart TD
+            A[Start] --> C{Is anno_v empty, whitespace, or NaN?}
+            C -- Yes --> D{Is hide_blanks True?}
+            D -- Yes --> E[Remove this annotation key from the annotation dictionary to be uploaded. Skip further processing]
+            D -- No --> F[Assign empty string to annotation key]
+            C -- No --> G{Is anno_v a string?}
+            G -- No --> H[Assign original value of anno_v to annotation key]
+            G -- Yes --> I{Does anno_v match csv_list_regex?}
+            I -- Yes --> J[Get validation rule of anno_k]
+            J --> K{Does the validation rule contain 'list'}
+            K -- Yes --> L[Split anno_v by commas and assign as list]
+            I -- No --> H
+            K -- No --> H
+        ```
         """
         for anno_k, anno_v in metadata_syn.items():
             # Remove keys with nan or empty string values or string that only contains white space from dict of annotations to be uploaded
