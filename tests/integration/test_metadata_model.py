@@ -1,9 +1,12 @@
 """
-This script contains a test suite for verifying the submission and annotation of file-based manifests using the `TestMetadataModel` class
-to communicate with Synapse and verify the expected behavior of uploading annotation manifest CSVs using the metadata model.
+This script contains a test suite for verifying the submission and annotation of
+file-based manifests using the `TestMetadataModel` class to communicate with Synapse
+and verify the expected behavior of uploading annotation manifest CSVs using the
+metadata model.
 
-It utilizes the `pytest` framework along with `pytest-mock` to mock and spy on methods of the `SynapseStorage` class,
-which is responsible for handling file uploads and annotations in Synapse.
+It utilizes the `pytest` framework along with `pytest-mock` to mock and spy on methods
+of the `SynapseStorage` class, which is responsible for handling file uploads and
+annotations in Synapse.
 """
 
 import logging
@@ -13,9 +16,7 @@ import shutil
 
 from contextlib import nullcontext as does_not_raise
 
-import pytest
 from pytest_mock import MockerFixture
-
 from schematic.store.synapse import SynapseStorage
 from tests.conftest import metadata_model
 
@@ -24,7 +25,6 @@ logger = logging.getLogger(__name__)
 
 
 class TestMetadataModel:
-
     # Define the test cases as a class attribute
     test_cases = [
         # Test 1: Check that a valid manifest can be submitted, and corresponding entities annotated from it
@@ -130,7 +130,7 @@ class TestMetadataModel:
         dataset_scope=None,
         download_dir=os.path.join(os.getcwd(), "temp"),
     ):
-        # spys
+        # Spies
         spy_upload_file_as_csv = mocker.spy(SynapseStorage, "upload_manifest_as_csv")
         spy_upload_file_as_table = mocker.spy(
             SynapseStorage, "upload_manifest_as_table"
@@ -144,9 +144,7 @@ class TestMetadataModel:
         meta_data_model = metadata_model(helpers, "class_label")
 
         # AND a filebased test manifest
-        load_args = {
-            "dtype": "string",
-        }
+        load_args = {"dtype": "string"}
         manifest = helpers.get_data_frame(
             manifest_path, preserve_raw_input=True, **load_args
         )
@@ -170,7 +168,7 @@ class TestMetadataModel:
         spy_add_annotations.assert_called_once()
 
         # AND the annotations on the entities should have the correct metadata
-        for _, row in manifest.iterrows():
+        for index, row in manifest.iterrows():
             entityId = row["entityId"]
             expected_sample_id = row["Sample ID"]
             annos = synapse_store.syn.get_annotations(entityId)
