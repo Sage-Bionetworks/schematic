@@ -185,15 +185,22 @@ class TestMetadataModel:
             else:
                 assert manifest_annos[annotation][0] == manifest[annotation].unique()
 
-        # AND the annotations in the manifest table should reflect the ones in the file, if applicable
         if manifest_record_type == "table_and_file":
-            table_annotations = synapse_store.syn.tableQuery(
+            # AND the columns in the manifest table should reflect the ones in the file, if applicable
+            manifest_table = synapse_store.syn.tableQuery(
                 f"select * from {expected_table_id}", downloadLocation=download_dir
             ).asDataFrame()
 
-            table_columns = table_annotations.columns
+            table_columns = manifest_table.columns
             manifest_columns = [col.replace(" ", "") for col in manifest.columns]
             assert set(table_columns) == set(manifest_columns)
+
+            # AND the eTag annotation in the manifest table is non-empty
+            table_annotations = synapse_store.syn.get_annotations(expected_table_id)
+            assert len(table_annotations["eTag"][0]) > 0
+
+            # AND the entityId annotation in the manifest table matches what is expected
+            assert table_annotations["entityId"][0] == expected_table_id
 
             # Cleanup
             shutil.rmtree(download_dir)
