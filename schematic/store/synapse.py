@@ -1526,7 +1526,19 @@ class SynapseStorage(BaseStorage):
         annos: Dict[str, Any],
         annotation_keys: str,
     ) -> Dict[str, Any]:
-        """processes metadata annotations
+        """Processes metadata annotations based on the logic below:
+        1. Checks if the hide_blanks flag is True, and if the current annotation value (anno_v) is:
+            An empty or whitespace-only string.
+            A NaN value (if the annotation is a float).
+        if any of the above conditions are met, and hide_blanks is True, the annotation key is not going to be uploaded and skips further processing of that annotation key.
+        if any of the above conditions are met, and hide_blanks is False, assigns an empty string "" as the annotation value for that key.
+
+        2. If the value is a string and matches the pattern defined by csv_list_regex, get validation rule based on "node label" or "node display name".
+        Check if the rule contains "list" as a rule, if it does, split the string by comma and assign the resulting list as the annotation value for that key.
+
+        3. For any other conditions, assigns the original value of anno_v to the annotation key (anno_k).
+
+        4. Returns the updated annotations dictionary.
 
         Args:
             dmge (DataModelGraphExplorer): data model graph explorer
