@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import re
+import uuid
 from math import ceil
 from time import perf_counter
 from typing import Dict, Generator, List, Tuple, Union
@@ -1006,7 +1007,12 @@ class TestManifestOperation:
         data = None
         if test_manifest_fixture:
             test_manifest_path = request.getfixturevalue(test_manifest_fixture)
-            data = {"file_name": (open(test_manifest_path, "rb"), "test.csv")}
+            data = {
+                "file_name": (
+                    open(test_manifest_path, "rb"),
+                    f"test_{uuid.uuid4()}.csv",
+                )
+            }
 
         # AND the appropriate headers for the test
         if update_headers:
@@ -1082,7 +1088,9 @@ class TestManifestOperation:
             "new_manifest_name": new_manifest_name,
             "as_json": as_json,
         }
-        temp_manifest_folder = create_temp_folder(path=config.manifest_folder)
+        temp_manifest_folder = create_temp_folder(
+            path=config.manifest_folder, prefix=str(uuid.uuid4())
+        )
         with patch(
             "schematic.store.synapse.create_temp_folder",
             return_value=temp_manifest_folder,
@@ -1214,7 +1222,12 @@ class TestManifestOperation:
         response_csv = client.post(
             "http://localhost:3001/v1/model/submit",
             query_string=params,
-            data={"file_name": (open(test_manifest_submit, "rb"), "test.csv")},
+            data={
+                "file_name": (
+                    open(test_manifest_submit, "rb"),
+                    f"test_{uuid.uuid4()}.csv",
+                )
+            },
             headers=request_headers,
         )
         assert response_csv.status_code == 200
@@ -1274,7 +1287,7 @@ class TestManifestOperation:
         response_csv = client.post(
             "http://localhost:3001/v1/model/submit",
             query_string=params,
-            data={"file_name": (open(manifest_path, "rb"), "test.csv")},
+            data={"file_name": (open(manifest_path, "rb"), f"test_{uuid.uuid4()}.csv")},
             headers=request_headers,
         )
         assert response_csv.status_code == 200
@@ -1332,7 +1345,12 @@ class TestManifestOperation:
         response_csv = client.post(
             "http://localhost:3001/v1/model/submit",
             query_string=params,
-            data={"file_name": (open(test_manifest_submit, "rb"), "test.csv")},
+            data={
+                "file_name": (
+                    open(test_manifest_submit, "rb"),
+                    f"test_{uuid.uuid4()}.csv",
+                )
+            },
             headers=request_headers,
         )
         assert response_csv.status_code == 200
@@ -1362,7 +1380,12 @@ class TestManifestOperation:
         response_csv = client.post(
             "http://localhost:3001/v1/model/submit",
             query_string=params,
-            data={"file_name": (open(test_upsert_manifest_csv, "rb"), "test.csv")},
+            data={
+                "file_name": (
+                    open(test_upsert_manifest_csv, "rb"),
+                    f"test_{uuid.uuid4()}.csv",
+                )
+            },
             headers=request_headers,
         )
         assert response_csv.status_code == 200
@@ -1393,7 +1416,12 @@ class TestManifestOperation:
         response_csv = client.post(
             "http://localhost:3001/v1/model/submit",
             query_string=params,
-            data={"file_name": (open(valid_filename_manifest_csv, "rb"), "test.csv")},
+            data={
+                "file_name": (
+                    open(valid_filename_manifest_csv, "rb"),
+                    f"test_{uuid.uuid4()}.csv",
+                )
+            },
             headers=request_headers,
         )
 
@@ -1625,7 +1653,12 @@ class TestValidationBenchmark:
             response = client.post(
                 endpoint_url,
                 query_string=params,
-                data={"file_name": (open(large_manifest_path, "rb"), "large_test.csv")},
+                data={
+                    "file_name": (
+                        open(large_manifest_path, "rb"),
+                        f"large_test_{uuid.uuid4()}.csv",
+                    )
+                },
                 headers=headers,
             )
             response_time = perf_counter() - t_start

@@ -1240,7 +1240,7 @@ class SynapseStorage(BaseStorage):
                     ("", ""),
                 )
                 if not dry_run:
-                    manifest_syn_id = self.associateMetadataWithFiles(
+                    self.associateMetadataWithFiles(
                         dmge, manifest_path, datasetId, manifest_record_type="table"
                     )
                 manifest_loaded.append(manifest)

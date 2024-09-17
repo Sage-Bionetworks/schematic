@@ -20,7 +20,7 @@ from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.synapse import ManifestDownload, SynapseStorage
-from schematic.utils.general import entity_type_mapping
+from schematic.utils.general import create_temp_folder, entity_type_mapping
 from schematic.utils.schema_utils import (
     DisplayLabelType,
     get_property_label_from_display_name,
@@ -103,7 +103,7 @@ class JsonConverter:
         """
 
         # convert dataframe to a temporary csv file
-        temp_dir = tempfile.gettempdir()
+        temp_dir = create_temp_folder(path=tempfile.gettempdir())
         temp_path = os.path.join(temp_dir, file_name)
         df.to_csv(temp_path, encoding="utf-8", index=False)
         return temp_path
@@ -192,7 +192,7 @@ def save_file(file_key="csv_file"):
     manifest_file = connexion.request.files[file_key]
 
     # save contents of incoming manifest CSV file to temp file
-    temp_dir = tempfile.gettempdir()
+    temp_dir = create_temp_folder(path=tempfile.gettempdir())
     # path to temp file where manifest file contents will be saved
     temp_path = os.path.join(temp_dir, manifest_file.filename)
     # save content

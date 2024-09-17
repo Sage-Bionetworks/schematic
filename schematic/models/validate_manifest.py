@@ -187,7 +187,10 @@ class ValidateManifest(object):
                     result_format={"result_format": "COMPLETE"},
                 )
             finally:
-                ge_helpers.context.delete_checkpoint(ge_helpers.checkpoint_name)
+                ge_helpers.context.delete_checkpoint(name=ge_helpers.checkpoint_name)
+                ge_helpers.context.delete_expectation_suite(
+                    expectation_suite_name=ge_helpers.expectation_suite_name
+                )
 
             validation_results = results.list_validation_results()
 
