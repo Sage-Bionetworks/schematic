@@ -192,6 +192,7 @@ def entity_type_mapping(
     Args:
         syn (Synapse): Synapse object
         entity_id (str): id of an entity
+        synapse_entity_tracker: Tracker for a pull-through cache of Synapse entities
 
     Raises:
         SynapseHTTPError: Re-raised SynapseHTTPError

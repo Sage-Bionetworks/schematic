@@ -21,7 +21,7 @@ def validate_schema(schema: Union[Mapping, bool]) -> None:
     """Validate schema against schema.org standard"""
     data_path = "validation_schemas/model.schema.json"
     # Lazy import to avoid circular imports
-    from schematic import LOADER
+    from schematic import LOADER  # pylint: disable=import-outside-toplevel
 
     json_schema_path = LOADER.filename(data_path)
     json_schema = load_json(json_schema_path)
@@ -32,7 +32,7 @@ def validate_property_schema(schema: Union[Mapping, bool]) -> None:
     """Validate schema against SchemaORG property definition standard"""
     data_path = "validation_schemas/property.schema.json"
     # Lazy import to avoid circular imports
-    from schematic import LOADER
+    from schematic import LOADER  # pylint: disable=import-outside-toplevel
 
     json_schema_path = LOADER.filename(data_path)
     json_schema = load_json(json_schema_path)
@@ -43,7 +43,7 @@ def validate_class_schema(schema: Union[Mapping, bool]) -> None:
     """Validate schema against SchemaORG class definition standard"""
     data_path = "validation_schemas/class.schema.json"
     # Lazy import to avoid circular imports
-    from schematic import LOADER
+    from schematic import LOADER  # pylint: disable=import-outside-toplevel
 
     json_schema_path = LOADER.filename(data_path)
     json_schema = load_json(json_schema_path)

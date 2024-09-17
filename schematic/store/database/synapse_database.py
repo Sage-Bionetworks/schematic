@@ -53,6 +53,7 @@ class SynapseDatabase:
         Args:
             auth_token (str): A Synapse auth_token
             project_id (str): A Synapse id for a project
+            synapse_entity_tracker: Tracker for a pull-through cache of Synapse entities
         """
         self.synapse = Synapse(
             auth_token=auth_token,

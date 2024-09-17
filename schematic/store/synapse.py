@@ -81,6 +81,7 @@ class ManifestDownload(object):
     """
     syn: an object of type synapseclient.
     manifest_id: id of a manifest
+    synapse_entity_tracker: Tracker for a pull-through cache of Synapse entities
     """
 
     syn: synapseclient.Synapse
@@ -2846,6 +2847,7 @@ class TableOperations:
         datasetId: synID of the dataset for the manifest
         existingTableId: synId of the table currently exising on synapse (if there is one)
         restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions
+        synapse_entity_tracker: Tracker for a pull-through cache of Synapse entities
 
         """
         self.synStore = synStore

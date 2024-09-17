@@ -47,7 +47,7 @@ class DataModelParser:
             base_schema_path: Path to base schema based on provided argument.
         """
         # Lazy import to avoid circular imports
-        from schematic import LOADER
+        from schematic import LOADER  # pylint: disable=import-outside-toplevel
 
         biothings_schema_path = LOADER.filename("data_models/biothings.model.jsonld")
         self.base_schema_path = (

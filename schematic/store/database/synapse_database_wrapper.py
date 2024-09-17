@@ -43,6 +43,7 @@ class Synapse:  # pylint: disable=too-many-public-methods
             auth_token (str): A Synapse auth_token
             project_id (str): A Synapse id for a project
             cache_root_dir( str | None): Where the directory of the synapse cache should be located
+            synapse_entity_tracker: Tracker for a pull-through cache of Synapse entities
         """
         self.project_id = project_id
         if syn:

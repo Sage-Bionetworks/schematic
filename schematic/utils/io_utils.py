@@ -33,7 +33,7 @@ def load_default() -> Any:
     """Load biolink vocabulary"""
     data_path = "data_models/biothings.model.jsonld"
     # Lazy import to avoid circular imports
-    from schematic import LOADER
+    from schematic import LOADER  # pylint: disable=import-outside-toplevel
 
     biothings_path = LOADER.filename(data_path)
     return load_json(biothings_path)
@@ -43,7 +43,7 @@ def load_schemaorg() -> Any:
     """Load SchemaOrg vocabulary"""
     data_path = "data_models/schema_org.model.jsonld"
     # Lazy import to avoid circular imports
-    from schematic import LOADER
+    from schematic import LOADER  # pylint: disable=import-outside-toplevel
 
     schema_org_path = LOADER.filename(data_path)
     return load_json(schema_org_path)
