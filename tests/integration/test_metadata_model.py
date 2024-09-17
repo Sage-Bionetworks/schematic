@@ -57,7 +57,8 @@ class TestMetadataModel:
     ]
 
     @pytest.mark.parametrize(
-        "manifest_path, dataset_id, validate_component, expected_manifest_id, expected_table_id, dataset_scope",
+        "manifest_path, dataset_id, validate_component, expected_manifest_id, "
+        "expected_table_id, dataset_scope",
         test_cases,
     )
     def test_submit_filebased_manifest_file_and_entities(
@@ -86,7 +87,8 @@ class TestMetadataModel:
         )
 
     @pytest.mark.parametrize(
-        "manifest_path, dataset_id, validate_component, expected_manifest_id, expected_table_id, dataset_scope",
+        "manifest_path, dataset_id, validate_component, expected_manifest_id, "
+        "expected_table_id, dataset_scope",
         test_cases,
     )
     def test_submit_filebased_manifest_table_and_file(
