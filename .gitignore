@@ -177,6 +177,7 @@ tests/data/schema.gpickle
 # Created during testting
 Example*
 manifests/*
+https:*
 
 # schematic config file
 config.yml

@@ -2,16 +2,17 @@
 
 # pylint: disable = anomalous-backslash-in-string
 
+import logging
 import re
 from collections.abc import Mapping
-import logging
-from typing import Pattern, Union, Iterable, Any, Optional
 from numbers import Number
-from jsonschema import validate
+from typing import Any, Iterable, Optional, Pattern, Union
+
 import numpy as np
 import pandas as pd
+from jsonschema import validate
+
 from schematic.utils.io_utils import load_json
-from schematic import LOADER
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,9 @@ logger = logging.getLogger(__name__)
 def validate_schema(schema: Union[Mapping, bool]) -> None:
     """Validate schema against schema.org standard"""
     data_path = "validation_schemas/model.schema.json"
+    # Lazy import to avoid circular imports
+    from schematic import LOADER
+
     json_schema_path = LOADER.filename(data_path)
     json_schema = load_json(json_schema_path)
     return validate(schema, json_schema)
@@ -27,6 +31,9 @@ def validate_schema(schema: Union[Mapping, bool]) -> None:
 def validate_property_schema(schema: Union[Mapping, bool]) -> None:
     """Validate schema against SchemaORG property definition standard"""
     data_path = "validation_schemas/property.schema.json"
+    # Lazy import to avoid circular imports
+    from schematic import LOADER
+
     json_schema_path = LOADER.filename(data_path)
     json_schema = load_json(json_schema_path)
     return validate(schema, json_schema)
@@ -35,6 +42,9 @@ def validate_property_schema(schema: Union[Mapping, bool]) -> None:
 def validate_class_schema(schema: Union[Mapping, bool]) -> None:
     """Validate schema against SchemaORG class definition standard"""
     data_path = "validation_schemas/class.schema.json"
+    # Lazy import to avoid circular imports
+    from schematic import LOADER
+
     json_schema_path = LOADER.filename(data_path)
     json_schema = load_json(json_schema_path)
     return validate(schema, json_schema)

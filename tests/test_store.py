@@ -1018,13 +1018,32 @@ class TestTableOperations:
 
         # AND a copy of all the folders in the manifest. Added to the dataset directory for easy cleanup
         manifest = helpers.get_data_frame(manifest_path)
-        for index, row in manifest.iterrows():
+
+        async def copy_folder_and_update_manifest(
+            row: pd.Series,
+            index: int,
+            datasetId: str,
+            synapse_store: SynapseStorage,
+            manifest: pd.DataFrame,
+            schedule_for_cleanup: Callable[[CleanupItem], None],
+        ) -> None:
+            """Internal function to copy a folder and update the manifest."""
             folder_id = row["entityId"]
-            folder_copy = FolderModel(id=folder_id).copy(
+            folder_copy = await FolderModel(id=folder_id).copy_async(
                 parent_id=datasetId, synapse_client=synapse_store.syn
             )
             schedule_for_cleanup(CleanupItem(synapse_id=folder_copy.id))
             manifest.at[index, "entityId"] = folder_copy.id
+
+        tasks = []
+
+        for index, row in manifest.iterrows():
+            tasks.append(
+                copy_folder_and_update_manifest(
+                    row, index, datasetId, synapse_store, manifest, schedule_for_cleanup
+                )
+            )
+        await asyncio.gather(*tasks)
 
         with patch.object(
             synapse_store, "_generate_table_name", return_value=(table_name, "followup")
@@ -1051,10 +1070,12 @@ class TestTableOperations:
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
 
         # THEN the table should exist
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
+        existing_table_id = synapse_store.syn.findEntityId(
+            name=table_name, parent=projectId
+        )
 
         # assert table exists
-        assert table_name in existing_tables.keys()
+        assert existing_table_id is not None
 
     @pytest.mark.parametrize(
         "table_column_names",
@@ -1088,17 +1109,33 @@ class TestTableOperations:
         # AND a copy of all the folders in the manifest. Added to the dataset directory for easy cleanup
         manifest = helpers.get_data_frame(manifest_path)
         replacement_manifest = helpers.get_data_frame(replacement_manifest_path)
-        for index, row in manifest.iterrows():
+
+        async def copy_folder_and_update_manifest(
+            row: pd.Series,
+            index: int,
+            datasetId: str,
+            synapse_store: SynapseStorage,
+            manifest: pd.DataFrame,
+            schedule_for_cleanup: Callable[[CleanupItem], None],
+        ) -> None:
+            """Internal function to copy a folder and update the manifest."""
             folder_id = row["entityId"]
-            folder_copy = FolderModel(id=folder_id).copy(
+            folder_copy = await FolderModel(id=folder_id).copy_async(
                 parent_id=datasetId, synapse_client=synapse_store.syn
             )
             schedule_for_cleanup(CleanupItem(synapse_id=folder_copy.id))
             manifest.at[index, "entityId"] = folder_copy.id
             replacement_manifest.at[index, "entityId"] = folder_copy.id
 
-        # Check if FollowUp table exists if so delete
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
+        tasks = []
+        for index, row in manifest.iterrows():
+            tasks.append(
+                copy_folder_and_update_manifest(
+                    row, index, datasetId, synapse_store, manifest, schedule_for_cleanup
+                )
+            )
+
+        await asyncio.gather(*tasks)
 
         with patch.object(
             synapse_store, "_generate_table_name", return_value=(table_name, "followup")
@@ -1123,10 +1160,9 @@ class TestTableOperations:
                 annotation_keys=annotation_keys,
             )
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # Query table for DaystoFollowUp column
-        table_id = existing_tables[table_name]
+        table_id = synapse_store.syn.findEntityId(name=table_name, parentId=projectId)
         days_to_follow_up = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
             .asDataFrame()
@@ -1159,10 +1195,9 @@ class TestTableOperations:
                 annotation_keys=annotation_keys,
             )
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # Query table for DaystoFollowUp column
-        table_id = existing_tables[table_name]
+        table_id = synapse_store.syn.findEntityId(name=table_name, parentId=projectId)
         days_to_follow_up = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
             .asDataFrame()
@@ -1218,10 +1253,9 @@ class TestTableOperations:
                 annotation_keys=annotation_keys,
             )
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # set primary key annotation for uploaded table
-        table_id = existing_tables[table_name]
+        table_id = synapse_store.syn.findEntityId(name=table_name, parentId=projectId)
 
         # Query table for DaystoFollowUp column
         table_query = (
@@ -1260,10 +1294,9 @@ class TestTableOperations:
                 annotation_keys=annotation_keys,
             )
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # Query table for DaystoFollowUp column
-        table_id = existing_tables[table_name]
+        table_id = synapse_store.syn.findEntityId(name=table_name, parentId=projectId)
         table_query = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
             .asDataFrame()
@@ -1336,7 +1369,7 @@ class TestDownloadManifest:
         # attempt to download an uncensored manifest that has access restriction.
         # if the code works correctly, the censored manifest that does not have access restriction would get downloaded (see: syn29862066)
         md = ManifestDownload(synapse_store.syn, "syn29862066")
-        manifest_data = md.download_manifest(md)
+        manifest_data = md.download_manifest()
 
         assert os.path.exists(manifest_data["path"])
 

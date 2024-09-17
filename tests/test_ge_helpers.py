@@ -8,7 +8,7 @@ from schematic.models.GE_Helpers import GreatExpectationsHelpers
 from tests.conftest import Helpers
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def mock_ge_helpers(
     helpers: Helpers,
 ) -> Generator[GreatExpectationsHelpers, None, None]:

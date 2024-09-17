@@ -4,9 +4,7 @@ import pathlib
 import pickle
 import shutil
 import tempfile
-import time
 import urllib.request
-from functools import wraps
 from typing import List, Tuple
 
 import connexion
@@ -15,16 +13,6 @@ from flask import current_app as app
 from flask import request, send_from_directory
 from flask_cors import cross_origin
 from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import (
-    BatchSpanProcessor,
-    ConsoleSpanExporter,
-    SimpleSpanProcessor,
-    Span,
-)
-from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
 
 from schematic.configuration.configuration import CONFIG
 from schematic.manifest.generator import ManifestGenerator
@@ -43,75 +31,8 @@ from schematic.visualization.tangled_tree import TangledTree
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-tracing_service_name = os.environ.get("TRACING_SERVICE_NAME", "schematic-api")
 
-trace.set_tracer_provider(
-    TracerProvider(resource=Resource(attributes={SERVICE_NAME: tracing_service_name}))
-)
-
-
-# borrowed from: https://github.com/Sage-Bionetworks/synapsePythonClient/blob/develop/tests/integration/conftest.py
-class FileSpanExporter(ConsoleSpanExporter):
-    """Create an exporter for OTEL data to a file."""
-
-    def __init__(self, file_path: str) -> None:
-        """Init with a path."""
-        self.file_path = file_path
-
-    def export(self, spans: List[Span]) -> None:
-        """Export the spans to the file."""
-        with open(self.file_path, "a", encoding="utf-8") as f:
-            for span in spans:
-                span_json_one_line = span.to_json().replace("\n", "") + "\n"
-                f.write(span_json_one_line)
-
-
-def set_up_tracing() -> None:
-    """Set up tracing for the API."""
-    tracing_export = os.environ.get("TRACING_EXPORT_FORMAT", None)
-    if tracing_export == "otlp":
-        trace.get_tracer_provider().add_span_processor(
-            BatchSpanProcessor(OTLPSpanExporter())
-        )
-    elif tracing_export == "file":
-        timestamp_millis = int(time.time() * 1000)
-        file_name = f"otel_spans_integration_testing_{timestamp_millis}.ndjson"
-        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
-        processor = SimpleSpanProcessor(FileSpanExporter(file_path))
-        trace.get_tracer_provider().add_span_processor(processor)
-    else:
-        trace.set_tracer_provider(TracerProvider(sampler=ALWAYS_OFF))
-
-
-set_up_tracing()
 tracer = trace.get_tracer("Schematic")
-
-
-def trace_function_params():
-    """capture all the parameters of API requests"""
-
-    def decorator(func):
-        """create a decorator"""
-
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            """create a wrapper function. Any number of positional arguments and keyword arguments can be passed here."""
-            tracer = trace.get_tracer(__name__)
-            # Start a new span with the function's name
-            with tracer.start_as_current_span(func.__name__) as span:
-                # Set values of parameters as tags
-                for i, arg in enumerate(args):
-                    span.set_attribute(f"arg{i}", arg)
-
-                for name, value in kwargs.items():
-                    span.set_attribute(name, value)
-                # Call the actual function
-                result = func(*args, **kwargs)
-                return result
-
-        return wrapper
-
-    return decorator
 
 
 def config_handler(asset_view: str = None):
@@ -314,6 +235,7 @@ def get_temp_csv(schema_url):
     return tmp_file.name
 
 
+@tracer.start_as_current_span("routes::get_temp_model_path")
 def get_temp_model_path(schema_url):
     # Get model type:
     model_extension = pathlib.Path(schema_url).suffix.replace(".", "").upper()
@@ -329,7 +251,6 @@ def get_temp_model_path(schema_url):
 
 
 # @before_request
-@trace_function_params()
 def get_manifest_route(
     schema_url: str,
     use_annotations: bool,
@@ -392,7 +313,6 @@ def get_manifest_route(
     return all_results
 
 
-@trace_function_params()
 def validate_manifest_route(
     schema_url,
     data_type,
@@ -451,7 +371,6 @@ def validate_manifest_route(
 
 
 # profile validate manifest route function
-@trace_function_params()
 def submit_manifest_route(
     schema_url,
     data_model_labels: str,
@@ -495,9 +414,6 @@ def submit_manifest_route(
         validate_component = None
     else:
         validate_component = data_type
-
-    # get path to temp data model file (csv or jsonld) as appropriate
-    data_model = get_temp_model_path(schema_url)
 
     if not table_column_names:
         table_column_names = "class_label"
@@ -638,7 +554,7 @@ def check_entity_type(entity_id):
     config_handler()
 
     syn = SynapseStorage.login(access_token=access_token)
-    entity_type = entity_type_mapping(syn, entity_id)
+    entity_type = entity_type_mapping(syn=syn, entity_id=entity_id)
 
     return entity_type
 
@@ -738,7 +654,7 @@ def download_manifest(manifest_id, new_manifest_name="", as_json=True):
     syn = SynapseStorage.login(access_token=access_token)
     try:
         md = ManifestDownload(syn, manifest_id)
-        manifest_data = ManifestDownload.download_manifest(md, new_manifest_name)
+        manifest_data = md.download_manifest(newManifestName=new_manifest_name)
         # return local file path
         manifest_local_file_path = manifest_data["path"]
     except TypeError as e:

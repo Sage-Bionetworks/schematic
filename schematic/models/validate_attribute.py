@@ -11,8 +11,8 @@ import numpy as np
 import pandas as pd
 import requests
 from jsonschema import ValidationError
-from synapseclient.core.exceptions import SynapseNoCredentialsError
 from synapseclient import File
+from synapseclient.core.exceptions import SynapseNoCredentialsError
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
@@ -866,7 +866,7 @@ class ValidateAttribute(object):
         project_scope: Optional[list[str]],
         access_token: Optional[str] = None,
     ) -> tuple[list[str], list[str]]:
-        """Gets a list of synapse ids of mainfests to check against
+        """Gets a list of synapse ids of manifests to check against
 
         Args:
             target_component (str): Manifet ids are gotten fo this type

@@ -1,19 +1,16 @@
 "Data Model Parser"
 
-import pathlib
-from typing import Any, Union, Optional
-
 import logging
+import pathlib
+from typing import Any, Optional, Union
+
 import pandas as pd
 from opentelemetry import trace
 
+from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.df_utils import load_df
 from schematic.utils.io_utils import load_json
 from schematic.utils.schema_utils import attr_dict_template
-
-from schematic.schemas.data_model_relationships import DataModelRelationships
-
-from schematic import LOADER
 
 logger = logging.getLogger("Schemas")
 
@@ -49,6 +46,9 @@ class DataModelParser:
         Returns:
             base_schema_path: Path to base schema based on provided argument.
         """
+        # Lazy import to avoid circular imports
+        from schematic import LOADER
+
         biothings_schema_path = LOADER.filename("data_models/biothings.model.jsonld")
         self.base_schema_path = (
             biothings_schema_path if base_schema is None else base_schema

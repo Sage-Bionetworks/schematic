@@ -5,15 +5,18 @@ import re
 from math import ceil
 from time import perf_counter
 from typing import Dict, Generator, List, Tuple, Union
+from unittest.mock import patch
 
 import flask
 import pandas as pd  # third party library import
 import pytest
 from flask.testing import FlaskClient
+from opentelemetry import trace
 
 from schematic.configuration.configuration import Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
+from schematic.utils.general import create_temp_folder
 from schematic_api.api import create_app
 
 logging.basicConfig(level=logging.INFO)
@@ -120,15 +123,40 @@ def get_MockComponent_attribute() -> Generator[str, None, None]:
         yield MockComponent_attribute
 
 
+def get_traceparent() -> str:
+    """Create and format the `traceparent` to used in the header of the request. This
+    is used by opentelemetry to attach the context that was started outside of the
+    flask server to the request. The purpose is so that we can propagate the trace
+    context across services."""
+    current_span = trace.get_current_span()
+    span_context = current_span.get_span_context()
+    trace_id = format(span_context.trace_id, "032x")
+    span_id = format(span_context.span_id, "016x")
+    trace_flags = format(span_context.trace_flags, "02x")
+
+    traceparent = f"00-{trace_id}-{span_id}-{trace_flags}"
+
+    return traceparent
+
+
 @pytest.fixture
 def request_headers(syn_token: str) -> Dict[str, str]:
-    headers = {"Authorization": "Bearer " + syn_token}
+    headers = {"Authorization": "Bearer " + syn_token, "traceparent": get_traceparent()}
+    return headers
+
+
+@pytest.fixture
+def request_headers_trace() -> Dict[str, str]:
+    headers = {"traceparent": get_traceparent()}
     return headers
 
 
 @pytest.fixture
 def request_invalid_headers() -> Dict[str, str]:
-    headers = {"Authorization": "Bearer invalid headers"}
+    headers = {
+        "Authorization": "Bearer invalid headers",
+        "traceparent": get_traceparent(),
+    }
     return headers
 
 
@@ -338,7 +366,9 @@ class TestSynapseStorage:
 @pytest.mark.schematic_api
 class TestMetadataModelOperation:
     @pytest.mark.parametrize("as_graph", [True, False])
-    def test_component_requirement(self, client: FlaskClient, as_graph: bool) -> None:
+    def test_component_requirement(
+        self, client: FlaskClient, as_graph: bool, request_headers_trace: Dict[str, str]
+    ) -> None:
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
             "source_component": "BulkRNA-seqAssay",
@@ -346,7 +376,9 @@ class TestMetadataModelOperation:
         }
 
         response = client.get(
-            "http://localhost:3001/v1/model/component-requirements", query_string=params
+            "http://localhost:3001/v1/model/component-requirements",
+            query_string=params,
+            headers=request_headers_trace,
         )
 
         assert response.status_code == 200
@@ -366,7 +398,10 @@ class TestMetadataModelOperation:
 class TestUtilsOperation:
     @pytest.mark.parametrize("strict_camel_case", [True, False])
     def test_get_property_label_from_display_name(
-        self, client: FlaskClient, strict_camel_case: bool
+        self,
+        client: FlaskClient,
+        strict_camel_case: bool,
+        request_headers_trace: Dict[str, str],
     ) -> None:
         params = {
             "display_name": "mocular entity",
@@ -376,6 +411,7 @@ class TestUtilsOperation:
         response = client.get(
             "http://localhost:3001/v1/utils/get_property_label_from_display_name",
             query_string=params,
+            headers=request_headers_trace,
         )
         assert response.status_code == 200
 
@@ -389,10 +425,14 @@ class TestUtilsOperation:
 
 @pytest.mark.schematic_api
 class TestDataModelGraphExplorerOperation:
-    def test_get_schema(self, client: FlaskClient) -> None:
+    def test_get_schema(
+        self, client: FlaskClient, request_headers_trace: Dict[str, str]
+    ) -> None:
         params = {"schema_url": DATA_MODEL_JSON_LD, "data_model_labels": "class_label"}
         response = client.get(
-            "http://localhost:3001/v1/schemas/get/schema", query_string=params
+            "http://localhost:3001/v1/schemas/get/schema",
+            query_string=params,
+            headers=request_headers_trace,
         )
 
         response_dt = response.data
@@ -403,7 +443,9 @@ class TestDataModelGraphExplorerOperation:
         if os.path.exists(response_dt):
             os.remove(response_dt)
 
-    def test_if_node_required(test, client: FlaskClient) -> None:
+    def test_if_node_required(
+        test, client: FlaskClient, request_headers_trace: Dict[str, str]
+    ) -> None:
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
             "node_display_name": "FamilyHistory",
@@ -411,13 +453,17 @@ class TestDataModelGraphExplorerOperation:
         }
 
         response = client.get(
-            "http://localhost:3001/v1/schemas/is_node_required", query_string=params
+            "http://localhost:3001/v1/schemas/is_node_required",
+            query_string=params,
+            headers=request_headers_trace,
         )
         response_dta = json.loads(response.data)
         assert response.status_code == 200
         assert response_dta == True
 
-    def test_get_node_validation_rules(test, client: FlaskClient) -> None:
+    def test_get_node_validation_rules(
+        test, client: FlaskClient, request_headers_trace: Dict[str, str]
+    ) -> None:
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
             "node_display_name": "CheckRegexList",
@@ -425,13 +471,16 @@ class TestDataModelGraphExplorerOperation:
         response = client.get(
             "http://localhost:3001/v1/schemas/get_node_validation_rules",
             query_string=params,
+            headers=request_headers_trace,
         )
         response_dta = json.loads(response.data)
         assert response.status_code == 200
         assert "list" in response_dta
         assert "regex match [a-f]" in response_dta
 
-    def test_get_nodes_display_names(test, client: FlaskClient) -> None:
+    def test_get_nodes_display_names(
+        test, client: FlaskClient, request_headers_trace: Dict[str, str]
+    ) -> None:
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
             "node_list": ["FamilyHistory", "Biospecimen"],
@@ -439,6 +488,7 @@ class TestDataModelGraphExplorerOperation:
         response = client.get(
             "http://localhost:3001/v1/schemas/get_nodes_display_names",
             query_string=params,
+            headers=request_headers_trace,
         )
         response_dta = json.loads(response.data)
         assert response.status_code == 200
@@ -447,19 +497,29 @@ class TestDataModelGraphExplorerOperation:
     @pytest.mark.parametrize(
         "relationship", ["parentOf", "requiresDependency", "rangeValue", "domainValue"]
     )
-    def test_get_subgraph_by_edge(self, client: FlaskClient, relationship: str) -> None:
+    def test_get_subgraph_by_edge(
+        self,
+        client: FlaskClient,
+        relationship: str,
+        request_headers_trace: Dict[str, str],
+    ) -> None:
         params = {"schema_url": DATA_MODEL_JSON_LD, "relationship": relationship}
 
         response = client.get(
             "http://localhost:3001/v1/schemas/get/graph_by_edge_type",
             query_string=params,
+            headers=request_headers_trace,
         )
         assert response.status_code == 200
 
     @pytest.mark.parametrize("return_display_names", [True, False])
     @pytest.mark.parametrize("node_label", ["FamilyHistory", "TissueStatus"])
     def test_get_node_range(
-        self, client: FlaskClient, return_display_names: bool, node_label: str
+        self,
+        client: FlaskClient,
+        return_display_names: bool,
+        node_label: str,
+        request_headers_trace: Dict[str, str],
     ) -> None:
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
@@ -468,7 +528,9 @@ class TestDataModelGraphExplorerOperation:
         }
 
         response = client.get(
-            "http://localhost:3001/v1/schemas/get_node_range", query_string=params
+            "http://localhost:3001/v1/schemas/get_node_range",
+            query_string=params,
+            headers=request_headers_trace,
         )
         response_dt = json.loads(response.data)
         assert response.status_code == 200
@@ -490,6 +552,7 @@ class TestDataModelGraphExplorerOperation:
         source_node: str,
         return_display_names: Union[bool, None],
         return_schema_ordered: Union[bool, None],
+        request_headers_trace: Dict[str, str],
     ) -> None:
         return_display_names = True
         return_schema_ordered = False
@@ -504,6 +567,7 @@ class TestDataModelGraphExplorerOperation:
         response = client.get(
             "http://localhost:3001/v1/schemas/get_node_dependencies",
             query_string=params,
+            headers=request_headers_trace,
         )
         response_dt = json.loads(response.data)
         assert response.status_code == 200
@@ -748,7 +812,11 @@ class TestManifestOperation:
         ],
     )
     def test_generate_manifest_file_based_annotations(
-        self, client: FlaskClient, use_annotations: bool, expected: list[str]
+        self,
+        client: FlaskClient,
+        use_annotations: bool,
+        expected: list[str],
+        request_headers_trace: Dict[str, str],
     ) -> None:
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
@@ -760,7 +828,9 @@ class TestManifestOperation:
         }
 
         response = client.get(
-            "http://localhost:3001/v1/manifest/generate", query_string=params
+            "http://localhost:3001/v1/manifest/generate",
+            query_string=params,
+            headers=request_headers_trace,
         )
         assert response.status_code == 200
 
@@ -798,7 +868,7 @@ class TestManifestOperation:
     # test case: generate a manifest with annotations when use_annotations is set to True for a component that is not file-based
     # the dataset folder does not contain an existing manifest
     def test_generate_manifest_not_file_based_with_annotations(
-        self, client: FlaskClient
+        self, client: FlaskClient, request_headers_trace: Dict[str, str]
     ) -> None:
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
@@ -809,7 +879,9 @@ class TestManifestOperation:
             "use_annotations": False,
         }
         response = client.get(
-            "http://localhost:3001/v1/manifest/generate", query_string=params
+            "http://localhost:3001/v1/manifest/generate",
+            query_string=params,
+            headers=request_headers_trace,
         )
         assert response.status_code == 200
 
@@ -833,21 +905,28 @@ class TestManifestOperation:
             ]
         )
 
-    def test_generate_manifest_data_type_not_found(self, client: FlaskClient) -> None:
+    def test_generate_manifest_data_type_not_found(
+        self, client: FlaskClient, request_headers_trace: Dict[str, str]
+    ) -> None:
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
             "data_type": "wrong data type",
             "use_annotations": False,
         }
         response = client.get(
-            "http://localhost:3001/v1/manifest/generate", query_string=params
+            "http://localhost:3001/v1/manifest/generate",
+            query_string=params,
+            headers=request_headers_trace,
         )
 
         assert response.status_code == 500
         assert "LookupError" in str(response.data)
 
     def test_populate_manifest(
-        self, client: FlaskClient, valid_test_manifest_csv: str
+        self,
+        client: FlaskClient,
+        valid_test_manifest_csv: str,
+        request_headers_trace: Dict[str, str],
     ) -> None:
         # test manifest
         test_manifest_data = open(valid_test_manifest_csv, "rb")
@@ -860,7 +939,9 @@ class TestManifestOperation:
         }
 
         response = client.get(
-            "http://localhost:3001/v1/manifest/generate", query_string=params
+            "http://localhost:3001/v1/manifest/generate",
+            query_string=params,
+            headers=request_headers_trace,
         )
 
         assert response.status_code == 200
@@ -1001,33 +1082,37 @@ class TestManifestOperation:
             "new_manifest_name": new_manifest_name,
             "as_json": as_json,
         }
-
-        response = client.get(
-            "http://localhost:3001/v1/manifest/download",
-            query_string=params,
-            headers=request_headers,
-        )
+        temp_manifest_folder = create_temp_folder(path=config.manifest_folder)
+        with patch(
+            "schematic.store.synapse.create_temp_folder",
+            return_value=temp_manifest_folder,
+        ) as mock_create_temp_folder:
+            response = client.get(
+                "http://localhost:3001/v1/manifest/download",
+                query_string=params,
+                headers=request_headers,
+            )
+        mock_create_temp_folder.assert_called_once()
         assert response.status_code == 200
 
         # if as_json is set to True or as_json is not defined, then a json gets returned
         if as_json or as_json is None:
-            response_dta = json.loads(response.data)
+            response_data = json.loads(response.data)
 
             # check if the correct manifest gets downloaded
-            assert response_dta[0]["Component"] == expected_component
-
-            current_work_dir = os.getcwd()
-            folder_test_manifests = config.manifest_folder
-            folder_dir = os.path.join(current_work_dir, folder_test_manifests)
+            assert response_data[0]["Component"] == expected_component
+            assert temp_manifest_folder is not None
 
             # if a manfiest gets renamed, get new manifest file path
             if new_manifest_name:
                 manifest_file_path = os.path.join(
-                    folder_dir, new_manifest_name + "." + "csv"
+                    temp_manifest_folder, new_manifest_name + "." + "csv"
                 )
             # if a manifest does not get renamed, get existing manifest file path
             else:
-                manifest_file_path = os.path.join(folder_dir, expected_file_name)
+                manifest_file_path = os.path.join(
+                    temp_manifest_folder, expected_file_name
+                )
 
         else:
             # manifest file path gets returned
@@ -1090,6 +1175,7 @@ class TestManifestOperation:
         assert response.status_code == 200
         response_dt = response.data
 
+        # TODO: Check assertions
         if as_json:
             response_json = json.loads(response_dt)
             assert response_json[0]["Component"] == "BulkRNA-seqAssay"
@@ -1317,18 +1403,25 @@ class TestManifestOperation:
 
 @pytest.mark.schematic_api
 class TestSchemaVisualization:
-    def test_visualize_attributes(self, client: FlaskClient) -> None:
+    def test_visualize_attributes(
+        self, client: FlaskClient, request_headers_trace: Dict[str, str]
+    ) -> None:
         params = {"schema_url": DATA_MODEL_JSON_LD}
 
         response = client.get(
-            "http://localhost:3001/v1/visualize/attributes", query_string=params
+            "http://localhost:3001/v1/visualize/attributes",
+            query_string=params,
+            headers=request_headers_trace,
         )
 
         assert response.status_code == 200
 
     @pytest.mark.parametrize("figure_type", ["component", "dependency"])
     def test_visualize_tangled_tree_layers(
-        self, client: FlaskClient, figure_type: str
+        self,
+        client: FlaskClient,
+        figure_type: str,
+        request_headers_trace: Dict[str, str],
     ) -> None:
         # TODO: Determine a 2nd data model to use for this test, test both models sequentially, add checks for content of response
         params = {"schema_url": DATA_MODEL_JSON_LD, "figure_type": figure_type}
@@ -1336,6 +1429,7 @@ class TestSchemaVisualization:
         response = client.get(
             "http://localhost:3001/v1/visualize/tangled_tree/layers",
             query_string=params,
+            headers=request_headers_trace,
         )
 
         assert response.status_code == 200
@@ -1436,7 +1530,11 @@ class TestSchemaVisualization:
         ],
     )
     def test_visualize_component(
-        self, client: FlaskClient, component: str, response_text: str
+        self,
+        client: FlaskClient,
+        component: str,
+        response_text: str,
+        request_headers_trace: Dict[str, str],
     ) -> None:
         params = {
             "schema_url": DATA_MODEL_JSON_LD,
@@ -1446,7 +1544,9 @@ class TestSchemaVisualization:
         }
 
         response = client.get(
-            "http://localhost:3001/v1/visualize/component", query_string=params
+            "http://localhost:3001/v1/visualize/component",
+            query_string=params,
+            headers=request_headers_trace,
         )
 
         assert response.status_code == 200
@@ -1487,7 +1587,11 @@ class TestValidationBenchmark:
             "schema_url": BENCHMARK_DATA_MODEL_JSON_LD,
             "data_type": "MockComponent",
         }
-        headers = {"Content-Type": "multipart/form-data", "Accept": "application/json"}
+        headers = {
+            "Content-Type": "multipart/form-data",
+            "Accept": "application/json",
+            "traceparent": get_traceparent(),
+        }
 
         # Enforce error rate when possible
         if MockComponent_attribute == "Check Ages":
