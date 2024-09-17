@@ -10,9 +10,8 @@ annotations in Synapse.
 """
 
 import logging
-import os
 import pytest
-import shutil
+import tempfile
 
 from contextlib import nullcontext as does_not_raise
 
@@ -55,6 +54,47 @@ class TestMetadataModel:
             "syn62822337",
         ),
     ]
+
+    def validate_manifest_annotations(
+        self,
+        manifest_annotations,
+        manifest_entity_type,
+        expected_entity_id,
+        manifest_file_contents=None,
+    ):
+        """
+        Validates that the annotations on a manifest entity (file or table) were correctly updated
+        by comparing the annotations on the manifest entity with the contents of the manifest file itself,
+        and ensuring the eTag annotation is not empty.
+
+        This method is wrapped by ``_submit_and_verify_manifest()``
+
+        Arguments:
+            manifest_annotations (pd.DataFrame): manifest annotations
+            manifest_entity_type (str): type of manifest (file or table)
+            expected_entity_id (str): expected entity ID of the manifest
+            manifest_file_contents (pd.DataFrame): manifest file contents
+
+        Returns:
+            None
+        """
+        # Check that the eTag annotation is not empty
+        assert len(manifest_annotations["eTag"][0]) > 0
+
+        # Check that entityId is expected
+        assert manifest_annotations["entityId"][0] == expected_entity_id
+
+        # For manifest files only: Check that all other annotations from the manifest match the annotations in the manifest file itself
+        if manifest_entity_type.lower() != "file":
+            return
+        for annotation in manifest_annotations.keys():
+            if annotation in ["eTag", "entityId"]:
+                continue
+            else:
+                assert (
+                    manifest_annotations[annotation][0]
+                    == manifest_file_contents[annotation].unique()
+                )
 
     @pytest.mark.parametrize(
         "manifest_path, dataset_id, validate_component, expected_manifest_id, "
@@ -128,7 +168,6 @@ class TestMetadataModel:
         manifest_record_type,
         validate_component=None,
         dataset_scope=None,
-        download_dir=os.path.join(os.getcwd(), "temp"),
     ):
         # Spies
         spy_upload_file_as_csv = mocker.spy(SynapseStorage, "upload_manifest_as_csv")
@@ -175,35 +214,37 @@ class TestMetadataModel:
             sample_id = annos["SampleID"][0]
             assert str(sample_id) == str(expected_sample_id)
 
-        # AND the annotations on the manifest file itself should have the correct metadata
-        manifest_annos = synapse_store.syn.get_annotations(manifest_id)
-        for annotation in manifest_annos.keys():
-            if annotation == "eTag":
-                continue
-            if annotation == "entityId":
-                assert manifest_annos[annotation][0] == expected_manifest_id
-            else:
-                assert manifest_annos[annotation][0] == manifest[annotation].unique()
+        # AND the annotations on the manifest file itself are correct
+        manifest_file_annotations = synapse_store.syn.get_annotations(
+            expected_manifest_id
+        )
+        self.validate_manifest_annotations(
+            manifest_annotations=manifest_file_annotations,
+            manifest_entity_type="file",
+            expected_entity_id=expected_manifest_id,
+            manifest_file_contents=manifest,
+        )
 
         if manifest_record_type == "table_and_file":
-            # AND the columns in the manifest table should reflect the ones in the file, if applicable
-            manifest_table = synapse_store.syn.tableQuery(
-                f"select * from {expected_table_id}", downloadLocation=download_dir
-            ).asDataFrame()
+            with tempfile.TemporaryDirectory() as download_dir:
+                manifest_table = synapse_store.syn.tableQuery(
+                    f"select * from {expected_table_id}", downloadLocation=download_dir
+                ).asDataFrame()
 
-            table_columns = manifest_table.columns
-            manifest_columns = [col.replace(" ", "") for col in manifest.columns]
-            assert set(table_columns) == set(manifest_columns)
+                # AND the columns in the manifest table should reflect the ones in the file
+                table_columns = manifest_table.columns
+                manifest_columns = [col.replace(" ", "") for col in manifest.columns]
+                assert set(table_columns) == set(manifest_columns)
 
-            # AND the eTag annotation in the manifest table is non-empty
-            table_annotations = synapse_store.syn.get_annotations(expected_table_id)
-            assert len(table_annotations["eTag"][0]) > 0
-
-            # AND the entityId annotation in the manifest table matches what is expected
-            assert table_annotations["entityId"][0] == expected_table_id
-
-            # Cleanup
-            shutil.rmtree(download_dir)
+                # AND the annotations on the manifest table itself are correct
+                manifest_table_annotations = synapse_store.syn.get_annotations(
+                    expected_table_id
+                )
+                self.validate_manifest_annotations(
+                    manifest_annotations=manifest_table_annotations,
+                    manifest_entity_type="table",
+                    expected_entity_id=expected_table_id,
+                )
 
         # AND the manifest should be submitted to the correct place
         assert manifest_id == expected_manifest_id
