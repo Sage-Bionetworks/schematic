@@ -36,13 +36,6 @@ def get_rule_combinations():
 
 
 class TestManifestValidation:
-    # check if suite has been created. If so, delete it
-    if os.path.exists("great_expectations/expectations/Manifest_test_suite.json"):
-        try:
-            os.remove("great_expectations/expectations/Manifest_test_suite.json")
-        except Exception:
-            logger.exception("Error deleting Manifest_test_suite.json")
-
     @pytest.mark.parametrize(
         ("model_name", "manifest_name", "root_node"),
         [
