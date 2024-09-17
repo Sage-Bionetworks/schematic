@@ -233,6 +233,7 @@ def create_temp_folder(path: str, prefix: Optional[str] = None) -> str:
     """This function creates a temporary directory in the specified directory
     Args:
         path(str): a directory path where all the temporary files will live
+        prefix(str): a prefix to be added to the temporary directory name
     Returns: returns the absolute pathname of the new directory.
     """
     # Create a temporary directory in the specified directory

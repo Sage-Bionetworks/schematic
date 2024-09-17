@@ -49,7 +49,6 @@ def load_schemaorg() -> Any:
     return load_json(schema_org_path)
 
 
-# TODO: Add unit tests for this
 def cleanup_temporary_storage(
     temporary_storage_directory: str, time_delta_seconds: int
 ) -> None:
@@ -64,7 +63,9 @@ def cleanup_temporary_storage(
             should be deleted.
     """
     if os.path.exists(temporary_storage_directory):
-        for root, dirs, files in os.walk(temporary_storage_directory, topdown=False):
+        for root, all_dirs, files in os.walk(
+            temporary_storage_directory, topdown=False
+        ):
             # Delete files older than the specified time delta
             for file in files:
                 file_path = os.path.join(root, file)
@@ -74,7 +75,7 @@ def cleanup_temporary_storage(
                     os.remove(file_path)
 
             # Delete empty directories
-            for dir in dirs:
-                dir_path = os.path.join(root, dir)
+            for all_dir in all_dirs:
+                dir_path = os.path.join(root, all_dir)
                 if not os.listdir(dir_path):
                     os.rmdir(dir_path)
