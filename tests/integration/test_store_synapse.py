@@ -9,13 +9,6 @@ from schematic.utils.validate_utils import comma_separated_list_regex
 from tests.conftest import Helpers
 
 
-@pytest.fixture(name="dmge", scope="function")
-def DMGE(helpers: Helpers) -> DataModelGraphExplorer:
-    """Fixture to instantiate a DataModelGraphExplorer object."""
-    dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
-    return dmge
-
-
 class TestStoreSynapse:
     @pytest.mark.parametrize("hideBlanks", [True, False])
     @pytest.mark.parametrize(
