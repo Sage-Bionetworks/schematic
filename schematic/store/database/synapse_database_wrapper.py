@@ -1,6 +1,8 @@
 """Wrapper class for interacting with Synapse database objects. Eventually this will 
 be replaced with a more database/table class that exists within the SYNPY project."""
 
+from typing import Optional
+
 import pandas  # type: ignore
 import synapseclient  # type: ignore
 
@@ -33,7 +35,7 @@ class Synapse:  # pylint: disable=too-many-public-methods
         self,
         auth_token: str,
         project_id: str,
-        cache_root_dir: str | None = None,
+        cache_root_dir: Optional[str] = None,
         synapse_entity_tracker: SynapseEntiyTracker = None,
         syn: synapseclient.Synapse = None,
     ) -> None:
@@ -42,7 +44,7 @@ class Synapse:  # pylint: disable=too-many-public-methods
         Args:
             auth_token (str): A Synapse auth_token
             project_id (str): A Synapse id for a project
-            cache_root_dir( str | None): Where the directory of the synapse cache should be located
+            cache_root_dir( str ): Where the directory of the synapse cache should be located
             synapse_entity_tracker: Tracker for a pull-through cache of Synapse entities
         """
         self.project_id = project_id
