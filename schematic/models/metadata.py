@@ -1,25 +1,24 @@
-import os
 import logging
-import networkx as nx
+import os
 from os.path import exists
-from jsonschema import ValidationError
 
 # allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text, List
+from typing import Any, Dict, List, Optional, Text
+
+import networkx as nx
+from jsonschema import ValidationError
+from opentelemetry import trace
 
 from schematic.manifest.generator import ManifestGenerator
+from schematic.models.validate_manifest import validate_all
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+from schematic.schemas.data_model_parser import DataModelParser
 
 # TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
-
 from schematic.utils.df_utils import load_df
-
-from schematic.models.validate_manifest import validate_all
-from opentelemetry import trace
 
 logger = logging.getLogger(__name__)
 
@@ -200,6 +199,7 @@ class MetadataModel(object):
         restrict_rules: bool = False,
         jsonSchema: Optional[str] = None,
         project_scope: Optional[List] = None,
+        dataset_scope: Optional[str] = None,
         access_token: Optional[str] = None,
     ) -> tuple[list, list]:
         """Check if provided annotations manifest dataframe satisfies all model requirements.
@@ -287,6 +287,7 @@ class MetadataModel(object):
             jsonSchema=jsonSchema,
             restrict_rules=restrict_rules,
             project_scope=project_scope,
+            dataset_scope=dataset_scope,
             access_token=access_token,
         )
         return errors, warnings
@@ -332,6 +333,7 @@ class MetadataModel(object):
         file_annotations_upload: bool = True,
         hide_blanks: bool = False,
         project_scope: Optional[list] = None,
+        dataset_scope: Optional[str] = None,
         table_manipulation: str = "replace",
         table_column_names: str = "class_label",
         annotation_keys: str = "class_label",
@@ -396,6 +398,7 @@ class MetadataModel(object):
                 rootNode=validate_component,
                 restrict_rules=restrict_rules,
                 project_scope=project_scope,
+                dataset_scope=dataset_scope,
                 access_token=access_token,
             )
 

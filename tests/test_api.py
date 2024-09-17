@@ -1,4 +1,3 @@
-import configparser
 import json
 import logging
 import os
@@ -39,8 +38,24 @@ def client(app: flask.Flask) -> Generator[FlaskClient, None, None]:
 
 
 @pytest.fixture(scope="class")
-def test_manifest_csv(helpers) -> str:
+def valid_test_manifest_csv(helpers) -> str:
     test_manifest_path = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
+    return test_manifest_path
+
+
+@pytest.fixture(scope="class")
+def valid_filename_manifest_csv(helpers) -> str:
+    test_manifest_path = helpers.get_data_path(
+        "mock_manifests/ValidFilenameManifest.csv"
+    )
+    return test_manifest_path
+
+
+@pytest.fixture(scope="class")
+def invalid_filename_manifest_csv(helpers) -> str:
+    test_manifest_path = helpers.get_data_path(
+        "mock_manifests/InvalidFilenameManifest.csv"
+    )
     return test_manifest_path
 
 
@@ -76,6 +91,11 @@ def test_manifest_json(helpers) -> str:
     return test_manifest_path
 
 
+@pytest.fixture(scope="class")
+def patient_manifest_json_str() -> str:
+    return '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]'
+
+
 def get_MockComponent_attribute() -> Generator[str, None, None]:
     """
     Yield all of the mock conponent attributes one at a time
@@ -98,19 +118,6 @@ def get_MockComponent_attribute() -> Generator[str, None, None]:
 
     for MockComponent_attribute in attributes:
         yield MockComponent_attribute
-
-
-@pytest.fixture(scope="class")
-def syn_token(config: Configuration):
-    synapse_config_path = config.synapse_configuration_path
-    config_parser = configparser.ConfigParser()
-    config_parser.read(synapse_config_path)
-    # try using synapse access token
-    if "SYNAPSE_ACCESS_TOKEN" in os.environ:
-        token = os.environ["SYNAPSE_ACCESS_TOKEN"]
-    else:
-        token = config_parser["authentication"]["authtoken"]
-    return token
 
 
 @pytest.fixture
@@ -840,10 +847,10 @@ class TestManifestOperation:
         assert "LookupError" in str(response.data)
 
     def test_populate_manifest(
-        self, client: FlaskClient, test_manifest_csv: str
+        self, client: FlaskClient, valid_test_manifest_csv: str
     ) -> None:
         # test manifest
-        test_manifest_data = open(test_manifest_csv, "rb")
+        test_manifest_data = open(valid_test_manifest_csv, "rb")
 
         params = {
             "data_type": "MockComponent",
@@ -863,58 +870,82 @@ class TestManifestOperation:
         assert isinstance(response_dt[0], str)
         assert response_dt[0].startswith("https://docs.google.com/")
 
-    @pytest.mark.parametrize("restrict_rules", [False, True, None])
     @pytest.mark.parametrize(
-        "json_str",
+        "json_str_fixture, test_manifest_fixture, data_type, update_headers, project_scope, dataset_scope",
         [
-            None,
-            '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]',
+            (
+                None,
+                "valid_test_manifest_csv",
+                "MockComponent",
+                True,
+                "syn54126707",
+                None,
+            ),
+            ("patient_manifest_json_str", None, "Patient", False, None, None),
+            (
+                None,
+                "invalid_filename_manifest_csv",
+                "MockFilename",
+                True,
+                "syn23643250",
+                "syn61682648",
+            ),
         ],
     )
+    @pytest.mark.parametrize("restrict_rules", [True, False, None])
     def test_validate_manifest(
         self,
         client: FlaskClient,
-        json_str: Union[str, None],
+        json_str_fixture: Union[str, None],
+        test_manifest_fixture: Union[str, None],
+        data_type: str,
+        update_headers: bool,
+        project_scope: Union[str, None],
+        dataset_scope: Union[str, None],
         restrict_rules: Union[bool, None],
-        test_manifest_csv: str,
         request_headers: Dict[str, str],
+        request: pytest.FixtureRequest,
     ) -> None:
-        params = {"schema_url": DATA_MODEL_JSON_LD, "restrict_rules": restrict_rules}
+        # GIVEN a set of test prameters
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "asset_view": "syn23643253",
+            "restrict_rules": restrict_rules,
+            "project_scope": project_scope,
+            "dataset_scope": dataset_scope,
+            "data_type": data_type,
+        }
 
-        if json_str:
-            params["json_str"] = json_str
-            params["data_type"] = "Patient"
-            response = client.post(
-                "http://localhost:3001/v1/model/validate", query_string=params
-            )
-            response_dt = json.loads(response.data)
-            assert response.status_code == 200
+        # AND a test manifest as a json string
+        params["json_str"] = (
+            request.getfixturevalue(json_str_fixture) if json_str_fixture else None
+        )
 
-        else:
-            params["data_type"] = "MockComponent"
+        # OR a test manifest as a file
+        data = None
+        if test_manifest_fixture:
+            test_manifest_path = request.getfixturevalue(test_manifest_fixture)
+            data = {"file_name": (open(test_manifest_path, "rb"), "test.csv")}
 
+        # AND the appropriate headers for the test
+        if update_headers:
             request_headers.update(
                 {"Content-Type": "multipart/form-data", "Accept": "application/json"}
             )
 
-            # test uploading a csv file
-            response_csv = client.post(
-                "http://localhost:3001/v1/model/validate",
-                query_string=params,
-                data={"file_name": (open(test_manifest_csv, "rb"), "test.csv")},
-                headers=request_headers,
-            )
-            response_dt = json.loads(response_csv.data)
-            assert response_csv.status_code == 200
+        # WHEN the manifest is validated
+        response = client.post(
+            "http://localhost:3001/v1/model/validate",
+            query_string=params,
+            data=data,
+            headers=request_headers,
+        )
 
-            # test uploading a json file
-            # change data type to patient since the testing json manifest is using Patient component
-            # WILL DEPRECATE uploading a json file for validation
-            # params["data_type"] = "Patient"
-            # response_json =  client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_json, 'rb'), "test.json")}, headers=headers)
-            # response_dt = json.loads(response_json.data)
-            # assert response_json.status_code == 200
+        # THEN the request should be successful
+        assert response.status_code == 200
 
+        # AND the response should contain the expected error and warning lists
+        response_dt = json.loads(response.data)
         assert "errors" in response_dt.keys()
         assert "warnings" in response_dt.keys()
 
@@ -1108,7 +1139,7 @@ class TestManifestOperation:
         "data_type, manifest_path_fixture",
         [
             ("Biospecimen", "test_manifest_submit"),
-            ("MockComponent", "test_manifest_csv"),
+            ("MockComponent", "valid_test_manifest_csv"),
         ],
     )
     def test_submit_manifest_file_only_replace(
@@ -1248,6 +1279,39 @@ class TestManifestOperation:
             data={"file_name": (open(test_upsert_manifest_csv, "rb"), "test.csv")},
             headers=request_headers,
         )
+        assert response_csv.status_code == 200
+
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    def test_submit_and_validate_filebased_manifest(
+        self,
+        client: FlaskClient,
+        request_headers: Dict[str, str],
+        valid_filename_manifest_csv: str,
+    ) -> None:
+        # GIVEN the appropriate upload parameters
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "data_type": "MockFilename",
+            "restrict_rules": False,
+            "manifest_record_type": "file_and_entities",
+            "asset_view": "syn23643253",
+            "dataset_id": "syn62822337",
+            "project_scope": "syn23643250",
+            "dataset_scope": "syn62822337",
+            "data_model_labels": "class_label",
+            "table_column_names": "class_label",
+        }
+
+        # WHEN a filebased manifest is validated with the filenameExists rule and uploaded
+        response_csv = client.post(
+            "http://localhost:3001/v1/model/submit",
+            query_string=params,
+            data={"file_name": (open(valid_filename_manifest_csv, "rb"), "test.csv")},
+            headers=request_headers,
+        )
+
+        # THEN the validation and submission should be successful
         assert response_csv.status_code == 200
 
 
