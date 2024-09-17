@@ -170,7 +170,7 @@ class TestMetadataModel:
         spy_add_annotations.assert_called_once()
 
         # AND the annotations on the entities should have the correct metadata
-        for index, row in manifest.iterrows():
+        for _, row in manifest.iterrows():
             entityId = row["entityId"]
             expected_sample_id = row["Sample ID"]
             annos = synapse_store.syn.get_annotations(entityId)
