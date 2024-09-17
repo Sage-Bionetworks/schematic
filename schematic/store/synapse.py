@@ -1629,7 +1629,6 @@ class SynapseStorage(BaseStorage):
         Returns:
             File: The stored manifest file
         """
-        # TODO: Test both paths here
         local_tracked_file_instance = (
             self.synapse_entity_tracker.search_local_by_parent_and_name(
                 name=existing_file_name, parent_id=dataset_id
