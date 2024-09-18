@@ -53,6 +53,16 @@ jobs:
           poetry config virtualenvs.in-project true; 
 
       #----------------------------------------------
+      #       load cached venv if cache exists      
+      #----------------------------------------------
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}-${{ env.PYTHON_VERSION }}
+
+      #----------------------------------------------
       # install dependencies and root project
       #----------------------------------------------
       - name: Install dependencies and root project
