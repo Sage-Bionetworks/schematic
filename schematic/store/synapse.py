@@ -1521,6 +1521,88 @@ class SynapseStorage(BaseStorage):
         )
         return await annotation_class.store_async(synapse_client=self.syn)
 
+    def process_row_annotations(
+        self,
+        dmge: DataModelGraphExplorer,
+        metadata_syn: Dict[str, Any],
+        hide_blanks: bool,
+        csv_list_regex: str,
+        annos: Dict[str, Any],
+        annotation_keys: str,
+    ) -> Dict[str, Any]:
+        """Processes metadata annotations based on the logic below:
+        1. Checks if the hide_blanks flag is True, and if the current annotation value (anno_v) is:
+            An empty or whitespace-only string.
+            A NaN value (if the annotation is a float).
+        if any of the above conditions are met, and hide_blanks is True, the annotation key is not going to be uploaded and skips further processing of that annotation key.
+        if any of the above conditions are met, and hide_blanks is False, assigns an empty string "" as the annotation value for that key.
+
+        2. If the value is a string and matches the pattern defined by csv_list_regex, get validation rule based on "node label" or "node display name".
+        Check if the rule contains "list" as a rule, if it does, split the string by comma and assign the resulting list as the annotation value for that key.
+
+        3. For any other conditions, assigns the original value of anno_v to the annotation key (anno_k).
+
+        4. Returns the updated annotations dictionary.
+
+        Args:
+            dmge (DataModelGraphExplorer): data model graph explorer
+            metadata_syn (dict): metadata used for Synapse storage
+            hideBlanks (bool): if true, does not upload annotation keys with blank values.
+            csv_list_regex (str): Regex to match with comma separated list
+            annos (Dict[str, Any]): dictionary of annotation returned from synapse
+            annotation_keys (str): display_label/class_label
+
+        Returns:
+            Dict[str, Any]: annotations as a dictionary
+
+        ```mermaid
+        flowchart TD
+            A[Start] --> C{Is anno_v empty, whitespace, or NaN?}
+            C -- Yes --> D{Is hide_blanks True?}
+            D -- Yes --> E[Remove this annotation key from the annotation dictionary to be uploaded. Skip further processing]
+            D -- No --> F[Assign empty string to annotation key]
+            C -- No --> G{Is anno_v a string?}
+            G -- No --> H[Assign original value of anno_v to annotation key]
+            G -- Yes --> I{Does anno_v match csv_list_regex?}
+            I -- Yes --> J[Get validation rule of anno_k]
+            J --> K{Does the validation rule contain 'list'}
+            K -- Yes --> L[Split anno_v by commas and assign as list]
+            I -- No --> H
+            K -- No --> H
+        ```
+        """
+        for anno_k, anno_v in metadata_syn.items():
+            # Remove keys with nan or empty string values or string that only contains white space from dict of annotations to be uploaded
+            # if present on current data annotation
+            if hide_blanks and (
+                (isinstance(anno_v, str) and anno_v.strip() == "")
+                or (isinstance(anno_v, float) and np.isnan(anno_v))
+            ):
+                annos.pop(anno_k) if anno_k in annos.keys() else annos
+                continue
+
+            # Otherwise save annotation as approrpriate
+            if isinstance(anno_v, float) and np.isnan(anno_v):
+                annos[anno_k] = ""
+                continue
+
+            # Handle strings that match the csv_list_regex and pass the validation rule
+            if isinstance(anno_v, str) and re.fullmatch(csv_list_regex, anno_v):
+                # Use a dictionary to dynamically choose the argument
+                param = (
+                    {"node_display_name": anno_k}
+                    if annotation_keys == "display_label"
+                    else {"node_label": anno_k}
+                )
+                node_validation_rules = dmge.get_node_validation_rules(**param)
+
+                if rule_in_rule_list("list", node_validation_rules):
+                    annos[anno_k] = anno_v.split(",")
+                    continue
+            # default: assign the original value
+            annos[anno_k] = anno_v
+        return annos
+
     @async_missing_entity_handler
     async def format_row_annotations(
         self,
@@ -1574,27 +1656,14 @@ class SynapseStorage(BaseStorage):
         annos = await self.get_async_annotation(entityId)
 
         csv_list_regex = comma_separated_list_regex()
-        for anno_k, anno_v in metadataSyn.items():
-            # Remove keys with nan or empty string values from dict of annotations to be uploaded
-            # if present on current data annotation
-            if hideBlanks and (
-                anno_v == "" or (isinstance(anno_v, float) and np.isnan(anno_v))
-            ):
-                annos.pop(anno_k) if anno_k in annos.keys() else annos
-            # Otherwise save annotation as approrpriate
-            else:
-                if isinstance(anno_v, float) and np.isnan(anno_v):
-                    annos[anno_k] = ""
-                elif (
-                    isinstance(anno_v, str)
-                    and re.fullmatch(csv_list_regex, anno_v)
-                    and rule_in_rule_list(
-                        "list", dmge.get_node_validation_rules(anno_k)
-                    )
-                ):
-                    annos[anno_k] = anno_v.split(",")
-                else:
-                    annos[anno_k] = anno_v
+        annos = self.process_row_annotations(
+            dmge=dmge,
+            metadata_syn=metadataSyn,
+            hide_blanks=hideBlanks,
+            csv_list_regex=csv_list_regex,
+            annos=annos,
+            annotation_keys=annotation_keys,
+        )
 
         return annos
 
