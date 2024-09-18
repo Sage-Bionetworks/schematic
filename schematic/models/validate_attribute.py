@@ -2110,6 +2110,7 @@ class ValidateAttribute(object):
             vr_errors, vr_warnings = GenerateError.generate_filename_error(
                 val_rule=val_rule,
                 attribute_name="Filename",
+                # +2 to make consistent with other validation functions
                 row_num=str(index + 2),
                 invalid_entry=data["Filename"],
                 error_type=data["Error"],
