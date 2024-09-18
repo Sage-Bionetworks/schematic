@@ -42,7 +42,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       
-      #---------------------------------------------- 
+      #----------------------------------------------
       #          install & configure poetry         
       #----------------------------------------------
       - name: Install Poetry
