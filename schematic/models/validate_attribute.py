@@ -2099,7 +2099,9 @@ class ValidateAttribute(object):
             ~entity_ids_in_view, "Error"
         ] = "entityId does not exist"
         manifest_with_errors.loc[
-            manifest_with_errors["entityId"].isna(), "Error"
+            (manifest_with_errors["entityId"].isna())
+            | (manifest_with_errors["entityId"] == ""),
+            "Error",
         ] = "missing entityId"
 
         # Generate errors
