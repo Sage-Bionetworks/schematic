@@ -696,7 +696,7 @@ class TestManifestValidation:
         # Check errors
         assert (
             GenerateError.generate_filename_error(
-                val_rule="filenameExists",
+                val_rule="filenameExists syn61682648",
                 attribute_name="Filename",
                 row_num="4",
                 invalid_entry="schematic - main/MockFilenameComponent/txt3.txt",
@@ -708,7 +708,7 @@ class TestManifestValidation:
 
         assert (
             GenerateError.generate_filename_error(
-                val_rule="filenameExists",
+                val_rule="filenameExists syn61682648",
                 attribute_name="Filename",
                 row_num="5",
                 invalid_entry="schematic - main/MockFilenameComponent/this_file_does_not_exist.txt",
