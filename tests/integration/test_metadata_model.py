@@ -191,6 +191,7 @@ class TestMetadataModel:
 
         # WHEN the manifest is submitted and files are annotated
         # THEN submission should complete without error
+
         with does_not_raise():
             manifest_id = meta_data_model.submit_metadata_manifest(
                 manifest_path=manifest_full_path,

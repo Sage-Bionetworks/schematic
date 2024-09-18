@@ -1574,11 +1574,12 @@ class SynapseStorage(BaseStorage):
         for anno_k, anno_v in metadata_syn.items():
             # Remove keys with nan or empty string values or string that only contains white space from dict of annotations to be uploaded
             # if present on current data annotation
+
             if hide_blanks and (
                 (isinstance(anno_v, str) and anno_v.strip() == "")
                 or (isinstance(anno_v, float) and np.isnan(anno_v))
             ):
-                annos.pop(anno_k) if anno_k in annos.keys() else annos
+                annos["annotations"]["annotations"].pop(anno_k) if anno_k in annos.keys() else annos["annotations"]["annotations"]
                 continue
 
             # Otherwise save annotation as approrpriate
@@ -1601,6 +1602,7 @@ class SynapseStorage(BaseStorage):
                     continue
             # default: assign the original value
             annos["annotations"]["annotations"][anno_k] = anno_v
+
         return annos
 
     @async_missing_entity_handler

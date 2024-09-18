@@ -33,14 +33,14 @@ class TestStoreSynapse:
             "YearofBirth": np.nan,  # Blank value (NaN)
             "CancerType": "   ",  # Blank value (whitespace string)
         }
-        annos = {
+        annos = {"annotations": {"annotations": {
             "PatientID": "old_value1",
             "Sex": "old_value2",
             "Diagnosis": "old_value3",
             "FamilyHistory": "old_value4",
             "YearofBirth": "old_value5",
             "CancerType": "old_value6",
-        }
+        }}}
         comma_separated_list = comma_separated_list_regex()
         processed_annos = synapse_store.process_row_annotations(
             dmge=dmge,
