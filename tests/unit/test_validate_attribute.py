@@ -155,12 +155,6 @@ def fixture_va_obj(
     yield ValidateAttribute(dmge)
 
 
-@pytest.fixture(name="mock_dmge")
-def mock_dmge():
-    """Yield a DataModelGraphExplorer object"""
-    yield DataModelGraphExplorer(None)
-
-
 @pytest.fixture(name="cross_val_df1")
 def fixture_cross_val_df1() -> Generator[DataFrame, None, None]:
     """Yields a dataframe"""
@@ -260,7 +254,7 @@ class TestGenerateError:
         ],
     )
     def test_generate_filename_error(
-        self, mock_dmge: DataModelGraphExplorer, error_type: str, expected_message: str
+        self, dmge: DataModelGraphExplorer, error_type: str, expected_message: str
     ):
         with patch.object(
             GenerateError,
@@ -281,10 +275,10 @@ class TestGenerateError:
                 row_num=self.row_num,
                 invalid_entry=self.invalid_entry,
                 error_type=error_type,
-                dmge=mock_dmge,
+                dmge=dmge,
             )
         mock_raise_and_store.assert_called_once_with(
-            dmge=mock_dmge,
+            dmge=dmge,
             val_rule=self.val_rule,
             error_row=self.row_num,
             error_col=self.attribute_name,
@@ -296,13 +290,13 @@ class TestGenerateError:
         assert error_list[2] == expected_message
 
     def test_generate_filename_error_unsupported_error_type(
-        self, mock_dmge: DataModelGraphExplorer
+        self, dmge: DataModelGraphExplorer
     ):
         with pytest.raises(
             KeyError, match="Unsupported error type provided: 'unsupported error type'"
         ) as exc_info:
             GenerateError.generate_filename_error(
-                dmge=mock_dmge,
+                dmge=dmge,
                 val_rule=self.val_rule,
                 attribute_name=self.attribute_name,
                 row_num=self.row_num,
