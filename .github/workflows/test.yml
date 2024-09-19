@@ -68,6 +68,15 @@ jobs:
           poetry config virtualenvs.create true;
           poetry config virtualenvs.in-project true;
       #----------------------------------------------
+      #       check for broken virtual environment
+      #----------------------------------------------
+      - name: Find and remove broken virtual environment (if necessary)
+        run: |
+          if [ -d ".venv" ]; then
+            # Check if the virtual environment is valid by attempting to activate it
+            source .venv/bin/activate && poetry run black --version || rm -rf .venv;
+          fi      
+      #----------------------------------------------
       #       load cached venv if cache exists
       #----------------------------------------------
       - name: Load cached venv
