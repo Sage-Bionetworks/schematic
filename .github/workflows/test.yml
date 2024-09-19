@@ -72,10 +72,13 @@ jobs:
       #----------------------------------------------
       - name: Find and remove broken virtual environment (if necessary)
         run: |
-          if [ -d "/home/runner/work/schematic/schematic/.venv" ]; then
+          VENV_PATH=$(poetry env info --path)
+          if [ -d "$VENV_PATH" ]; then
             # Check if the virtual environment is valid by attempting to activate it
-            source /home/runner/work/schematic/schematic/.venv/bin/activate && poetry run black --version || rm -rf /home/runner/work/schematic/schematic/.venv;
-          fi     
+            source $VENV_PATH/bin/activate && poetry run black --version || (echo "Removing broken venv"; rm -rf $VENV_PATH);
+          else
+            echo "Virtual environment not found"
+          fi   
       #----------------------------------------------
       #       load cached venv if cache exists
       #----------------------------------------------
