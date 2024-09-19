@@ -1529,7 +1529,9 @@ class SynapseStorage(BaseStorage):
 
         if table_manipulation and table_manipulation.lower() == "upsert":
             table_entity = self.synapse_entity_tracker.get(
-                synapse_id=existing_table_id, syn=self.syn, download_file=False
+                synapse_id=existing_table_id or manifest_table_id,
+                syn=self.syn,
+                download_file=False,
             )
             annos = OldAnnotations(
                 id=table_entity.id,
@@ -3032,6 +3034,8 @@ class TableOperations:
         )
         # remove rows
         self.synStore.syn.delete(existing_results)
+        # Data changes such as removing all rows causes the eTag to change.
+        self.synapse_entity_tracker.remove(synapse_id=self.existingTableId)
         # wait for row deletion to finish on synapse before getting empty table
         sleep(10)
 

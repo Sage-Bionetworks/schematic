@@ -217,7 +217,9 @@ def get_temp_jsonld(schema_url):
     # retrieve a JSON-LD via URL and store it in a temporary location
     with urllib.request.urlopen(schema_url) as response:
         with tempfile.NamedTemporaryFile(
-            delete=False, suffix=".model.jsonld"
+            delete=False,
+            suffix=".model.jsonld",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             shutil.copyfileobj(response, tmp_file)
 
@@ -228,7 +230,11 @@ def get_temp_jsonld(schema_url):
 def get_temp_csv(schema_url):
     # retrieve a CSV via URL and store it in a temporary location
     with urllib.request.urlopen(schema_url) as response:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".model.csv") as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=".model.csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
+        ) as tmp_file:
             shutil.copyfileobj(response, tmp_file)
 
     # get path to temporary csv file

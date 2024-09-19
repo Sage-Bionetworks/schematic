@@ -27,7 +27,7 @@ from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExp
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
-from schematic.utils.general import check_synapse_cache_size
+from schematic.utils.general import check_synapse_cache_size, create_temp_folder
 from tests.conftest import Helpers
 from tests.utils import CleanupItem
 
@@ -1050,7 +1050,9 @@ class TestTableOperations:
         ), patch.object(
             synapse_store, "getDatasetProject", return_value=projectId
         ), tempfile.NamedTemporaryFile(
-            delete=True, suffix=".csv"
+            delete=True,
+            suffix=".csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             # Write the DF to a temporary file to prevent modifying the original
             manifest.to_csv(tmp_file.name, index=False)
@@ -1142,7 +1144,9 @@ class TestTableOperations:
         ), patch.object(
             synapse_store, "getDatasetProject", return_value=projectId
         ), tempfile.NamedTemporaryFile(
-            delete=True, suffix=".csv"
+            delete=True,
+            suffix=".csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             # Write the DF to a temporary file to prevent modifying the original
             manifest.to_csv(tmp_file.name, index=False)
@@ -1162,7 +1166,7 @@ class TestTableOperations:
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
 
         # Query table for DaystoFollowUp column
-        table_id = synapse_store.syn.findEntityId(name=table_name, parentId=projectId)
+        table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
         days_to_follow_up = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
             .asDataFrame()
@@ -1177,7 +1181,9 @@ class TestTableOperations:
         ), patch.object(
             synapse_store, "getDatasetProject", return_value=projectId
         ), tempfile.NamedTemporaryFile(
-            delete=True, suffix=".csv"
+            delete=True,
+            suffix=".csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             # Write the DF to a temporary file to prevent modifying the original
             replacement_manifest.to_csv(tmp_file.name, index=False)
@@ -1197,7 +1203,7 @@ class TestTableOperations:
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
 
         # Query table for DaystoFollowUp column
-        table_id = synapse_store.syn.findEntityId(name=table_name, parentId=projectId)
+        table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
         days_to_follow_up = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
             .asDataFrame()
@@ -1235,7 +1241,9 @@ class TestTableOperations:
         ), patch.object(
             synapse_store, "getDatasetProject", return_value=projectId
         ), tempfile.NamedTemporaryFile(
-            delete=True, suffix=".csv"
+            delete=True,
+            suffix=".csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             # Copy to a temporary file to prevent modifying the original
             shutil.copyfile(helpers.get_data_path(manifest_path), tmp_file.name)
@@ -1255,7 +1263,7 @@ class TestTableOperations:
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
 
         # set primary key annotation for uploaded table
-        table_id = synapse_store.syn.findEntityId(name=table_name, parentId=projectId)
+        table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
 
         # Query table for DaystoFollowUp column
         table_query = (
@@ -1274,7 +1282,9 @@ class TestTableOperations:
         ), patch.object(
             synapse_store, "getDatasetProject", return_value=projectId
         ), tempfile.NamedTemporaryFile(
-            delete=True, suffix=".csv"
+            delete=True,
+            suffix=".csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             # Copy to a temporary file to prevent modifying the original
             shutil.copyfile(
@@ -1296,7 +1306,7 @@ class TestTableOperations:
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
 
         # Query table for DaystoFollowUp column
-        table_id = synapse_store.syn.findEntityId(name=table_name, parentId=projectId)
+        table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
         table_query = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
             .asDataFrame()
