@@ -68,7 +68,7 @@ jobs:
           poetry config virtualenvs.create true;
           poetry config virtualenvs.in-project true;
           poetry env info;
-          poetry env info --path;
+          poetry config --list;
       #----------------------------------------------
       #       load cached venv if cache exists
       #----------------------------------------------
