@@ -216,7 +216,9 @@ class ManifestDownload(object):
 
         # download a manifest
         try:
-            manifest_data = self._download_manifest_to_folder()
+            manifest_data = self._download_manifest_to_folder(
+                use_temporary_folder=use_temporary_folder
+            )
         except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError):
             # if there's an error getting an uncensored manifest, try getting the censored manifest
             if not manifest_df.empty:
@@ -225,7 +227,9 @@ class ManifestDownload(object):
                 new_manifest_id = manifest_df[censored]["id"][0]
                 self.manifest_id = new_manifest_id
                 try:
-                    manifest_data = self._download_manifest_to_folder()
+                    manifest_data = self._download_manifest_to_folder(
+                        use_temporary_folder=use_temporary_folder
+                    )
                 except (
                     SynapseUnmetAccessRestrictions,
                     SynapseAuthenticationError,
@@ -461,7 +465,7 @@ class SynapseStorage(BaseStorage):
             try:
                 syn = synapseclient.Synapse(
                     cache_root_dir=synapse_cache_path,
-                    debug=True,
+                    debug=False,
                     skip_checks=True,
                     cache_client=False,
                 )
@@ -475,7 +479,7 @@ class SynapseStorage(BaseStorage):
             syn = synapseclient.Synapse(
                 configPath=CONFIG.synapse_configuration_path,
                 cache_root_dir=synapse_cache_path,
-                debug=True,
+                debug=False,
                 skip_checks=True,
                 cache_client=False,
             )
@@ -1581,6 +1585,7 @@ class SynapseStorage(BaseStorage):
                 + file_extension
             )
 
+        manifest_synapse_file = None
         try:
             # Rename the file to file_name_new then revert
             # This is to maintain the original file name in-case other code is
