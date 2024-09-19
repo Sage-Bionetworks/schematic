@@ -65,9 +65,8 @@ jobs:
         run: |
           curl -sSL https://install.python-poetry.org \
             | python3 - --version ${{ env.POETRY_VERSION }};
-          poetry config virtualenvs.create true;
-          poetry config virtualenvs.in-project true;
-          poetry env use 3.10;
+          poetry config virtualenvs.create true --local;
+          poetry config virtualenvs.in-project false --local;
           poetry env info;
           poetry config --list;
       #----------------------------------------------
