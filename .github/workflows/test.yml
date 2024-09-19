@@ -134,9 +134,9 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
-          source .venv/bin/activate;
-          pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov 
-          --cov-report=xml:coverage.xml --cov=schematic/ --reruns 4 -n 8 tests/unit
+          poetry shell;
+          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov 
+          --cov-report=xml:coverage.xml --cov=schematic/ --reruns 4 -n 8 tests/unit;
 
       #----------------------------------------------
       #              run integration test suite
@@ -147,8 +147,8 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
-          source .venv/bin/activate;
-          pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
+          poetry shell;
+          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
           -m "not (rule_benchmark)" --reruns 4 -n 8 --ignore=tests/unit
 
 
