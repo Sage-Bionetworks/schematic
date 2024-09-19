@@ -76,7 +76,24 @@ jobs:
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}-${{ matrix.python-version }}
-
+      #----------------------------------------------
+      # validate cached venv if it exists and remove if corrupt
+      #----------------------------------------------
+      - name: Check and remove broken virtual environment (if necessary)
+        if: steps.cached-poetry-dependencies.outputs.cache-hit == 'true'
+        run: |
+          VENV_PATH=$(poetry env info --path)
+          if [ -d "$VENV_PATH" ]; then
+          source $VENV_PATH/bin/activate && poetry run black --version || (echo "Removing broken venv"; rm -rf $VENV_PATH; echo "venv-deleted=true" >> $GITHUB_ENV)
+          else
+            echo "Virtual environment not found"
+          fi
+      #----------------------------------------------
+      # install dependencies and root project
+      #----------------------------------------------
+      - name: Install dependencies and root project
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true' || env.venv-deleted == 'true'
+        run: poetry install --no-interaction --all-extras
       #----------------------------------------------
       # install dependencies and root project
       #----------------------------------------------
