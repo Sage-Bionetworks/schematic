@@ -67,7 +67,7 @@ jobs:
             | python3 - --version ${{ env.POETRY_VERSION }};
           poetry config virtualenvs.create true;
           poetry config virtualenvs.in-project true;
-          poetry env info --path; # print out virtual environment
+          poetry env info --path;
       #----------------------------------------------
       #       load cached venv if cache exists
       #----------------------------------------------
