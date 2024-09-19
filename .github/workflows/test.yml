@@ -72,7 +72,6 @@ jobs:
       #----------------------------------------------
       - name: Install dependencies and root project
         run: poetry install --no-interaction --all-extras
-
       #----------------------------------------------
       #             perform linting
       #----------------------------------------------
