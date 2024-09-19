@@ -693,14 +693,13 @@ class TestManifestValidation:
             project_scope=["syn23643250"],
             dataset_scope="syn61682648",
         )
-
         # Check errors
         assert (
             GenerateError.generate_filename_error(
-                val_rule="filenameExists",
+                val_rule="filenameExists syn61682648",
                 attribute_name="Filename",
-                row_num="3",
-                invalid_entry="schematic - main/MockFilenameComponent/txt4.txt",
+                row_num="4",
+                invalid_entry="schematic - main/MockFilenameComponent/txt3.txt",
                 error_type="mismatched entityId",
                 dmge=dmge,
             )[0]
@@ -709,17 +708,41 @@ class TestManifestValidation:
 
         assert (
             GenerateError.generate_filename_error(
-                val_rule="filenameExists",
+                val_rule="filenameExists syn61682648",
                 attribute_name="Filename",
-                row_num="4",
-                invalid_entry="schematic - main/MockFilenameComponent/txt5.txt",
+                row_num="5",
+                invalid_entry="schematic - main/MockFilenameComponent/this_file_does_not_exist.txt",
                 error_type="path does not exist",
                 dmge=dmge,
             )[0]
             in errors
         )
 
-        assert len(errors) == 2
+        assert (
+            GenerateError.generate_filename_error(
+                val_rule="filenameExists syn61682648",
+                attribute_name="Filename",
+                row_num="6",
+                invalid_entry="schematic - main/MockFilenameComponent/txt4.txt",
+                error_type="entityId does not exist",
+                dmge=dmge,
+            )[0]
+            in errors
+        )
+
+        assert (
+            GenerateError.generate_filename_error(
+                val_rule="filenameExists syn61682648",
+                attribute_name="Filename",
+                row_num="7",
+                invalid_entry="schematic - main/MockFilenameComponent/txt6.txt",
+                error_type="missing entityId",
+                dmge=dmge,
+            )[0]
+            in errors
+        )
+
+        assert len(errors) == 4
         assert len(warnings) == 0
 
     def test_filename_manifest_exception(self, helpers, dmge):

@@ -1,15 +1,15 @@
 """Unit testing for the ValidateAttribute class"""
 
 from typing import Generator
-from unittest.mock import patch
-import pytest
+from unittest.mock import Mock, patch
 
-from pandas import Series, DataFrame, concat
 import numpy as np
+import pytest
+from pandas import DataFrame, Series, concat
 
-from schematic.models.validate_attribute import ValidateAttribute
-from schematic.schemas.data_model_graph import DataModelGraphExplorer
 import schematic.models.validate_attribute
+from schematic.models.validate_attribute import GenerateError, ValidateAttribute
+from schematic.schemas.data_model_graph import DataModelGraphExplorer
 
 # pylint: disable=protected-access
 # pylint: disable=too-many-public-methods
@@ -99,6 +99,53 @@ TEST_DF_EMPTY_COLS = DataFrame(
     }
 )
 
+TEST_DF_FILEVIEW = DataFrame(
+    {
+        "id": ["syn1", "syn2", "syn3"],
+        "path": ["test1.txt", "test2.txt", "test3.txt"],
+    }
+)
+
+TEST_MANIFEST_GOOD = DataFrame(
+    {
+        "Component": ["Mockfilename", "Mockfilename", "Mockfilename"],
+        "Filename": ["test1.txt", "test2.txt", "test3.txt"],
+        "entityId": ["syn1", "syn2", "syn3"],
+    }
+)
+
+TEST_MANIFEST_MISSING_ENTITY_ID = DataFrame(
+    {
+        "Component": ["Mockfilename", "Mockfilename", "Mockfilename"],
+        "Filename": ["test1.txt", "test2.txt", "test3.txt"],
+        "entityId": ["syn1", "syn2", ""],
+    }
+)
+
+TEST_MANIFEST_FILENAME_NOT_IN_VIEW = DataFrame(
+    {
+        "Component": ["Mockfilename", "Mockfilename", "Mockfilename"],
+        "Filename": ["test1.txt", "test2.txt", "test_bad.txt"],
+        "entityId": ["syn1", "syn2", "syn3"],
+    }
+)
+
+TEST_MANIFEST_ENTITY_ID_NOT_IN_VIEW = DataFrame(
+    {
+        "Component": ["Mockfilename", "Mockfilename", "Mockfilename"],
+        "Filename": ["test1.txt", "test2.txt", "test3.txt"],
+        "entityId": ["syn1", "syn2", "syn_bad"],
+    }
+)
+
+TEST_MANIFEST_ENTITY_ID_MISMATCH = DataFrame(
+    {
+        "Component": ["Mockfilename", "Mockfilename", "Mockfilename"],
+        "Filename": ["test1.txt", "test2.txt", "test3.txt"],
+        "entityId": ["syn1", "syn2", "syn2"],
+    }
+)
+
 
 @pytest.fixture(name="va_obj")
 def fixture_va_obj(
@@ -169,6 +216,93 @@ def fixture_cross_val_col_names() -> Generator[dict[str, str], None, None]:
         "entityid": "entityid",
     }
     yield column_names
+
+
+class TestGenerateError:
+    """Unit tests for the GenerateError class"""
+
+    val_rule = "filenameExists syn123456"
+    attribute_name = "Filename"
+    row_num = "2"
+    invalid_entry = "test_file.txt"
+
+    @pytest.mark.parametrize(
+        "error_type, expected_message",
+        [
+            (
+                "mismatched entityId",
+                "The entityId for file path 'test_file.txt' on row 2 does not match the entityId for the file in the file view.",
+            ),
+            (
+                "path does not exist",
+                "The file path 'test_file.txt' on row 2 does not exist in the file view.",
+            ),
+            (
+                "entityId does not exist",
+                "The entityId for file path 'test_file.txt' on row 2 does not exist in the file view.",
+            ),
+            (
+                "missing entityId",
+                "The entityId is missing for file path 'test_file.txt' on row 2.",
+            ),
+        ],
+        ids=[
+            "mismatched entityId",
+            "path does not exist",
+            "entityId does not exist",
+            "missing entityId",
+        ],
+    )
+    def test_generate_filename_error(
+        self, dmge: DataModelGraphExplorer, error_type: str, expected_message: str
+    ):
+        with patch.object(
+            GenerateError,
+            "raise_and_store_message",
+            return_value=(
+                [
+                    self.row_num,
+                    self.attribute_name,
+                    expected_message,
+                    self.invalid_entry,
+                ],
+                [],
+            ),
+        ) as mock_raise_and_store:
+            error_list, _ = GenerateError.generate_filename_error(
+                val_rule=self.val_rule,
+                attribute_name=self.attribute_name,
+                row_num=self.row_num,
+                invalid_entry=self.invalid_entry,
+                error_type=error_type,
+                dmge=dmge,
+            )
+        mock_raise_and_store.assert_called_once_with(
+            dmge=dmge,
+            val_rule=self.val_rule,
+            error_row=self.row_num,
+            error_col=self.attribute_name,
+            error_message=expected_message,
+            error_val=self.invalid_entry,
+        )
+
+        assert len(error_list) == 4
+        assert error_list[2] == expected_message
+
+    def test_generate_filename_error_unsupported_error_type(
+        self, dmge: DataModelGraphExplorer
+    ):
+        with pytest.raises(
+            KeyError, match="Unsupported error type provided: 'unsupported error type'"
+        ) as exc_info:
+            GenerateError.generate_filename_error(
+                dmge=dmge,
+                val_rule=self.val_rule,
+                attribute_name=self.attribute_name,
+                row_num=self.row_num,
+                invalid_entry=self.invalid_entry,
+                error_type="unsupported error type",
+            )
 
 
 class TestValidateAttributeObject:
@@ -531,6 +665,120 @@ class TestValidateAttributeObject:
             else:
                 assert errors == []
                 assert len(warnings) == 1
+
+    @pytest.mark.parametrize(
+        "manifest, expected_errors, expected_warnings, generates_error",
+        [
+            (TEST_MANIFEST_GOOD, [], [], False),
+            (
+                TEST_MANIFEST_MISSING_ENTITY_ID,
+                [
+                    [
+                        "4",
+                        "Filename",
+                        "The entityId for file path 'test3.txt' on row 4 does not exist in the file view.",
+                        "test3.txt",
+                    ]
+                ],
+                [],
+                True,
+            ),
+            (
+                TEST_MANIFEST_FILENAME_NOT_IN_VIEW,
+                [
+                    [
+                        "4",
+                        "Filename",
+                        "The file path 'test_bad.txt' on row 4 does not exist in the file view.",
+                        "test_bad.txt",
+                    ]
+                ],
+                [],
+                True,
+            ),
+            (
+                TEST_MANIFEST_ENTITY_ID_NOT_IN_VIEW,
+                [
+                    [
+                        "4",
+                        "Filename",
+                        "The entityId for file path 'test3.txt' on row 4 does not exist in the file view.",
+                        "test3.txt",
+                    ]
+                ],
+                [],
+                True,
+            ),
+            (
+                TEST_MANIFEST_ENTITY_ID_MISMATCH,
+                [
+                    [
+                        "4",
+                        "Filename",
+                        "The entityId for file path 'test3.txt' on row 4 does not match "
+                        "the entityId for the file in the file view.",
+                        "test3.txt",
+                    ]
+                ],
+                [],
+                True,
+            ),
+        ],
+        ids=[
+            "valid_manifest",
+            "missing_entity_id",
+            "bad_filename",
+            "bad_entity_id",
+            "entity_id_mismatch",
+        ],
+    )
+    def test_filename_validation(
+        self,
+        va_obj: ValidateAttribute,
+        manifest: DataFrame,
+        expected_errors: list,
+        expected_warnings: list,
+        generates_error: bool,
+    ):
+        mock_synapse_storage = Mock()
+        mock_synapse_storage.storageFileviewTable = TEST_DF_FILEVIEW
+        va_obj.synStore = mock_synapse_storage
+        with patch.object(
+            schematic.models.validate_attribute.ValidateAttribute,
+            "_login",
+        ), patch.object(
+            mock_synapse_storage, "reset_index", return_value=TEST_DF_FILEVIEW
+        ), patch.object(
+            schematic.models.validate_attribute.GenerateError,
+            "generate_filename_error",
+            return_value=(
+                expected_errors if len(expected_errors) < 1 else expected_errors[0],
+                expected_warnings,
+            ),
+        ) as mock_generate_filename_error:
+            actual_errors, actual_warnings = va_obj.filename_validation(
+                val_rule="filenameExists syn61682648",
+                manifest=manifest,
+                access_token="test_access_token",
+                dataset_scope="syn1",
+            )
+            mock_generate_filename_error.assert_called_once() if generates_error else mock_generate_filename_error.assert_not_called()
+            assert (actual_errors, actual_warnings) == (
+                expected_errors,
+                expected_warnings,
+            )
+
+    def test_filename_validation_null_dataset_scope(self, va_obj: ValidateAttribute):
+        with pytest.raises(
+            ValueError,
+            match="A dataset is required to be specified for filename validation",
+        ):
+            va_obj.filename_validation(
+                val_rule="filenameExists syn61682648",
+                manifest=TEST_MANIFEST_GOOD,
+                access_token="test_access_token",
+                dataset_scope=None,
+            )
 
     #########################################
     # _run_validation_across_target_manifests
