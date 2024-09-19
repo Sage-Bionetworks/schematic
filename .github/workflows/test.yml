@@ -65,25 +65,13 @@ jobs:
         run: |
           curl -sSL https://install.python-poetry.org \
             | python3 - --version ${{ env.POETRY_VERSION }};
-          poetry config virtualenvs.create true --local;
-          poetry config virtualenvs.in-project false --local;
-          poetry env info;
-          poetry config --list;
-      #----------------------------------------------
-      #       load cached venv if cache exists
-      #----------------------------------------------
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pypoetry/virtualenvs
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}-${{ matrix.python-version }}
-
+          poetry config virtualenvs.create true;
+          poetry config virtualenvs.in-project false;
+          
       #----------------------------------------------
       # install dependencies and root project
       #----------------------------------------------
       - name: Install dependencies and root project
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --all-extras
 
       #----------------------------------------------
