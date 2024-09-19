@@ -95,13 +95,6 @@ jobs:
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true' || env.venv-deleted == 'true'
         run: poetry install --no-interaction --all-extras
       #----------------------------------------------
-      # install dependencies and root project
-      #----------------------------------------------
-      - name: Install dependencies and root project
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --all-extras
-
-      #----------------------------------------------
       #             perform linting
       #----------------------------------------------
       # Disabled until we agree to turn it on
