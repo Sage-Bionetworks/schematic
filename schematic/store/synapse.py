@@ -1798,6 +1798,7 @@ class SynapseStorage(BaseStorage):
                     continue
             # default: assign the original value
             annos["annotations"]["annotations"][anno_k] = anno_v
+
         return annos
 
     @async_missing_entity_handler
@@ -1875,6 +1876,7 @@ class SynapseStorage(BaseStorage):
 
         # set annotation(s) for the various objects/items in a dataset on Synapse
         csv_list_regex = comma_separated_list_regex()
+
         annos = self.process_row_annotations(
             dmge=dmge,
             metadata_syn=metadataSyn,

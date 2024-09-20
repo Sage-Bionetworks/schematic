@@ -54,6 +54,7 @@ class TestStoreSynapse:
             annotation_keys=label_options,
         )
         processed_annos = processed_annos["annotations"]["annotations"]
+
         # make sure that empty keys are removed if hideBlanks is True
         if hideBlanks:
             assert (
