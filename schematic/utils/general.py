@@ -236,6 +236,9 @@ def create_temp_folder(path: str, prefix: Optional[str] = None) -> str:
         prefix(str): a prefix to be added to the temporary directory name
     Returns: returns the absolute pathname of the new directory.
     """
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
+
     # Create a temporary directory in the specified directory
     path = tempfile.mkdtemp(dir=path, prefix=prefix)
     return path
