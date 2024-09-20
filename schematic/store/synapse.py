@@ -1578,12 +1578,14 @@ class SynapseStorage(BaseStorage):
                 (isinstance(anno_v, str) and anno_v.strip() == "")
                 or (isinstance(anno_v, float) and np.isnan(anno_v))
             ):
-                annos.pop(anno_k) if anno_k in annos.keys() else annos
+                annos["annotations"]["annotations"].pop(anno_k) if anno_k in annos[
+                    "annotations"
+                ]["annotations"].keys() else annos["annotations"]["annotations"]
                 continue
 
             # Otherwise save annotation as approrpriate
             if isinstance(anno_v, float) and np.isnan(anno_v):
-                annos[anno_k] = ""
+                annos["annotations"]["annotations"][anno_k] = ""
                 continue
 
             # Handle strings that match the csv_list_regex and pass the validation rule
@@ -1597,10 +1599,11 @@ class SynapseStorage(BaseStorage):
                 node_validation_rules = dmge.get_node_validation_rules(**param)
 
                 if rule_in_rule_list("list", node_validation_rules):
-                    annos[anno_k] = anno_v.split(",")
+                    annos["annotations"]["annotations"][anno_k] = anno_v.split(",")
                     continue
             # default: assign the original value
-            annos[anno_k] = anno_v
+            annos["annotations"]["annotations"][anno_k] = anno_v
+
         return annos
 
     @async_missing_entity_handler
@@ -1656,6 +1659,7 @@ class SynapseStorage(BaseStorage):
         annos = await self.get_async_annotation(entityId)
 
         csv_list_regex = comma_separated_list_regex()
+
         annos = self.process_row_annotations(
             dmge=dmge,
             metadata_syn=metadataSyn,
@@ -1926,7 +1930,10 @@ class SynapseStorage(BaseStorage):
                     else:
                         # store annotations if they are not None
                         if annos:
-                            normalized_annos = {k.lower(): v for k, v in annos.items()}
+                            normalized_annos = {
+                                k.lower(): v
+                                for k, v in annos["annotations"]["annotations"].items()
+                            }
                             entity_id = normalized_annos["entityid"]
                             logger.info(
                                 f"Obtained and processed annotations for {entity_id} entity"
