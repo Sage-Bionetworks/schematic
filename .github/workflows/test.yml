@@ -67,13 +67,12 @@ jobs:
             | python3 - --version ${{ env.POETRY_VERSION }};
           poetry config virtualenvs.create true;
           poetry config virtualenvs.in-project true;
-      
+
       #----------------------------------------------
       # install dependencies and root project
       #----------------------------------------------
       - name: Install dependencies and root project
         run: poetry install --no-interaction --all-extras
-
       #----------------------------------------------
       #             perform linting
       #----------------------------------------------
