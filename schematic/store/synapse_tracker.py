@@ -31,6 +31,20 @@ class SynapseEntiyTracker:
         download_location: str = None,
         if_collision: str = None,
     ) -> Union[Entity, Project, File, Folder, Schema]:
+        """Retrieves a Synapse entity from the cache if it exists, otherwise downloads
+        the entity from Synapse and adds it to the cache.
+
+        Args:
+            synapse_id: The Synapse ID of the entity to retrieve.
+            syn: A Synapse object.
+            download_file: If True, download the file.
+            retrieve_if_not_present: If True, retrieve the entity if it is not present in the cache.
+            download_location: The location to download the file to.
+            if_collision: The action to take if there is a collision when downloading the file.
+
+        Returns:
+            The Synapse entity.
+        """
         entity = self.synapse_entities.get(synapse_id, None)
 
         if entity is None or (download_file and not entity.path):
@@ -48,14 +62,37 @@ class SynapseEntiyTracker:
     def add(
         self, synapse_id: str, entity: Union[Entity, Project, File, Folder, Schema]
     ) -> None:
+        """Adds a Synapse entity to the cache.
+
+        Args:
+            synapse_id: The Synapse ID of the entity to add.
+            entity: The Synapse entity to add.
+        """
         self.synapse_entities.update({synapse_id: entity})
 
     def remove(self, synapse_id: str) -> None:
+        """Removes a Synapse entity from the cache.
+
+        Args:
+            synapse_id: The Synapse ID of the entity to remove.
+        """
         self.synapse_entities.pop(synapse_id, None)
 
     def search_local_by_parent_and_name(
         self, name: str, parent_id: str
     ) -> Union[Entity, Project, File, Folder, Schema, None]:
+        """
+        Searches the local cache for an entity with the given name and parent_id. The
+        is useful in situations where we might not have the ID of the resource, but we
+        do have the name and parent ID.
+
+        Args:
+            name: The name of the entity to search for.
+            parent_id: The parent ID of the entity to search for.
+
+        Returns:
+            The entity if it exists, otherwise None.
+        """
         for entity in self.synapse_entities.values():
             if entity.name == name and entity.parentId == parent_id:
                 return entity
