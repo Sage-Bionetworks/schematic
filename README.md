@@ -1,7 +1,7 @@
 # Schematic
 [![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop) [![Documentation Status](https://readthedocs.org/projects/sage-schematic/badge/?version=develop)](https://sage-schematic.readthedocs.io/en/develop/?badge=develop) [![PyPI version](https://badge.fury.io/py/schematicpy.svg)](https://badge.fury.io/py/schematicpy)
 
-# TLDR
+# TL;DR
 Under Construction.
 
 # Table of Contents
@@ -39,7 +39,7 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 
 Note: Our credential policy for Google credentials in order to create Google sheet files from Schematic, see tutorial ['HERE'](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA). If you plan to use `config.yml`, please ensure that the path of `schematic_service_account_creds.json` is indicated there (see `google_sheets > service_account_creds` section)
 
-## Installation Guide: For Schematic CLI users
+## Installation Guide For: Schematic CLI users
 
 The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation-Requirements]().
 
@@ -56,7 +56,7 @@ Check the Supported Python Version: Open the pyproject.toml file in the Schemati
 
 Switching Python Versions: If your current Python version is not supported by Schematic, you can switch to the supported version using tools like [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#switch-between-python-versions). Follow the instructions in the pyenv documentation to install and switch between Python versions easily.
 
-2. **Setting Up the Virtual Environment**
+### 2. Set up your virtual environment
 
 After switching to the version of Python supported by Schematic, please activate a virtual environment within which you can install the package:
 ```
@@ -65,7 +65,7 @@ source .venv/bin/activate
 ```
 Note: Python 3 has built-in support for virtual environments with the venv module, so you no longer need to install virtualenv.
 
-3. **Installing Schematic**
+### 3. Install `schematic` dependencies
 
 Install the package using [pip](https://pip.pypa.io/en/stable/quickstart/):
 
@@ -79,7 +79,7 @@ If you run into error: Failed building wheel for numpy, the error might be able 
 pip3 install --upgrade pip
 ```
 
-## Installation guide for developers/contributors 
+## Installation Guide For: Contributors
 
 When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
 
@@ -214,30 +214,6 @@ $ pre-commit install
 pre-commit installed at .git/hooks/pre-commit
 ```
 
-### Development process instruction
-
-For new features, bugs, enhancements
-
-1. Pull the latest code from [develop branch in the upstream repo](https://github.com/Sage-Bionetworks/schematic)
-2. Checkout a new branch develop-<feature/fix-name> from the develop branch
-3. Do development on branch develop-<feature/fix-name>
-   a. may need to ensure that schematic poetry toml and lock files are compatible with your local environment
-4. Add changed files for tracking and commit changes using [best practices](https://www.perforce.com/blog/vcs/git-best-practices-git-commit)
-5. Have granular commits: not “too many” file changes, and not hundreds of code lines of changes
-6. Commits with work in progress are encouraged:
-   a. add WIP to the beginning of the commit message for “Work In Progress” commits
-7. Keep commit messages descriptive but less than a page long, see best practices
-8. Push code to develop-<feature/fix-name> in upstream repo
-9. Branch out off develop-<feature/fix-name> if needed to work on multiple features associated with the same code base
-10. After feature work is complete and before creating a PR to the develop branch in upstream
-    a. ensure that code runs locally
-    b. test for logical correctness locally
-    c. wait for git workflow to complete (e.g. tests are run) on github
-11. Create a PR from develop-<feature/fix-name> into the develop branch of the upstream repo
-12. Request a code review on the PR
-13. Once code is approved merge in the develop branch
-14. Delete the develop-<feature/fix-name> branch
-
 *Note*: Make sure you have the latest version of the `develop` branch on your local machine.
 
 ### Example For REST API <br>
@@ -296,7 +272,30 @@ docker run -v %cd%:/schematic \
   -c config.yml validate -mp tests/data/mock_manifests/inValid_Test_Manifest.csv -dt MockComponent -js /schematic/data/example.model.jsonld
 ```
 
-# Other Contribution Guidelines
+# Contribution Guidelines
+### Development process instruction
+
+For new features, bugs, enhancements
+
+1. Pull the latest code from [develop branch in the upstream repo](https://github.com/Sage-Bionetworks/schematic)
+2. Checkout a new branch develop-<feature/fix-name> from the develop branch
+3. Do development on branch develop-<feature/fix-name>
+   a. may need to ensure that schematic poetry toml and lock files are compatible with your local environment
+4. Add changed files for tracking and commit changes using [best practices](https://www.perforce.com/blog/vcs/git-best-practices-git-commit)
+5. Have granular commits: not “too many” file changes, and not hundreds of code lines of changes
+6. Commits with work in progress are encouraged:
+   a. add WIP to the beginning of the commit message for “Work In Progress” commits
+7. Keep commit messages descriptive but less than a page long, see best practices
+8. Push code to develop-<feature/fix-name> in upstream repo
+9. Branch out off develop-<feature/fix-name> if needed to work on multiple features associated with the same code base
+10. After feature work is complete and before creating a PR to the develop branch in upstream
+    a. ensure that code runs locally
+    b. test for logical correctness locally
+    c. wait for git workflow to complete (e.g. tests are run) on github
+11. Create a PR from develop-<feature/fix-name> into the develop branch of the upstream repo
+12. Request a code review on the PR
+13. Once code is approved merge in the develop branch
+14. Delete the develop-<feature/fix-name> branch
 ## Updating readthedocs documentation
 1. `cd docs`
 2. After making relevant changes, you could run the `make html` command to re-generate the `build` folder.
@@ -345,9 +344,7 @@ schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <y
 
 Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html) for more information. 
 
-
-
-# Testing 
+### Testing 
 
 All code added to the client must have tests. The Python client uses pytest to run tests. The test code is located in the [tests](https://github.com/Sage-Bionetworks/schematic/tree/develop-docs-update/tests) subdirectory.
 
@@ -357,7 +354,7 @@ You can run the test suite in the following way:
 pytest -vs tests/
 ```
 
-## Updating Synapse test resources
+### Updating Synapse test resources
 
 1. Duplicate the entity being updated (or folder if applicable).
 2. Edit the duplicates (_e.g._ annotations, contents, name).
@@ -366,7 +363,7 @@ pytest -vs tests/
 5. Once the PR is merged, leave the original copies on Synapse to maintain support for feature branches that were forked from `develop` before your update.
    - If the old copies are problematic and need to be removed immediately (_e.g._ contain sensitive data), proceed with the deletion and alert the other contributors that they need to merge the latest `develop` branch into their feature branches for their tests to work.
 
-# Code style
+### Code style
 
 * Please consult the [Google Python style guide](http://google.github.io/styleguide/pyguide.html) prior to contributing code to this project.
 * Be consistent and follow existing code conventions and spirit.
