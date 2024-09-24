@@ -1,7 +1,10 @@
 # Schematic
 [![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop) [![Documentation Status](https://readthedocs.org/projects/sage-schematic/badge/?version=develop)](https://sage-schematic.readthedocs.io/en/develop/?badge=develop) [![PyPI version](https://badge.fury.io/py/schematicpy.svg)](https://badge.fury.io/py/schematicpy)
 
-# Table of contents
+# TLDR
+Under Construction.
+
+# Table of Contents
 - [Schematic](#schematic)
 - [Table of contents](#table-of-contents)
 - [Introduction](#introduction)
@@ -36,16 +39,19 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 
 Note: Our credential policy for Google credentials in order to create Google sheet files from Schematic, see tutorial ['HERE'](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA). If you plan to use `config.yml`, please ensure that the path of `schematic_service_account_creds.json` is indicated there (see `google_sheets > service_account_creds` section)
 
-## Installation guide for Schematic CLI users
-1. **Verifying Python Version Compatibility**
+## Installation Guide: For Schematic CLI users
 
-To ensure compatibility with Schematic, please follow these steps:
+The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation-Requirements]().
 
-Check your own Python version:
+### Verify your python version
+
+Ensure your python version meets the requirements from the [Installation-Requirements]() using the following command:
 ```
 python3 --version
 ```
 
+> !Note:
+> You can double-check the current supported python version by opening up the [pyproject.toml](https://github.com/Sage-Bionetworks/schematic/blob/main/pyproject.toml#L39) file in this repository.
 Check the Supported Python Version: Open the pyproject.toml file in the Schematic repository to find the version of Python that is supported. You can view this file directly on GitHub [here](https://github.com/Sage-Bionetworks/schematic/blob/main/pyproject.toml#L39).
 
 Switching Python Versions: If your current Python version is not supported by Schematic, you can switch to the supported version using tools like [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#switch-between-python-versions). Follow the instructions in the pyenv documentation to install and switch between Python versions easily.
