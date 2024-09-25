@@ -34,36 +34,35 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 
 # Installation
 ## Installation Requirements
-* Python version 3.9.0≤x<3.11.0
+* Your installed python version must be 3.9.0 ≤ version < 3.11.0
 * You need to be a registered and certified user on [`synapse.org`](https://www.synapse.org/)
 
-Note: Our credential policy for Google credentials in order to create Google sheet files from Schematic, see tutorial ['HERE'](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA). If you plan to use `config.yml`, please ensure that the path of `schematic_service_account_creds.json` is indicated there (see `google_sheets > service_account_creds` section)
+> [!NOTE]  
+> To create Google Sheets files from Schematic, please follow our credential policy for Google credentials. You can find a detailed tutorial [here](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA).
+> If you're using config.yml, make sure to specify the path to `schematic_service_account_creds.json` (see the `google_sheets > service_account_creds` section for more information).
 
 ## Installation Guide For: Schematic CLI users
 
-The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation-Requirements]().
+The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation Requirements](#installation-requirements) section.
 
-### Verify your python version
+### 1. Verify your python version
 
-Ensure your python version meets the requirements from the [Installation-Requirements]() using the following command:
+Ensure your python version meets the requirements from the [Installation Requirements](#installation-requirements) section using the following command:
 ```
 python3 --version
 ```
+If your current Python version is not supported by Schematic, you can switch to the supported version using a tool like [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#switch-between-python-versions). Follow the instructions in the pyenv documentation to install and switch between Python versions easily.
 
-> !Note:
-> You can double-check the current supported python version by opening up the [pyproject.toml](https://github.com/Sage-Bionetworks/schematic/blob/main/pyproject.toml#L39) file in this repository.
-Check the Supported Python Version: Open the pyproject.toml file in the Schematic repository to find the version of Python that is supported. You can view this file directly on GitHub [here](https://github.com/Sage-Bionetworks/schematic/blob/main/pyproject.toml#L39).
-
-Switching Python Versions: If your current Python version is not supported by Schematic, you can switch to the supported version using tools like [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#switch-between-python-versions). Follow the instructions in the pyenv documentation to install and switch between Python versions easily.
+> [!NOTE]
+> You can double-check the current supported python version by opening up the [pyproject.toml](https://github.com/Sage-Bionetworks/schematic/blob/main/pyproject.toml#L39) file in this repository and find the supported versions of python in the script.
 
 ### 2. Set up your virtual environment
 
-After switching to the version of Python supported by Schematic, please activate a virtual environment within which you can install the package:
+Once you are working with a python version supported by Schematic, please activate a virtual environment within which you can install the package. Python 3 has built-in support for virtual environments with the `venv` module, so you no longer need to install `virtualenv`:
 ```
 python3 -m venv .venv
 source .venv/bin/activate
 ```
-Note: Python 3 has built-in support for virtual environments with the venv module, so you no longer need to install virtualenv.
 
 ### 3. Install `schematic` dependencies
 
@@ -73,7 +72,7 @@ Install the package using [pip](https://pip.pypa.io/en/stable/quickstart/):
 python3 -m pip install schematicpy
 ```
 
-If you run into error: Failed building wheel for numpy, the error might be able to resolve by upgrading pip. Please try to upgrade pip by:
+If you run into `ERROR: Failed building wheel for numpy`, the error might be able to resolve by upgrading pip. Please try to upgrade pip by:
 
 ```
 pip3 install --upgrade pip
@@ -85,92 +84,51 @@ When contributing to this repository, please first discuss the change you wish t
 
 Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
 
-### Development environment setup
-1. Clone the `schematic` package repository.
+The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation Requirements](#installation-requirements) section.
+
+### 1. Clone the `schematic` package repository
+
+For development, you will be working with the latest version of `schematic` on the repository to ensure compatibility between its latest state and your changes. Ensure your current working directory is where
+you would like to store your local fork before running the following command:
+
 ```
 git clone https://github.com/Sage-Bionetworks/schematic.git
 ```
-2. Install `poetry` (version 1.3.0 or later) using either the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer) or [pipx](https://python-poetry.org/docs/#installing-with-pipx). If you have an older installation of Poetry, we recommend uninstalling it first. 
 
-3. Start the virtual environment by doing: 
+### 2. Install `poetry` 
+
+Install `poetry` (version 1.3.0 or later) using either the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer) or [pipx](https://python-poetry.org/docs/#installing-with-pipx). If you have an older installation of Poetry, we recommend uninstalling it first. 
+
+### 3. Start the virtual environment
+
+Initialize the virtual environment using the following command with `poetry`:
+
 ```
 poetry shell
 ```
-4. Install the dependencies by doing: 
+
+### 4. Install `schematic` dependencies
+
+The following command will install the dependencies based on what we specify in the `poetry.lock` file of this repository. If this step is taking a long time, try to go back to Step 2 and check your version of `poetry`. Alternatively, you can try deleting the lock file and regenerate it by doing `poetry install` (Please note this method should be used as a last resort because this would force other developers to change their development environment)
+
 ```
 poetry install --all-extras
 ```
-This command will install the dependencies based on what we specify in poetry.lock. If this step is taking a long time, try to go back to step 2 and check your version of poetry. Alternatively, you could also try deleting the lock file and regenerate it by doing `poetry install` (Please note this method should be used as a last resort because this would force other developers to change their development environment)
 
+### 5. Set up configuration files
 
-5. Fill in credential files: 
-*Note*: If you won't interact with Synapse, please ignore this section.
+The following section will walk through setting up your configuration files with your credentials to allow for communication between `schematic` and the Synapse API.
 
-There are two main configuration files that need to be edited:
-- config.yml
-- [synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/master/synapseclient/.synapseConfig)
+There are two main configuration files that need to be created + modified:
+- `config.yml`
+- [.synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/master/synapseclient/.synapseConfig)
 
-<strong>Configure .synapseConfig File</strong>
+**Create and modify the `config.yml`**
 
-Download a copy of the ``.synapseConfig`` file, open the file in the editor of your 
-choice and edit the `username` and `authtoken` attribute under the `authentication` 
-section. **Note:** You must place the file at the root of the project like
-`{project_root}/.synapseConfig` in order for any authenticated tests to work.
+In this repository there is a `config_example.yml` file with default configurations to various components that are required before running `schematic`,
+such as the Synapse ID of the main file view containing all your project assets, the base name of your manifest files, etc.
 
-*Note*: You could also visit [configparser](https://docs.python.org/3/library/configparser.html#module-configparser>) doc to see the format that `.synapseConfig` must have. For instance:
->[authentication]<br> username = ABC <br> authtoken = abc
-
-<strong>Configure config.yml File</strong>
-
-There are some defaults in schematic that can be configured. These fields are in ``config_example.yml``:
-
-```text
-
-# This is an example config for Schematic.
-# All listed values are those that are the default if a config is not used.
-# Save this as config.yml, this will be gitignored.
-# Remove any fields in the config you don't want to change
-# Change the values of any fields you do want to change
-
-
-# This describes where assets such as manifests are stored
-asset_store:
-  # This is when assets are stored in a synapse project
-  synapse:
-    # Synapse ID of the file view listing all project data assets.
-    master_fileview_id: "syn23643253"
-    # Path to the synapse config file, either absolute or relative to this file
-    config: ".synapseConfig"
-    # Base name that manifest files will be saved as
-    manifest_basename: "synapse_storage_manifest"
-
-# This describes information about manifests as it relates to generation and validation
-manifest:
-  # Location where manifests will saved to
-  manifest_folder: "manifests"
-  # Title or title prefix given to generated manifest(s)
-  title: "example"
-  # Data types of manifests to be generated or data type (singular) to validate manifest against
-  data_type:
-    - "Biospecimen"
-    - "Patient"
-
-# Describes the location of your schema
-model:
-  # Location of your schema jsonld, it must be a path relative to this file or absolute
-  location: "tests/data/example.model.jsonld"
-
-# This section is for using google sheets with Schematic
-google_sheets:
-  # Path to the synapse config file, either absolute or relative to this file
-  service_acct_creds: "schematic_service_account_creds.json"
-  # When doing google sheet validation (regex match) with the validation rules.
-  #   true is alerting the user and not allowing entry of bad values.
-  #   false is warning but allowing the entry on to the sheet.
-  strict_validation: true
-```
-
-If you want to change any of these copy ``config_example.yml`` to ``config.yml``, change any fields you want to, and remove any fields you don't.
+Copy-paste the contents of `config_example.yml` into a new file called `config.yml` and modify its contents according to your use case.
 
 For example if you wanted to change the folder where manifests are downloaded your config should look like:
 
@@ -180,17 +138,35 @@ manifest:
   manifest_folder: "my_manifest_folder_path"
 ```
 
-_Note_: `config.yml` is ignored by git.
+> [!NOTE]
+> `config.yml` is ignored by git.
 
-_Note_: Paths can be specified relative to the `config.yml` file or as absolute paths.
+> [!NOTE]
+> Paths can be specified relative to the `config.yml` file or as absolute paths.
 
-6. Login to Synapse by using the command line
+**Create and modify the `.synapseConfig`**
+
+The `.synapseConfig` file is what enables communication between `schematic` and the Synapse API using your credentials.
+Download a copy of the `.synapseConfig` file from [here](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/master/synapseclient/.synapseConfig), open the file in the editor of your 
+choice and edit the `username` and `authtoken` attribute under the `authentication` section.
+
+> [!IMPORTANT]
+> You must place the file at the root of the project like so:
+> ```
+> {project_root}/.synapseConfig
+> ```
+> In order for any tests that involve Synapse authentication to work.
+
+*Note*: You can also visit [configparser](https://docs.python.org/3/library/configparser.html#module-configparser>) doc to see the format that `.synapseConfig` must have. For instance:
+>[authentication]<br> username = ABC <br> authtoken = abc
+
+### 6. Login to Synapse by using the command line
 On the CLI in your virtual environment, run the following command: 
 ```
 synapse login -u <synapse username> -p <synapse password> --rememberMe
 ```
 
-7. Obtain Google credential Files
+### 7. Obtain Google credential files
 Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
 
 > As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
@@ -206,7 +182,7 @@ Most Google sheet functionality could be authenticated with service account. How
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
 
-8. Set up pre-commit hooks
+### 8. Set up pre-commit hooks
 
 This repository is configured to utilize pre-commit hooks as part of the development process. To enable these hooks, please run the following command and look for the following success message:
 ```
