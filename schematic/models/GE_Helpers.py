@@ -359,10 +359,11 @@ class GreatExpectationsHelpers(object):
         suite_identifier = ExpectationSuiteIdentifier(
             expectation_suite_name=self.expectation_suite_name
         )
-        # TODO: Do we need to build data docs here during normal operation?
-        self.context.build_data_docs(resource_identifiers=[suite_identifier])
-        ##Webpage DataDocs opened here:
-        # self.context.open_data_docs(resource_identifier=suite_identifier)
+
+        if logger.isEnabledFor(logging.DEBUG):
+            self.context.build_data_docs(resource_identifiers=[suite_identifier])
+            ##Webpage DataDocs opened here:
+            # self.context.open_data_docs(resource_identifier=suite_identifier)
 
     def add_expectation(
         self,
