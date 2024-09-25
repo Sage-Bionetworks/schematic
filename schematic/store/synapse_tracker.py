@@ -4,7 +4,7 @@ behind this class is to provide a mechanism such that if a Synapse entity is req
 multiple times, the entity is only downloaded once. This is useful for preventing
 multiple downloads of the same entity, which can be time consuming."""
 from dataclasses import dataclass, field
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import synapseclient
 from synapseclient import Entity, File, Folder, Project, Schema
@@ -30,7 +30,7 @@ class SynapseEntiyTracker:
         retrieve_if_not_present: bool = True,
         download_location: str = None,
         if_collision: str = None,
-    ) -> Union[Entity, Project, File, Folder, Schema]:
+    ) -> Optional[Union[Entity, Project, File, Folder, Schema]]:
         """Retrieves a Synapse entity from the cache if it exists, otherwise downloads
         the entity from Synapse and adds it to the cache.
 
@@ -38,12 +38,19 @@ class SynapseEntiyTracker:
             synapse_id: The Synapse ID of the entity to retrieve.
             syn: A Synapse object.
             download_file: If True, download the file.
-            retrieve_if_not_present: If True, retrieve the entity if it is not present in the cache.
+            retrieve_if_not_present: If True, retrieve the entity if it is not present
+                in the cache. If not found in the cache, and this is False, return None.
             download_location: The location to download the file to.
-            if_collision: The action to take if there is a collision when downloading the file.
+            if_collision: The action to take if there is a collision when downloading
+                the file. May be "overwrite.local", "keep.local", or "keep.both". A
+                collision occurs when a file with the same name already exists at the
+                download location.
 
         Returns:
-            The Synapse entity.
+            The Synapse entity if found. When retrieve_if_not_present is False and the
+            entity is not found in the local cache, returns None. If
+            retrieve_if_not_present is True and the entity is not found in the local
+            cache, retrieve the entity from Synapse and add it to the cache.
         """
         entity = self.synapse_entities.get(synapse_id, None)
 

@@ -18,10 +18,7 @@ from great_expectations.data_context.types.base import (
 from great_expectations.data_context.types.resource_identifiers import (
     ExpectationSuiteIdentifier,
 )
-from great_expectations.exceptions.exceptions import (
-    DataContextError,
-    GreatExpectationsError,
-)
+from great_expectations.exceptions.exceptions import GreatExpectationsError
 
 import great_expectations as ge
 from schematic.models.validate_attribute import GenerateError
@@ -116,6 +113,7 @@ class GreatExpectationsHelpers(object):
             },
         }
 
+        # Setting this to False prevents extra data from leaving schematic
         anonymous_usage_statistics = AnonymizedUsageStatisticsConfig(enabled=False)
 
         # create data context configuration
