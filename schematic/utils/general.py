@@ -224,6 +224,7 @@ def entity_type_mapping(
     elif isinstance(entity, Project):
         entity_type = "project"
     else:
+        assert entity is not None
         # if there's no matching type, return concreteType
         entity_type = entity.concreteType
     return entity_type
