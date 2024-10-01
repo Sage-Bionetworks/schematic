@@ -281,7 +281,7 @@ schematic model -c /path/to/config.yml validate -dt <your data type> -mp <your c
 schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse dataset folder id> -vc <your data type> -mrt file_only
 ```
 
-Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html) for more information. 
+Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/stable/cli_reference.html#) for more information. 
 
 # Docker Usage
 
