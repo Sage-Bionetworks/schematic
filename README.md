@@ -230,13 +230,7 @@ choice and edit the `username` and `authtoken` attribute under the `authenticati
 *Note*: You can also visit [configparser](https://docs.python.org/3/library/configparser.html#module-configparser>) doc to see the format that `.synapseConfig` must have. For instance:
 >[authentication]<br> username = ABC <br> authtoken = abc
 
-### 6. Login to Synapse by using the command line
-On the CLI in your virtual environment, run the following command: 
-```
-synapse login -u <synapse username> -p <synapse password> --rememberMe
-```
-
-### 7. Obtain Google credential files
+### 6. Obtain Google credential files
 Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
 schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
 Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
@@ -252,7 +246,7 @@ token-based authentication and keep only service account authentication in the f
 > programmatically via OAuth2.0, with the advantage being that they do not require
 > human authorization. 
 
-### 8. Set up pre-commit hooks
+### 7. Set up pre-commit hooks
 
 This repository is configured to utilize pre-commit hooks as part of the development process. To enable these hooks, please run the following command and look for the following success message:
 ```
