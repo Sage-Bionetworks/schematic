@@ -152,7 +152,7 @@ token-based authentication and keep only service account authentication in the f
 
 The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation Requirements](#installation-requirements) section.
 
-When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
+When contributing to this repository, please first discuss the change you wish to make via the [service desk](https://sagebionetworks.jira.com/servicedesk/customer/portal/5/group/8) so that we may track these changes.
 
 Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
 
