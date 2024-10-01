@@ -397,8 +397,18 @@ pytest -vs tests/
 
 ## Code style
 
-* Please consult the [Google Python style guide](http://google.github.io/styleguide/pyguide.html) prior to contributing code to this project.
-* Be consistent and follow existing code conventions and spirit.
+To ensure consistent code formatting across the project, we use [`black`](https://black.readthedocs.io/en/stable/), the Python code formatter.
+
+You can apply `black` to the code in this repository by running the following command, for example like so:
+
+```
+poetry run black schematic tests schematic_api
+```
+
+When run at the root of the repository, this ensures all your scripts in the `schematic/` `tests/` and `schematic_api/` are formatted consistently.
+
+Further, please consult the [Google Python style guide](http://google.github.io/styleguide/pyguide.html) prior to contributing code to this project.
+Be consistent and follow existing code conventions and spirit.
 
 
 # Reporting bugs or feature requests
