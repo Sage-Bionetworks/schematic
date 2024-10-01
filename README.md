@@ -131,20 +131,21 @@ ls ~/.synapseConfig
 > [authentication]<br> username = ABC <br> authtoken = abc
 
 ### 5. Obtain Google credential files
+
 Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
-
-> As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
-
-*Notes*: Use the ``schematic_service_account_creds.json`` file for the service
-account mode of authentication (*for Google services/APIs*). Service accounts 
-are special Google accounts that can be used by applications to access Google APIs 
-programmatically via OAuth2.0, with the advantage being that they do not require 
-human authorization. 
-
-*Background*: schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
+schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
 Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
+
+> As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
+
+> [!NOTE]
+> Use the ``schematic_service_account_creds.json`` file for the service
+> account mode of authentication (*for Google services/APIs*). Service accounts
+> are special Google accounts that can be used by applications to access Google APIs
+> programmatically via OAuth2.0, with the advantage being that they do not require
+> human authorization. 
 
 
 ## Installation Guide For: Contributors
@@ -237,19 +238,19 @@ synapse login -u <synapse username> -p <synapse password> --rememberMe
 
 ### 7. Obtain Google credential files
 Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
-
-> As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
-
-*Notes*: Use the ``schematic_service_account_creds.json`` file for the service
-account mode of authentication (*for Google services/APIs*). Service accounts 
-are special Google accounts that can be used by applications to access Google APIs 
-programmatically via OAuth2.0, with the advantage being that they do not require 
-human authorization. 
-
-*Background*: schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
+schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
 Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
+
+> As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
+
+> [!NOTE]
+> Use the ``schematic_service_account_creds.json`` file for the service
+> account mode of authentication (*for Google services/APIs*). Service accounts
+> are special Google accounts that can be used by applications to access Google APIs
+> programmatically via OAuth2.0, with the advantage being that they do not require
+> human authorization. 
 
 ### 8. Set up pre-commit hooks
 
