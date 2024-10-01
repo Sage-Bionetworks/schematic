@@ -378,7 +378,7 @@ If you install external libraries by using `poetry add <name of library>`, pleas
 
 ## Testing 
 
-All code added to the client must have tests. The Python client uses pytest to run tests. The test code is located in the [tests](https://github.com/Sage-Bionetworks/schematic/tree/develop-docs-update/tests) subdirectory.
+All code added to the client must have tests. The Python client uses pytest to run tests. The test code is located in the `tests/` subdirectory.
 
 You can run the test suite in the following way:
 
