@@ -84,19 +84,18 @@ The following section will walk through setting up your configuration files with
 
 There are two main configuration files that need to be created + modified:
 - `config.yml`
-- [.synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/master/synapseclient/.synapseConfig)
+- `.synapseConfig`
 
 **Create and modify the `config.yml`**
 
 In this repository there is a `config_example.yml` file with default configurations to various components that are required before running `schematic`,
 such as the Synapse ID of the main file view containing all your project assets, the base name of your manifest files, etc.
 
-Copy-paste the contents of `config_example.yml` into a new file called `config.yml` and modify its contents according to your use case.
+Download the `config_example.yml` as a new file called `config.yml` and modify its contents according to your use case.
 
 For example if you wanted to change the folder where manifests are downloaded your config should look like:
 
 ```text
-
 manifest:
   manifest_folder: "my_manifest_folder_path"
 ```
@@ -110,26 +109,28 @@ manifest:
 **Create and modify the `.synapseConfig`**
 
 The `.synapseConfig` file is what enables communication between `schematic` and the Synapse API using your credentials.
-Download a copy of the `.synapseConfig` file from [here](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/master/synapseclient/.synapseConfig), open the file in the editor of your 
-choice and edit the `username` and `authtoken` attribute under the `authentication` section.
+You can automatically generate a `.synapseConfig` file by running the following in your command line and following the prompts:
+
+```
+synapse config
+```
+
+You can generate a new authentication token on the Synapse website by going to `Account Settings` > `Personal Access Tokens`.
+
+After following the prompts, a new Synapse configuration file will exist in your home directory which you can access with the following command:
+
+```
+ls ~/.synapseConfig
+```
 
 > [!IMPORTANT]
-> You must place the file at the root of the project like so:
-> ```
-> {project_root}/.synapseConfig
-> ```
-> In order for any tests that involve Synapse authentication to work.
+> To start working with the CLI, your `.synapseConfig` should be in your current working directory.
 
-*Note*: You can also visit [configparser](https://docs.python.org/3/library/configparser.html#module-configparser>) doc to see the format that `.synapseConfig` must have. For instance:
->[authentication]<br> username = ABC <br> authtoken = abc
+> [!NOTE]
+> You can also visit [configparser](https://docs.python.org/3/library/configparser.html#module-configparser>) doc to see the format that `.synapseConfig` must have. For instance:
+> [authentication]<br> username = ABC <br> authtoken = abc
 
-### 5. Login to Synapse by using the command line
-On the CLI in your virtual environment, run the following command: 
-```
-synapse login -u <synapse username> -p <synapse password> --rememberMe
-```
-
-### 6. Obtain Google credential files
+### 5. Obtain Google credential files
 Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
 
 > As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
@@ -148,11 +149,11 @@ token-based authentication and keep only service account authentication in the f
 
 ## Installation Guide For: Contributors
 
+The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation Requirements](#installation-requirements) section.
+
 When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
 
 Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
-
-The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation Requirements](#installation-requirements) section.
 
 ### 1. Clone the `schematic` package repository
 
