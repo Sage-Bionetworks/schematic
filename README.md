@@ -78,6 +78,74 @@ If you run into `ERROR: Failed building wheel for numpy`, the error might be abl
 pip3 install --upgrade pip
 ```
 
+### 4. Set up configuration files
+
+The following section will walk through setting up your configuration files with your credentials to allow for communication between `schematic` and the Synapse API.
+
+There are two main configuration files that need to be created + modified:
+- `config.yml`
+- [.synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/master/synapseclient/.synapseConfig)
+
+**Create and modify the `config.yml`**
+
+In this repository there is a `config_example.yml` file with default configurations to various components that are required before running `schematic`,
+such as the Synapse ID of the main file view containing all your project assets, the base name of your manifest files, etc.
+
+Copy-paste the contents of `config_example.yml` into a new file called `config.yml` and modify its contents according to your use case.
+
+For example if you wanted to change the folder where manifests are downloaded your config should look like:
+
+```text
+
+manifest:
+  manifest_folder: "my_manifest_folder_path"
+```
+
+> [!NOTE]
+> `config.yml` is ignored by git.
+
+> [!NOTE]
+> Paths can be specified relative to the `config.yml` file or as absolute paths.
+
+**Create and modify the `.synapseConfig`**
+
+The `.synapseConfig` file is what enables communication between `schematic` and the Synapse API using your credentials.
+Download a copy of the `.synapseConfig` file from [here](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/master/synapseclient/.synapseConfig), open the file in the editor of your 
+choice and edit the `username` and `authtoken` attribute under the `authentication` section.
+
+> [!IMPORTANT]
+> You must place the file at the root of the project like so:
+> ```
+> {project_root}/.synapseConfig
+> ```
+> In order for any tests that involve Synapse authentication to work.
+
+*Note*: You can also visit [configparser](https://docs.python.org/3/library/configparser.html#module-configparser>) doc to see the format that `.synapseConfig` must have. For instance:
+>[authentication]<br> username = ABC <br> authtoken = abc
+
+### 5. Login to Synapse by using the command line
+On the CLI in your virtual environment, run the following command: 
+```
+synapse login -u <synapse username> -p <synapse password> --rememberMe
+```
+
+### 6. Obtain Google credential files
+Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
+
+> As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
+
+*Notes*: Use the ``schematic_service_account_creds.json`` file for the service
+account mode of authentication (*for Google services/APIs*). Service accounts 
+are special Google accounts that can be used by applications to access Google APIs 
+programmatically via OAuth2.0, with the advantage being that they do not require 
+human authorization. 
+
+*Background*: schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
+Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
+requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
+token-based authentication and keep only service account authentication in the future. 
+
+
 ## Installation Guide For: Contributors
 
 When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
@@ -192,6 +260,35 @@ pre-commit installed at .git/hooks/pre-commit
 
 *Note*: Make sure you have the latest version of the `develop` branch on your local machine.
 
+# Command Line Usage
+1. Generate a new manifest as a google sheet
+
+```
+schematic manifest -c /path/to/config.yml get -dt <your data type> -s
+```
+
+2. Grab an existing manifest from synapse 
+
+```
+schematic manifest -c /path/to/config.yml get -dt <your data type> -d <your synapse dataset folder id> -s
+```
+
+3. Validate a manifest
+
+```
+schematic model -c /path/to/config.yml validate -dt <your data type> -mp <your csv manifest path>
+```
+
+4. Submit a manifest as a file
+
+```
+schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse dataset folder id> -vc <your data type> -mrt file_only
+```
+
+Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html) for more information. 
+
+# Docker Usage
+
 ### Example For REST API <br>
 
 #### Use file path of `config.yml` to run API endpoints: 
@@ -220,8 +317,6 @@ docker run --rm -p 3001:3001 \
   sagebionetworks/schematic \
   python /usr/src/app/run_api.py
 ``` 
-
-
 ### Example For Schematic on mac/linux <br>
 To run example below, first clone schematic into your home directory  `git clone https://github.com/sage-bionetworks/schematic ~/schematic` <br>
 Then update .synapseConfig with your credentials
@@ -285,42 +380,7 @@ For new features, bugs, enhancements
 ## Update toml file and lock file
 If you install external libraries by using `poetry add <name of library>`, please make sure that you include `pyproject.toml` and `poetry.lock` file in your commit.
 
-## Reporting bugs or feature requests
-You can **create bug and feature requests** through [Sage Bionetwork's FAIR Data service desk](https://sagebionetworks.jira.com/servicedesk/customer/portal/5/group/8). Providing enough details to the developers to verify and troubleshoot your issue is paramount:
-- **Provide a clear and descriptive title as well as a concise summary** of the issue to identify the problem.
-- **Describe the exact steps which reproduce the problem** in as many details as possible.
-- **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
-- **Explain which behavior you expected to see** instead and why.
-- **Provide screenshots of the expected or actual behaviour** where applicable.
-
-# Command Line Usage
-1. Generate a new manifest as a google sheet
-
-```
-schematic manifest -c /path/to/config.yml get -dt <your data type> -s
-```
-
-2. Grab an existing manifest from synapse 
-
-```
-schematic manifest -c /path/to/config.yml get -dt <your data type> -d <your synapse dataset folder id> -s
-```
-
-3. Validate a manifest
-
-```
-schematic model -c /path/to/config.yml validate -dt <your data type> -mp <your csv manifest path>
-```
-
-4. Submit a manifest as a file
-
-```
-schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse dataset folder id> -vc <your data type> -mrt file_only
-```
-
-Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html) for more information. 
-
-### Testing 
+## Testing 
 
 All code added to the client must have tests. The Python client uses pytest to run tests. The test code is located in the [tests](https://github.com/Sage-Bionetworks/schematic/tree/develop-docs-update/tests) subdirectory.
 
@@ -339,11 +399,19 @@ pytest -vs tests/
 5. Once the PR is merged, leave the original copies on Synapse to maintain support for feature branches that were forked from `develop` before your update.
    - If the old copies are problematic and need to be removed immediately (_e.g._ contain sensitive data), proceed with the deletion and alert the other contributors that they need to merge the latest `develop` branch into their feature branches for their tests to work.
 
-### Code style
+## Code style
 
 * Please consult the [Google Python style guide](http://google.github.io/styleguide/pyguide.html) prior to contributing code to this project.
 * Be consistent and follow existing code conventions and spirit.
 
+
+# Reporting bugs or feature requests
+You can **create bug and feature requests** through [Sage Bionetwork's FAIR Data service desk](https://sagebionetworks.jira.com/servicedesk/customer/portal/5/group/8). Providing enough details to the developers to verify and troubleshoot your issue is paramount:
+- **Provide a clear and descriptive title as well as a concise summary** of the issue to identify the problem.
+- **Describe the exact steps which reproduce the problem** in as many details as possible.
+- **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
+- **Explain which behavior you expected to see** instead and why.
+- **Provide screenshots of the expected or actual behaviour** where applicable.
 
 # Contributors
 
