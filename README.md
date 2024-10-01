@@ -83,28 +83,8 @@ pip3 install --upgrade pip
 The following section will walk through setting up your configuration files with your credentials to allow for communication between `schematic` and the Synapse API.
 
 There are two main configuration files that need to be created + modified:
-- `config.yml`
 - `.synapseConfig`
-
-**Create and modify the `config.yml`**
-
-In this repository there is a `config_example.yml` file with default configurations to various components that are required before running `schematic`,
-such as the Synapse ID of the main file view containing all your project assets, the base name of your manifest files, etc.
-
-Download the `config_example.yml` as a new file called `config.yml` and modify its contents according to your use case.
-
-For example if you wanted to change the folder where manifests are downloaded your config should look like:
-
-```text
-manifest:
-  manifest_folder: "my_manifest_folder_path"
-```
-
-> [!NOTE]
-> `config.yml` is ignored by git.
-
-> [!NOTE]
-> Paths can be specified relative to the `config.yml` file or as absolute paths.
+- `config.yml`
 
 **Create and modify the `.synapseConfig`**
 
@@ -123,12 +103,28 @@ After following the prompts, a new Synapse configuration file will exist in your
 ls ~/.synapseConfig
 ```
 
+> [!NOTE]
+> !!TODO!! You will notice a new `.synapseCache` folder is created alongside the `.synapseConfig` file. This is where all your non-manifest assets will be stored(?)
+
+**Create and modify the `config.yml`**
+
+In this repository there is a `config_example.yml` file with default configurations to various components that are required before running `schematic`,
+such as the Synapse ID of the main file view containing all your project assets, the base name of your manifest files, etc.
+
+Download the `config_example.yml` as a new file called `config.yml` and modify its contents according to your use case.
+
+For example if you wanted to change the folder where manifests are downloaded your config should look like:
+
+```text
+manifest:
+  manifest_folder: "my_manifest_folder_path"
+```
+
 > [!IMPORTANT]
-> To start working with the CLI, your `.synapseConfig` should be in your current working directory.
+> Be sure to update your `config.yml` with the location of your `.synapseConfig` created in the step above, to avoid authentication errors. Paths can be specified relative to the `config.yml` file or as absolute paths.
 
 > [!NOTE]
-> You can also visit [configparser](https://docs.python.org/3/library/configparser.html#module-configparser>) doc to see the format that `.synapseConfig` must have. For instance:
-> [authentication]<br> username = ABC <br> authtoken = abc
+> `config.yml` is ignored by git.
 
 ### 5. Obtain Google credential files
 
@@ -190,45 +186,48 @@ poetry install --all-extras
 The following section will walk through setting up your configuration files with your credentials to allow for communication between `schematic` and the Synapse API.
 
 There are two main configuration files that need to be created + modified:
+- `.synapseConfig`
 - `config.yml`
-- [.synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/master/synapseclient/.synapseConfig)
+
+**Create and modify the `.synapseConfig`**
+
+The `.synapseConfig` file is what enables communication between `schematic` and the Synapse API using your credentials.
+You can automatically generate a `.synapseConfig` file by running the following in your command line and following the prompts:
+
+```
+synapse config
+```
+
+You can generate a new authentication token on the Synapse website by going to `Account Settings` > `Personal Access Tokens`.
+
+After following the prompts, a new Synapse configuration file will exist in your home directory which you can access with the following command:
+
+```
+ls ~/.synapseConfig
+```
+
+> [!NOTE]
+> !!TODO!! You will notice a new `.synapseCache` folder is created alongside the `.synapseConfig` file. This is where all your non-manifest assets will be stored(?)
 
 **Create and modify the `config.yml`**
 
 In this repository there is a `config_example.yml` file with default configurations to various components that are required before running `schematic`,
 such as the Synapse ID of the main file view containing all your project assets, the base name of your manifest files, etc.
 
-Copy-paste the contents of `config_example.yml` into a new file called `config.yml` and modify its contents according to your use case.
+Download the `config_example.yml` as a new file called `config.yml` and modify its contents according to your use case.
 
 For example if you wanted to change the folder where manifests are downloaded your config should look like:
 
 ```text
-
 manifest:
   manifest_folder: "my_manifest_folder_path"
 ```
 
+> [!IMPORTANT]
+> Be sure to update your `config.yml` with the location of your `.synapseConfig` created in the step above, to avoid authentication errors. Paths can be specified relative to the `config.yml` file or as absolute paths.
+
 > [!NOTE]
 > `config.yml` is ignored by git.
-
-> [!NOTE]
-> Paths can be specified relative to the `config.yml` file or as absolute paths.
-
-**Create and modify the `.synapseConfig`**
-
-The `.synapseConfig` file is what enables communication between `schematic` and the Synapse API using your credentials.
-Download a copy of the `.synapseConfig` file from [here](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/master/synapseclient/.synapseConfig), open the file in the editor of your 
-choice and edit the `username` and `authtoken` attribute under the `authentication` section.
-
-> [!IMPORTANT]
-> You must place the file at the root of the project like so:
-> ```
-> {project_root}/.synapseConfig
-> ```
-> In order for any tests that involve Synapse authentication to work.
-
-*Note*: You can also visit [configparser](https://docs.python.org/3/library/configparser.html#module-configparser>) doc to see the format that `.synapseConfig` must have. For instance:
->[authentication]<br> username = ABC <br> authtoken = abc
 
 ### 6. Obtain Google credential files
 Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
