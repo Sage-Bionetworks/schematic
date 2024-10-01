@@ -189,6 +189,7 @@ class SynapseStorage(BaseStorage):
     TODO: Need to define the interface and rename and/or refactor some of the methods below.
     """
 
+    @tracer.start_as_current_span("SynapseStorage::__init__")
     def __init__(
         self,
         token: Optional[str] = None,  # optional parameter retrieved from browser cookie
@@ -223,6 +224,7 @@ class SynapseStorage(BaseStorage):
         if perform_query:
             self.query_fileview(columns=columns, where_clauses=where_clauses)
 
+    @tracer.start_as_current_span("SynapseStorage::_purge_synapse_cache")
     def _purge_synapse_cache(
         self, maximum_storage_allowed_cache_gb: int = 1, minute_buffer: int = 15
     ) -> None:
@@ -1207,6 +1209,7 @@ class SynapseStorage(BaseStorage):
             )
         return manifests, manifest_loaded
 
+    @tracer.start_as_current_span("SynapseStorage::get_synapse_table")
     def get_synapse_table(self, synapse_id: str) -> Tuple[pd.DataFrame, CsvFileTable]:
         """Download synapse table as a pd dataframe; return table schema and etags as results too
 
@@ -1219,6 +1222,7 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
+    @tracer.start_as_current_span("SynapseStorage::_get_tables")
     def _get_tables(self, datasetId: str = None, projectId: str = None) -> List[Table]:
         if projectId:
             project = projectId
@@ -1517,6 +1521,91 @@ class SynapseStorage(BaseStorage):
         )
         return await annotation_class.store_async(synapse_client=self.syn)
 
+    def process_row_annotations(
+        self,
+        dmge: DataModelGraphExplorer,
+        metadata_syn: Dict[str, Any],
+        hide_blanks: bool,
+        csv_list_regex: str,
+        annos: Dict[str, Any],
+        annotation_keys: str,
+    ) -> Dict[str, Any]:
+        """Processes metadata annotations based on the logic below:
+        1. Checks if the hide_blanks flag is True, and if the current annotation value (anno_v) is:
+            An empty or whitespace-only string.
+            A NaN value (if the annotation is a float).
+        if any of the above conditions are met, and hide_blanks is True, the annotation key is not going to be uploaded and skips further processing of that annotation key.
+        if any of the above conditions are met, and hide_blanks is False, assigns an empty string "" as the annotation value for that key.
+
+        2. If the value is a string and matches the pattern defined by csv_list_regex, get validation rule based on "node label" or "node display name".
+        Check if the rule contains "list" as a rule, if it does, split the string by comma and assign the resulting list as the annotation value for that key.
+
+        3. For any other conditions, assigns the original value of anno_v to the annotation key (anno_k).
+
+        4. Returns the updated annotations dictionary.
+
+        Args:
+            dmge (DataModelGraphExplorer): data model graph explorer
+            metadata_syn (dict): metadata used for Synapse storage
+            hideBlanks (bool): if true, does not upload annotation keys with blank values.
+            csv_list_regex (str): Regex to match with comma separated list
+            annos (Dict[str, Any]): dictionary of annotation returned from synapse
+            annotation_keys (str): display_label/class_label
+
+        Returns:
+            Dict[str, Any]: annotations as a dictionary
+
+        ```mermaid
+        flowchart TD
+            A[Start] --> C{Is anno_v empty, whitespace, or NaN?}
+            C -- Yes --> D{Is hide_blanks True?}
+            D -- Yes --> E[Remove this annotation key from the annotation dictionary to be uploaded. Skip further processing]
+            D -- No --> F[Assign empty string to annotation key]
+            C -- No --> G{Is anno_v a string?}
+            G -- No --> H[Assign original value of anno_v to annotation key]
+            G -- Yes --> I{Does anno_v match csv_list_regex?}
+            I -- Yes --> J[Get validation rule of anno_k]
+            J --> K{Does the validation rule contain 'list'}
+            K -- Yes --> L[Split anno_v by commas and assign as list]
+            I -- No --> H
+            K -- No --> H
+        ```
+        """
+        for anno_k, anno_v in metadata_syn.items():
+            # Remove keys with nan or empty string values or string that only contains white space from dict of annotations to be uploaded
+            # if present on current data annotation
+            if hide_blanks and (
+                (isinstance(anno_v, str) and anno_v.strip() == "")
+                or (isinstance(anno_v, float) and np.isnan(anno_v))
+            ):
+                annos["annotations"]["annotations"].pop(anno_k) if anno_k in annos[
+                    "annotations"
+                ]["annotations"].keys() else annos["annotations"]["annotations"]
+                continue
+
+            # Otherwise save annotation as approrpriate
+            if isinstance(anno_v, float) and np.isnan(anno_v):
+                annos["annotations"]["annotations"][anno_k] = ""
+                continue
+
+            # Handle strings that match the csv_list_regex and pass the validation rule
+            if isinstance(anno_v, str) and re.fullmatch(csv_list_regex, anno_v):
+                # Use a dictionary to dynamically choose the argument
+                param = (
+                    {"node_display_name": anno_k}
+                    if annotation_keys == "display_label"
+                    else {"node_label": anno_k}
+                )
+                node_validation_rules = dmge.get_node_validation_rules(**param)
+
+                if rule_in_rule_list("list", node_validation_rules):
+                    annos["annotations"]["annotations"][anno_k] = anno_v.split(",")
+                    continue
+            # default: assign the original value
+            annos["annotations"]["annotations"][anno_k] = anno_v
+
+        return annos
+
     @async_missing_entity_handler
     async def format_row_annotations(
         self,
@@ -1570,27 +1659,15 @@ class SynapseStorage(BaseStorage):
         annos = await self.get_async_annotation(entityId)
 
         csv_list_regex = comma_separated_list_regex()
-        for anno_k, anno_v in metadataSyn.items():
-            # Remove keys with nan or empty string values from dict of annotations to be uploaded
-            # if present on current data annotation
-            if hideBlanks and (
-                anno_v == "" or (isinstance(anno_v, float) and np.isnan(anno_v))
-            ):
-                annos.pop(anno_k) if anno_k in annos.keys() else annos
-            # Otherwise save annotation as approrpriate
-            else:
-                if isinstance(anno_v, float) and np.isnan(anno_v):
-                    annos[anno_k] = ""
-                elif (
-                    isinstance(anno_v, str)
-                    and re.fullmatch(csv_list_regex, anno_v)
-                    and rule_in_rule_list(
-                        "list", dmge.get_node_validation_rules(anno_k)
-                    )
-                ):
-                    annos[anno_k] = anno_v.split(",")
-                else:
-                    annos[anno_k] = anno_v
+
+        annos = self.process_row_annotations(
+            dmge=dmge,
+            metadata_syn=metadataSyn,
+            hide_blanks=hideBlanks,
+            csv_list_regex=csv_list_regex,
+            annos=annos,
+            annotation_keys=annotation_keys,
+        )
 
         return annos
 
@@ -1790,8 +1867,10 @@ class SynapseStorage(BaseStorage):
 
     def _generate_table_name(self, manifest):
         """Helper function to generate a table name for upload to synapse.
+
         Args:
             Manifest loaded as a pd.Dataframe
+
         Returns:
             table_name (str): Name of the table to load
             component_name (str): Name of the manifest component (if applicable)
@@ -1851,7 +1930,10 @@ class SynapseStorage(BaseStorage):
                     else:
                         # store annotations if they are not None
                         if annos:
-                            normalized_annos = {k.lower(): v for k, v in annos.items()}
+                            normalized_annos = {
+                                k.lower(): v
+                                for k, v in annos["annotations"]["annotations"].items()
+                            }
                             entity_id = normalized_annos["entityid"]
                             logger.info(
                                 f"Obtained and processed annotations for {entity_id} entity"
@@ -2239,9 +2321,9 @@ class SynapseStorage(BaseStorage):
         # Upload manifest to synapse based on user input (manifest_record_type)
         if manifest_record_type == "file_only":
             manifest_synapse_file_id = self.upload_manifest_as_csv(
-                dmge,
-                manifest,
-                metadataManifestPath,
+                dmge=dmge,
+                manifest=manifest,
+                metadataManifestPath=metadataManifestPath,
                 datasetId=datasetId,
                 restrict=restrict_manifest,
                 hideBlanks=hideBlanks,
@@ -2252,9 +2334,9 @@ class SynapseStorage(BaseStorage):
             )
         elif manifest_record_type == "table_and_file":
             manifest_synapse_file_id = self.upload_manifest_as_table(
-                dmge,
-                manifest,
-                metadataManifestPath,
+                dmge=dmge,
+                manifest=manifest,
+                metadataManifestPath=metadataManifestPath,
                 datasetId=datasetId,
                 table_name=table_name,
                 component_name=component_name,
@@ -2268,9 +2350,9 @@ class SynapseStorage(BaseStorage):
             )
         elif manifest_record_type == "file_and_entities":
             manifest_synapse_file_id = self.upload_manifest_as_csv(
-                dmge,
-                manifest,
-                metadataManifestPath,
+                dmge=dmge,
+                manifest=manifest,
+                metadataManifestPath=metadataManifestPath,
                 datasetId=datasetId,
                 restrict=restrict_manifest,
                 hideBlanks=hideBlanks,
@@ -2281,9 +2363,9 @@ class SynapseStorage(BaseStorage):
             )
         elif manifest_record_type == "table_file_and_entities":
             manifest_synapse_file_id = self.upload_manifest_combo(
-                dmge,
-                manifest,
-                metadataManifestPath,
+                dmge=dmge,
+                manifest=manifest,
+                metadataManifestPath=metadataManifestPath,
                 datasetId=datasetId,
                 table_name=table_name,
                 component_name=component_name,
@@ -2465,6 +2547,7 @@ class SynapseStorage(BaseStorage):
         else:
             return False
 
+    @tracer.start_as_current_span("SynapseStorage::getDatasetProject")
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_chain(
@@ -2602,6 +2685,7 @@ class TableOperations:
         self.existingTableId = existingTableId
         self.restrict = restrict
 
+    @tracer.start_as_current_span("TableOperations::createTable")
     def createTable(
         self,
         columnTypeDict: dict = None,
@@ -2670,6 +2754,7 @@ class TableOperations:
             table = self.synStore.syn.store(table, isRestricted=self.restrict)
             return table.schema.id
 
+    @tracer.start_as_current_span("TableOperations::replaceTable")
     def replaceTable(
         self,
         specifySchema: bool = True,
@@ -2764,6 +2849,7 @@ class TableOperations:
         existing_table.drop(columns=["ROW_ID", "ROW_VERSION"], inplace=True)
         return self.existingTableId
 
+    @tracer.start_as_current_span("TableOperations::_get_auth_token")
     def _get_auth_token(
         self,
     ):
@@ -2807,6 +2893,7 @@ class TableOperations:
 
         return authtoken
 
+    @tracer.start_as_current_span("TableOperations::upsertTable")
     def upsertTable(self, dmge: DataModelGraphExplorer):
         """
         Method to upsert rows from a new manifest into an existing table on synapse
@@ -2847,6 +2934,7 @@ class TableOperations:
 
         return self.existingTableId
 
+    @tracer.start_as_current_span("TableOperations::_update_table_uuid_column")
     def _update_table_uuid_column(
         self,
         dmge: DataModelGraphExplorer,
@@ -2912,6 +3000,7 @@ class TableOperations:
 
         return
 
+    @tracer.start_as_current_span("TableOperations::updateTable")
     def updateTable(
         self,
         update_col: str = "Id",

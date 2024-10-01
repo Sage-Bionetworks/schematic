@@ -7,7 +7,7 @@ name: Test schematic
 
 on:
   push:
-    branches: ['main']
+    branches: ['main', 'develop']
   pull_request:
     branches: ['*']
   workflow_dispatch:  # Allow manually triggering the workflow
@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   test:
-    runs-on: ubuntu-22.04-4core-16GBRAM-150GBSSD
+    runs-on: ubuntu-latest
     env:
       POETRY_VERSION:  1.3.0
     strategy:
@@ -39,12 +39,24 @@ jobs:
       #       check-out repo and set-up python
       #----------------------------------------------
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
+      #----------------------------------------------
+      #       verify runner environment
+      #----------------------------------------------
+      # - name: Print runner environment information
+      #   run: |
+      #     echo "Running on runner: $RUNNER_NAME"
+      #     echo "Runner OS: $RUNNER_OS"
+      #     echo "Runner OS version: $RUNNER_OS_VERSION"
+      #     echo "Runner architecture: $RUNNER_ARCH"
+      #     echo "Total memory: $(free -h)"
+      #     echo "CPU info: $(lscpu)"
 
       #----------------------------------------------
       #          install & configure poetry
@@ -55,23 +67,12 @@ jobs:
             | python3 - --version ${{ env.POETRY_VERSION }};
           poetry config virtualenvs.create true;
           poetry config virtualenvs.in-project true;
-      #----------------------------------------------
-      #       load cached venv if cache exists
-      #----------------------------------------------
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v2
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
       #----------------------------------------------
       # install dependencies and root project
       #----------------------------------------------
       - name: Install dependencies and root project
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --all-extras
-
       #----------------------------------------------
       #             perform linting
       #----------------------------------------------
@@ -113,25 +114,36 @@ jobs:
           poetry run pylint schematic/visualization/* schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/utils/*.py schematic/schemas/*.py
 
       #----------------------------------------------
-      #              run test suite
+      #              run unit test suite
       #----------------------------------------------
-      - name: Run tests
+      - name: Run unit tests
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
-          source .venv/bin/activate;
-          pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-          -m "not (rule_benchmark or table_operations)" --reruns 2 -n auto
+          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov 
+          --cov-report=xml:coverage.xml --cov=schematic/ --reruns 4 -n 8 tests/unit;
+
+      #----------------------------------------------
+      #              run integration test suite
+      #----------------------------------------------
+      - name: Run integration tests
+        if: ${{ contains(fromJSON('["3.10"]'), matrix.python-version) }}
+        env:
+          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+          SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
+        run: >
+          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
+          -m "not (rule_benchmark)" --reruns 4 -n 8 --ignore=tests/unit
 
 
       - name: Upload pytest test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: pytest-results-${{ matrix.python-version }}
           path: htmlcov
         # Use always() to always run this step to publish test results when there are test failures
-        if: ${{ always() }}
+        if: ${{ always() && contains(fromJSON('["3.10"]'), matrix.python-version) }}
       - name: Upload XML coverage report
         id: upload_coverage_report
         uses: actions/upload-artifact@v4

@@ -1,38 +1,38 @@
-from collections import OrderedDict
 import json
 import logging
-import networkx as nx
-from openpyxl.styles import Font, Alignment, PatternFill
-from openpyxl import load_workbook
-from openpyxl.utils.dataframe import dataframe_to_rows
 import os
-import pandas as pd
+from collections import OrderedDict
 from pathlib import Path
-import pygsheets as ps
 from tempfile import NamedTemporaryFile
-from typing import Any, Dict, List, Optional, Tuple, Union, BinaryIO, Literal
+from typing import Any, BinaryIO, Dict, List, Literal, Optional, Tuple, Union
 
+import networkx as nx
+import pandas as pd
+import pygsheets as ps
+from openpyxl import load_workbook
+from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils.dataframe import dataframe_to_rows
+from opentelemetry import trace
+
+from schematic.configuration.configuration import CONFIG
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
-
-from schematic.utils.google_api_utils import (
-    execute_google_api_requests,
-    build_service_account_creds,
-)
-from schematic.utils.df_utils import update_df, load_df
-from schematic.utils.schema_utils import extract_component_validation_rules
-from schematic.utils.validate_utils import rule_in_rule_list
-from schematic.utils.schema_utils import DisplayLabelType
+from schematic.schemas.data_model_parser import DataModelParser
 
 # TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
-
-from schematic.configuration.configuration import CONFIG
-from schematic.utils.google_api_utils import export_manifest_drive_service
-
-from opentelemetry import trace
+from schematic.utils.df_utils import load_df, update_df
+from schematic.utils.google_api_utils import (
+    build_service_account_creds,
+    execute_google_api_requests,
+    export_manifest_drive_service,
+)
+from schematic.utils.schema_utils import (
+    DisplayLabelType,
+    extract_component_validation_rules,
+)
+from schematic.utils.validate_utils import rule_in_rule_list
 
 logger = logging.getLogger(__name__)
 tracer = trace.get_tracer("Schematic")
@@ -1543,6 +1543,24 @@ class ManifestGenerator(object):
             a pandas dataframe, file path of an excel spreadsheet, or a google sheet URL
         TODO:
             Depreciate sheet URL and add google_sheet as an output_format choice.
+
+        ```mermaid
+        flowchart TD
+            A[Start] --> B{Output Format is 'dataframe'?}
+            B -- Yes --> C[Return DataFrame]
+            B -- No --> D{Output Format is 'excel'?}
+            D -- Yes --> E[Export to Excel]
+            E --> F[Populate Excel]
+            F --> G[Return Excel Path]
+            D -- No --> H{Sheet URL is set?}
+            H -- Yes --> I[Set DataFrame by URL]
+            I --> J[Return Sheet URL]
+            H -- No --> K[Default Return DataFrame]
+            C --> L[End]
+            G --> L
+            J --> L
+            K --> L
+        ```
         """
 
         # if the output type gets set to "dataframe", return a data frame
@@ -1657,6 +1675,33 @@ class ManifestGenerator(object):
 
         Returns:
             Union[List[str], List[pd.DataFrame]]: a list of Googlesheet URLs, a list of pandas dataframes or excel file paths
+
+        ```mermaid
+        sequenceDiagram
+            participant User
+            participant Function
+            participant DataModelParser
+            participant DataModelGraph
+            participant ManifestGenerator
+            User->>Function: call create_manifests
+            Function->>Function: check dataset_ids and validate inputs
+            Function->>DataModelParser: parse data model
+            DataModelParser-->>Function: return parsed data model
+            Function->>DataModelGraph: generate graph
+            DataModelGraph-->>Function: return graph data model
+            alt data_types == "all manifests"
+                loop for each component
+                    Function->>ManifestGenerator: create manifest for component
+                    ManifestGenerator-->>Function: single manifest
+                end
+            else
+                loop for each data_type
+                    Function->>ManifestGenerator: create single manifest
+                    ManifestGenerator-->>Function: single manifest
+                end
+            end
+            Function-->>User: return manifests based on output_format
+        ```
         """
         if dataset_ids:
             # Check that the number of submitted data_types matches
@@ -1783,6 +1828,44 @@ class ManifestGenerator(object):
 
         Returns:
             Googlesheet URL, pandas dataframe, or an Excel spreadsheet
+
+        ```mermaid
+        flowchart TD
+            Start[Start] --> DatasetIDCheck{Dataset ID provided?}
+            DatasetIDCheck -- No --> EmptyManifestURL[Get Empty Manifest URL]
+            EmptyManifestURL --> OutputFormatCheck{Output Format is 'excel'?}
+            OutputFormatCheck -- Yes --> ExportToExcel[Export to Excel]
+            OutputFormatCheck -- No --> ReturnManifestURL[Return Manifest URL]
+            DatasetIDCheck -- Yes --> InstantiateSynapseStorage[Instantiate SynapseStorage]
+            InstantiateSynapseStorage --> UpdateManifestFiles[Update Dataset Manifest Files]
+            UpdateManifestFiles --> GetEmptyManifestURL[Get Empty Manifest URL]
+            GetEmptyManifestURL --> ManifestRecordCheck{Manifest Record exists?}
+            ManifestRecordCheck -- Yes --> UpdateDataframe[Update Dataframe]
+            UpdateDataframe --> HandleOutputFormatLogic[Handle Output Format Logic]
+            HandleOutputFormatLogic --> ReturnResult[Return Result]
+            ManifestRecordCheck -- No --> UseAnnotationsCheck{Use Annotations?}
+
+            UseAnnotationsCheck -- No --> CreateDataframe[Create dataframe from empty manifest on Google]
+            CreateDataframe --> ManifestFileBasedCheck1{Manifest file-based?}
+            ManifestFileBasedCheck1 -- Yes --> AddEntityID[Add entityId and filename to manifest df]
+            ManifestFileBasedCheck1 -- No --> UseDataframe[Use dataframe from an empty manifest]
+
+            AddEntityID --> HandleOutputFormatLogic
+            UseDataframe --> HandleOutputFormatLogic
+
+            UseAnnotationsCheck -- Yes --> ManifestFileBasedCheck2{Manifest file-based?}
+            ManifestFileBasedCheck2 -- No --> HandleOutputFormatLogic
+            ManifestFileBasedCheck2 -- Yes --> ProcessAnnotations[Process Annotations]
+            ProcessAnnotations --> AnnotationsEmptyCheck{Annotations Empty?}
+            AnnotationsEmptyCheck -- Yes --> CreateDataframeFromEmpty[Create dataframe from an empty manifest on Google]
+            CreateDataframeFromEmpty --> UpdateDataframeWithAnnotations[Update dataframe]
+            AnnotationsEmptyCheck -- No --> GetManifestWithAnnotations[Get Manifest with Annotations]
+            GetManifestWithAnnotations --> UpdateDataframeWithAnnotations
+            UpdateDataframeWithAnnotations --> HandleOutputFormatLogic
+            ReturnResult --> End[End]
+            ReturnManifestURL --> End
+            ExportToExcel --> End
+        ```
         """
         # Handle case when no dataset ID is provided
         if not dataset_id:
