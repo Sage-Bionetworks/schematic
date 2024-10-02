@@ -144,6 +144,7 @@ token-based authentication and keep only service account authentication in the f
 > programmatically via OAuth2.0, with the advantage being that they do not require
 > human authorization. 
 
+After running this step, your setup is complete, and you can test it on a `python` instance or by running a command based on the examples in the [Command Line Usage](#command-line-usage) section.
 
 ## Installation Guide For: Contributors
 
