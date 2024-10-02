@@ -5,7 +5,7 @@
 
 * `schematic` (Schema Engine for Manifest Ingress and Curation) is a python-based software tool that streamlines the retrieval, validation, and submission of metadata for biomedical datasets hosted on Sage Bionetworks' Synapse platform.
 * Users can work with `schematic` in several ways, including through the CLI (see [Command Line Usage](#command-line-usage) for examples), through Docker (see [Docker Usage](#docker-usage) for examples), or with python.
-* In order to communicate with Synapse, users will need to set up their credentials for authentication with Synapse and the Google Sheets API. Setup instructions are available in the Installation Guides:
+* `schematic` needs to communicate with Synapse and Google Sheets in order for its processes to work. In order for this to happen, users will need to set up their credentials for authentication with Synapse and the Google Sheets API. Setup instructions are available in the Installation Guides:
    * [Installation Guide For: Schematic CLI users](#installation-guide-for-schematic-cli-users)
    * [Installation Guide For: Contributors](#installation-guide-for-contributors)
 
@@ -48,7 +48,7 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 
 ## Installation Guide For: Schematic CLI users
 
-The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation Requirements](#installation-requirements) section.
+The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation Requirements](#installation-requirements) section, and do not have an environment already active (e.g. with `pyenv`).
 
 ### 1. Verify your python version
 
@@ -153,7 +153,7 @@ After running this step, your setup is complete, and you can test it on a `pytho
 
 ## Installation Guide For: Contributors
 
-The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation Requirements](#installation-requirements) section. For development, we recommend working with versions > python 3.9 to avoid issues with `pre-commit`'s default hook configuration.
+The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation Requirements](#installation-requirements) section, and do not have an environment already active (e.g. with `pyenv`). For development, we recommend working with versions > python 3.9 to avoid issues with `pre-commit`'s default hook configuration.
 
 When contributing to this repository, please first discuss the change you wish to make via the [service desk](https://sagebionetworks.jira.com/servicedesk/customer/portal/5/group/8) so that we may track these changes.
 
@@ -176,12 +176,24 @@ Install `poetry` (version 1.3.0 or later) using either the [official installer](
 pip install poetry
 ```
 
+Check to make sure your version of poetry is > v1.3.0
+
+```
+poetry --version
+```
+
 ### 3. Start the virtual environment
 
 `cd` into your cloned `schematic` repository, and initialize the virtual environment using the following command with `poetry`:
 
 ```
 poetry shell
+```
+
+To make sure your poetry version and python version are consistent with the versions you expect, you can run the following command:
+
+```
+poetry debug info
 ```
 
 ### 4. Install `schematic` dependencies
@@ -231,9 +243,13 @@ The `.synapseConfig` is used to log into Synapse if you are not using an environ
 In this repository there is a `config_example.yml` file with default configurations to various components that are required before running `schematic`,
 such as the Synapse ID of the main file view containing all your project assets, the base name of your manifest files, etc.
 
-Download the `config_example.yml` as a new file called `config.yml` and modify its contents according to your use case.
+Copy the contents of the `config_example.yml` (located in the base directory of the cloned `schematic` repo) into a new file called `config.yml`
 
-For example, if you wanted to change the folder where manifests are downloaded your config should look like:
+````
+cp config_example.yml config.yml
+```
+
+Once you've copied the file, modify its contents according to your use case. For example, if you wanted to change the folder where manifests are downloaded your config should look like:
 
 ```text
 manifest:
