@@ -104,7 +104,8 @@ ls ~/.synapseConfig
 ```
 
 > [!NOTE]
-> !!TODO!! You will notice a new `.synapseCache` folder is created alongside the `.synapseConfig` file. This is where all your non-manifest assets will be stored(?)
+> You will notice a new `.synapseCache` folder is created alongside the `.synapseConfig` file. if your `config.yml` does not specify `.synapseCache`
+> as the location in which to store your manifests, assets retrieved in ways other than through the CLI will be stored in this cache folder.
 
 **Create and modify the `config.yml`**
 
@@ -134,7 +135,7 @@ Most Google sheet functionality could be authenticated with service account. How
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
 
-> As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
+> As of `schematic` v22.12.1, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
 
 > [!NOTE]
 > Use the ``schematic_service_account_creds.json`` file for the service
@@ -207,7 +208,8 @@ ls ~/.synapseConfig
 ```
 
 > [!NOTE]
-> !!TODO!! You will notice a new `.synapseCache` folder is created alongside the `.synapseConfig` file. This is where all your non-manifest assets will be stored(?)
+> You will notice a new `.synapseCache` folder is created alongside the `.synapseConfig` file. if your `config.yml` does not specify `.synapseCache`
+> as the location in which to store your manifests, assets retrieved in ways other than through the CLI will be stored in this cache folder.
 
 **Create and modify the `config.yml`**
 
@@ -236,7 +238,7 @@ Most Google sheet functionality could be authenticated with service account. How
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
 
-> As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
+> As of `schematic` v22.12.1, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
 
 > [!NOTE]
 > Use the ``schematic_service_account_creds.json`` file for the service
