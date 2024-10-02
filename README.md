@@ -148,7 +148,7 @@ After running this step, your setup is complete, and you can test it on a `pytho
 
 ## Installation Guide For: Contributors
 
-The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation Requirements](#installation-requirements) section.
+The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation Requirements](#installation-requirements) section. For development, we recommend working with versions > python 3.9 to avoid issues with `pre-commit`'s default hook configuration.
 
 When contributing to this repository, please first discuss the change you wish to make via the [service desk](https://sagebionetworks.jira.com/servicedesk/customer/portal/5/group/8) so that we may track these changes.
 
@@ -169,13 +169,15 @@ Install `poetry` (version 1.3.0 or later) using either the [official installer](
 
 ### 3. Start the virtual environment
 
-Initialize the virtual environment using the following command with `poetry`:
+`cd` into your cloned `schematic` repository, and initialize the virtual environment using the following command with `poetry`:
 
 ```
 poetry shell
 ```
 
 ### 4. Install `schematic` dependencies
+
+Before you begin, make sure you are in the latest `develop` of the repository.
 
 The following command will install the dependencies based on what we specify in the `poetry.lock` file of this repository. If this step is taking a long time, try to go back to Step 2 and check your version of `poetry`. Alternatively, you can try deleting the lock file and regenerate it by doing `poetry install` (Please note this method should be used as a last resort because this would force other developers to change their development environment)
 
@@ -211,6 +213,9 @@ ls -a ~
 ```
 
 The `.synapseConfig` is used to log into Synapse if you are not using an environment variable (i.e. `SYNAPSE_ACCESS_TOKEN`) for authentication, and the `.synapseCache` is where your assets are stored if you are not working with the CLI and/or you have specified `.synapseCache` as the location in which to store your manfiests, in your `config.yml` (more on the `config.yml` below).
+
+> [!IMPORTANT]
+> When developing on `schematic`, keep your `.synapseConfig` in your current working directory to avoid authentication errors.
 
 **Create and modify the `config.yml`**
 
@@ -256,7 +261,13 @@ $ pre-commit install
 pre-commit installed at .git/hooks/pre-commit
 ```
 
-*Note*: Make sure you have the latest version of the `develop` branch on your local machine.
+You can run `pre-commit` manually across the entire repository like so:
+
+```
+pre-commit run --all-files
+```
+
+After running this step, your setup is complete, and you can test it on a python instance or by running a command based on the examples in the [Command Line Usage](#command-line-usage) section.
 
 # Command Line Usage
 1. Generate a new manifest as a google sheet
