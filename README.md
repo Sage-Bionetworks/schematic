@@ -165,7 +165,11 @@ git clone https://github.com/Sage-Bionetworks/schematic.git
 
 ### 2. Install `poetry` 
 
-Install `poetry` (version 1.3.0 or later) using either the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer) or [pipx](https://python-poetry.org/docs/#installing-with-pipx). If you have an older installation of Poetry, we recommend uninstalling it first. 
+Install `poetry` (version 1.3.0 or later) using either the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer) or `pip`. If you have an older installation of Poetry, we recommend uninstalling it first.
+
+```
+pip install poetry
+```
 
 ### 3. Start the virtual environment
 
