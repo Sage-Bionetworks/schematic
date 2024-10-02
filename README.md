@@ -227,6 +227,7 @@ manifest:
 
 > [!IMPORTANT]
 > Be sure to update your `config.yml` with the location of your `.synapseConfig` created in the step above, to avoid authentication errors. Paths can be specified relative to the `config.yml` file or as absolute paths.
+> If you are interacting with `schematic` with `python` directly and not through the CLI, the `.synapseConfig` needs to be in your current working directory to avoid authentication errors.
 
 > [!NOTE]
 > `config.yml` is ignored by git.
