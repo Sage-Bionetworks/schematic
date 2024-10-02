@@ -2,7 +2,12 @@
 [![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop) [![Documentation Status](https://readthedocs.org/projects/sage-schematic/badge/?version=develop)](https://sage-schematic.readthedocs.io/en/develop/?badge=develop) [![PyPI version](https://badge.fury.io/py/schematicpy.svg)](https://badge.fury.io/py/schematicpy)
 
 # TL;DR
-Under Construction.
+
+* `schematic` (Schema Engine for Manifest Ingress and Curation) is a python-based software tool that streamlines the retrieval, validation, and submission of metadata for biomedical datasets hosted on Sage Bionetworks' Synapse platform.
+* Users can work with `schematic` in several ways, including through the CLI (see [Command Line Usage](#command-line-usage) for examples), through Docker (see [Docker Usage](#docker-usage) for examples), or with python.
+* In order to communicate with Synapse, users will need to set up their credentials for authentication with Synapse and the Google Sheets API. Setup instructions are available in the Installation Guides:
+   * [Installation Guide For: Schematic CLI users](#installation-guide-for-schematic-cli-users)
+   * [Installation Guide For: Contributors](#installation-guide-for-contributors)
 
 # Table of Contents
 - [Schematic](#schematic)
