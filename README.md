@@ -376,33 +376,42 @@ docker run -v %cd%:/schematic \
 # Contribution Guidelines
 ### Development process instruction
 
-For new features, bugs, enhancements
+For new features, bugs, enhancements:
 
-1. Pull the latest code from [develop branch in the upstream repo](https://github.com/Sage-Bionetworks/schematic)
-2. Checkout a new branch develop-<feature/fix-name> from the develop branch
-3. Do development on branch develop-<feature/fix-name>
-   a. may need to ensure that schematic poetry toml and lock files are compatible with your local environment
-4. Add changed files for tracking and commit changes using [best practices](https://www.perforce.com/blog/vcs/git-best-practices-git-commit)
-5. Have granular commits: not “too many” file changes, and not hundreds of code lines of changes
-6. Commits with work in progress are encouraged:
-   a. add WIP to the beginning of the commit message for “Work In Progress” commits
-7. Keep commit messages descriptive but less than a page long, see best practices
-8. Push code to develop-<feature/fix-name> in upstream repo
-9. Branch out off develop-<feature/fix-name> if needed to work on multiple features associated with the same code base
-10. After feature work is complete and before creating a PR to the develop branch in upstream
+#### 1. Branch Setup
+* Pull the latest code from the develop branch in the upstream repository.
+* Checkout a new branch formatted like so: `develop-<feature/fix-name>` from the develop branch
+
+#### 2. Development Workflow
+* Develop on your new branch.
+* Ensure pyproject.toml and poetry.lock files are compatible with your environment.
+* Add changed files for tracking and commit changes using [best practices](https://www.perforce.com/blog/vcs/git-best-practices-git-commit)
+* Have granular commits: not “too many” file changes, and not hundreds of code lines of changes
+* You can choose to create a draft PR if you prefer to develop this way
+
+#### 3. Branch Management
+* Push code to `develop-<feature/fix-name>` in upstream repo:
+  ```
+  git push <upstream> develop-<feature/fix-name>
+  ```
+* Branch off `develop-<feature/fix-name>` if you need to work on multiple features associated with the same code base
+* After feature work is complete and before creating a PR to the develop branch in upstream
     a. ensure that code runs locally
     b. test for logical correctness locally
     c. wait for git workflow to complete (e.g. tests are run) on github
-11. Create a PR from develop-<feature/fix-name> into the develop branch of the upstream repo
-12. Request a code review on the PR
-13. Once code is approved merge in the develop branch
-14. Delete the develop-<feature/fix-name> branch
-## Updating readthedocs documentation
-1. `cd docs`
-2. After making relevant changes, you could run the `make html` command to re-generate the `build` folder.
-3. Please contact the dev team to publish your updates
 
-*Other helpful resources*:
+#### 4. Pull Request and Review
+* Create a PR from `develop-<feature/fix-name>` into the develop branch of the upstream repo
+* Request a code review on the PR
+* Once code is approved merge in the develop branch. We recommend squashing your commits for a cleaner commit history.
+* Once the actions pass on the main branch, delete the `develop-<feature/fix-name>` branch
+  
+## Updating readthedocs documentation
+1. Navigate to the docs directory.
+2. Run make html to regenerate the build after changes.
+3. Contact the development team to publish the updates.
+
+*Helpful resources*:
 
 1. [Getting started with Sphinx](https://haha.readthedocs.io/en/latest/intro/getting-started-with-sphinx.html)
 2. [Installing Sphinx](https://haha.readthedocs.io/en/latest/intro/getting-started-with-sphinx.html)
@@ -412,10 +421,11 @@ If you install external libraries by using `poetry add <name of library>`, pleas
 
 ## Testing 
 
-All code added to the client must have tests. The Python client uses pytest to run tests. The test code is located in the `tests/` subdirectory.
+* All new code must include tests.
 
-You can run the test suite in the following way:
+* Tests are written using pytest and are located in the tests/ subdirectory.
 
+* Run tests with:
 ```
 pytest -vs tests/
 ```
