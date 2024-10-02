@@ -89,23 +89,23 @@ There are two main configuration files that need to be created + modified:
 **Create and modify the `.synapseConfig`**
 
 The `.synapseConfig` file is what enables communication between `schematic` and the Synapse API using your credentials.
-You can automatically generate a `.synapseConfig` file by running the following in your command line and following the prompts:
+You can automatically generate a `.synapseConfig` file by running the following in your command line and following the prompts.
+
+>[!TIP]
+>You can generate a new authentication token on the Synapse website by going to `Account Settings` > `Personal Access Tokens`.
 
 ```
 synapse config
 ```
 
-You can generate a new authentication token on the Synapse website by going to `Account Settings` > `Personal Access Tokens`.
-
-After following the prompts, a new Synapse configuration file will exist in your home directory which you can access with the following command:
+After following the prompts, a new `.synapseConfig` file and `.synapseCache` folder will be created in your home directory. You can view these hidden
+assets in your home directory with the following command:
 
 ```
-ls ~/.synapseConfig
+ls -a ~
 ```
 
-> [!NOTE]
-> You will notice a new `.synapseCache` folder is created alongside the `.synapseConfig` file. if your `config.yml` does not specify `.synapseCache`
-> as the location in which to store your manifests, assets retrieved in ways other than through the CLI will be stored in this cache folder.
+The `.synapseConfig` is used to log into Synapse if you are not using an environment variable (i.e. `SYNAPSE_ACCESS_TOKEN`) for authentication, and the `.synapseCache` is where your assets are stored if you are not working with the CLI and/or you have specified `.synapseCache` as the location in which to store your manfiests, in your `config.yml` (more on the `config.yml` below).
 
 **Create and modify the `config.yml`**
 
@@ -114,7 +114,7 @@ such as the Synapse ID of the main file view containing all your project assets,
 
 Download the `config_example.yml` as a new file called `config.yml` and modify its contents according to your use case.
 
-For example if you wanted to change the folder where manifests are downloaded your config should look like:
+For example, if you wanted to change the folder where manifests are downloaded your config should look like:
 
 ```text
 manifest:
@@ -193,23 +193,23 @@ There are two main configuration files that need to be created + modified:
 **Create and modify the `.synapseConfig`**
 
 The `.synapseConfig` file is what enables communication between `schematic` and the Synapse API using your credentials.
-You can automatically generate a `.synapseConfig` file by running the following in your command line and following the prompts:
+You can automatically generate a `.synapseConfig` file by running the following in your command line and following the prompts.
+
+>[!TIP]
+>You can generate a new authentication token on the Synapse website by going to `Account Settings` > `Personal Access Tokens`.
 
 ```
 synapse config
 ```
 
-You can generate a new authentication token on the Synapse website by going to `Account Settings` > `Personal Access Tokens`.
-
-After following the prompts, a new Synapse configuration file will exist in your home directory which you can access with the following command:
+After following the prompts, a new `.synapseConfig` file and `.synapseCache` folder will be created in your home directory. You can view these hidden
+assets in your home directory with the following command:
 
 ```
-ls ~/.synapseConfig
+ls -a ~
 ```
 
-> [!NOTE]
-> You will notice a new `.synapseCache` folder is created alongside the `.synapseConfig` file. if your `config.yml` does not specify `.synapseCache`
-> as the location in which to store your manifests, assets retrieved in ways other than through the CLI will be stored in this cache folder.
+The `.synapseConfig` is used to log into Synapse if you are not using an environment variable (i.e. `SYNAPSE_ACCESS_TOKEN`) for authentication, and the `.synapseCache` is where your assets are stored if you are not working with the CLI and/or you have specified `.synapseCache` as the location in which to store your manfiests, in your `config.yml` (more on the `config.yml` below).
 
 **Create and modify the `config.yml`**
 
@@ -218,7 +218,7 @@ such as the Synapse ID of the main file view containing all your project assets,
 
 Download the `config_example.yml` as a new file called `config.yml` and modify its contents according to your use case.
 
-For example if you wanted to change the folder where manifests are downloaded your config should look like:
+For example, if you wanted to change the folder where manifests are downloaded your config should look like:
 
 ```text
 manifest:
@@ -227,7 +227,6 @@ manifest:
 
 > [!IMPORTANT]
 > Be sure to update your `config.yml` with the location of your `.synapseConfig` created in the step above, to avoid authentication errors. Paths can be specified relative to the `config.yml` file or as absolute paths.
-> If you are interacting with `schematic` with `python` directly and not through the CLI, the `.synapseConfig` needs to be in your current working directory to avoid authentication errors.
 
 > [!NOTE]
 > `config.yml` is ignored by git.
