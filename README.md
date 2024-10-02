@@ -245,7 +245,7 @@ such as the Synapse ID of the main file view containing all your project assets,
 
 Copy the contents of the `config_example.yml` (located in the base directory of the cloned `schematic` repo) into a new file called `config.yml`
 
-````
+```
 cp config_example.yml config.yml
 ```
 
