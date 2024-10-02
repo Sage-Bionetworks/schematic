@@ -302,9 +302,15 @@ Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/
 
 # Docker Usage
 
-### Example For REST API <br>
+Here we will demonstrate how to run `schematic` with Docker, with different use-cases for running API endpoints, validating the manifests, and
+using how to use `schematic` based on your OS (macOS/Linux).
 
-#### Use file path of `config.yml` to run API endpoints: 
+### Running the REST API <br>
+
+Use the Docker image to run `schematic`s REST API. You can either use the file path for the `config.yml` created using the installation instructions,
+or set up authentication with environment variables.
+
+#### Example 1: Using the `config.yml` path 
 ```
 docker run --rm -p 3001:3001 \
   -v $(pwd):/schematic -w /schematic --name schematic \
@@ -314,7 +320,7 @@ docker run --rm -p 3001:3001 \
   python /usr/src/app/run_api.py
 ``` 
 
-#### Use content of `config.yml` and `schematic_service_account_creds.json`as an environment variable to run API endpoints: 
+#### Example 2: Use environment variables
 1. save content of `config.yml` as to environment variable `SCHEMATIC_CONFIG_CONTENT` by doing: `export SCHEMATIC_CONFIG_CONTENT=$(cat /path/to/config.yml)`
 
 2. Similarly, save the content of `schematic_service_account_creds.json` as `SERVICE_ACCOUNT_CREDS` by doing: `export SERVICE_ACCOUNT_CREDS=$(cat /path/to/schematic_service_account_creds.json)`
@@ -330,9 +336,18 @@ docker run --rm -p 3001:3001 \
   sagebionetworks/schematic \
   python /usr/src/app/run_api.py
 ``` 
-### Example For Schematic on mac/linux <br>
-To run example below, first clone schematic into your home directory  `git clone https://github.com/sage-bionetworks/schematic ~/schematic` <br>
-Then update .synapseConfig with your credentials
+### Running `schematic` to Validate Manifests <br>
+You can also use Docker to run `schematic` commands like validating manifests. Below are examples for different platforms.
+
+#### Example for macOS/Linux
+
+1. Clone the repository:
+```
+git clone https://github.com/sage-bionetworks/schematic ~/schematic
+```
+2. Update the `.synapseConfig` with your credentials. See the installation instructions for how to do this.
+
+3. Run Docker:
 ```
 docker run \
   -v ~/schematic:/schematic \
@@ -346,7 +361,9 @@ docker run \
   -js /schematic/tests/data/example.model.jsonld
 ``` 
 
-### Example For Schematic on Windows <br>
+#### Example for Windows
+
+Run the following command to validate manifests:
 ```
 docker run -v %cd%:/schematic \
   -w /schematic \
