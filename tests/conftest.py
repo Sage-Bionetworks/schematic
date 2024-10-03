@@ -136,6 +136,17 @@ def synapse_store():
     yield SynapseStorage()
 
 
+@pytest.fixture(scope="session")
+def manual_test_verification_path(config: Configuration) -> str:
+    """Fixture to create a folder for manual test verification.
+
+    TODO: Determine if we should set a flag to only create this folder if the test is being run manually.
+    """
+    path = os.path.join(config.manifest_folder, "manual_test_verification")
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
 # These fixtures make copies of existing test manifests.
 # These copies can the be altered by a given test, and the copy will eb destroyed at the
 # end of the test

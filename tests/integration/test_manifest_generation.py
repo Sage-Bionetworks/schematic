@@ -1,0 +1,503 @@
+"""
+This module is responsible for running through the "Manifest Generation" portion of
+the schematic API test plan found here: <https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/3055779846/Schematic+API+test+plan>.
+
+There are a small number of items that need to be manually verified, and these are
+noted in the test function docstrings.
+"""
+import os
+from io import BytesIO
+
+import requests
+from openpyxl import load_workbook
+
+LIGHT_BLUE = "FFEAF7F9"  # Required cell
+GRAY = "FFE0E0E0"  # Header cell
+WHITE = "00000000"  # Optional cell
+
+
+class TestManifestGeneration:
+    def test_single_manifest_generation_excel(
+        self, manual_test_verification_path: str
+    ) -> None:
+        """
+        Download a manifest from the Schematic API and verify that it is a valid Excel
+        file. We are validating the following:
+
+        - The first row of the Excel file contains the column headers
+        - The first row is locked on scroll
+        - Each cell in the first row has a comment "TBD"
+        - The cell B2 in Sheet1 has a dropdown list with values from Sheet2!B2:B4
+        - The cell D2 in Sheet1 has a dropdown list with values from Sheet2!D2:D3
+        - The cell F2 in Sheet1 has a dropdown list with values from Sheet2!F2:F6
+        - The workbook contains two sheets: "Sheet1" and "Sheet2"
+        - "Sheet2" is hidden
+        - The values in "Sheet2" are as expected
+        - The fill colors of the first row cells are as expected
+        - Conditional formatting is functioning as expected
+
+
+        Manual verification steps:
+
+        - Open the Excel file prefixed with TestManifestGeneration_test_single_manifest_generation_excel.xlsx
+        - Verify that the columns
+        """
+        # GIVEN a valid example manifest to generate
+        # TODO: Determine if we are able to use this test for both integration tests running through pytest when the API server is running, or when the API server is passed as a fixture
+        url = "http://localhost:3001/v1/manifest/generate"
+        params = {
+            "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
+            "title": "Example",
+            "data_type": "Patient",
+            "use_annotations": "false",
+            "output_format": "excel",
+            "strict_validation": "true",
+            "data_model_labels": "class_label",
+        }
+        headers = {
+            "accept": "application/json"
+            # TODO: Include an authorization header if required
+        }
+
+        # WHEN we make a request to the Schematic API
+        response = requests.get(url, headers=headers, params=params)
+
+        # THEN we expect a successful response
+        assert response.status_code == 200
+
+        # Load the response content into memory
+        content = BytesIO(response.content)
+        workbook = load_workbook(content)
+        sheet1 = workbook["Sheet1"]
+
+        # Track column positions
+        columns = {cell.value: cell.column_letter for cell in sheet1[1]}
+
+        # AND the content of the first sheet is as expected
+        assert sheet1[f"{columns['Patient ID']}1"].value == "Patient ID"
+        assert sheet1[f"{columns['Patient ID']}2"].value is None
+
+        assert sheet1[f"{columns['Sex']}1"].value == "Sex"
+        assert sheet1[f"{columns['Sex']}2"].value is None
+
+        assert sheet1[f"{columns['Year of Birth']}1"].value == "Year of Birth"
+        assert sheet1[f"{columns['Year of Birth']}2"].value is None
+
+        assert sheet1[f"{columns['Diagnosis']}1"].value == "Diagnosis"
+        assert sheet1[f"{columns['Diagnosis']}2"].value is None
+
+        assert sheet1[f"{columns['Component']}1"].value == "Component"
+        assert sheet1[f"{columns['Component']}2"].value == "Patient"
+
+        assert sheet1[f"{columns['Cancer Type']}1"].value == "Cancer Type"
+        assert sheet1[f"{columns['Cancer Type']}2"].value is None
+
+        assert sheet1[f"{columns['Family History']}1"].value == "Family History"
+        assert sheet1[f"{columns['Family History']}2"].value is None
+
+        # AND there are no more columns in the first sheet
+        assert sheet1[f"{columns['Family History']}1"].offset(column=1).value is None
+
+        # AND the first row is locked on scroll
+        assert sheet1.freeze_panes == "A2"
+
+        # AND each cell in the first row has a comment "TBD"
+        for col in [
+            "Patient ID",
+            "Sex",
+            "Year of Birth",
+            "Diagnosis",
+            "Component",
+            "Cancer Type",
+            "Family History",
+        ]:
+            assert sheet1[f"{columns[col]}1"].comment.text == "TBD"
+
+        # AND the comment in "Family History" cell is as expected
+        assert (
+            sheet1[f"{columns['Family History']}2"].comment.text
+            == "Please enter applicable comma-separated items selected from the set of allowable terms for this attribute. See our data standards for allowable terms"
+        )
+
+        # AND the dropdown lists exist and are as expected
+        data_validations = sheet1.data_validations.dataValidation
+        sex_validation = None
+        diagnosis_validation = None
+        cancer_type_validation = None
+        for dv in data_validations:
+            if f"{columns['Sex']}2" in dv.sqref:
+                sex_validation = dv
+                continue
+            elif f"{columns['Diagnosis']}2" in dv.sqref:
+                diagnosis_validation = dv
+                continue
+            elif f"{columns['Cancer Type']}2" in dv.sqref:
+                cancer_type_validation = dv
+                continue
+            # AND there are no other data validations
+            assert False, f"Unexpected data validation found: {dv}"
+
+        assert sex_validation is not None
+        assert sex_validation.type == "list"
+        assert sex_validation.formula1 == "Sheet2!$B$2:$B$4"
+
+        assert diagnosis_validation is not None
+        assert diagnosis_validation.type == "list"
+        assert diagnosis_validation.formula1 == "Sheet2!$D$2:$D$3"
+
+        assert cancer_type_validation is not None
+        assert cancer_type_validation.type == "list"
+        assert cancer_type_validation.formula1 == "Sheet2!$F$2:$F$6"
+
+        # AND the fill colors are as expected
+        for col in ["Patient ID", "Sex", "Diagnosis", "Component"]:
+            assert sheet1[f"{columns[col]}1"].fill.start_color.index == LIGHT_BLUE
+
+        for col in ["Year of Birth", "Cancer Type", "Family History"]:
+            assert sheet1[f"{columns[col]}1"].fill.start_color.index == GRAY
+
+        for col in ["Patient ID", "Sex", "Diagnosis", "Component"]:
+            assert sheet1[f"{columns[col]}2"].fill.start_color.index == LIGHT_BLUE
+
+        for col in ["Year of Birth", "Cancer Type", "Family History"]:
+            assert sheet1[f"{columns[col]}2"].fill.start_color.index == WHITE
+
+        # AND conditional formatting is functioning as expected (MANUAL VERIFICATION)
+        workbook["Sheet1"][f"{columns['Diagnosis']}2"].value = "Cancer"
+
+        # AND the workbook contains two sheets: "Sheet1" and "Sheet2"
+        assert workbook.sheetnames == ["Sheet1", "Sheet2"]
+
+        sheet2 = workbook["Sheet2"]
+
+        # AND the second sheet is hidden
+        assert sheet2.sheet_state == "hidden"
+
+        # AND the values in "Sheet2" are as expected
+        assert sheet2["A1"].value == "Patient ID"
+        assert sheet2["A2"].value is None
+        assert sheet2["A3"].value is None
+        assert sheet2["A4"].value is None
+        assert sheet2["A5"].value is None
+        assert sheet2["A6"].value is None
+
+        assert sheet2["B1"].value == "Sex"
+        assert sheet2["B2"].value == "Female"
+        assert sheet2["B3"].value == "Male"
+        assert sheet2["B4"].value == "Other"
+        assert sheet2["B5"].value is None
+        assert sheet2["B6"].value is None
+
+        assert sheet2["C1"].value == "Year of Birth"
+        assert sheet2["C2"].value is None
+        assert sheet2["C3"].value is None
+        assert sheet2["C4"].value is None
+        assert sheet2["C5"].value is None
+        assert sheet2["C6"].value is None
+
+        assert sheet2["D1"].value == "Diagnosis"
+        assert sheet2["D2"].value == "Cancer"
+        assert sheet2["D3"].value == "Healthy"
+        assert sheet2["D4"].value is None
+        assert sheet2["D5"].value is None
+        assert sheet2["D6"].value is None
+
+        assert sheet2["E1"].value == "Component"
+        assert sheet2["E2"].value is None
+        assert sheet2["E3"].value is None
+        assert sheet2["E4"].value is None
+        assert sheet2["E5"].value is None
+        assert sheet2["E6"].value is None
+
+        assert sheet2["F1"].value == "Cancer Type"
+        assert sheet2["F2"].value == "Breast"
+        assert sheet2["F3"].value == "Colorectal"
+        assert sheet2["F4"].value == "Lung"
+        assert sheet2["F5"].value == "Prostate"
+        assert sheet2["F6"].value == "Skin"
+
+        assert sheet2["G1"].value == "Family History"
+        assert sheet2["G2"].value == "Breast"
+        assert sheet2["G3"].value == "Colorectal"
+        assert sheet2["G4"].value == "Lung"
+        assert sheet2["G5"].value == "Prostate"
+        assert sheet2["G6"].value == "Skin"
+
+        # AND there are no more columns in the second sheet
+        assert sheet2["H1"].value is None
+
+        # AND a copy of the Excel file is saved to the test directory for manual verification
+        workbook.save(
+            os.path.join(
+                manual_test_verification_path,
+                "TestManifestGeneration_test_single_manifest_generation_excel.xlsx",
+            )
+        )
+
+    def test_single_manifest_generation_google_sheet(
+        self, manual_test_verification_path: str
+    ) -> None:
+        """
+        Download a manifest from the Schematic API and verify that it is a valid Google
+        Sheet. We are validating the following:
+
+        - The first row of the Google Sheet contains the column headers
+        - The first row is locked on scroll
+        - Each cell A-F in the first row has a comment "TBD"
+        - Each cell G-M in the first row does not have a comment
+        - The cell C2 in Sheet1 has a dropdown list with values from Sheet2!C2:C5
+        - The cell E2 in Sheet1 has a dropdown list with values from Sheet2!E2:E5
+        - The fill colors of the first row cells are as expected
+        - The workbook contains two sheets: "Sheet1" and "Sheet2"
+        - "Sheet2" is hidden
+        - The values in "Sheet1" are as expected
+        - The values in "Sheet2" are as expected
+
+        Manual verification steps:
+        - When File Format = "BAM", [Genome Build] is Light Blue (Required)
+        - When File Format = "CRAM", [Genome Build, Genome FASTA] is Light Blue (Required)
+        - When File Format = "FASTQ", [Genome Build] is White (Optional)
+        """
+        # GIVEN a valid example manifest to generate
+        # TODO: Determine if we are able to use this test for both integration tests running through pytest when the API server is running, or when the API server is passed as a fixture
+        url = "http://localhost:3001/v1/manifest/generate"
+        params = {
+            "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
+            "title": "Example",
+            "data_type": "BulkRNA-seqAssay",
+            "use_annotations": "true",
+            "dataset_id": "syn63561056",
+            "asset_view": "syn63561086",
+            "output_format": "google_sheet",
+            "strict_validation": "true",
+            "data_model_labels": "class_label",
+        }
+        headers = {
+            "accept": "application/json"
+            # TODO: Include an authorization header if required
+        }
+
+        # WHEN we make a request to the Schematic API
+        response = requests.get(url, headers=headers, params=params)
+
+        # THEN we expect a successful response
+        assert response.status_code == 200
+
+        # Load the Google Sheets URL from the response
+        response_content = response.json()
+        assert len(response_content) == 1
+        google_sheet_url = response_content[0]
+        assert (
+            google_sheet_url is not None
+        ), "No Google Sheets URL found in the response"
+
+        # Download the Google Sheets content as an Excel file and load into openpyxl
+        export_url = f"{google_sheet_url}/export?format=xlsx"
+        response = requests.get(export_url)
+        assert response.status_code == 200
+        content = BytesIO(response.content)
+        workbook = load_workbook(content)
+        sheet1 = workbook["Sheet1"]
+        sheet2 = workbook["Sheet2"]
+
+        # Track column positions
+        columns = {cell.value: cell.column_letter for cell in sheet1[1]}
+
+        # AND the content of the first sheet is as expected
+        assert columns["Filename"] is not None
+        assert columns["Sample ID"] is not None
+        assert columns["File Format"] is not None
+        assert columns["Component"] is not None
+        assert columns["Genome Build"] is not None
+        assert columns["Genome FASTA"] is not None
+        assert columns["eTag"] is not None
+        assert columns["key_bool"] is not None
+        assert columns["key_int"] is not None
+        assert columns["key_float"] is not None
+        assert columns["key_str"] is not None
+        assert columns["key_datetime"] is not None
+        assert columns["entityId"] is not None
+
+        assert (
+            sheet1[f"{columns['Filename']}2"].value
+            == "Manifest generation - Manual test - generate an existing manifest/test dataset/test dataset 1/sample A.txt"
+        )
+        assert sheet1[f"{columns['Sample ID']}2"].value is None
+        assert sheet1[f"{columns['File Format']}2"].value is None
+        assert sheet1[f"{columns['Component']}2"].value == "BulkRNA-seqAssay"
+        assert sheet1[f"{columns['Genome Build']}2"].value is None
+        assert sheet1[f"{columns['Genome FASTA']}2"].value is None
+        assert sheet1[f"{columns['eTag']}2"].value is not None  # eTag
+        assert isinstance(sheet1[f"{columns['key_bool']}2"].value, bool)
+        assert sheet1[f"{columns['key_bool']}2"].value
+        assert sheet1[f"{columns['key_int']}2"].value == 6
+        assert sheet1[f"{columns['key_float']}2"].value == 80
+        assert sheet1[f"{columns['key_str']}2"].value == "New Value"
+        assert sheet1[f"{columns['key_datetime']}2"].value is not None  # key_datetime
+        assert sheet1[f"{columns['entityId']}2"].value == "syn63561081"
+
+        assert (
+            sheet1[f"{columns['Filename']}3"].value
+            == "Manifest generation - Manual test - generate an existing manifest/test dataset/test dataset 2/sample B.txt"
+        )
+        assert sheet1[f"{columns['Sample ID']}3"].value is None
+        assert sheet1[f"{columns['File Format']}3"].value is None
+        assert sheet1[f"{columns['Component']}3"].value == "BulkRNA-seqAssay"
+        assert sheet1[f"{columns['Genome Build']}3"].value is None
+        assert sheet1[f"{columns['Genome FASTA']}3"].value is None
+        assert sheet1[f"{columns['eTag']}3"].value is not None  # eTag
+        assert sheet1[f"{columns['key_bool']}3"].value is None
+        assert sheet1[f"{columns['key_int']}3"].value is None
+        assert sheet1[f"{columns['key_float']}3"].value is None
+        assert sheet1[f"{columns['key_str']}3"].value is None
+        assert sheet1[f"{columns['key_datetime']}3"].value is None
+        assert sheet1[f"{columns['entityId']}3"].value == "syn63561082"
+
+        assert (
+            sheet1[f"{columns['Filename']}4"].value
+            == "Manifest generation - Manual test - generate an existing manifest/test dataset/test dataset 3/sample C.txt"
+        )
+        assert sheet1[f"{columns['Sample ID']}4"].value is None
+        assert sheet1[f"{columns['File Format']}4"].value is None
+        assert sheet1[f"{columns['Component']}4"].value == "BulkRNA-seqAssay"
+        assert sheet1[f"{columns['Genome Build']}4"].value is None
+        assert sheet1[f"{columns['Genome FASTA']}4"].value is None
+        assert sheet1[f"{columns['eTag']}4"].value is not None  # eTag
+        assert sheet1[f"{columns['key_bool']}4"].value is None
+        assert sheet1[f"{columns['key_int']}4"].value is None
+        assert sheet1[f"{columns['key_float']}4"].value is None
+        assert sheet1[f"{columns['key_str']}4"].value is None
+        assert sheet1[f"{columns['key_datetime']}4"].value is None
+        assert sheet1[f"{columns['entityId']}4"].value == "syn63561085"
+
+        # AND there are no more columns in the first sheet
+        assert sheet1[f"{columns['entityId']}1"].offset(column=1).value is None
+
+        # AND the first row is locked on scroll
+        assert sheet1.freeze_panes == "A2"
+
+        # AND each of these cells in the first row has a comment "TBD"
+        for col in [
+            "Filename",
+            "Sample ID",
+            "File Format",
+            "Component",
+            "Genome Build",
+            "Genome FASTA",
+        ]:
+            assert sheet1[f"{columns[col]}1"].comment.text == "TBD"
+
+        # AND each of these cells in the first row do not have a comment
+        for col in [
+            "eTag",
+            "key_bool",
+            "key_int",
+            "key_float",
+            "key_str",
+            "key_datetime",
+            "entityId",
+        ]:
+            assert sheet1[f"{columns[col]}1"].comment is None
+
+        # AND the dropdown lists exist and are as expected
+        data_validations = sheet1.data_validations.dataValidation
+        file_format_validation = None
+        genome_build_validation = None
+        for dv in data_validations:
+            if f"{columns['File Format']}2" in dv.sqref:
+                file_format_validation = dv
+                continue
+            elif f"{columns['Genome Build']}2" in dv.sqref:
+                genome_build_validation = dv
+                continue
+            # AND there are no other data validations
+            assert False, f"Unexpected data validation found: {dv}"
+
+        assert file_format_validation is not None
+        assert file_format_validation.type == "list"
+        assert (
+            file_format_validation.formula1
+            == f"Sheet2!${columns['File Format']}$2:${columns['File Format']}$5"
+        )
+
+        assert genome_build_validation is not None
+        assert genome_build_validation.type == "list"
+        assert (
+            genome_build_validation.formula1
+            == f"Sheet2!${columns['Genome Build']}$2:${columns['Genome Build']}$5"
+        )
+
+        # AND the fill colors are as expected
+        for col in ["Filename", "Sample ID", "File Format", "Component"]:
+            assert sheet1[f"{columns[col]}1"].fill.start_color.index == LIGHT_BLUE
+
+        for col in [
+            "Genome Build",
+            "Genome FASTA",
+            "eTag",
+            "key_bool",
+            "key_int",
+            "key_float",
+            "key_str",
+            "key_datetime",
+            "entityId",
+        ]:
+            assert sheet1[f"{columns[col]}1"].fill.start_color.index == GRAY
+
+        # AND conditional formatting is functioning as expected (MANUAL VERIFICATION)
+        workbook["Sheet1"][f"{columns['File Format']}2"].value = "BAM"
+        workbook["Sheet1"][f"{columns['File Format']}3"].value = "CRAM"
+        workbook["Sheet1"][f"{columns['File Format']}4"].value = "FASTQ"
+
+        # AND the workbook contains two sheets: "Sheet1" and "Sheet2"
+        assert workbook.sheetnames == ["Sheet1", "Sheet2"]
+
+        # AND the second sheet is hidden
+        assert sheet2.sheet_state == "hidden"
+
+        # AND the values in "Sheet2" are as expected
+        assert sheet2["A1"].value == "Filename"
+        assert sheet2["B1"].value == "Sample ID"
+        assert sheet2["C1"].value == "File Format"
+        assert sheet2["D1"].value == "Component"
+        assert sheet2["E1"].value == "Genome Build"
+        assert sheet2["F1"].value == "Genome FASTA"
+
+        assert sheet2["A2"].value is None
+        assert sheet2["B2"].value is None
+        assert sheet2["C2"].value == "BAM"
+        assert sheet2["D2"].value is None
+        assert sheet2["E2"].value == "GRCh37"
+        assert sheet2["F2"].value is None
+
+        assert sheet2["A3"].value is None
+        assert sheet2["B3"].value is None
+        assert sheet2["C3"].value == "CRAM"
+        assert sheet2["D3"].value is None
+        assert sheet2["E3"].value == "GRCh38"
+        assert sheet2["F3"].value is None
+
+        assert sheet2["A4"].value is None
+        assert sheet2["B4"].value is None
+        assert sheet2["C4"].value == "CSV/TSV"
+        assert sheet2["D4"].value is None
+        assert sheet2["E4"].value == "GRCm38"
+        assert sheet2["F4"].value is None
+
+        assert sheet2["A5"].value is None
+        assert sheet2["B5"].value is None
+        assert sheet2["C5"].value == "FASTQ"
+        assert sheet2["D5"].value is None
+        assert sheet2["E5"].value == "GRCm39"
+        assert sheet2["F5"].value is None
+
+        # AND there are no more columns in the second sheet
+        assert sheet2["G1"].value is None
+
+        # AND a copy of the Excel file is saved to the test directory for manual verification
+        workbook.save(
+            os.path.join(
+                manual_test_verification_path,
+                "TestManifestGeneration_test_single_manifest_generation_google_sheet.xlsx",
+            )
+        )
