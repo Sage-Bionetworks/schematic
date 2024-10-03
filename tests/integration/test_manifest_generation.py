@@ -40,7 +40,7 @@ class TestManifestGeneration:
         Manual verification steps:
 
         - Open the Excel file prefixed with TestManifestGeneration_test_single_manifest_generation_excel.xlsx
-        - Verify that the columns
+        - When Diagnosis = "Cancer", [Cancer Type, Family History] is Light Blue (Required)
         """
         # GIVEN a valid example manifest to generate
         # TODO: Determine if we are able to use this test for both integration tests running through pytest when the API server is running, or when the API server is passed as a fixture
