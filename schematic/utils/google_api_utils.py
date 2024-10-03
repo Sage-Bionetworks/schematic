@@ -10,7 +10,7 @@ from typing import Any, Callable, TypedDict, Union, no_type_check
 import pandas as pd
 from google.oauth2 import service_account  # type: ignore
 from googleapiclient.discovery import Resource, build  # type: ignore
-from googleapiclient.errors import HttpError
+from googleapiclient.errors import HttpError  # type: ignore
 from tenacity import (
     retry,
     retry_if_exception_type,
