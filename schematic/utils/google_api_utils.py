@@ -156,18 +156,6 @@ def export_manifest_csv(file_path: str, manifest: Union[pd.DataFrame, str]) -> N
         export_manifest_drive_service(manifest, file_path, mime_type="text/csv")
 
 
-def raise_final_error(retry_state: Any) -> Any:
-    """After the final attempt, raise the error.
-
-    Args:
-        retry_state (Any): retry state object
-
-    Returns:
-        Any: result of the outcome
-    """
-    return retry_state.outcome.result()
-
-
 @retry(
     stop=stop_after_attempt(5),
     wait=wait_chain(
@@ -176,7 +164,6 @@ def raise_final_error(retry_state: Any) -> Any:
         + [wait_fixed(5)]
     ),
     retry=retry_if_exception_type(HttpError),
-    retry_error_callback=raise_final_error,
 )
 def google_api_execute_wrapper(api_function_to_call: Callable[[], Any]) -> Any:
     """Retry wrapper for Google API calls, with a backoff strategy.
