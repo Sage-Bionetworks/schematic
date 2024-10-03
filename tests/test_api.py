@@ -14,7 +14,6 @@ from flask.testing import FlaskClient
 from schematic.configuration.configuration import Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
-from schematic_api.api import create_app
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,16 +23,10 @@ DATA_MODEL_JSON_LD = "https://raw.githubusercontent.com/Sage-Bionetworks/schemat
 
 
 @pytest.fixture(scope="class")
-def app() -> flask.Flask:
-    app = create_app()
-    return app
+def client(flask_app: flask.Flask) -> Generator[FlaskClient, None, None]:
+    flask_app.config["SCHEMATIC_CONFIG"] = None
 
-
-@pytest.fixture(scope="class")
-def client(app: flask.Flask) -> Generator[FlaskClient, None, None]:
-    app.config["SCHEMATIC_CONFIG"] = None
-
-    with app.test_client() as client:
+    with flask_app.test_client() as client:
         yield client
 
 

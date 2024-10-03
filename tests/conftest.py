@@ -6,8 +6,10 @@ import shutil
 import sys
 from typing import Callable, Generator, Set
 
+import flask
 import pytest
 from dotenv import load_dotenv
+from flask.testing import FlaskClient
 from opentelemetry import trace
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
@@ -27,6 +29,7 @@ from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExp
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import load_df
+from schematic_api.api import create_app
 from tests.utils import CleanupAction, CleanupItem
 
 tracer = trace.get_tracer("Schematic-Tests")
@@ -52,9 +55,26 @@ def dataset_id():
     yield "syn25614635"
 
 
+@pytest.fixture(scope="class")
+def flask_app() -> flask.Flask:
+    """Create a Flask app for testing."""
+    app = create_app()
+    return app
+
+
+@pytest.fixture(scope="class")
+def flask_client(flask_app: flask.Flask) -> Generator[FlaskClient, None, None]:
+    flask_app.config["SCHEMATIC_CONFIG"] = None
+
+    with flask_app.test_client() as client:
+        yield client
+
+
 # This class serves as a container for helper functions that can be
 # passed to individual tests using the `helpers` fixture. This approach
 # was required because fixture functions cannot take arguments.
+
+
 class Helpers:
     @staticmethod
     def get_data_path(path, *paths):
