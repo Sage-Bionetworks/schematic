@@ -1,25 +1,21 @@
-import json
-import os
-import pandas as pd
 import logging
-from pathlib import Path
+import os
 import sys
-from typing import get_args, List
+from pathlib import Path
+from typing import List, get_args
+
 import click
 import click_log
 
-from schematic.schemas.data_model_parser import DataModelParser
-from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.manifest.generator import ManifestGenerator
-
-from schematic.utils.schema_utils import DisplayLabelType
-from schematic.utils.cli_utils import log_value_from_config, query_dict, parse_syn_ids
-from schematic.utils.google_api_utils import export_manifest_csv
-
-from schematic.help import manifest_commands
-
-from schematic.store.synapse import SynapseStorage
 from schematic.configuration.configuration import CONFIG
+from schematic.help import manifest_commands
+from schematic.manifest.generator import ManifestGenerator
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.store.synapse import SynapseStorage
+from schematic.utils.cli_utils import log_value_from_config, parse_syn_ids, query_dict
+from schematic.utils.google_api_utils import export_manifest_csv
+from schematic.utils.schema_utils import DisplayLabelType
 
 logger = logging.getLogger("schematic")
 click_log.basic_config(logger)
@@ -343,14 +339,15 @@ def migrate_manifests(
 )
 @click.pass_obj
 def download_manifest(ctx, dataset_id, new_manifest_name):
-    master_fileview = CONFIG["synapse"]["master_fileview"]
-
     # use Synapse Storage
     store = SynapseStorage()
 
     # download existing file
     manifest_data = store.getDatasetManifest(
-        datasetId=dataset_id, downloadFile=True, newManifestName=new_manifest_name
+        datasetId=dataset_id,
+        downloadFile=True,
+        newManifestName=new_manifest_name,
+        use_temporary_folder=False,
     )
 
     if not manifest_data:

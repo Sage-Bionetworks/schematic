@@ -54,7 +54,7 @@ pygsheets = "^2.0.4"
 PyYAML = "^6.0.0"
 rdflib = "^6.0.0"
 setuptools = "^66.0.0"
-synapseclient = "4.4.1"
+synapseclient = "4.5.1"
 tenacity = "^8.0.1"
 toml = "^0.10.2"
 great-expectations = "^0.15.0"
@@ -65,7 +65,6 @@ openpyxl = "^3.0.9"
 pdoc = "^14.0.0"
 dateparser = "^1.1.4"
 pandarallel = "^1.6.4"
-schematic-db = {version = "0.0.41", extras = ["synapse"]}
 pyopenssl = {version = "^23.0.0", optional = true}
 dataclasses-json = "^0.6.1"
 pydantic = "^1.10.4"
@@ -75,13 +74,14 @@ Flask-Cors = {version = "^3.0.10", optional = true}
 uWSGI = {version = "^2.0.21", optional = true}
 Jinja2 = {version = ">2.11.3", optional = true}
 asyncio = "^3.4.3"
-jaeger-client = {version = "^4.8.0", optional = true}
-flask-opentracing = {version="^2.0.0", optional = true}
 PyJWT = "^2.9.0"
+opentelemetry-api = {version = ">=1.21.0", optional = true}
+opentelemetry-sdk = {version = ">=1.21.0", optional = true}
 opentelemetry-exporter-otlp-proto-grpc = {version="^1.0.0", optional = true}
+opentelemetry-instrumentation-flask = {version=">=0.48b0 ", optional = true}
 
 [tool.poetry.extras]
-api = ["connexion", "Flask", "Flask-Cors", "Jinja2", "pyopenssl", "jaeger-client", "flask-opentracing", "opentelemetry-exporter-otlp-proto-grpc"]
+api = ["connexion", "Flask", "Flask-Cors", "Jinja2", "pyopenssl", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-exporter-otlp-proto-grpc", "opentelemetry-instrumentation-flask"]
 aws = ["uWSGI"]
 
 
@@ -98,12 +98,6 @@ mypy = "^1.4.1"
 pylint = "^2.16.1"
 pytest-xdist = "^3.5.0"
 pre-commit = "^3.6.2"
-
-[tool.poetry.group.aws]
-optional = true
-
-[tool.poetry.group.aws.dependencies]
-
 
 [tool.black]
 line-length = 88
@@ -134,42 +128,4 @@ testpaths = [
 ]
 filterwarnings = [
     "ignore::DeprecationWarning"
-]
-markers = [
-    """\
-    google_credentials_needed: marks tests requiring \
-    Google credentials (skipped on GitHub CI) \
-    """,
-    """\
-    submission: tests that involve submitting manifests
-    """,
-    """\
-    not_windows: tests that don't work on on windows machine
-    """,
-    """\
-    schematic_api: marks tests covering \
-    API functionality (skipped on regular GitHub CI test suite)   
-    """,
-    """\
-    rule_combos: marks tests covering \
-    combinations of rules that aren't always necessary \
-    and can add significantly to CI runtime (skipped on GitHub CI unless prompted to run in commit message)   
-    """,   
-    """\
-    table_operations: marks tests covering \
-    table operations that pass locally \
-    but fail on CI due to interactions with Synapse (skipped on GitHub CI)   
-    """,    
-    """\
-    rule_benchmark: marks tests covering \
-    validation rule benchmarking
-    """,
-    """\
-    synapse_credentials_needed: marks api tests that \
-    require synapse credentials to run
-    """,
-    """\
-    empty_token: marks api tests that \
-    send empty credentials in the request
-    """
 ]

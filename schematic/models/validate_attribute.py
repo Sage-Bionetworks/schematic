@@ -873,7 +873,7 @@ class ValidateAttribute(object):
         project_scope: Optional[list[str]],
         access_token: Optional[str] = None,
     ) -> tuple[list[str], list[str]]:
-        """Gets a list of synapse ids of mainfests to check against
+        """Gets a list of synapse ids of manifests to check against
 
         Args:
             target_component (str): Manifet ids are gotten fo this type
