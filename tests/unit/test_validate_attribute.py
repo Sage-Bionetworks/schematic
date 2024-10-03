@@ -177,6 +177,7 @@ def fixture_test_df1() -> Generator[DataFrame, None, None]:
         }
     )
 
+
 @pytest.fixture(name="test_df_col_names")
 def fixture_test_df_col_names() -> Generator[dict[str, str], None, None]:
     """
@@ -474,7 +475,7 @@ class TestValidateAttributeObject:
         va_obj: ValidateAttribute,
         rule: str,
         tested_column: list,
-        target_manifest: DataFrame
+        target_manifest: DataFrame,
     ):
         """
         Tests ValidateAttribute.cross_validation
@@ -532,7 +533,6 @@ class TestValidateAttributeObject:
             (["C"], TEST_DF3),
             (["C", "C"], TEST_DF1),
             (["C", "C"], TEST_DF3),
-
             (["A"], TEST_DF1),
             (["A", "A"], TEST_DF1),
             (["A", "B"], TEST_DF1),
@@ -545,7 +545,7 @@ class TestValidateAttributeObject:
         va_obj: ValidateAttribute,
         rule: str,
         tested_column: list,
-        target_manifest: DataFrame
+        target_manifest: DataFrame,
     ):
         """
         Tests ValidateAttribute.cross_validation
@@ -1577,7 +1577,7 @@ class TestValidateAttributeObject:
         va_obj: ValidateAttribute,
         input_entry: str,
         node_name: str,
-        expected: bool
+        expected: bool,
     ) -> None:
         """
         This test shows that:
@@ -1605,7 +1605,7 @@ class TestValidateAttributeObject:
         va_obj: ValidateAttribute,
         input_entry: str,
         node_name: str,
-        expected: bool
+        expected: bool,
     ) -> None:
         """
         This test shows that:
@@ -1626,22 +1626,18 @@ class TestValidateAttributeObject:
             (Series(["x,x,x"], name="Check List"), "list strict"),
             (Series([], name="Check List"), "list like"),
             (Series([], name="Check List"), "list strict"),
-
             (Series(["x"], name="Check List"), "list like"),
             (Series(["xxx"], name="Check List"), "list like"),
             (Series(["1"], name="Check List"), "list like"),
             (Series([1], name="Check List"), "list like"),
             (Series([1.1], name="Check List"), "list like"),
-            (Series([1,1,1], name="Check List"), "list like"),
+            (Series([1, 1, 1], name="Check List"), "list like"),
             (Series([np.nan], name="Check List"), "list like"),
             (Series([True], name="Check List"), "list like"),
         ],
     )
     def test_list_validation_passing(
-        self,
-        va_obj: ValidateAttribute,
-        input_column: Series,
-        rule: str
+        self, va_obj: ValidateAttribute, input_column: Series, rule: str
     ) -> None:
         """
         This tests ValidateAttribute.list_validation
@@ -1661,17 +1657,14 @@ class TestValidateAttributeObject:
             (Series(["xxxx"], name="Check List")),
             (Series([1], name="Check List")),
             (Series([1.1], name="Check List")),
-            (Series([1,1,1], name="Check List")),
+            (Series([1, 1, 1], name="Check List")),
             (Series([np.nan], name="Check List")),
             (Series([True], name="Check List")),
         ],
     )
     @pytest.mark.parametrize("rule", ["list strict", "list strict warning"])
     def test_list_validation_not_passing(
-        self,
-        va_obj: ValidateAttribute,
-        input_column: Series,
-        rule: str
+        self, va_obj: ValidateAttribute, input_column: Series, rule: str
     ) -> None:
         """
         This tests ValidateAttribute.list_validation
@@ -1697,10 +1690,7 @@ class TestValidateAttributeObject:
         ],
     )
     def test_regex_validation_passing(
-        self,
-        va_obj: ValidateAttribute,
-        input_column: Series,
-        rule: str
+        self, va_obj: ValidateAttribute, input_column: Series, rule: str
     ) -> None:
         """
         This tests ValidateAttribute.regex_validation
@@ -1718,10 +1708,7 @@ class TestValidateAttributeObject:
         ],
     )
     def test_regex_validation_failing(
-        self,
-        va_obj: ValidateAttribute,
-        input_column: Series,
-        rule: str
+        self, va_obj: ValidateAttribute, input_column: Series, rule: str
     ) -> None:
         """
         This tests ValidateAttribute.regex_validation
@@ -1737,16 +1724,11 @@ class TestValidateAttributeObject:
             (Series(["a"]), "", ValidationError),
             (Series(["a"]), "regex", ValidationError),
             (Series(["a"]), "regex match", ValidationError),
-
             (Series(["a"]), "regex match [a-f]", ValueError),
         ],
     )
     def test_regex_validation_exceptions(
-        self,
-        va_obj: ValidateAttribute,
-        input_column: Series,
-        rule: str,
-        exception
+        self, va_obj: ValidateAttribute, input_column: Series, rule: str, exception
     ) -> None:
         """
         This tests ValidateAttribute.regex_validation
@@ -1757,6 +1739,23 @@ class TestValidateAttributeObject:
         """
         with pytest.raises(exception):
             va_obj.regex_validation(rule, input_column)
+
+    @pytest.mark.parametrize(
+        "input_column, rule",
+        [
+            (Series(["a,b,c"], name="Check Regex List"), "list::regex match [a-f]"),
+            (Series(["a,b,c", "d,e,f"], name="Check Regex List"), "list::regex match [a-f]"),
+        ],
+    )
+    def test_regex_validation_with_list_column(
+        self, va_obj: ValidateAttribute, input_column: Series, rule: str
+    ) -> None:
+        """
+        This tests ValidateAttribute.regex_validation using a list column
+        """
+        errors, warnings = va_obj.regex_validation(rule, input_column)
+        assert len(errors) == 0
+        assert len(warnings) == 0
 
     #################
     # type_validation
@@ -1773,13 +1772,10 @@ class TestValidateAttributeObject:
             (Series([np.nan], name="Check Num"), "num"),
             (Series([np.nan], name="Check Int"), "int"),
             (Series([np.nan], name="Check Float"), "float"),
-        ]
+        ],
     )
     def test_type_validation_passing(
-        self,
-        va_obj: ValidateAttribute,
-        input_column: Series,
-        rule: str
+        self, va_obj: ValidateAttribute, input_column: Series, rule: str
     ) -> None:
         """
         This tests ValidateAttribute.type_validation
@@ -1788,7 +1784,6 @@ class TestValidateAttributeObject:
         errors, warnings = va_obj.type_validation(rule, input_column)
         assert len(errors) == 0
         assert len(warnings) == 0
-
 
     @pytest.mark.parametrize(
         "input_column, rule",
@@ -1800,13 +1795,10 @@ class TestValidateAttributeObject:
             (Series(["a"], name="Check Int"), "int"),
             (Series([1], name="Check Float"), "float"),
             (Series(["a"], name="Check Float"), "float"),
-        ]
+        ],
     )
     def test_type_validation_failing(
-        self,
-        va_obj: ValidateAttribute,
-        input_column: Series,
-        rule: str
+        self, va_obj: ValidateAttribute, input_column: Series, rule: str
     ) -> None:
         """
         This tests ValidateAttribute.type_validation
@@ -1816,7 +1808,6 @@ class TestValidateAttributeObject:
         assert len(errors) == 1
         assert len(warnings) == 0
 
-
     ################
     # url_validation
     ################
@@ -1825,8 +1816,13 @@ class TestValidateAttributeObject:
         "input_column",
         [
             (Series([], name="Check URL")),
-            (Series([np.nan], name="Check URL"))
-        ]
+            (Series([np.nan], name="Check URL")),
+            (
+                Series(
+                    ["https://doi.org/10.1158/0008-5472.can-23-0128"], name="Check URL"
+                )
+            ),
+        ],
     )
     def test_url_validation_passing(
         self,
@@ -1834,9 +1830,375 @@ class TestValidateAttributeObject:
         input_column: Series,
     ) -> None:
         """
-        This tests ValidateAttribute.type_validation
-        This test shows passing examples using the type rule
+        This tests ValidateAttribute.url_validation
+        This test shows passing examples using the url rule
         """
         errors, warnings = va_obj.url_validation("url", input_column)
         assert len(errors) == 0
         assert len(warnings) == 0
+
+    @pytest.mark.parametrize(
+        "input_column",
+        [(Series([""], name="Check URL")), (Series(["xxx"], name="Check URL"))],
+    )
+    def test_url_validation_failing(
+        self,
+        va_obj: ValidateAttribute,
+        input_column: Series,
+    ) -> None:
+        """
+        This tests ValidateAttribute.url_validation
+        This test shows failing examples using the url rule
+        """
+        errors, warnings = va_obj.url_validation("url", input_column)
+        assert len(errors) > 0
+        assert len(warnings) == 0
+
+    #######################
+    # _parse_validation_log
+    #######################
+
+    @pytest.mark.parametrize(
+        "input_log, expected_invalid_rows, expected_invalid_entities, expected_manifest_ids",
+        [
+            ({}, [], [], []),
+            ({"syn1": Series(["A"])}, ["2"], ["A"], ["syn1"]),
+            ({"syn1": Series(["A"], index=[1])}, ["3"], ["A"], ["syn1"]),
+            ({"syn1": Series(["A", "B"])}, ["2"], ["A"], ["syn1"]),
+            (
+                {"syn1": Series(["A"]), "syn2": Series(["B"])},
+                ["2"],
+                ["A", "B"],
+                ["syn1", "syn2"],
+            ),
+        ],
+    )
+    def test__parse_validation_log(
+        self,
+        va_obj: ValidateAttribute,
+        input_log: dict[str, Series],
+        expected_invalid_rows: list[str],
+        expected_invalid_entities: list[str],
+        expected_manifest_ids: list[str],
+    ) -> None:
+        """
+        This test shows that
+        - an empty log returns empty values
+        - only the first value in each series is returned as invalid entities
+        - the index of the invalid entity is returned incremented by 2
+        - each manifest entity is returned
+
+        """
+        invalid_rows, invalid_entities, manifest_ids = va_obj._parse_validation_log(
+            input_log
+        )
+        assert invalid_rows == expected_invalid_rows
+        assert sorted(invalid_entities) == expected_invalid_entities
+        assert manifest_ids == expected_manifest_ids
+
+    ###################################
+    # _merge_format_invalid_rows_values
+    ###################################
+
+    @pytest.mark.parametrize(
+        "input_series1, input_series2, expected_invalid_rows, expected_invalid_entry",
+        [
+            (Series([], name="x"), Series([], name="x"), [], []),
+            (Series(["A"], name="x"), Series([], name="x"), ["2"], ["A"]),
+            (Series([], name="x"), Series(["B"], name="x"), ["2"], ["B"]),
+            (Series(["A"], name="x"), Series(["B"], name="x"), ["2"], ["A", "B"]),
+            (Series(["A"], name="x"), Series(["C"], name="x"), ["2"], ["A", "C"]),
+            (
+                Series(["A", "B"], name="x"),
+                Series(["C"], name="x"),
+                ["2", "3"],
+                ["A", "B", "C"],
+            ),
+        ],
+    )
+    def test__merge_format_invalid_rows_values(
+        self,
+        va_obj: ValidateAttribute,
+        input_series1: Series,
+        input_series2: Series,
+        expected_invalid_rows: list[str],
+        expected_invalid_entry: list[str],
+    ) -> None:
+        """
+        This test shows that
+        - the names of the series must match
+        - the indices of both series get combined and incremented by 2
+        - the values of both series are combined
+        """
+        invalid_rows, invalid_entry = va_obj._merge_format_invalid_rows_values(
+            input_series1, input_series2
+        )
+        assert invalid_rows == expected_invalid_rows
+        assert invalid_entry == expected_invalid_entry
+
+    ############################
+    # _format_invalid_row_values
+    ############################
+
+    @pytest.mark.parametrize(
+        "input_series, expected_invalid_rows, expected_invalid_entry",
+        [
+            (Series([]), [], []),
+            (Series(["A"]), ["2"], ["A"]),
+            (Series(["A", "B"]), ["2", "3"], ["A", "B"]),
+        ],
+    )
+    def test__format_invalid_row_values(
+        self,
+        va_obj: ValidateAttribute,
+        input_series: Series,
+        expected_invalid_rows: list[str],
+        expected_invalid_entry: list[str],
+    ) -> None:
+        """
+        This test shows that the indices of the input series is incremented by 2
+        """
+        invalid_rows, invalid_entry = va_obj._format_invalid_row_values(input_series)
+        assert invalid_rows == expected_invalid_rows
+        assert invalid_entry == expected_invalid_entry
+
+    ###########################################
+    # _remove_non_entry_from_invalid_entry_list
+    ###########################################
+
+    @pytest.mark.parametrize(
+        "input_entry, input_row_num, input_name, expected_invalid_entry, expected_row_num",
+        [
+            # Cases where entry and row number remain unchanged
+            ([], [], "", [], []),
+            (None, None, "", None, None),
+            (["A"], None, "", ["A"], None),
+            (None, ["1"], "", None, ["1"]),
+            (["A"], ["1"], "x", ["A"], ["1"]),
+            (["A", "B"], ["1"], "x", ["A", "B"], ["1"]),
+            (["A"], ["1", "2"], "x", ["A"], ["1", "2"]),
+            # When there are missing values the value and the row number are removed
+            (["<NA>"], ["1"], "x", [], []),
+            (["<NA>", "<NA>"], ["1", "2"], "x", [], []),
+            (["<NA>", "A"], ["1", "2"], "x", ["A"], ["2"]),
+            # When there are more row numbers than values, and there are missing values
+            # then the row number that corresponds to the missing value is removed
+            (["<NA>"], ["1", "2"], "x", [], ["2"]),
+            (["<NA>", "<NA>"], ["1", "2", "3", "4"], "x", [], ["3", "4"]),
+            (["<NA>", "A"], ["1", "2", "3", "4"], "x", ["A"], ["2", "3", "4"]),
+            (["A", "<NA>"], ["1", "2", "3", "4"], "x", ["A"], ["1", "3", "4"]),
+        ],
+    )
+    def test__remove_non_entry_from_invalid_entry_list(
+        self,
+        va_obj: ValidateAttribute,
+        input_entry: list[str],
+        input_row_num: list[str],
+        input_name: str,
+        expected_invalid_entry: list[str],
+        expected_row_num: list[str],
+    ) -> None:
+        """
+        Tests for ValidateAttribute.remove_non_entry_from_invalid_entry_list
+        """
+        invalid_entry, row_num = va_obj._remove_non_entry_from_invalid_entry_list(
+            input_entry, input_row_num, input_name
+        )
+        assert invalid_entry == expected_invalid_entry
+        assert row_num == expected_row_num
+
+    @pytest.mark.parametrize(
+        "input_entry, input_row_num, input_name, exception",
+        [
+            # if first two inputs are not empty, an empty name string causes an IndexError
+            (["A"], ["1"], "", IndexError),
+            # if there are more invalid entries than row numbers, there is an IndexError
+            (["<NA>", "<NA>"], ["1"], "x", IndexError),
+        ],
+    )
+    def test__remove_non_entry_from_invalid_entry_list_exceptions(
+        self,
+        va_obj: ValidateAttribute,
+        input_entry: list[str],
+        input_row_num: list[str],
+        input_name: str,
+        exception: Exception,
+    ) -> None:
+        """
+        Tests for ValidateAttribute.remove_non_entry_from_invalid_entry_list that cause
+          exceptions
+        """
+        with pytest.raises(exception):
+            va_obj._remove_non_entry_from_invalid_entry_list(
+                input_entry, input_row_num, input_name
+            )
+
+    ####################################
+    # _check_if_target_manifest_is_empty
+    ####################################
+
+    @pytest.mark.parametrize(
+        "input_dataframe, input_bool_list, input_column_dict, output_bool_list",
+        [
+            # Dataframes with only required columns are always considered_empty
+            (
+                DataFrame({"component": [], "id": [], "entityid": []}),
+                [],
+                {"component": "component", "id": "id", "entityid": "entityid"},
+                [True],
+            ),
+            (
+                DataFrame({"component": ["xxx"], "id": ["xxx"], "entityid": ["xxx"]}),
+                [],
+                {"component": "component", "id": "id", "entityid": "entityid"},
+                [True],
+            ),
+            # Dataframes with non-required columns whose only values are null are considered empty
+            (
+                DataFrame(
+                    {
+                        "component": ["xxx"],
+                        "id": ["xxx"],
+                        "entityid": ["xxx"],
+                        "col1": [np.nan],
+                    }
+                ),
+                [],
+                {"component": "component", "id": "id", "entityid": "entityid"},
+                [True],
+            ),
+            (
+                DataFrame(
+                    {
+                        "component": ["xxx"],
+                        "id": ["xxx"],
+                        "entityid": ["xxx"],
+                        "col1": [np.nan],
+                        "col2": [np.nan],
+                    }
+                ),
+                [],
+                {"component": "component", "id": "id", "entityid": "entityid"},
+                [True],
+            ),
+            # Dataframes with non-required columns who have non-null values are not considered empty
+            (
+                DataFrame(
+                    {
+                        "component": ["xxx"],
+                        "id": ["xxx"],
+                        "entityid": ["xxx"],
+                        "col1": ["xxx"],
+                    }
+                ),
+                [],
+                {"component": "component", "id": "id", "entityid": "entityid"},
+                [False],
+            ),
+            (
+                DataFrame(
+                    {
+                        "component": ["xxx"],
+                        "id": ["xxx"],
+                        "entityid": ["xxx"],
+                        "col1": [np.nan],
+                        "col2": ["xxx"],
+                    }
+                ),
+                [],
+                {"component": "component", "id": "id", "entityid": "entityid"},
+                [False],
+            ),
+        ],
+    )
+    def test__check_if_target_manifest_is_empty(
+        self,
+        va_obj: ValidateAttribute,
+        input_dataframe: DataFrame,
+        input_bool_list: list[bool],
+        input_column_dict: dict[str, str],
+        output_bool_list: list[bool],
+    ) -> None:
+        """
+        Tests for ValidateAttribute._check_if_target_manifest_is_empty
+        """
+        bool_list = va_obj._check_if_target_manifest_is_empty(
+            input_dataframe, input_bool_list, input_column_dict
+        )
+        assert bool_list == output_bool_list
+
+    @pytest.mark.parametrize(
+        "input_dataframe, input_bool_list, input_column_dict, exception",
+        [
+            # column name dict must have keys "component", "id", "entityid"
+            (DataFrame({"component": [], "id": [], "entityid": []}), [], {}, KeyError),
+            # dataframe must have columns "component", "id", "entityid"
+            (
+                DataFrame(),
+                [],
+                {"component": "component", "id": "id", "entityid": "entityid"},
+                KeyError,
+            ),
+        ],
+    )
+    def test__check_if_target_manifest_is_empty_exceptions(
+        self,
+        va_obj: ValidateAttribute,
+        input_dataframe: DataFrame,
+        input_bool_list: list[bool],
+        input_column_dict: dict[str, str],
+        exception: Exception,
+    ) -> None:
+        """
+        Tests for ValidateAttribute._check_if_target_manifest_is_empty that cause
+          exceptions
+        """
+        with pytest.raises(exception):
+            va_obj._check_if_target_manifest_is_empty(
+                input_dataframe, input_bool_list, input_column_dict
+            )
+
+    #################
+    # _get_rule_scope
+    #################
+
+    @pytest.mark.parametrize(
+        "input_rule, output_scope",
+        [
+            # After splitting by spaces, the third element is returned
+            ("a b c", "c"),
+            ("a b c d", "c")
+        ],
+    )
+    def test__get_rule_scope(
+        self,
+        va_obj: ValidateAttribute,
+        input_rule: str,
+        output_scope: str
+    ) -> None:
+        """
+        Tests for ValidateAttribute._get_rule_scope
+        """
+        assert va_obj._get_rule_scope(input_rule) == output_scope
+
+    @pytest.mark.parametrize(
+        "input_rule, exception",
+        [
+            # The rule must a string when split by spaces, have atleast three elements
+            ("", IndexError),
+            ("x", IndexError),
+            ("x x", IndexError),
+            ("x;x;x", IndexError)
+        ],
+    )
+    def test__get_rule_scope_exceptions(
+        self,
+        va_obj: ValidateAttribute,
+        input_rule: str,
+        exception: Exception
+    ) -> None:
+        """
+        Tests for ValidateAttribute._get_rule_scope that cause exceptions
+        """
+        with pytest.raises(exception):
+            va_obj._get_rule_scope(input_rule)
