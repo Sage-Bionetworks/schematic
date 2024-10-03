@@ -164,6 +164,7 @@ def export_manifest_csv(file_path: str, manifest: Union[pd.DataFrame, str]) -> N
         + [wait_fixed(5)]
     ),
     retry=retry_if_exception_type(HttpError),
+    reraise=True,
 )
 def google_api_execute_wrapper(api_function_to_call: Callable[[], Any]) -> Any:
     """Retry wrapper for Google API calls, with a backoff strategy.
