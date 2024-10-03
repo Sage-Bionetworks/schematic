@@ -19,6 +19,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
 from pytest_asyncio import is_async_test
+from synapseclient.client import Synapse
 
 from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.models.metadata import MetadataModel
@@ -189,6 +190,13 @@ def syn_token(config: Configuration):
     else:
         token = config_parser["authentication"]["authtoken"]
     return token
+
+
+@pytest.fixture(scope="class")
+def syn(syn_token):
+    syn = Synapse()
+    syn.login(authToken=syn_token, silent=True)
+    return syn
 
 
 def metadata_model(helpers, data_model_labels):
