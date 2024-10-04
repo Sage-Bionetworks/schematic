@@ -543,12 +543,13 @@ class TestManifestGeneration:
         assert sheet2["G1"].value is None
 
         # AND a copy of the Excel file is saved to the test directory for manual verification
-        workbook.save(
-            os.path.join(
-                manual_test_verification_path,
-                "TestManifestGeneration_test_single_manifest_generation_google_sheet_with_annotations.xlsx",
+        if manual_test_verification_enabled:
+            workbook.save(
+                os.path.join(
+                    manual_test_verification_path,
+                    "TestManifestGeneration_test_single_manifest_generation_google_sheet_with_annotations.xlsx",
+                )
             )
-        )
 
     @pytest.mark.manual_verification_required
     def test_single_manifest_generation_google_sheet_no_annotations(
@@ -778,12 +779,13 @@ class TestManifestGeneration:
         assert sheet2["G1"].value is None
 
         # AND a copy of the Excel file is saved to the test directory for manual verification
-        workbook.save(
-            os.path.join(
-                manual_test_verification_path,
-                "TestManifestGeneration_test_single_manifest_generation_google_sheet_no_annotations.xlsx",
+        if manual_test_verification_enabled:
+            workbook.save(
+                os.path.join(
+                    manual_test_verification_path,
+                    "TestManifestGeneration_test_single_manifest_generation_google_sheet_no_annotations.xlsx",
+                )
             )
-        )
 
     @pytest.mark.manual_verification_required
     def test_manifest_generation_multiple_blank_google_sheets(
@@ -1062,12 +1064,13 @@ class TestManifestGeneration:
         assert patient_sheet2["H1"].value is None
 
         # AND a copy of the Excel file is saved to the test directory for manual verification
-        patient_workbook.save(
-            os.path.join(
-                manual_test_verification_path,
-                "TestManifestGeneration_test_multiple_blank_google_sheets_patient.xlsx",
+        if manual_test_verification_enabled:
+            patient_workbook.save(
+                os.path.join(
+                    manual_test_verification_path,
+                    "TestManifestGeneration_test_multiple_blank_google_sheets_patient.xlsx",
+                )
             )
-        )
 
         # AND we should be able to download the Bulk RNA-seq assay manifest as an Excel file
         rna_seq_response = requests.get(rna_seq_export_url)
@@ -1217,9 +1220,10 @@ class TestManifestGeneration:
         assert rna_seq_sheet2["G1"].value is None
 
         # AND a copy of the Excel file is saved to the test directory for manual verification
-        rna_seq_workbook.save(
-            os.path.join(
-                manual_test_verification_path,
-                "TestManifestGeneration_test_multiple_blank_google_sheets_rna_seq.xlsx",
+        if manual_test_verification_enabled:
+            rna_seq_workbook.save(
+                os.path.join(
+                    manual_test_verification_path,
+                    "TestManifestGeneration_test_multiple_blank_google_sheets_rna_seq.xlsx",
+                )
             )
-        )
