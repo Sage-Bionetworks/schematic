@@ -833,7 +833,7 @@ class TestManifestGeneration:
         - When File Format = "CRAM", [Genome Build, Genome FASTA] is Light Blue (Required)
         - When File Format = "FASTQ", [Genome Build] is White (Optional)
         """
-        url = "http://localhost:3001/v1/manifest/generate"
+        url = f"{schematic_api_server_url}/v1/manifest/generate"
         # GIVEN a valid request to the Schematic API to generate two blank Google Sheets manifests
         params = {
             "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
