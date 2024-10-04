@@ -11,28 +11,48 @@
 
 # Table of Contents
 - [Schematic](#schematic)
-- [Table of contents](#table-of-contents)
+- [TL;DR](#tldr)
+- [Table of Contents](#table-of-contents)
 - [Introduction](#introduction)
 - [Installation](#installation)
   - [Installation Requirements](#installation-requirements)
-  - [Installation guide for Schematic CLI users](#installation-guide-for-schematic-cli-users)
-  - [Installation guide for developers/contributors](#installation-guide-for-developerscontributors)
-    - [Development environment setup](#development-environment-setup)
-    - [Development process instruction](#development-process-instruction)
-    - [Example For REST API ](#example-for-rest-api-)
-      - [Use file path of `config.yml` to run API endpoints:](#use-file-path-of-configyml-to-run-api-endpoints)
-      - [Use content of `config.yml` and `schematic_service_account_creds.json`as an environment variable to run API endpoints:](#use-content-of-configyml-and-schematic_service_account_credsjsonas-an-environment-variable-to-run-api-endpoints)
-    - [Example For Schematic on mac/linux ](#example-for-schematic-on-maclinux-)
-    - [Example For Schematic on Windows ](#example-for-schematic-on-windows-)
-- [Other Contribution Guidelines](#other-contribution-guidelines)
+  - [Installation Guide For: Users](#installation-guide-for-users)
+    - [1. Verify your python version](#1-verify-your-python-version)
+    - [2. Set up your virtual environment](#2-set-up-your-virtual-environment)
+      - [2a. Set up your virtual environment with `venv`](#2a-set-up-your-virtual-environment-with-venv)
+      - [2b. Set up your virtual environment with `conda`](#2b-set-up-your-virtual-environment-with-conda)
+    - [3. Install `schematic` dependencies](#3-install-schematic-dependencies)
+    - [4. Set up configuration files](#4-set-up-configuration-files)
+    - [5. Get your data model as a `JSON-LD` schema file](#5-get-your-data-model-as-a-json-ld-schema-file)
+    - [6. Obtain Google credential files](#6-obtain-google-credential-files)
+    - [7. Verify your setup](#7-verify-your-setup)
+  - [Installation Guide For: Contributors](#installation-guide-for-contributors)
+    - [1. Clone the `schematic` package repository](#1-clone-the-schematic-package-repository)
+    - [2. Install `poetry`](#2-install-poetry)
+    - [3. Start the virtual environment](#3-start-the-virtual-environment)
+    - [4. Install `schematic` dependencies](#4-install-schematic-dependencies)
+    - [5. Set up configuration files](#5-set-up-configuration-files)
+    - [6. Obtain Google credential files](#6-obtain-google-credential-files)
+    - [7. Set up pre-commit hooks](#7-set-up-pre-commit-hooks)
+    - [8. Verify your setup](#8-verify-your-setup)
+- [Command Line Usage](#command-line-usage)
+- [Docker Usage](#docker-usage)
+  - [Running the REST API](#running-the-rest-api)
+    - [Example 1: Using the `config.yml` path](#example-1-using-the-configyml-path)
+    - [Example 2: Use environment variables](#example-2-use-environment-variables)
+  - [Running `schematic` to Validate Manifests](#running-schematic-to-validate-manifests)
+    - [Example for macOS/Linux](#example-for-macoslinux)
+    - [Example for Windows](#example-for-windows)
+- [Contribution Guidelines](#contribution-guidelines)
+  - [Development process instruction](#development-process-instruction)
   - [Updating readthedocs documentation](#updating-readthedocs-documentation)
   - [Update toml file and lock file](#update-toml-file-and-lock-file)
-  - [Reporting bugs or feature requests](#reporting-bugs-or-feature-requests)
-- [Command Line Usage](#command-line-usage)
 - [Testing](#testing)
   - [Updating Synapse test resources](#updating-synapse-test-resources)
 - [Code style](#code-style)
+- [Reporting bugs or feature requests](#reporting-bugs-or-feature-requests)
 - [Contributors](#contributors)
+
 
 # Introduction
 SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. The Python based infrastructure provides a _novel_ schema-based, metadata ingress ecosystem, that is meant to streamline the process of biomedical dataset annotation, metadata validation and submission to a data repository for various data contributors.
@@ -399,7 +419,7 @@ Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/
 Here we will demonstrate how to run `schematic` with Docker, with different use-cases for running API endpoints, validating the manifests, and
 using how to use `schematic` based on your OS (macOS/Linux).
 
-### Running the REST API <br>
+### Running the REST API
 
 Use the Docker image to run `schematic`s REST API. You can either use the file path for the `config.yml` created using the installation instructions,
 or set up authentication with environment variables.
@@ -430,7 +450,7 @@ docker run --rm -p 3001:3001 \
   sagebionetworks/schematic \
   python /usr/src/app/run_api.py
 ``` 
-### Running `schematic` to Validate Manifests <br>
+### Running `schematic` to Validate Manifests
 You can also use Docker to run `schematic` commands like validating manifests. Below are examples for different platforms.
 
 #### Example for macOS/Linux
