@@ -257,7 +257,7 @@ class TestManifestGeneration:
             )
 
     @pytest.mark.manual_verification_required
-    def test_single_manifest_generation_google_sheet(
+    def test_single_manifest_generation_google_sheet_with_annotations(
         self,
         manual_test_verification_path: str,
         flask_client: FlaskClient,
@@ -550,8 +550,12 @@ class TestManifestGeneration:
             )
         )
 
+    @pytest.mark.manual_verification_required
     def test_single_manifest_generation_google_sheet_no_annotations(
-        self, manual_test_verification_path: str
+        self,
+        manual_test_verification_path: str,
+        flask_client: FlaskClient,
+        syn_token: str,
     ) -> None:
         """
         Download a manifest without annotations from the Schematic API and verify that it is a valid Google
@@ -574,7 +578,7 @@ class TestManifestGeneration:
         - When File Format = "CRAM", [Genome Build, Genome FASTA] is Light Blue (Required)
         - When File Format = "FASTQ", [Genome Build] is White (Optional)
         """
-        url = "http://localhost:3001/v1/manifest/generate"
+        url = f"{schematic_api_server_url}/v1/manifest/generate"
         # GIVEN a valid request to the Schematic API to generate a Google Sheet manifest without annotations
         params = {
             "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
@@ -587,18 +591,21 @@ class TestManifestGeneration:
             "strict_validation": "true",
             "data_model_labels": "class_label",
         }
-        headers = {
-            "accept": "application/json"
-            # TODO: Include an authorization header
-        }
+        headers = {"accept": "application/json", "Authorization": f"Bearer {syn_token}"}
         # WHEN we make a request to the Schematic API
-        response = requests.get(url, headers=headers, params=params)
+        response = (
+            requests.get(url, headers=headers, params=params, timeout=300)
+            if use_deployed_schematic_api_server
+            else flask_client.get(url, query_string=params, headers=headers)
+        )
 
         # THEN we expect a successful response
         assert response.status_code == 200
 
         # Load the Google Sheets URL from the response
-        response_content = response.json()
+        response_content = (
+            response.json() if use_deployed_schematic_api_server else response.json
+        )
         assert len(response_content) == 1, "Expected a single URL in the response"
         google_sheet_url = response_content[0]
         assert (
@@ -778,8 +785,12 @@ class TestManifestGeneration:
             )
         )
 
+    @pytest.mark.manual_verification_required
     def test_manifest_generation_multiple_blank_google_sheets(
-        self, manual_test_verification_path: str
+        self,
+        manual_test_verification_path: str,
+        flask_client: FlaskClient,
+        syn_token: str,
     ) -> None:
         """
         Download two blank manifests from the Schematic API and verify that they are valid Google Sheets.
@@ -831,18 +842,21 @@ class TestManifestGeneration:
             "strict_validation": "true",
             "data_model_labels": "class_label",
         }
-        headers = {
-            "accept": "application/json"
-            # TODO: Include an authorization header
-        }
+        headers = {"accept": "application/json", "Authorization": f"Bearer {syn_token}"}
         # WHEN we make a request to the Schematic API
-        response = requests.get(url, headers=headers, params=params)
+        response = (
+            requests.get(url, headers=headers, params=params, timeout=300)
+            if use_deployed_schematic_api_server
+            else flask_client.get(url, query_string=params, headers=headers)
+        )
 
         # THEN we expect a successful response
         assert response.status_code == 200
 
         # Load the Google Sheets URLs from the response
-        response_content = response.json()
+        response_content = (
+            response.json() if use_deployed_schematic_api_server else response.json
+        )
         assert (
             len(response_content) == 2
         ), "Expected two Google Sheets URLs in the response"
