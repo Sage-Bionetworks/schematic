@@ -580,11 +580,17 @@ class SynapseStorage(BaseStorage):
             Args:
                 current_location (Entity): The current entity location in the project structure.
                 location_prefix (str): The prefix to prepend to the path.
-                skip_entry (bool): Whether to skip the current entry in the path.
+                skip_entry (bool): Whether to skip the current entry in the path. When
+                    this is True it means we are looking at our starting point. If our
+                    starting point is the project itself we can go ahead and return
+                    back the project as the prefix.
 
             Returns:
                 str: The path of the names of each of the directories up to the project root.
             """
+            if skip_entry and current_location.concreteType == PROJECT_ENTITY:
+                return f"{current_location.name}/{location_prefix}"
+
             updated_prefix = (
                 location_prefix
                 if skip_entry
@@ -623,12 +629,13 @@ class SynapseStorage(BaseStorage):
                     if fullpath:
                         # append directory path to filename
                         if dirpath[0].startswith(f"{project_name}/"):
-                            # TODO: A test for this code path is needed
-                            modified_path = (dirpath[0] + "/").removeprefix(
-                                f"{project_name}/"
-                            )
+                            path_without_project_prefix = (
+                                dirpath[0] + "/"
+                            ).removeprefix(f"{project_name}/")
+                            if not path_without_project_prefix.endswith("/"):
+                                path_without_project_prefix += "/"
                             path_filename = (
-                                prefix + modified_path + "/" + path_filename[0],
+                                prefix + path_without_project_prefix + path_filename[0],
                                 path_filename[1],
                             )
                         else:
