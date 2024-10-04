@@ -23,6 +23,7 @@ from opentelemetry import trace
 from schematic_db.rdb.synapse_database import SynapseDatabase
 from synapseclient import (
     Column,
+    Entity,
     EntityViewSchema,
     EntityViewType,
     File,
@@ -33,6 +34,7 @@ from synapseclient import (
     as_table_columns,
 )
 from synapseclient.api import get_entity_id_bundle2
+from synapseclient.core.constants.concrete_types import PROJECT_ENTITY
 from synapseclient.core.exceptions import (
     SynapseAuthenticationError,
     SynapseHTTPError,
@@ -566,6 +568,42 @@ class SynapseStorage(BaseStorage):
             self.syn, datasetId, includeTypes=["folder", "file"]
         )
 
+        current_entity_location = self.syn.get(entity=datasetId, downloadFile=False)
+
+        def walk_back_to_project(
+            current_location: Entity, location_prefix: str, skip_entry: bool
+        ) -> str:
+            """
+            Recursively walk back up the project structure to get the paths of the
+            names of each of the directories where we started the walk function.
+
+            Args:
+                current_location (Entity): The current entity location in the project structure.
+                location_prefix (str): The prefix to prepend to the path.
+                skip_entry (bool): Whether to skip the current entry in the path.
+
+            Returns:
+                str: The path of the names of each of the directories up to the project root.
+            """
+            updated_prefix = (
+                location_prefix
+                if skip_entry
+                else f"{current_location.name}/{location_prefix}"
+            )
+            if current_location.concreteType == PROJECT_ENTITY:
+                return updated_prefix
+            return walk_back_to_project(
+                current_location=self.syn.get(entity=current_location.parentId),
+                location_prefix=updated_prefix,
+                skip_entry=False,
+            )
+
+        prefix = walk_back_to_project(
+            current_location=current_entity_location,
+            location_prefix="",
+            skip_entry=True,
+        )
+
         project = self.getDatasetProject(datasetId)
         project_name = self.syn.get(project, downloadFile=False).name
         file_list = []
@@ -585,17 +623,17 @@ class SynapseStorage(BaseStorage):
                     if fullpath:
                         # append directory path to filename
                         if dirpath[0].startswith(f"{project_name}/"):
+                            # TODO: A test for this code path is needed
+                            modified_path = (dirpath[0] + "/").removeprefix(
+                                f"{project_name}/"
+                            )
                             path_filename = (
-                                dirpath[0] + "/" + path_filename[0],
+                                prefix + modified_path + "/" + path_filename[0],
                                 path_filename[1],
                             )
                         else:
                             path_filename = (
-                                project_name
-                                + "/"
-                                + dirpath[0]
-                                + "/"
-                                + path_filename[0],
+                                prefix + dirpath[0] + "/" + path_filename[0],
                                 path_filename[1],
                             )
 
