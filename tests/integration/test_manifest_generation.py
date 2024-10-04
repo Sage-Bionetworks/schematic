@@ -513,8 +513,8 @@ class TestManifestGeneration:
         - The first row is locked on scroll
         - Each cell A-F in the first row has a comment "TBD"
         - Cell G in the first row does not have a comment
-        - The cell C2 in "Sheet1" has a dropdown list with values from "Sheet2!C2:C5"
-        - The cell E2 in "Sheet1" has a dropdown list with values from "Sheet2!E2:E5"
+        - The second cell in the "File Format" column in "Sheet1" has a dropdown list with the correct values from "Sheet2"
+        - The second cell in the "Genome Build" column in "Sheet1" has a dropdown list with the correct values from "Sheet2"
         - The fill colors of the first row cells are as expected
         - The workbook contains two sheets: "Sheet1" and "Sheet2"
         - "Sheet2" is hidden
@@ -527,6 +527,7 @@ class TestManifestGeneration:
         - When File Format = "FASTQ", [Genome Build] is White (Optional)
         """
         url = "http://localhost:3001/v1/manifest/generate"
+        # GIVEN a valid request to the Schematic API to generate a Google Sheet manifest without annotations
         params = {
             "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
             "title": "Example",
@@ -558,21 +559,14 @@ class TestManifestGeneration:
 
         # Convert the Google Sheets URL to an export URL for Excel format
         export_url = f"{google_sheet_url}/export?format=xlsx"
+
+        # AND we should be able to download the manifest as an Excel file
         response = requests.get(export_url)
         assert response.status_code == 200
         content = BytesIO(response.content)
         workbook = load_workbook(content)
         sheet1 = workbook["Sheet1"]
         sheet2 = workbook["Sheet2"]
-
-        # AND the column headers in "Sheet1" are as expected
-        assert sheet1["A1"].value == "Filename"
-        assert sheet1["B1"].value == "Sample ID"
-        assert sheet1["C1"].value == "File Format"
-        assert sheet1["D1"].value == "Component"
-        assert sheet1["E1"].value == "Genome Build"
-        assert sheet1["F1"].value == "Genome FASTA"
-        assert sheet1["G1"].value == "entityId"
 
         # Track column positions
         columns = {cell.value: cell.column_letter for cell in sheet1[1]}
@@ -636,7 +630,7 @@ class TestManifestGeneration:
         ]:
             assert sheet1[f"{columns[col]}1"].comment.text == "TBD"
 
-        # AND each of these cells in the first row do not have a comment
+        # AND the entityId column in the first row does not have a comment
         assert sheet1[f"{columns['entityId']}1"].comment is None
 
         # AND the dropdown lists exist and are as expected
@@ -742,15 +736,16 @@ class TestManifestGeneration:
         """
         Download two blank manifests from the Schematic API and verify that they are valid Google Sheets.
         We are validating the following:
+
         For the Patient Google Sheet:
         - The first row of the Google Sheet contains the column headers
         - The first row is locked on scroll
         - Each cell A-G in the first row has a comment "TBD"
         - Cell H in the first row does not have a comment
-        - The cell B2 in "Sheet1" has a dropdown list with values from "Sheet2!B2:B5"
-        - The cell D2 in "Sheet1" has a dropdown list with values from "Sheet2!D2:D5"
-        - The cell F2 in "Sheet1" has a dropdown list with values from "Sheet2!F2:F5"
-        - The cell G2 in "Sheet1" has a comment that starts with "Please enter applicable comma-separated items"
+        - The "Sex" column in "Sheet1" has a dropdown list with the correct values from "Sheet2"
+        - The "Diagnosis" column in "Sheet1" has a dropdown list with the correct values from "Sheet2"
+        - The "Cancer Type" column in "Sheet1" has a dropdown list with the correct values from "Sheet2"
+        - The "Family History" column in "Sheet1" has a comment that starts with "Please enter applicable comma-separated items"
         - The fill colors of the first row cells are as expected
         - The workbook contains two sheets: "Sheet1" and "Sheet2"
         - The second sheet is hidden
@@ -759,13 +754,13 @@ class TestManifestGeneration:
         Manual verification steps:
         - When Diagnosis = "Cancer", [Cancer Type, Family History] are Light Blue (Required)
 
-        For the RNA-seq Assay Google Sheet:
+        For the Bulk RNA-seq Assay Google Sheet:
         - The first row of the Google Sheet contains the column headers
         - The first row is locked on scroll
         - Each cell A-F in the first row has a comment "TBD"
         - Each cell G-M in the first row does not have a comment
-        - The cell C2 in Sheet1 has a dropdown list with values from Sheet2!C2:C5
-        - The cell E2 in Sheet1 has a dropdown list with values from Sheet2!E2:E5
+        - The "File Format" column in "Sheet1" has a dropdown list with the correct values from "Sheet2"
+        - The "Genome Build" column in "Sheet1" has a dropdown list with the correct values from "Sheet2"
         - The fill colors of the first row cells are as expected
         - The workbook contains two sheets: "Sheet1" and "Sheet2"
         - "Sheet2" is hidden
@@ -778,6 +773,7 @@ class TestManifestGeneration:
         - When File Format = "FASTQ", [Genome Build] is White (Optional)
         """
         url = "http://localhost:3001/v1/manifest/generate"
+        # GIVEN a valid request to the Schematic API to generate two blank Google Sheets manifests
         params = {
             "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
             "title": "Example",
@@ -809,7 +805,13 @@ class TestManifestGeneration:
 
         # Convert the Google Sheets URLs to export URLs for Excel format
         export_urls = [f"{url}/export?format=xlsx" for url in google_sheet_urls]
-        patient_content = BytesIO(requests.get(export_urls[0]).content)
+        patient_export_url = export_urls[0]
+        rna_seq_export_url = export_urls[1]
+
+        # AND we should be able to download the patient manifest as an Excel file
+        patient_response = requests.get(patient_export_url)
+        assert patient_response.status_code == 200
+        patient_content = BytesIO(patient_response.content)
         patient_workbook = load_workbook(patient_content)
         patient_sheet1 = patient_workbook["Sheet1"]
         patient_sheet2 = patient_workbook["Sheet2"]
@@ -1005,19 +1007,13 @@ class TestManifestGeneration:
             )
         )
 
-        # RNA-seq Assay Google Sheet
-        rna_seq_content = BytesIO(requests.get(export_urls[1]).content)
+        # AND we should be able to download the Bulk RNA-seq assay manifest as an Excel file
+        rna_seq_response = requests.get(rna_seq_export_url)
+        assert rna_seq_response.status_code == 200
+        rna_seq_content = BytesIO(rna_seq_response.content)
         rna_seq_workbook = load_workbook(rna_seq_content)
         rna_seq_sheet1 = rna_seq_workbook["Sheet1"]
         rna_seq_sheet2 = rna_seq_workbook["Sheet2"]
-
-        # AND the column headers in "Sheet1" are as expected
-        assert rna_seq_sheet1["A1"].value == "Filename"
-        assert rna_seq_sheet1["B1"].value == "Sample ID"
-        assert rna_seq_sheet1["C1"].value == "File Format"
-        assert rna_seq_sheet1["D1"].value == "Component"
-        assert rna_seq_sheet1["E1"].value == "Genome Build"
-        assert rna_seq_sheet1["F1"].value == "Genome FASTA"
 
         # Track column positions
         rna_seq_columns = {cell.value: cell.column_letter for cell in rna_seq_sheet1[1]}
