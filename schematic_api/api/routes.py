@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import pathlib
@@ -8,12 +7,10 @@ import tempfile
 import time
 import urllib.request
 from functools import wraps
-from json.decoder import JSONDecodeError
-from typing import Any, List, Optional
+from typing import List, Tuple
 
 import connexion
 import pandas as pd
-from connexion.decorators.uri_parsing import Swagger2URIParser
 from flask import current_app as app
 from flask import request, send_from_directory
 from flask_cors import cross_origin
@@ -28,14 +25,6 @@ from opentelemetry.sdk.trace.export import (
     Span,
 )
 from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
-from synapseclient.core.exceptions import (
-    SynapseAuthenticationError,
-    SynapseHTTPError,
-    SynapseNoCredentialsError,
-    SynapseTimeoutError,
-    SynapseUnmetAccessRestrictions,
-)
-from werkzeug.debug import DebuggedApplication
 
 from schematic.configuration.configuration import CONFIG
 from schematic.manifest.generator import ManifestGenerator
@@ -54,8 +43,10 @@ from schematic.visualization.tangled_tree import TangledTree
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
+tracing_service_name = os.environ.get("TRACING_SERVICE_NAME", "schematic-api")
+
 trace.set_tracer_provider(
-    TracerProvider(resource=Resource(attributes={SERVICE_NAME: "schematic-api"}))
+    TracerProvider(resource=Resource(attributes={SERVICE_NAME: tracing_service_name}))
 )
 
 
@@ -410,6 +401,7 @@ def validate_manifest_route(
     json_str=None,
     asset_view=None,
     project_scope=None,
+    dataset_scope=None,
 ):
     # Access token now stored in request header
     access_token = get_access_token()
@@ -450,6 +442,7 @@ def validate_manifest_route(
         restrict_rules=restrict_rules,
         project_scope=project_scope,
         access_token=access_token,
+        dataset_scope=dataset_scope,
     )
 
     res_dict = {"errors": errors, "warnings": warnings}
@@ -457,7 +450,7 @@ def validate_manifest_route(
     return res_dict
 
 
-#####profile validate manifest route function
+# profile validate manifest route function
 @trace_function_params()
 def submit_manifest_route(
     schema_url,
@@ -469,6 +462,7 @@ def submit_manifest_route(
     data_type=None,
     hide_blanks=False,
     project_scope=None,
+    dataset_scope=None,
     table_column_names=None,
     annotation_keys=None,
     file_annotations_upload: bool = True,
@@ -526,6 +520,7 @@ def submit_manifest_route(
         hide_blanks=hide_blanks,
         table_manipulation=table_manipulation,
         project_scope=project_scope,
+        dataset_scope=dataset_scope,
         table_column_names=table_column_names,
         annotation_keys=annotation_keys,
         file_annotations_upload=file_annotations_upload,
@@ -596,7 +591,9 @@ def get_storage_projects_datasets(asset_view, project_id):
     return sorted_dataset_lst
 
 
-def get_files_storage_dataset(asset_view, dataset_id, full_path, file_names=None):
+def get_files_storage_dataset(
+    asset_view: str, dataset_id: str, full_path: bool, file_names: List[str] = None
+) -> List[Tuple[str, str]]:
     # Access token now stored in request header
     access_token = get_access_token()
 

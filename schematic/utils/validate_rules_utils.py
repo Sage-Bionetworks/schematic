@@ -1,10 +1,10 @@
 """validate rules utils"""
 
 import logging
-from typing import TypedDict, Optional, Literal
-from typing_extensions import assert_never
-from jsonschema import ValidationError
+from typing import Literal, Optional, TypedDict
 
+from jsonschema import ValidationError
+from typing_extensions import assert_never
 
 logger = logging.getLogger(__name__)
 
@@ -147,6 +147,13 @@ def validation_rule_info() -> dict[str, Rule]:
                 "num",
             ],
             "default_message_level": None,
+            "fixed_arg": None,
+        },
+        "filenameExists": {
+            "arguments": (1, 1),
+            "type": "filename_validation",
+            "complementary_rules": None,
+            "default_message_level": "error",
             "fixed_arg": None,
         },
     }

@@ -614,7 +614,9 @@
             },
             "sms:displayName": "Filename",
             "sms:required": "sms:true",
-            "sms:validationRules": []
+            "sms:validationRules": {
+                "MockFilename": "filenameExists"
+            }
         },
         {
             "@id": "bts:FileFormat",
@@ -1718,6 +1720,31 @@
             },
             "sms:displayName": "SourceManifest",
             "sms:required": "sms:true",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:MockFilename",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "MockFilename",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataType"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "MockFilename",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+                {
+                    "@id": "bts:Component"
+                },
+                {
+                    "@id": "bts:Filename"
+                }
+            ],
             "sms:validationRules": []
         }
     ],

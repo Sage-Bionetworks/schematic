@@ -1,46 +1,40 @@
-from copy import deepcopy
 import json
 import logging
+import os
+import random
+from copy import deepcopy
+
 import networkx as nx
 import numpy as np
-import os
 import pandas as pd
 import pytest
-import random
-from typing import Optional
 
 from schematic.schemas.data_model_edges import DataModelEdges
-from schematic.schemas.data_model_nodes import DataModelNodes
-from schematic.schemas.data_model_relationships import DataModelRelationships
-
-from schematic.utils.df_utils import load_df
-from schematic.utils.schema_utils import (
-    get_label_from_display_name,
-    get_attribute_display_name_from_label,
-    convert_bool_to_str,
-    parse_validation_rules,
-    DisplayLabelType,
-    get_json_schema_log_file_path,
-)
-from schematic.utils.io_utils import load_json
-
-from schematic.schemas.data_model_graph import DataModelGraph
-from schematic.schemas.data_model_nodes import DataModelNodes
-from schematic.schemas.data_model_edges import DataModelEdges
-from schematic.schemas.data_model_graph import DataModelGraphExplorer
-from schematic.schemas.data_model_relationships import DataModelRelationships
-from schematic.schemas.data_model_jsonld import (
-    DataModelJsonLD,
-    convert_graph_to_jsonld,
-    BaseTemplate,
-    PropertyTemplate,
-    ClassTemplate,
-)
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+from schematic.schemas.data_model_jsonld import (
+    BaseTemplate,
+    ClassTemplate,
+    DataModelJsonLD,
+    PropertyTemplate,
+    convert_graph_to_jsonld,
+)
+from schematic.schemas.data_model_nodes import DataModelNodes
 from schematic.schemas.data_model_parser import (
-    DataModelParser,
     DataModelCSVParser,
     DataModelJSONLDParser,
+    DataModelParser,
+)
+from schematic.schemas.data_model_relationships import DataModelRelationships
+from schematic.utils.df_utils import load_df
+from schematic.utils.io_utils import load_json
+from schematic.utils.schema_utils import (
+    DisplayLabelType,
+    convert_bool_to_str,
+    get_attribute_display_name_from_label,
+    get_json_schema_log_file_path,
+    get_label_from_display_name,
+    parse_validation_rules,
 )
 
 logging.basicConfig(level=logging.DEBUG)
@@ -621,9 +615,6 @@ class TestDataModelGraphExplorer:
     def test_get_node_required(self):
         return
 
-    def test_get_node_validation_rules(self):
-        return
-
     def test_get_subgraph_by_edge_type(self):
         return
 
@@ -898,12 +889,24 @@ class TestDataModelNodes:
                     if "::" in rule[0]:
                         assert parsed_vrs[ind] == rule[0].split("::")
                     elif "^^" in rule[0]:
+                        component_with_specific_rules = []
                         component_rule_sets = rule[0].split("^^")
                         components = [
                             cr.split(" ")[0].replace("#", "")
                             for cr in component_rule_sets
                         ]
-                        assert components == [k for k in parsed_vrs[0].keys()]
+                        if "" in components:
+                            components.remove("")
+                        for parsed_rule in parsed_vrs:
+                            if isinstance(parsed_rule, dict):
+                                for k in parsed_rule.keys():
+                                    component_with_specific_rules.append(k)
+                        assert all(
+                            [
+                                component in component_with_specific_rules
+                                for component in components
+                            ]
+                        )
                     else:
                         assert parsed_vrs[ind] == rule
             elif DATA_MODEL_DICT[data_model] == "JSONLD":

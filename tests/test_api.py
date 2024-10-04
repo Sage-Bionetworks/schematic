@@ -1,37 +1,36 @@
-import configparser
 import json
 import logging
 import os
 import re
-import time
 from math import ceil
 from time import perf_counter
+from typing import Dict, Generator, List, Tuple, Union
 
-import numpy as np
+import flask
 import pandas as pd  # third party library import
 import pytest
+from flask.testing import FlaskClient
 
 from schematic.configuration.configuration import Configuration
-from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.schemas.data_model_relationships import DataModelRelationships
-
+from schematic.schemas.data_model_parser import DataModelParser
 from schematic_api.api import create_app
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+BENCHMARK_DATA_MODEL_JSON_LD = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
+DATA_MODEL_JSON_LD = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
 
-## TO DO: Clean up url and use a global variable SERVER_URL
+
 @pytest.fixture(scope="class")
-def app():
+def app() -> flask.Flask:
     app = create_app()
-    yield app
+    return app
 
 
 @pytest.fixture(scope="class")
-def client(app):
+def client(app: flask.Flask) -> Generator[FlaskClient, None, None]:
     app.config["SCHEMATIC_CONFIG"] = None
 
     with app.test_client() as client:
@@ -39,62 +38,70 @@ def client(app):
 
 
 @pytest.fixture(scope="class")
-def test_manifest_csv(helpers):
+def valid_test_manifest_csv(helpers) -> str:
     test_manifest_path = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
-    yield test_manifest_path
+    return test_manifest_path
 
 
 @pytest.fixture(scope="class")
-def test_manifest_submit(helpers):
+def valid_filename_manifest_csv(helpers) -> str:
+    test_manifest_path = helpers.get_data_path(
+        "mock_manifests/ValidFilenameManifest.csv"
+    )
+    return test_manifest_path
+
+
+@pytest.fixture(scope="class")
+def invalid_filename_manifest_csv(helpers) -> str:
+    test_manifest_path = helpers.get_data_path(
+        "mock_manifests/InvalidFilenameManifest.csv"
+    )
+    return test_manifest_path
+
+
+@pytest.fixture(scope="class")
+def test_manifest_submit(helpers) -> str:
     test_manifest_path = helpers.get_data_path(
         "mock_manifests/example_biospecimen_test.csv"
     )
-    yield test_manifest_path
+    return test_manifest_path
 
 
 @pytest.fixture(scope="class")
-def test_invalid_manifest(helpers):
+def test_invalid_manifest(helpers) -> pd.DataFrame:
     test_invalid_manifest = helpers.get_data_frame(
         "mock_manifests/Invalid_Test_Manifest.csv", preserve_raw_input=False
     )
-    yield test_invalid_manifest
+    return test_invalid_manifest
 
 
 @pytest.fixture(scope="class")
-def test_upsert_manifest_csv(helpers):
+def test_upsert_manifest_csv(helpers) -> str:
     test_upsert_manifest_path = helpers.get_data_path(
         "mock_manifests/rdb_table_manifest.csv"
     )
-    yield test_upsert_manifest_path
+    return test_upsert_manifest_path
 
 
 @pytest.fixture(scope="class")
-def test_manifest_json(helpers):
+def test_manifest_json(helpers) -> str:
     test_manifest_path = helpers.get_data_path(
         "mock_manifests/Example.Patient.manifest.json"
     )
-    yield test_manifest_path
+    return test_manifest_path
 
 
 @pytest.fixture(scope="class")
-def data_model_jsonld():
-    data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
-    yield data_model_jsonld
+def patient_manifest_json_str() -> str:
+    return '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]'
 
 
-@pytest.fixture(scope="class")
-def benchmark_data_model_jsonld():
-    benchmark_data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
-    yield benchmark_data_model_jsonld
-
-
-def get_MockComponent_attribute():
+def get_MockComponent_attribute() -> Generator[str, None, None]:
     """
     Yield all of the mock conponent attributes one at a time
     TODO: pull in jsonld from fixture
     """
-    schema_url = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
-    data_model_parser = DataModelParser(path_to_data_model=schema_url)
+    data_model_parser = DataModelParser(path_to_data_model=BENCHMARK_DATA_MODEL_JSON_LD)
     # Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
@@ -113,34 +120,23 @@ def get_MockComponent_attribute():
         yield MockComponent_attribute
 
 
-@pytest.fixture(scope="class")
-def syn_token(config: Configuration):
-    synapse_config_path = config.synapse_configuration_path
-    config_parser = configparser.ConfigParser()
-    config_parser.read(synapse_config_path)
-    # try using synapse access token
-    if "SYNAPSE_ACCESS_TOKEN" in os.environ:
-        token = os.environ["SYNAPSE_ACCESS_TOKEN"]
-    else:
-        token = config_parser["authentication"]["authtoken"]
-    yield token
-
-
 @pytest.fixture
-def request_headers(syn_token):
+def request_headers(syn_token: str) -> Dict[str, str]:
     headers = {"Authorization": "Bearer " + syn_token}
-    yield headers
+    return headers
 
 
 @pytest.fixture
-def request_invalid_headers():
+def request_invalid_headers() -> Dict[str, str]:
     headers = {"Authorization": "Bearer invalid headers"}
-    yield headers
+    return headers
 
 
 @pytest.mark.schematic_api
 class TestSynapseStorage:
-    def test_invalid_authentication(self, client, request_invalid_headers):
+    def test_invalid_authentication(
+        self, client: FlaskClient, request_invalid_headers: Dict[str, str]
+    ) -> None:
         response = client.get(
             "http://localhost:3001/v1/storage/assets/tables",
             query_string={"asset_view": "syn23643253", "return_type": "csv"},
@@ -148,7 +144,9 @@ class TestSynapseStorage:
         )
         assert response.status_code == 401
 
-    def test_insufficent_auth(self, client, request_headers):
+    def test_insufficent_auth(
+        self, client: FlaskClient, request_headers: Dict[str, str]
+    ) -> None:
         response = client.get(
             "http://localhost:3001/v1/storage/assets/tables",
             query_string={"asset_view": "syn23643252", "return_type": "csv"},
@@ -158,7 +156,9 @@ class TestSynapseStorage:
 
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("return_type", ["json", "csv"])
-    def test_get_storage_assets_tables(self, client, return_type, request_headers):
+    def test_get_storage_assets_tables(
+        self, client: FlaskClient, return_type, request_headers: Dict[str, str]
+    ):
         params = {"asset_view": "syn23643253", "return_type": return_type}
 
         response = client.get(
@@ -186,7 +186,13 @@ class TestSynapseStorage:
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("full_path", [True, False])
     @pytest.mark.parametrize("file_names", [None, "Sample_A.txt"])
-    def test_get_dataset_files(self, full_path, file_names, request_headers, client):
+    def test_get_dataset_files(
+        self,
+        full_path: bool,
+        file_names: Union[str, None],
+        request_headers: Dict[str, str],
+        client: FlaskClient,
+    ) -> None:
         params = {
             "asset_view": "syn23643253",
             "dataset_id": "syn23643250",
@@ -203,17 +209,19 @@ class TestSynapseStorage:
         )
 
         assert response.status_code == 200
-        response_dt = json.loads(response.data)
+        response_dt: List[Tuple[str, str]] = json.loads(response.data)
 
         # would show full file path .txt in result
         if full_path:
             if file_names:
                 assert (
                     ["syn23643255", "schematic - main/DataTypeX/Sample_A.txt"]
+                    in response_dt
                     and [
                         "syn24226530",
                         "schematic - main/TestDatasets/TestDataset-Annotations/Sample_A.txt",
                     ]
+                    in response_dt
                     and [
                         "syn25057024",
                         "schematic - main/TestDatasets/TestDataset-Annotations-v2/Sample_A.txt",
@@ -228,23 +236,25 @@ class TestSynapseStorage:
         else:
             if file_names:
                 assert (
-                    ["syn23643255", "Sample_A.txt"]
-                    and ["syn24226530", "Sample_A.txt"]
+                    ["syn23643255", "Sample_A.txt"] in response_dt
+                    and ["syn24226530", "Sample_A.txt"] in response_dt
                     and ["syn25057024", "Sample_A.txt"] in response_dt
                 )
-                assert ["syn23643256", "Sample_C.txt"] and [
+                assert ["syn23643256", "Sample_C.txt"] not in response_dt and [
                     "syn24226531",
                     "Sample_B.txt",
                 ] not in response_dt
             else:
                 assert (
-                    ["syn23643256", "Sample_C.txt"]
-                    and ["syn24226530", "Sample_A.txt"]
+                    ["syn23643256", "Sample_C.txt"] in response_dt
+                    and ["syn24226530", "Sample_A.txt"] in response_dt
                     and ["syn24226531", "Sample_B.txt"] in response_dt
                 )
 
     @pytest.mark.synapse_credentials_needed
-    def test_get_storage_project_dataset(self, request_headers, client):
+    def test_get_storage_project_dataset(
+        self, request_headers: Dict[str, str], client: FlaskClient
+    ) -> None:
         params = {"asset_view": "syn23643253", "project_id": "syn26251192"}
 
         response = client.get(
@@ -257,7 +267,9 @@ class TestSynapseStorage:
         assert ["syn26251193", "Issue522"] in response_dt
 
     @pytest.mark.synapse_credentials_needed
-    def test_get_storage_project_manifests(self, request_headers, client):
+    def test_get_storage_project_manifests(
+        self, request_headers: Dict[str, str], client: FlaskClient
+    ) -> None:
         params = {"asset_view": "syn23643253", "project_id": "syn30988314"}
 
         response = client.get(
@@ -269,7 +281,9 @@ class TestSynapseStorage:
         assert response.status_code == 200
 
     @pytest.mark.synapse_credentials_needed
-    def test_get_storage_projects(self, request_headers, client):
+    def test_get_storage_projects(
+        self, request_headers: Dict[str, str], client: FlaskClient
+    ) -> None:
         params = {"asset_view": "syn23643253"}
 
         response = client.get(
@@ -282,7 +296,9 @@ class TestSynapseStorage:
 
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("entity_id", ["syn34640850", "syn23643253", "syn24992754"])
-    def test_get_entity_type(self, request_headers, client, entity_id):
+    def test_get_entity_type(
+        self, request_headers: Dict[str, str], client: FlaskClient, entity_id: str
+    ) -> None:
         params = {"asset_view": "syn23643253", "entity_id": entity_id}
         response = client.get(
             "http://localhost:3001/v1/storage/entity/type",
@@ -301,7 +317,9 @@ class TestSynapseStorage:
 
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("entity_id", ["syn30988314", "syn27221721"])
-    def test_if_in_assetview(self, request_headers, client, entity_id):
+    def test_if_in_assetview(
+        self, request_headers: Dict[str, str], client: FlaskClient, entity_id: str
+    ) -> None:
         params = {"asset_view": "syn23643253", "entity_id": entity_id}
         response = client.get(
             "http://localhost:3001/v1/storage/if_in_asset_view",
@@ -320,9 +338,9 @@ class TestSynapseStorage:
 @pytest.mark.schematic_api
 class TestMetadataModelOperation:
     @pytest.mark.parametrize("as_graph", [True, False])
-    def test_component_requirement(self, client, data_model_jsonld, as_graph):
+    def test_component_requirement(self, client: FlaskClient, as_graph: bool) -> None:
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "source_component": "BulkRNA-seqAssay",
             "as_graph": as_graph,
         }
@@ -347,7 +365,9 @@ class TestMetadataModelOperation:
 @pytest.mark.schematic_api
 class TestUtilsOperation:
     @pytest.mark.parametrize("strict_camel_case", [True, False])
-    def test_get_property_label_from_display_name(self, client, strict_camel_case):
+    def test_get_property_label_from_display_name(
+        self, client: FlaskClient, strict_camel_case: bool
+    ) -> None:
         params = {
             "display_name": "mocular entity",
             "strict_camel_case": strict_camel_case,
@@ -369,8 +389,8 @@ class TestUtilsOperation:
 
 @pytest.mark.schematic_api
 class TestDataModelGraphExplorerOperation:
-    def test_get_schema(self, client, data_model_jsonld):
-        params = {"schema_url": data_model_jsonld, "data_model_labels": "class_label"}
+    def test_get_schema(self, client: FlaskClient) -> None:
+        params = {"schema_url": DATA_MODEL_JSON_LD, "data_model_labels": "class_label"}
         response = client.get(
             "http://localhost:3001/v1/schemas/get/schema", query_string=params
         )
@@ -383,9 +403,9 @@ class TestDataModelGraphExplorerOperation:
         if os.path.exists(response_dt):
             os.remove(response_dt)
 
-    def test_if_node_required(test, client, data_model_jsonld):
+    def test_if_node_required(test, client: FlaskClient) -> None:
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "node_display_name": "FamilyHistory",
             "data_model_labels": "class_label",
         }
@@ -397,9 +417,9 @@ class TestDataModelGraphExplorerOperation:
         assert response.status_code == 200
         assert response_dta == True
 
-    def test_get_node_validation_rules(test, client, data_model_jsonld):
+    def test_get_node_validation_rules(test, client: FlaskClient) -> None:
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "node_display_name": "CheckRegexList",
         }
         response = client.get(
@@ -411,9 +431,9 @@ class TestDataModelGraphExplorerOperation:
         assert "list" in response_dta
         assert "regex match [a-f]" in response_dta
 
-    def test_get_nodes_display_names(test, client, data_model_jsonld):
+    def test_get_nodes_display_names(test, client: FlaskClient) -> None:
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "node_list": ["FamilyHistory", "Biospecimen"],
         }
         response = client.get(
@@ -427,8 +447,8 @@ class TestDataModelGraphExplorerOperation:
     @pytest.mark.parametrize(
         "relationship", ["parentOf", "requiresDependency", "rangeValue", "domainValue"]
     )
-    def test_get_subgraph_by_edge(self, client, data_model_jsonld, relationship):
-        params = {"schema_url": data_model_jsonld, "relationship": relationship}
+    def test_get_subgraph_by_edge(self, client: FlaskClient, relationship: str) -> None:
+        params = {"schema_url": DATA_MODEL_JSON_LD, "relationship": relationship}
 
         response = client.get(
             "http://localhost:3001/v1/schemas/get/graph_by_edge_type",
@@ -439,10 +459,10 @@ class TestDataModelGraphExplorerOperation:
     @pytest.mark.parametrize("return_display_names", [True, False])
     @pytest.mark.parametrize("node_label", ["FamilyHistory", "TissueStatus"])
     def test_get_node_range(
-        self, client, data_model_jsonld, return_display_names, node_label
-    ):
+        self, client: FlaskClient, return_display_names: bool, node_label: str
+    ) -> None:
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "return_display_names": return_display_names,
             "node_label": node_label,
         }
@@ -466,17 +486,16 @@ class TestDataModelGraphExplorerOperation:
     @pytest.mark.parametrize("source_node", ["Patient", "Biospecimen"])
     def test_node_dependencies(
         self,
-        client,
-        data_model_jsonld,
-        source_node,
-        return_display_names,
-        return_schema_ordered,
-    ):
+        client: FlaskClient,
+        source_node: str,
+        return_display_names: Union[bool, None],
+        return_schema_ordered: Union[bool, None],
+    ) -> None:
         return_display_names = True
         return_schema_ordered = False
 
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "source_node": source_node,
             "return_display_names": return_display_names,
             "return_schema_ordered": return_schema_ordered,
@@ -519,7 +538,7 @@ class TestDataModelGraphExplorerOperation:
 
 @pytest.mark.schematic_api
 class TestManifestOperation:
-    def ifExcelExists(self, response, file_name):
+    def ifExcelExists(self, response, file_name) -> None:
         # return one excel file
         d = response.headers["content-disposition"]
         fname = re.findall("filename=(.+)", d)[0]
@@ -543,13 +562,12 @@ class TestManifestOperation:
     )
     def test_generate_existing_manifest(
         self,
-        client,
-        data_model_jsonld,
-        data_type,
-        output_format,
-        caplog,
-        request_headers,
-    ):
+        client: FlaskClient,
+        data_type: str,
+        output_format: str,
+        caplog: pytest.LogCaptureFixture,
+        request_headers: Dict[str, str],
+    ) -> None:
         # set dataset
         if data_type == "Patient":
             dataset_id = ["syn51730545"]  # Mock Patient Manifest folder on synapse
@@ -561,7 +579,7 @@ class TestManifestOperation:
             dataset_id = None  # if "all manifests", dataset id is None
 
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "asset_view": "syn23643253",
             "title": "Example",
             "data_type": data_type,
@@ -627,15 +645,14 @@ class TestManifestOperation:
     )
     def test_generate_new_manifest(
         self,
-        caplog,
-        client,
-        data_model_jsonld,
-        data_type,
-        output_format,
-        request_headers,
-    ):
+        caplog: pytest.LogCaptureFixture,
+        client: FlaskClient,
+        data_type: str,
+        output_format: str,
+        request_headers: Dict[str, str],
+    ) -> None:
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "asset_view": "syn23643253",
             "title": "Example",
             "data_type": data_type,
@@ -731,10 +748,10 @@ class TestManifestOperation:
         ],
     )
     def test_generate_manifest_file_based_annotations(
-        self, client, use_annotations, expected, data_model_jsonld
-    ):
+        self, client: FlaskClient, use_annotations: bool, expected: list[str]
+    ) -> None:
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "data_type": "BulkRNA-seqAssay",
             "dataset_id": "syn25614635",
             "asset_view": "syn51707141",
@@ -763,9 +780,9 @@ class TestManifestOperation:
 
         # make sure Filename, entityId, and component get filled with correct value
         assert google_sheet_df["Filename"].to_list() == [
-            "TestDataset-Annotations-v3/Sample_A.txt",
-            "TestDataset-Annotations-v3/Sample_B.txt",
-            "TestDataset-Annotations-v3/Sample_C.txt",
+            "schematic - main/TestDataset-Annotations-v3/Sample_A.txt",
+            "schematic - main/TestDataset-Annotations-v3/Sample_B.txt",
+            "schematic - main/TestDataset-Annotations-v3/Sample_C.txt",
         ]
         assert google_sheet_df["entityId"].to_list() == [
             "syn25614636",
@@ -781,10 +798,10 @@ class TestManifestOperation:
     # test case: generate a manifest with annotations when use_annotations is set to True for a component that is not file-based
     # the dataset folder does not contain an existing manifest
     def test_generate_manifest_not_file_based_with_annotations(
-        self, client, data_model_jsonld
-    ):
+        self, client: FlaskClient
+    ) -> None:
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "data_type": "Patient",
             "dataset_id": "syn25614635",
             "asset_view": "syn51707141",
@@ -816,9 +833,9 @@ class TestManifestOperation:
             ]
         )
 
-    def test_generate_manifest_data_type_not_found(self, client, data_model_jsonld):
+    def test_generate_manifest_data_type_not_found(self, client: FlaskClient) -> None:
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "data_type": "wrong data type",
             "use_annotations": False,
         }
@@ -829,13 +846,15 @@ class TestManifestOperation:
         assert response.status_code == 500
         assert "LookupError" in str(response.data)
 
-    def test_populate_manifest(self, client, data_model_jsonld, test_manifest_csv):
+    def test_populate_manifest(
+        self, client: FlaskClient, valid_test_manifest_csv: str
+    ) -> None:
         # test manifest
-        test_manifest_data = open(test_manifest_csv, "rb")
+        test_manifest_data = open(valid_test_manifest_csv, "rb")
 
         params = {
             "data_type": "MockComponent",
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "title": "Example",
             "csv_file": test_manifest_data,
         }
@@ -851,64 +870,89 @@ class TestManifestOperation:
         assert isinstance(response_dt[0], str)
         assert response_dt[0].startswith("https://docs.google.com/")
 
-    @pytest.mark.parametrize("restrict_rules", [False, True, None])
     @pytest.mark.parametrize(
-        "json_str",
+        "json_str_fixture, test_manifest_fixture, data_type, update_headers, project_scope, dataset_scope",
         [
-            None,
-            '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]',
+            (
+                None,
+                "valid_test_manifest_csv",
+                "MockComponent",
+                True,
+                "syn54126707",
+                None,
+            ),
+            ("patient_manifest_json_str", None, "Patient", False, None, None),
+            (
+                None,
+                "invalid_filename_manifest_csv",
+                "MockFilename",
+                True,
+                "syn23643250",
+                "syn61682648",
+            ),
         ],
     )
+    @pytest.mark.parametrize("restrict_rules", [True, False, None])
     def test_validate_manifest(
         self,
-        data_model_jsonld,
-        client,
-        json_str,
-        restrict_rules,
-        test_manifest_csv,
-        request_headers,
-    ):
-        params = {"schema_url": data_model_jsonld, "restrict_rules": restrict_rules}
+        client: FlaskClient,
+        json_str_fixture: Union[str, None],
+        test_manifest_fixture: Union[str, None],
+        data_type: str,
+        update_headers: bool,
+        project_scope: Union[str, None],
+        dataset_scope: Union[str, None],
+        restrict_rules: Union[bool, None],
+        request_headers: Dict[str, str],
+        request: pytest.FixtureRequest,
+    ) -> None:
+        # GIVEN a set of test prameters
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "asset_view": "syn23643253",
+            "restrict_rules": restrict_rules,
+            "project_scope": project_scope,
+            "dataset_scope": dataset_scope,
+            "data_type": data_type,
+        }
 
-        if json_str:
-            params["json_str"] = json_str
-            params["data_type"] = "Patient"
-            response = client.post(
-                "http://localhost:3001/v1/model/validate", query_string=params
-            )
-            response_dt = json.loads(response.data)
-            assert response.status_code == 200
+        # AND a test manifest as a json string
+        params["json_str"] = (
+            request.getfixturevalue(json_str_fixture) if json_str_fixture else None
+        )
 
-        else:
-            params["data_type"] = "MockComponent"
+        # OR a test manifest as a file
+        data = None
+        if test_manifest_fixture:
+            test_manifest_path = request.getfixturevalue(test_manifest_fixture)
+            data = {"file_name": (open(test_manifest_path, "rb"), "test.csv")}
 
+        # AND the appropriate headers for the test
+        if update_headers:
             request_headers.update(
                 {"Content-Type": "multipart/form-data", "Accept": "application/json"}
             )
 
-            # test uploading a csv file
-            response_csv = client.post(
-                "http://localhost:3001/v1/model/validate",
-                query_string=params,
-                data={"file_name": (open(test_manifest_csv, "rb"), "test.csv")},
-                headers=request_headers,
-            )
-            response_dt = json.loads(response_csv.data)
-            assert response_csv.status_code == 200
+        # WHEN the manifest is validated
+        response = client.post(
+            "http://localhost:3001/v1/model/validate",
+            query_string=params,
+            data=data,
+            headers=request_headers,
+        )
 
-            # test uploading a json file
-            # change data type to patient since the testing json manifest is using Patient component
-            # WILL DEPRECATE uploading a json file for validation
-            # params["data_type"] = "Patient"
-            # response_json =  client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_json, 'rb'), "test.json")}, headers=headers)
-            # response_dt = json.loads(response_json.data)
-            # assert response_json.status_code == 200
+        # THEN the request should be successful
+        assert response.status_code == 200
 
+        # AND the response should contain the expected error and warning lists
+        response_dt = json.loads(response.data)
         assert "errors" in response_dt.keys()
         assert "warnings" in response_dt.keys()
 
     @pytest.mark.synapse_credentials_needed
-    def test_get_datatype_manifest(self, client, request_headers):
+    def test_get_datatype_manifest(
+        self, client: FlaskClient, request_headers: Dict[str, str]
+    ) -> None:
         params = {"asset_view": "syn23643253", "manifest_id": "syn27600110"}
 
         response = client.get(
@@ -944,14 +988,14 @@ class TestManifestOperation:
     def test_manifest_download(
         self,
         config: Configuration,
-        client,
-        request_headers,
-        manifest_id,
-        new_manifest_name,
-        as_json,
-        expected_component,
-        expected_file_name,
-    ):
+        client: FlaskClient,
+        request_headers: Dict[str, str],
+        manifest_id: str,
+        new_manifest_name: str,
+        as_json: Union[bool, None],
+        expected_component: str,
+        expected_file_name: str,
+    ) -> None:
         params = {
             "manifest_id": manifest_id,
             "new_manifest_name": new_manifest_name,
@@ -1006,7 +1050,9 @@ class TestManifestOperation:
 
     @pytest.mark.synapse_credentials_needed
     # test downloading a manifest with access restriction and see if the correct error message got raised
-    def test_download_access_restricted_manifest(self, client, request_headers):
+    def test_download_access_restricted_manifest(
+        self, client: FlaskClient, request_headers: Dict[str, str]
+    ) -> None:
         params = {"manifest_id": "syn29862078"}
 
         response = client.get(
@@ -1023,8 +1069,12 @@ class TestManifestOperation:
     @pytest.mark.parametrize("as_json", [None, True, False])
     @pytest.mark.parametrize("new_manifest_name", [None, "Test"])
     def test_dataset_manifest_download(
-        self, client, as_json, request_headers, new_manifest_name
-    ):
+        self,
+        client: FlaskClient,
+        as_json: Union[bool, None],
+        request_headers: Dict[str, str],
+        new_manifest_name: Union[str, None],
+    ) -> None:
         params = {
             "asset_view": "syn28559058",
             "dataset_id": "syn28268700",
@@ -1056,11 +1106,14 @@ class TestManifestOperation:
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
     def test_submit_manifest_table_and_file_replace(
-        self, client, request_headers, data_model_jsonld, test_manifest_submit
-    ):
+        self,
+        client: FlaskClient,
+        request_headers: Dict[str, str],
+        test_manifest_submit: str,
+    ) -> None:
         """Testing submit manifest in a csv format as a table and a file. Only replace the table"""
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "data_type": "Biospecimen",
             "restrict_rules": False,
             "hide_blanks": False,
@@ -1086,22 +1139,21 @@ class TestManifestOperation:
         "data_type, manifest_path_fixture",
         [
             ("Biospecimen", "test_manifest_submit"),
-            ("MockComponent", "test_manifest_csv"),
+            ("MockComponent", "valid_test_manifest_csv"),
         ],
     )
     def test_submit_manifest_file_only_replace(
         self,
         helpers,
-        client,
-        request_headers,
-        data_model_jsonld,
-        data_type,
-        manifest_path_fixture,
-        request,
-    ):
+        client: FlaskClient,
+        request_headers: Dict[str, str],
+        data_type: str,
+        manifest_path_fixture: str,
+        request: pytest.FixtureRequest,
+    ) -> None:
         """Testing submit manifest in a csv format as a file"""
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "data_type": data_type,
             "restrict_rules": False,
             "manifest_record_type": "file_only",
@@ -1144,12 +1196,12 @@ class TestManifestOperation:
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
     def test_submit_manifest_json_str_replace(
-        self, client, request_headers, data_model_jsonld
-    ):
+        self, client: FlaskClient, request_headers: Dict[str, str]
+    ) -> None:
         """Submit json str as a file"""
         json_str = '[{"Sample ID": 123, "Patient ID": 1,"Tissue Status": "Healthy","Component": "Biospecimen"}]'
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "data_type": "Biospecimen",
             "json_str": json_str,
             "restrict_rules": False,
@@ -1172,10 +1224,13 @@ class TestManifestOperation:
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
     def test_submit_manifest_w_file_and_entities(
-        self, client, request_headers, data_model_jsonld, test_manifest_submit
-    ):
+        self,
+        client: FlaskClient,
+        request_headers: Dict[str, str],
+        test_manifest_submit: str,
+    ) -> None:
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "data_type": "Biospecimen",
             "restrict_rules": False,
             "manifest_record_type": "file_and_entities",
@@ -1200,13 +1255,12 @@ class TestManifestOperation:
     @pytest.mark.submission
     def test_submit_manifest_table_and_file_upsert(
         self,
-        client,
-        request_headers,
-        data_model_jsonld,
-        test_upsert_manifest_csv,
-    ):
+        client: FlaskClient,
+        request_headers: Dict[str, str],
+        test_upsert_manifest_csv: str,
+    ) -> None:
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "data_type": "MockRDB",
             "restrict_rules": False,
             "manifest_record_type": "table_and_file",
@@ -1214,7 +1268,8 @@ class TestManifestOperation:
             "dataset_id": "syn51514551",
             "table_manipulation": "upsert",
             "data_model_labels": "class_label",
-            "table_column_names": "display_name",  # have to set table_column_names to display_name to ensure upsert feature works
+            # have to set table_column_names to display_name to ensure upsert feature works
+            "table_column_names": "display_name",
         }
 
         # test uploading a csv file
@@ -1226,11 +1281,44 @@ class TestManifestOperation:
         )
         assert response_csv.status_code == 200
 
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    def test_submit_and_validate_filebased_manifest(
+        self,
+        client: FlaskClient,
+        request_headers: Dict[str, str],
+        valid_filename_manifest_csv: str,
+    ) -> None:
+        # GIVEN the appropriate upload parameters
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "data_type": "MockFilename",
+            "restrict_rules": False,
+            "manifest_record_type": "file_and_entities",
+            "asset_view": "syn23643253",
+            "dataset_id": "syn62822337",
+            "project_scope": "syn23643250",
+            "dataset_scope": "syn62822337",
+            "data_model_labels": "class_label",
+            "table_column_names": "class_label",
+        }
+
+        # WHEN a filebased manifest is validated with the filenameExists rule and uploaded
+        response_csv = client.post(
+            "http://localhost:3001/v1/model/submit",
+            query_string=params,
+            data={"file_name": (open(valid_filename_manifest_csv, "rb"), "test.csv")},
+            headers=request_headers,
+        )
+
+        # THEN the validation and submission should be successful
+        assert response_csv.status_code == 200
+
 
 @pytest.mark.schematic_api
 class TestSchemaVisualization:
-    def test_visualize_attributes(self, client, data_model_jsonld):
-        params = {"schema_url": data_model_jsonld}
+    def test_visualize_attributes(self, client: FlaskClient) -> None:
+        params = {"schema_url": DATA_MODEL_JSON_LD}
 
         response = client.get(
             "http://localhost:3001/v1/visualize/attributes", query_string=params
@@ -1240,10 +1328,10 @@ class TestSchemaVisualization:
 
     @pytest.mark.parametrize("figure_type", ["component", "dependency"])
     def test_visualize_tangled_tree_layers(
-        self, client, figure_type, data_model_jsonld
-    ):
+        self, client: FlaskClient, figure_type: str
+    ) -> None:
         # TODO: Determine a 2nd data model to use for this test, test both models sequentially, add checks for content of response
-        params = {"schema_url": data_model_jsonld, "figure_type": figure_type}
+        params = {"schema_url": DATA_MODEL_JSON_LD, "figure_type": figure_type}
 
         response = client.get(
             "http://localhost:3001/v1/visualize/tangled_tree/layers",
@@ -1251,6 +1339,94 @@ class TestSchemaVisualization:
         )
 
         assert response.status_code == 200
+
+        response_data = json.loads(response.data)
+
+        if figure_type == "component":
+            assert len(response_data) == 3
+            expected_data = [
+                {
+                    "id": "Patient",
+                    "parents": [],
+                    "direct_children": ["Biospecimen"],
+                    "children": ["Biospecimen", "BulkRNA-seqAssay"],
+                },
+                {
+                    "id": "Biospecimen",
+                    "parents": ["Patient"],
+                    "direct_children": ["BulkRNA-seqAssay"],
+                    "children": ["BulkRNA-seqAssay"],
+                },
+                {
+                    "id": "BulkRNA-seqAssay",
+                    "parents": ["Biospecimen"],
+                    "direct_children": [],
+                    "children": [],
+                },
+            ]
+            for data_list in response_data:
+                for data_point in data_list:
+                    assert any(
+                        data_point["id"] == expected["id"]
+                        and data_point["parents"] == expected["parents"]
+                        and data_point["direct_children"] == expected["direct_children"]
+                        and set(data_point["children"]) == set(expected["children"])
+                        for expected in expected_data
+                    )
+        elif figure_type == "dependency":
+            assert len(response_data) == 3
+            expected_data = [
+                {
+                    "id": "BulkRNA-seqAssay",
+                    "parents": [],
+                    "direct_children": ["SampleID", "Filename", "FileFormat"],
+                    "children": [],
+                },
+                {
+                    "id": "SampleID",
+                    "parents": ["BulkRNA-seqAssay"],
+                    "direct_children": [],
+                    "children": [],
+                },
+                {
+                    "id": "FileFormat",
+                    "parents": ["BulkRNA-seqAssay"],
+                    "direct_children": [
+                        "GenomeBuild",
+                        "GenomeBuild",
+                        "GenomeBuild",
+                        "GenomeFASTA",
+                    ],
+                    "children": [],
+                },
+                {
+                    "id": "Filename",
+                    "parents": ["BulkRNA-seqAssay"],
+                    "direct_children": [],
+                    "children": [],
+                },
+                {
+                    "id": "GenomeBuild",
+                    "parents": ["FileFormat", "FileFormat", "FileFormat"],
+                    "direct_children": [],
+                    "children": [],
+                },
+                {
+                    "id": "GenomeFASTA",
+                    "parents": ["FileFormat"],
+                    "direct_children": [],
+                    "children": [],
+                },
+            ]
+            for data_list in response_data:
+                for data_point in data_list:
+                    assert any(
+                        data_point["id"] == expected["id"]
+                        and data_point["parents"] == expected["parents"]
+                        and data_point["direct_children"] == expected["direct_children"]
+                        and set(data_point["children"]) == set(expected["children"])
+                        for expected in expected_data
+                    )
 
     @pytest.mark.parametrize(
         "component, response_text",
@@ -1260,10 +1436,10 @@ class TestSchemaVisualization:
         ],
     )
     def test_visualize_component(
-        self, client, data_model_jsonld, component, response_text
-    ):
+        self, client: FlaskClient, component: str, response_text: str
+    ) -> None:
         params = {
-            "schema_url": data_model_jsonld,
+            "schema_url": DATA_MODEL_JSON_LD,
             "component": component,
             "include_index": False,
             "data_model_labels": "class_label",
@@ -1288,11 +1464,10 @@ class TestValidationBenchmark:
     def test_validation_performance(
         self,
         helpers,
-        benchmark_data_model_jsonld,
-        client,
-        test_invalid_manifest,
-        MockComponent_attribute,
-    ):
+        client: FlaskClient,
+        test_invalid_manifest: pd.DataFrame,
+        MockComponent_attribute: Generator[str, None, None],
+    ) -> None:
         """
         Test to benchamrk performance of validation rules on large manifests
         Test loads the invalid_test_manifest.csv and isolates one attribute at a time
@@ -1309,7 +1484,7 @@ class TestValidationBenchmark:
 
         # Set paramters for endpoint
         params = {
-            "schema_url": benchmark_data_model_jsonld,
+            "schema_url": BENCHMARK_DATA_MODEL_JSON_LD,
             "data_type": "MockComponent",
         }
         headers = {"Content-Type": "multipart/form-data", "Accept": "application/json"}
@@ -1356,7 +1531,7 @@ class TestValidationBenchmark:
 
         # Log and check time and ensure successful response
         logger.warning(
-            f"validation endpiont response time {round(response_time,2)} seconds."
+            f"validation endpoint response time {round(response_time,2)} seconds."
         )
         assert response.status_code == 200
         assert response_time < 5.00
