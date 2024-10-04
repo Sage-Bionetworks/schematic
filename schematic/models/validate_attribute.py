@@ -932,8 +932,8 @@ class ValidateAttribute(object):
         # For each 'list' (input as a string with a , delimiter) entered,
         # convert to a real list of strings, with leading and trailing
         # white spaces removed.
-        errors:list[list[str]] = []
-        warnings:list[list[str]] = []
+        errors: list[list[str]] = []
+        warnings: list[list[str]] = []
         replace_null = True
 
         csv_re = comma_separated_list_regex()
@@ -1025,8 +1025,8 @@ class ValidateAttribute(object):
                 f" They should be provided as follows ['regex', 'module name', 'regular expression']"
             )
 
-        errors:list[list[str]] = []
-        warnings:list[list[str]] = []
+        errors: list[list[str]] = []
+        warnings: list[list[str]] = []
 
         validation_rules = self.dmge.get_node_validation_rules(
             node_display_name=manifest_col.name
@@ -1128,8 +1128,8 @@ class ValidateAttribute(object):
             "str": (str),
         }
 
-        errors:list[list[str]] = []
-        warnings:list[list[str]] = []
+        errors: list[list[str]] = []
+        warnings: list[list[str]] = []
 
         # num indicates either a float or int.
         if val_rule == "num":

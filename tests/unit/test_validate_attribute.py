@@ -1744,7 +1744,10 @@ class TestValidateAttributeObject:
         "input_column, rule",
         [
             (Series(["a,b,c"], name="Check Regex List"), "list::regex match [a-f]"),
-            (Series(["a,b,c", "d,e,f"], name="Check Regex List"), "list::regex match [a-f]"),
+            (
+                Series(["a,b,c", "d,e,f"], name="Check Regex List"),
+                "list::regex match [a-f]",
+            ),
         ],
     )
     def test_regex_validation_with_list_column(
@@ -2167,14 +2170,11 @@ class TestValidateAttributeObject:
         [
             # After splitting by spaces, the third element is returned
             ("a b c", "c"),
-            ("a b c d", "c")
+            ("a b c d", "c"),
         ],
     )
     def test__get_rule_scope(
-        self,
-        va_obj: ValidateAttribute,
-        input_rule: str,
-        output_scope: str
+        self, va_obj: ValidateAttribute, input_rule: str, output_scope: str
     ) -> None:
         """
         Tests for ValidateAttribute._get_rule_scope
@@ -2188,14 +2188,11 @@ class TestValidateAttributeObject:
             ("", IndexError),
             ("x", IndexError),
             ("x x", IndexError),
-            ("x;x;x", IndexError)
+            ("x;x;x", IndexError),
         ],
     )
     def test__get_rule_scope_exceptions(
-        self,
-        va_obj: ValidateAttribute,
-        input_rule: str,
-        exception: Exception
+        self, va_obj: ValidateAttribute, input_rule: str, exception: Exception
     ) -> None:
         """
         Tests for ValidateAttribute._get_rule_scope that cause exceptions
