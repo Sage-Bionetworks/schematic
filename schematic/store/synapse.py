@@ -632,8 +632,6 @@ class SynapseStorage(BaseStorage):
                             path_without_project_prefix = (
                                 dirpath[0] + "/"
                             ).removeprefix(f"{project_name}/")
-                            if not path_without_project_prefix.endswith("/"):
-                                path_without_project_prefix += "/"
                             path_filename = (
                                 prefix + path_without_project_prefix + path_filename[0],
                                 path_filename[1],
