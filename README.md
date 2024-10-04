@@ -6,7 +6,7 @@
 * `schematic` (Schema Engine for Manifest Ingress and Curation) is a python-based software tool that streamlines the retrieval, validation, and submission of metadata for biomedical datasets hosted on Sage Bionetworks' Synapse platform.
 * Users can work with `schematic` in several ways, including through the CLI (see [Command Line Usage](#command-line-usage) for examples), through Docker (see [Docker Usage](#docker-usage) for examples), or with python.
 * `schematic` needs to communicate with Synapse and Google Sheets in order for its processes to work. In order for this to happen, users will need to set up their credentials for authentication with Synapse and the Google Sheets API. Setup instructions are available in the Installation Guides:
-   * [Installation Guide For: Schematic CLI users](#installation-guide-for-schematic-cli-users)
+   * [Installation Guide For: Schematic CLI users](#installation-guide-for-users)
    * [Installation Guide For: Contributors](#installation-guide-for-contributors)
 
 # Table of Contents
@@ -46,9 +46,9 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 > To create Google Sheets files from Schematic, please follow our credential policy for Google credentials. You can find a detailed tutorial [here](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA).
 > If you're using config.yml, make sure to specify the path to `schematic_service_account_creds.json` (see the `google_sheets > service_account_creds` section for more information).
 
-## Installation Guide For: Schematic CLI users
+## Installation Guide For: Users
 
-The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation Requirements](#installation-requirements) section, and do not have an environment already active (e.g. with `pyenv`).
+The instructions below assume you have already installed [python](https://www.python.org/downloads/), with the release version meeting the constraints set in the [Installation Requirements](#installation-requirements) section, and do not have a Python environment already active.
 
 ### 1. Verify your python version
 
@@ -63,11 +63,43 @@ If your current Python version is not supported by Schematic, you can switch to 
 
 ### 2. Set up your virtual environment
 
-Once you are working with a python version supported by Schematic, please activate a virtual environment within which you can install the package. Python 3 has built-in support for virtual environments with the `venv` module, so you no longer need to install `virtualenv`:
+Once you are working with a python version supported by Schematic, please activate a virtual environment within which you can install the package. You can
+set up your virtual environment. Below we will instruct how to creat your virtual environment with `venv` and with `conda`.
+
+#### 2a. Set up your virtual environment with `venv`
+
+Python 3 has built-in support for virtual environments with the `venv` module, so you no longer need to install `virtualenv`:
+
 ```
 python3 -m venv .venv
 source .venv/bin/activate
 ```
+
+#### 2b. Set up your virtual environment with `conda`
+
+`conda` is a powerful package and environment management tool that allows users to create isolated environments used particularly in data science and machine learning workflows. If you would like to manage your environments with `conda`, continue reading:
+
+1. **Download your preferred `conda` installer**: Begin by [installing `conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html). We personally recommend working with `Miniconda` which is a lightweight installer for `conda` that includes only `conda` and its dependencies.
+
+2. **Execute the `conda` installer**: Once you have downloaded your preferred installer, execute it using `bash` or `zsh`, depending on the shell configured for your terminal environment. For example:
+
+   ```
+   bash Miniconda3-latest-MacOSX-arm64.sh
+   ```
+
+3. **Verify your `conda` setup**: Follow the prompts to complete your setup. Then verify your setup by running the `conda` command.
+   
+4. **Create your `schematic` environment**: Begin by creating a fresh `conda` environment for `schematic` like so:
+
+   ```
+   conda create --name 'schematicpy' python=3.10
+   ```
+
+5. **Activate the environment**: Once your environment is set up, you can now activate your new environment with `conda`:
+
+   ```
+   conda activate schematicpy
+   ```
 
 ### 3. Install `schematic` dependencies
 
@@ -132,15 +164,37 @@ manifest:
 > [!NOTE]
 > `config.yml` is ignored by git.
 
-### 5. Obtain Google credential files
+### 5. Get your data model as a `JSON-LD` schema file
 
-Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
+Now you need a schema file, e.g. `model.jsonld`, to have a data model that schematic can work with. While you can download a super basic example data model [here](https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/develop/tests/data/example.model.jsonld), you’ll probably be working with a DCC-specific data model. For non-Sage employees/contributors using the CLI, you might care only about the minimum needed artifact, which is the  `.jsonld`; locate and download only that from the right repo.
+
+Here are some example repos with schema files:
+* https://github.com/ncihtan/data-models/
+* https://github.com/nf-osi/nf-metadata-dictionary/
+
+> [!IMPORTANT]
+> Your local working directory would typically have `model.jsonld` and `config.yml` side-by-side. The path to your data model should match what is in `config.yml`
+
+### 6. Obtain Google credential files
+
+Any function that interacts with a google sheet (such as `schematic manifest get`) requires google cloud credentials.
+
+1. **Option 1**: [Here](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA?referrer=workspace)’s a step-by-step guide on how to create these credentials in Google Cloud.
+   * Depending on your institution's policies, your institutional Google account may or may not have the required permissions to complete this. A possible workaround is to use a personal or temporary Google account.
+
+> [!WARNING]
+> At the time of writing, Sage Bionetworks employees do not have the appropriate permissions to create projects with their Sage Bionetworks Google accounts. You would follow instructions using a personal Google account. 
+
+2. **Option 2**: Ask your DCC/development team if they have credentials previously set up with a service account.
+
+Once you have obtained credentials, be sure that the json file generated is named in the same way as the `service_acct_creds` parameter in your `config.yml` file.
+
+> [!NOTE]
+> Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
 schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
 Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
-
-> As of `schematic` v22.12.1, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
 
 > [!NOTE]
 > Use the ``schematic_service_account_creds.json`` file for the service
@@ -149,7 +203,8 @@ token-based authentication and keep only service account authentication in the f
 > programmatically via OAuth2.0, with the advantage being that they do not require
 > human authorization. 
 
-After running this step, your setup is complete, and you can test it on a `python` instance or by running a command based on the examples in the [Command Line Usage](#command-line-usage) section.
+### 7. Verify your setup
+After running the steps above, your setup is complete, and you can test it on a `python` instance or by running a command based on the examples in the [Command Line Usage](#command-line-usage) section.
 
 ## Installation Guide For: Contributors
 
@@ -263,13 +318,28 @@ manifest:
 > `config.yml` is ignored by git.
 
 ### 6. Obtain Google credential files
-Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
+
+Any function that interacts with a google sheet (such as `schematic manifest get`) requires google cloud credentials.
+
+1. **Option 1**: [Here](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA?referrer=workspace)’s a step-by-step guide on how to create these credentials in Google Cloud.
+   * Depending on your institution's policies, your institutional Google account may or may not have the required permissions to complete this. A possible workaround is to use a personal or temporary Google account.
+
+> [!WARNING]
+> At the time of writing, Sage Bionetworks employees do not have the appropriate permissions to create projects with their Sage Bionetworks Google accounts. You would follow instructions using a personal Google account. 
+
+2. **Option 2**: Ask your DCC/development team if they have credentials previously set up with a service account.
+
+Once you have obtained credentials, be sure that the json file generated is named in the same way as the `service_acct_creds` parameter in your `config.yml` file.
+
+> [!IMPORTANT]
+> For testing, make sure there is no environment variable `SCHEMATIC_SERVICE_ACCOUNT_CREDS`. Check the file `.env` to ensure this is not set. Also, check that config files used for testing, such as `config_example.yml` do not contain service_acct_creds_synapse_id.
+
+> [!NOTE]
+> Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
 schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
 Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
-
-> As of `schematic` v22.12.1, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
 
 > [!NOTE]
 > Use the ``schematic_service_account_creds.json`` file for the service
@@ -293,6 +363,9 @@ pre-commit run --all-files
 ```
 
 After running this step, your setup is complete, and you can test it on a python instance or by running a command based on the examples in the [Command Line Usage](#command-line-usage) section.
+
+### 8. Verify your setup
+After running the steps above, your setup is complete, and you can test it on a `python` instance or by running a command based on the examples in the [Command Line Usage](#command-line-usage) section.
 
 # Command Line Usage
 1. Generate a new manifest as a google sheet
