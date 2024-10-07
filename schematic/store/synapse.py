@@ -588,7 +588,11 @@ class SynapseStorage(BaseStorage):
             Returns:
                 str: The path of the names of each of the directories up to the project root.
             """
-            if skip_entry and current_location.concreteType == PROJECT_ENTITY:
+            if (
+                skip_entry
+                and "concreteType" in current_location
+                and current_location["concreteType"] == PROJECT_ENTITY
+            ):
                 return f"{current_location.name}/{location_prefix}"
 
             updated_prefix = (
@@ -596,10 +600,13 @@ class SynapseStorage(BaseStorage):
                 if skip_entry
                 else f"{current_location.name}/{location_prefix}"
             )
-            if current_location.concreteType == PROJECT_ENTITY:
+            if (
+                "concreteType" in current_location
+                and current_location["concreteType"] == PROJECT_ENTITY
+            ):
                 return updated_prefix
             return walk_back_to_project(
-                current_location=self.syn.get(entity=current_location.parentId),
+                current_location=self.syn.get(entity=current_location["parentId"]),
                 location_prefix=updated_prefix,
                 skip_entry=False,
             )
