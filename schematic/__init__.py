@@ -3,6 +3,7 @@ import os
 import time
 from typing import Dict, List
 
+import pkg_resources
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
@@ -103,6 +104,12 @@ def request_hook(span: Span, environ: Dict) -> None:
                 span.set_attribute(key=f"schematic.{arg}", value=request.args[arg])
     except Exception:
         logger.exception("Failed to set request info in span")
+
+    try:
+        my_version = pkg_resources.get_distribution("schematicpy").version
+        span.set_attribute(key="schematic.version", value=my_version)
+    except Exception:
+        logger.exception("Failed to set package version info in span")
 
 
 def response_hook(span: Span, status: str, response_headers: List) -> None:
