@@ -49,10 +49,15 @@ def set_up_tracing() -> None:
     if tracing_export is not None and tracing_export:
         Synapse.enable_open_telemetry(True)
         tracing_service_name = os.environ.get("TRACING_SERVICE_NAME", "schematic-api")
-
+        package_version = pkg_resources.get_distribution("schematicpy").version
         trace.set_tracer_provider(
             TracerProvider(
-                resource=Resource(attributes={SERVICE_NAME: tracing_service_name})
+                resource=Resource(
+                    attributes={
+                        SERVICE_NAME: tracing_service_name,
+                        "schematic.version": package_version,
+                    }
+                )
             )
         )
         FlaskInstrumentor().instrument(
@@ -104,12 +109,6 @@ def request_hook(span: Span, environ: Dict) -> None:
                 span.set_attribute(key=f"schematic.{arg}", value=request.args[arg])
     except Exception:
         logger.exception("Failed to set request info in span")
-
-    try:
-        my_version = pkg_resources.get_distribution("schematicpy").version
-        span.set_attribute(key="schematic.version", value=my_version)
-    except Exception:
-        logger.exception("Failed to set package version info in span")
 
 
 def response_hook(span: Span, status: str, response_headers: List) -> None:
