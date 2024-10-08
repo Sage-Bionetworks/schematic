@@ -116,6 +116,15 @@ class ManifestDownload(object):
             download_file=False,
             retrieve_if_not_present=False,
         )
+        current_span = trace.get_current_span()
+        if (
+            manifest_data
+            and (file_handle := manifest_data.get("_file_handle", None))
+            and current_span.is_recording()
+        ):
+            current_span.set_attribute(
+                "schematic.manifest_size", file_handle.get("contentSize", 0)
+            )
 
         if manifest_data and manifest_data.path:
             return manifest_data
