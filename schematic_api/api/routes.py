@@ -560,6 +560,9 @@ def check_entity_type(entity_id):
     config_handler()
 
     syn = SynapseStorage.login(access_token=access_token)
+    current_span = trace.get_current_span()
+    if current_span.is_recording():
+        current_span.set_attribute("user.id", syn.credentials.owner_id)
     entity_type = entity_type_mapping(syn=syn, entity_id=entity_id)
 
     return entity_type
@@ -658,6 +661,9 @@ def download_manifest(manifest_id, new_manifest_name="", as_json=True):
 
     # use login method in synapse storage
     syn = SynapseStorage.login(access_token=access_token)
+    current_span = trace.get_current_span()
+    if current_span.is_recording():
+        current_span.set_attribute("user.id", syn.credentials.owner_id)
     try:
         md = ManifestDownload(syn, manifest_id)
         manifest_data = md.download_manifest(newManifestName=new_manifest_name)
