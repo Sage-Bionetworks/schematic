@@ -83,13 +83,14 @@ def set_up_tracing() -> None:
 def set_up_logging() -> None:
     """Set up logging to export to OTLP."""
     logging_export = os.environ.get("LOGGING_EXPORT_FORMAT", None)
-    logging_service_name = os.environ.get("LOGGING_SERVICE_NAME", "schematic-tests")
-    logging_instance_name = os.environ.get("LOGGING_INSTANCE_NAME", "local")
+    # Examples: schematic-dev, schematic-prod, schematic-staging
+    logging_service_name = os.environ.get(
+        "LOGGING_SERVICE_NAME", "schematic-unspecified"
+    )
     if logging_export == "otlp":
         resource = Resource.create(
             {
-                "service.name": logging_service_name,
-                "service.instance.id": logging_instance_name,
+                SERVICE_NAME: logging_service_name,
             }
         )
 
