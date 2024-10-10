@@ -11,7 +11,12 @@ from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk.resources import DEPLOYMENT_ENVIRONMENT, SERVICE_NAME, Resource
+from opentelemetry.sdk.resources import (
+    DEPLOYMENT_ENVIRONMENT,
+    SERVICE_NAME,
+    SERVICE_VERSION,
+    Resource,
+)
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
@@ -60,7 +65,7 @@ def set_up_tracing() -> None:
                 resource=Resource(
                     attributes={
                         SERVICE_NAME: tracing_service_name,
-                        "schematic.version": package_version,
+                        SERVICE_VERSION: package_version,
                         DEPLOYMENT_ENVIRONMENT: deployment_environment,
                     }
                 )
