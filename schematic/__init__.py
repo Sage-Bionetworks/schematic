@@ -11,7 +11,7 @@ from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.resources import DEPLOYMENT_ENVIRONMENT, SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
@@ -53,6 +53,7 @@ def set_up_tracing() -> None:
     if tracing_export is not None and tracing_export:
         Synapse.enable_open_telemetry(True)
         tracing_service_name = os.environ.get("TRACING_SERVICE_NAME", "schematic-api")
+        deployment_environment = os.environ.get("DEPLOYMENT_ENVIRONMENT", "")
         package_version = pkg_resources.get_distribution("schematicpy").version
         trace.set_tracer_provider(
             TracerProvider(
@@ -60,6 +61,7 @@ def set_up_tracing() -> None:
                     attributes={
                         SERVICE_NAME: tracing_service_name,
                         "schematic.version": package_version,
+                        DEPLOYMENT_ENVIRONMENT: deployment_environment,
                     }
                 )
             )
@@ -85,14 +87,13 @@ def set_up_tracing() -> None:
 def set_up_logging() -> None:
     """Set up logging to export to OTLP."""
     logging_export = os.environ.get("LOGGING_EXPORT_FORMAT", None)
-    # Examples: schematic-dev, schematic-prod, schematic-staging
-    logging_service_name = os.environ.get(
-        "LOGGING_SERVICE_NAME", "schematic-unspecified"
-    )
+    logging_service_name = os.environ.get("LOGGING_SERVICE_NAME", "schematic")
+    deployment_environment = os.environ.get("DEPLOYMENT_ENVIRONMENT", "")
     if logging_export == "otlp":
         resource = Resource.create(
             {
                 SERVICE_NAME: logging_service_name,
+                DEPLOYMENT_ENVIRONMENT: deployment_environment,
             }
         )
 
@@ -145,3 +146,4 @@ def response_hook(span: Span, status: str, response_headers: List) -> None:
 
 
 set_up_tracing()
+set_up_logging()
