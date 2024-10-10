@@ -1287,7 +1287,7 @@ class TestManifestOperation:
 
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
-    def test_submit_nested_manifest_table_and_file_upsert(
+    def test_submit_nested_manifest_table_and_file_replace(
         self,
         client: FlaskClient,
         request_headers: Dict[str, str],
@@ -1304,13 +1304,12 @@ class TestManifestOperation:
             "dataset_id": "syn63646197",
             "table_manipulation": "replace",
             "data_model_labels": "class_label",
-            # have to set table_column_names to display_name to ensure upsert feature works
             "table_column_names": "display_name",
         }
 
         # AND a test manifest with a nested file entity
         test_upsert_manifest_path = helpers.get_data_path(
-            "mock_manifests/TestManifestOperation_test_submit_nested_manifest_table_and_file_upsert.csv"
+            "mock_manifests/TestManifestOperation_test_submit_nested_manifest_table_and_file_replace.csv"
         )
 
         # AND a randomized annotation we can verify was added
