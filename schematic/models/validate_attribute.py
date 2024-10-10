@@ -1031,7 +1031,7 @@ class ValidateAttribute(object):
         validation_rules = self.dmge.get_node_validation_rules(
             node_display_name=manifest_col.name
         )
-        # It seems like this statement can ever be true
+        # It seems like this statement can never be true
         # self.dmge.get_node_validation_rules never returns a list with "::" even when
         # the attribute has the "list::regex" rule
         if validation_rules and "::" in validation_rules[0]:
