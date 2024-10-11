@@ -1811,6 +1811,24 @@ class TestValidateAttributeObject:
         assert len(errors) == 1
         assert len(warnings) == 0
 
+    @pytest.mark.parametrize(
+        "input_column, rule",
+        [
+            (Series([1], name="Check String"), "str error"),
+            (Series([1], name="Check String"), "str warning"),
+        ],
+    )
+    def test_type_validation_does_not_work(
+        self, va_obj: ValidateAttribute, input_column: Series, rule: str
+    ) -> None:
+        """
+        This tests ValidateAttribute.type_validation
+        This test shows that the msg level parameter doesn't work
+        """
+        errors, warnings = va_obj.type_validation(rule, input_column)
+        assert len(errors) == 0
+        assert len(warnings) == 0
+
     ################
     # url_validation
     ################
