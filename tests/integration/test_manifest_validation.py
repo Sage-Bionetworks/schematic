@@ -27,6 +27,7 @@ class TestManifestValidation:
         assert response.status_code == 200, f"Failed to connect to API: {response.text}"
         return api_server
 
+
     @pytest.mark.parametrize(
         ("input_data_type", "input_file_name"),
         [
@@ -68,6 +69,7 @@ class TestManifestValidation:
 
             # AND with no expected errors
             assert len(response_json.get("errors")) == 0
+
 
     @pytest.mark.parametrize(
         ("input_data_type", "input_file_name"),
@@ -124,7 +126,7 @@ class TestManifestValidation:
                 "Wrong schema" in error for error in response_json.get("errors")
             ), f"Expected 'Wrong schema' error. Got {response_json.get('errors')}"
 
-    # Validate a manifest that triggers simple cross manifest validation rules
+
     def test_cross_manifest_validation_with_no_target(self, setup_api, helpers: Helpers) -> None:
         # GIVEN the manifest validation endpoint and parameters
         url = f"{setup_api()}/model/validate"
@@ -218,7 +220,7 @@ class TestManifestValidation:
         for idx, expected_idx in zip(warnings, expected_warnings):
             assert idx == expected_idx
 
-    # Validate a manifest that triggers simple rule combination validation rules
+
     def test_cross_manifest_validation_with_target(self, setup_api, helpers: Helpers) -> None:
         # WHEN a manifest file has been uploaded to the Synapse project
         submit_url = f"{setup_api()}/model/submit"
@@ -295,7 +297,7 @@ class TestManifestValidation:
         for idx, expected_idx in zip(warnings, expected_warnings):
             assert idx == expected_idx
 
-    # Validate a manifest that triggers simple rule combination validation rules 
+
     def test_manifest_validation_with_rule_combination(self, setup_api, helpers: Helpers) -> None:
         # GIVEN the manifest validation endpoint and parameters
         url = f"{setup_api()}/model/validate"
@@ -313,5 +315,122 @@ class TestManifestValidation:
         # AND we make a POST request to validate the file
         response = requests.post(url, headers=HEADERS, params=params, files=files)
 
+        # AND the expected response contents is given
+        expected_contents = {
+            "errors": [
+                [
+                "2",
+                "Check Regex List",
+                "For the attribute Check Regex List, on row 2, the string is not properly formatted. It should follow the following re.match pattern \"[a-f]\".",
+                [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h"
+                ]
+                ],
+                [
+                "2",
+                "Check Regex List",
+                "For the attribute Check Regex List, on row 2, the string is not properly formatted. It should follow the following re.match pattern \"[a-f]\".",
+                [
+                    "a",
+                    "b",
+                    "c",
+                    "d",
+                    "e",
+                    "f",
+                    "g",
+                    "h"
+                ]
+                ],
+                [
+                "4",
+                "Check Regex List Like",
+                "For the attribute Check Regex List Like, on row 4, the string is not properly formatted. It should follow the following re.match pattern \"[a-f]\".",
+                [
+                    "a",
+                    "c",
+                    "h"
+                ]
+                ],
+                [
+                "2",
+                "Check Regex List Strict",
+                "For attribute Check Regex List Strict in row 2 it does not appear as if you provided a comma delimited string. Please check your entry ('a'') and try again.",
+                "a"
+                ],
+                [
+                "4",
+                "Check Regex List Strict",
+                "For the attribute Check Regex List Strict, on row 4, the string is not properly formatted. It should follow the following re.match pattern \"[a-f]\".",
+                [
+                    "a",
+                    "b",
+                    "h"
+                ]
+                ],
+                [
+                "2",
+                "Check NA",
+                "'' should be non-empty",
+                ""
+                ]
+            ],
+            "warnings": [
+                [
+                None,
+                "Check Recommended",
+                "Column Check Recommended is recommended but empty.",
+                None
+                ],
+                [
+                None,
+                "Check Match at Least",
+                "Cross Manifest Validation Warning: There are no target columns to validate this manifest against for attribute: Check Match at Least, and validation rule: matchAtLeastOne Patient.PatientID set. It is assumed this is the first manifest in a series to be submitted, so validation will pass, for now, and will run again when there are manifests uploaded to validate against.",
+                None
+                ],
+                [
+                None,
+                "Check Match at Least values",
+                "Cross Manifest Validation Warning: There are no target columns to validate this manifest against for attribute: Check Match at Least values, and validation rule: matchAtLeastOne MockComponent.checkMatchatLeastvalues value. It is assumed this is the first manifest in a series to be submitted, so validation will pass, for now, and will run again when there are manifests uploaded to validate against.",
+                None
+                ],
+                [
+                None,
+                "Check Match Exactly",
+                "Cross Manifest Validation Warning: There are no target columns to validate this manifest against for attribute: Check Match Exactly, and validation rule: matchExactlyOne MockComponent.checkMatchExactly set. It is assumed this is the first manifest in a series to be submitted, so validation will pass, for now, and will run again when there are manifests uploaded to validate against.",
+                None
+                ],
+                [
+                None,
+                "Check Match Exactly values",
+                "Cross Manifest Validation Warning: There are no target columns to validate this manifest against for attribute: Check Match Exactly values, and validation rule: matchExactlyOne MockComponent.checkMatchExactlyvalues value. It is assumed this is the first manifest in a series to be submitted, so validation will pass, for now, and will run again when there are manifests uploaded to validate against.",
+                None
+                ],
+                [
+                None,
+                "Check Match None",
+                "Cross Manifest Validation Warning: There are no target columns to validate this manifest against for attribute: Check Match None, and validation rule: matchNone MockComponent.checkMatchNone set error. It is assumed this is the first manifest in a series to be submitted, so validation will pass, for now, and will run again when there are manifests uploaded to validate against.",
+                None
+                ],
+                [
+                None,
+                "Check Match None values",
+                "Cross Manifest Validation Warning: There are no target columns to validate this manifest against for attribute: Check Match None values, and validation rule: matchNone MockComponent.checkMatchNonevalues value error. It is assumed this is the first manifest in a series to be submitted, so validation will pass, for now, and will run again when there are manifests uploaded to validate against.",
+                None
+                ]
+            ]
+            }
+
         # THEN we expect a successful response
         assert response.status_code == 200, f"Should be 200 status code. Got {response.status_code}"
+
+        # AND the response should match the expected response
+        content = response.content.decode('utf-8')
+        content_dict = json.loads(content)
+        assert content_dict == expected_contents
