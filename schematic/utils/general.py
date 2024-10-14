@@ -10,13 +10,13 @@ import tempfile
 from cProfile import Profile
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Union, TypeVar, Any, Optional, Sequence, Callable
+from typing import Any, Callable, Optional, Sequence, TypeVar, Union
 
+from synapseclient import Synapse  # type: ignore
+from synapseclient.core import cache  # type: ignore
 from synapseclient.core.exceptions import SynapseHTTPError  # type: ignore
 from synapseclient.entity import File, Folder, Project  # type: ignore
 from synapseclient.table import EntityViewSchema  # type: ignore
-from synapseclient.core import cache  # type: ignore
-from synapseclient import Synapse  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -224,6 +224,9 @@ def create_temp_folder(path: str) -> str:
         path(str): a directory path where all the temporary files will live
     Returns: returns the absolute pathname of the new directory.
     """
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
+
     # Create a temporary directory in the specified directory
     path = tempfile.mkdtemp(dir=path)
     return path

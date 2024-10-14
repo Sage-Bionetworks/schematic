@@ -4,7 +4,7 @@ import logging
 import os
 import shutil
 import sys
-import uuid
+import tempfile
 from typing import Callable, Generator, Set
 
 import flask
@@ -21,7 +21,6 @@ from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
-from pytest_asyncio import is_async_test
 from synapseclient.client import Synapse
 
 from schematic.configuration.configuration import CONFIG, Configuration
@@ -223,12 +222,7 @@ def syn(syn_token):
 
 @pytest.fixture(scope="session")
 def download_location():
-    temporary_manifest_storage = f"{uuid.uuid4()}"
-    if not os.path.exists(temporary_manifest_storage):
-        os.makedirs(temporary_manifest_storage)
-    full_parent_path = os.path.abspath(temporary_manifest_storage)
-
-    download_location = create_temp_folder(full_parent_path)
+    download_location = create_temp_folder(path=tempfile.gettempdir())
     yield download_location
 
     # Cleanup after tests have used the temp folder
