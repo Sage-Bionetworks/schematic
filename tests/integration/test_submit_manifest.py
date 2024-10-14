@@ -1,19 +1,40 @@
 import io
 import logging
 import uuid
-from typing import Dict
+from typing import Dict, Generator
 
-import pandas as pd  # third party library import
+import flask
 import pytest
 from flask.testing import FlaskClient
 
 from schematic.store.synapse import SynapseStorage
+from schematic_api.api import create_app
 from tests.conftest import Helpers
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 DATA_MODEL_JSON_LD = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
+
+
+@pytest.fixture(scope="class")
+def app() -> flask.Flask:
+    app = create_app()
+    return app
+
+
+@pytest.fixture(scope="class")
+def client(app: flask.Flask) -> Generator[FlaskClient, None, None]:
+    app.config["SCHEMATIC_CONFIG"] = None
+
+    with app.test_client() as client:
+        yield client
+
+
+@pytest.fixture
+def request_headers(syn_token: str) -> Dict[str, str]:
+    headers = {"Authorization": "Bearer " + syn_token}
+    return headers
 
 
 @pytest.mark.schematic_api
@@ -46,7 +67,7 @@ class TestManifestSubmission:
         )
 
         # AND a randomized annotation we can verify was added
-        df = pd.read_csv(nested_manifest_replace_csv)
+        df = helpers.get_data_frame(path=nested_manifest_replace_csv)
         randomized_annotation_content = str(uuid.uuid4())
         df["RandomizedAnnotation"] = randomized_annotation_content
         csv_file = io.BytesIO()
