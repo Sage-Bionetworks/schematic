@@ -125,7 +125,7 @@ class TestManifestValidation:
             ), f"Expected 'Wrong schema' error. Got {response_json.get('errors')}"
 
     # Validate a manifest that triggers simple cross manifest validation rules
-    def test_cross_manifest_validation(self, setup_api, helpers: Helpers) -> None:
+    def test_cross_manifest_validation_with_no_target(self, setup_api, helpers: Helpers) -> None:
         # GIVEN the manifest validation endpoint and parameters
         url = f"{setup_api()}/model/validate"
         params = {
@@ -219,7 +219,7 @@ class TestManifestValidation:
             assert idx == expected_idx
 
     # Validate a manifest that triggers simple rule combination validation rules
-    def test_rule_combination_validation(self, setup_api, helpers: Helpers) -> None:
+    def test_cross_manifest_validation_with_target(self, setup_api, helpers: Helpers) -> None:
         # WHEN a manifest file has been uploaded to the Synapse project
         submit_url = f"{setup_api()}/model/submit"
         submit_params = {
@@ -295,5 +295,23 @@ class TestManifestValidation:
         for idx, expected_idx in zip(warnings, expected_warnings):
             assert idx == expected_idx
 
-    # Validate a manifest that triggers filename validation rules (should be sufficiently covered by integration test)
-    # def test_filename_validation(self, setup_api, helpers: Helpers) -> None:
+    # Validate a manifest that triggers simple rule combination validation rules 
+    def test_manifest_validation_with_rule_combination(self, setup_api, helpers: Helpers) -> None:
+        # GIVEN the manifest validation endpoint and parameters
+        url = f"{setup_api()}/model/validate"
+        params = {
+            "schema_url": EXAMPLE_SCHEMA_URL,
+            "data_type": "MockComponent",
+            "data_model_labels": "class_label",
+            "restrict_rules": False,
+            "asset_view": "syn63622565",
+        }
+
+        # AND a file to be uploaded for validation is defined
+        files = {'file_name': ('Mock_Component_rule_combination.csv', open('Mock_Component_rule_combination.csv', 'rb'), 'text/csv')}
+
+        # AND we make a POST request to validate the file
+        response = requests.post(url, headers=HEADERS, params=params, files=files)
+
+        # THEN we expect a successful response
+        assert response.status_code == 200, f"Should be 200 status code. Got {response.status_code}"
