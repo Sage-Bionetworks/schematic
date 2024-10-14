@@ -89,3 +89,17 @@ class TestManifestSubmission:
         modified_file = synapse_store.syn.get(df["entityId"][0], downloadFile=False)
         assert modified_file is not None
         assert modified_file["RandomizedAnnotation"][0] == randomized_annotation_content
+
+        # AND the manifest should exist in the dataset folder
+        manifest_synapse_id = synapse_store.syn.findEntityId(
+            name="synapse_storage_manifest_bulkrna-seqassay.csv", parent="syn63646197"
+        )
+        assert manifest_synapse_id is not None
+        synapse_manifest_entity = synapse_store.syn.get(
+            entity=manifest_synapse_id, downloadFile=False
+        )
+        assert synapse_manifest_entity is not None
+        assert (
+            synapse_manifest_entity["_file_handle"]["fileName"]
+            == "synapse_storage_manifest_bulkrna-seqassay.csv"
+        )
