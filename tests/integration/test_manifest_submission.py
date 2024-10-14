@@ -1,31 +1,14 @@
 import logging
 import os
-import shutil
 
 import pandas as pd
 import pytest
 import requests
 
-from schematic.utils.general import create_temp_folder
 from tests.utils import CleanupItem
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-
-@pytest.fixture(scope="session")
-def download_location():
-    temporary_manifest_storage = "temporary_manifest_storage"
-    if not os.path.exists(temporary_manifest_storage):
-        os.makedirs(temporary_manifest_storage)
-    full_parent_path = os.path.abspath(temporary_manifest_storage)
-
-    download_location = create_temp_folder(full_parent_path)
-    yield download_location
-
-    # Cleanup after tests have used the temp folder
-    if os.path.exists(download_location):
-        shutil.rmtree(download_location)
 
 
 class TestManifestSubmission:
@@ -48,9 +31,6 @@ class TestManifestSubmission:
             "annotation_keys": "class_label",
             "file_annotations_upload": "false",
         }
-
-        # syn = Synapse()
-        # syn.login(authToken=syn_token, silent=True)
 
         headers = {"Authorization": f"Bearer {syn_token}"}
         test_manifest_path = helpers.get_data_path(

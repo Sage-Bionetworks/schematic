@@ -4,6 +4,7 @@ import logging
 import os
 import shutil
 import sys
+import uuid
 from typing import Callable, Generator, Set
 
 import flask
@@ -29,6 +30,7 @@ from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExp
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import load_df
+from schematic.utils.general import create_temp_folder
 from schematic_api.api import create_app
 from tests.utils import CleanupAction, CleanupItem
 
@@ -217,6 +219,21 @@ def syn(syn_token):
     syn = Synapse()
     syn.login(authToken=syn_token, silent=True)
     return syn
+
+
+@pytest.fixture(scope="session")
+def download_location():
+    temporary_manifest_storage = f"{uuid.uuid4()}"
+    if not os.path.exists(temporary_manifest_storage):
+        os.makedirs(temporary_manifest_storage)
+    full_parent_path = os.path.abspath(temporary_manifest_storage)
+
+    download_location = create_temp_folder(full_parent_path)
+    yield download_location
+
+    # Cleanup after tests have used the temp folder
+    if os.path.exists(download_location):
+        shutil.rmtree(download_location)
 
 
 def metadata_model(helpers, data_model_labels):
