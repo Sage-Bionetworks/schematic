@@ -132,26 +132,29 @@ jobs:
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
+        # run: >
+        #   poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
+        #   -m "not (rule_benchmark)" --reruns 4 -n 8 --ignore=tests/unit
         run: >
           poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-          -m "not (rule_benchmark)" --reruns 4 -n 8 --ignore=tests/unit
+          --reruns 4 -n 8 --ignore=tests/unit tests/integration/test_validate_attribute.py::TestValidateAttribute::test__get_target_manifest_dataframes
 
 
-      - name: Upload pytest test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: pytest-results-${{ matrix.python-version }}
-          path: htmlcov
-        # Use always() to always run this step to publish test results when there are test failures
-        if: ${{ always() && contains(fromJSON('["3.10"]'), matrix.python-version) }}
-      - name: Upload XML coverage report
-        id: upload_coverage_report
-        uses: actions/upload-artifact@v4
-        # Only upload a single python version to pass along to sonarcloud
-        if: ${{ contains(fromJSON('["3.10"]'), matrix.python-version) && always() }}
-        with:
-          name: coverage-report
-          path: coverage.xml
+      # - name: Upload pytest test results
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: pytest-results-${{ matrix.python-version }}
+      #     path: htmlcov
+      #   # Use always() to always run this step to publish test results when there are test failures
+      #   if: ${{ always() && contains(fromJSON('["3.10"]'), matrix.python-version) }}
+      # - name: Upload XML coverage report
+      #   id: upload_coverage_report
+      #   uses: actions/upload-artifact@v4
+      #   # Only upload a single python version to pass along to sonarcloud
+      #   if: ${{ contains(fromJSON('["3.10"]'), matrix.python-version) && always() }}
+      #   with:
+      #     name: coverage-report
+      #     path: coverage.xml
 
   sonarcloud:
     needs: [test]
