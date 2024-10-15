@@ -264,14 +264,14 @@ def syn_token(config: Configuration):
 
 
 @pytest.fixture(scope="class")
-def syn(syn_token):
+def syn(syn_token) -> Synapse:
     syn = Synapse()
     syn.login(authToken=syn_token, silent=True)
     return syn
 
 
 @pytest.fixture(scope="session")
-def download_location():
+def download_location() -> Generator[str, None, None]:
     download_location = create_temp_folder(path=tempfile.gettempdir())
     yield download_location
 

@@ -1,10 +1,12 @@
 import logging
 import os
+from typing import Callable
 
 import pandas as pd
-import pytest
 import requests
+from synapseclient.client import Synapse
 
+from tests.conftest import Helpers
 from tests.utils import CleanupItem
 
 logging.basicConfig(level=logging.DEBUG)
@@ -13,8 +15,28 @@ logger = logging.getLogger(__name__)
 
 class TestManifestSubmission:
     def test_submit_record_based_test_manifest_file_only(
-        self, helpers, syn, syn_token, download_location, schedule_for_cleanup
+        self,
+        helpers: Helpers,
+        syn: Synapse,
+        syn_token: str,
+        download_location: str,
+        schedule_for_cleanup: Callable[[CleanupItem], None],
     ) -> None:
+        """Test that a record-based manifest can be submitted with the file_only and replace option
+
+        Args:
+            helpers (Helpers): a pytest fixture
+            syn (Synapse): synapse client
+            syn_token (str): synapse access token
+            download_location (str): path to download location
+            schedule_for_cleanup (Callable[[CleanupItem], None]): Returns a closure that takes an item that should be scheduled for cleanup.
+
+        We are validating the following:
+        - The submitted manifest has correct file name: synapse_storage_manifest_<data_type>.csv
+        - The submitted manifest has column entityId and Id
+        - The submitted manifest has Id column that is not empty
+        """
+
         url = "http://localhost:3001/v1/model/submit"
         data_type = "Biospecimen"
         params = {
@@ -75,8 +97,28 @@ class TestManifestSubmission:
         assert manifest_submitted_df["Id"].notnull().all()
 
     def test_submit_record_based_test_manifest_table_and_file(
-        self, helpers, syn_token, syn, download_location, schedule_for_cleanup
+        self,
+        helpers: Helpers,
+        syn_token: str,
+        syn: Synapse,
+        download_location: str,
+        schedule_for_cleanup: Callable[[CleanupItem], None],
     ) -> None:
+        """Test that a record-based manifest can be submitted with the table and file and replace option
+
+        Args:
+            helpers (Helpers): a pytest fixture
+            syn (Synapse): synapse client
+            syn_token (str): synapse access token
+            download_location (str): path to download location
+            schedule_for_cleanup (Callable[[CleanupItem], None]): Returns a closure that takes an item that should be scheduled for cleanup.
+
+        We are validating the following:
+        - The submitted manifest has correct file name: synapse_storage_manifest_<data_type>.csv
+        - The submitted manifest has column entityId and Id
+        - The submitted manifest has Id column that is not empty
+        - The table gets created in the parent synapse project
+        """
         url = "http://localhost:3001/v1/model/submit"
         data_type = "Biospecimen"
         project_id = "syn63561415"
