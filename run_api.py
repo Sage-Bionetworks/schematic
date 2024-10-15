@@ -14,4 +14,4 @@ if __name__ == "__main__":
     # Launch app
     app = create_app()
     #TO DO: add a flag --debug to control debug parameter
-    app.run(host=host, port=port, debug=False)
+    app.run(host=host, port=port, debug=True)

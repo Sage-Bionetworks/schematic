@@ -1,22 +1,22 @@
 version: "3.9"
 services:
   # run schematic APIs in a docker container without uWSGI
-  schematic:
-    build:
-      dockerfile: Dockerfile
-    container_name: schematic
-    entrypoint: python /usr/src/app/run_api.py
-    ports:
-      - "3001:3001"
-    volumes:
-      - .:/schematic
-    working_dir: /schematic
-    environment:
-      APP_HOST: "0.0.0.0"
-      APP_PORT: "3001"
-      SCHEMATIC_CONFIG: /schematic/config.yml
-      SCHEMATIC_CONFIG_CONTENT: "${SCHEMATIC_CONFIG_CONTENT}"
-      GE_HOME: /usr/src/app/great_expectations/
+  # schematic:
+  #   build:
+  #     dockerfile: Dockerfile
+  #   container_name: schematic
+  #   entrypoint: python /usr/src/app/run_api.py
+  #   ports:
+  #     - "3001:3001"
+  #   volumes:
+  #     - .:/schematic
+  #   working_dir: /schematic
+  #   environment:
+  #     APP_HOST: "0.0.0.0"
+  #     APP_PORT: "3001"
+  #     SCHEMATIC_CONFIG: /schematic/config.yml
+  #     SCHEMATIC_CONFIG_CONTENT: "${SCHEMATIC_CONFIG_CONTENT}"
+  #     GE_HOME: /usr/src/app/great_expectations/
   # run schematic APIs in a docker container with uWSGI and nginx
   schematic-aws:
     build: 
