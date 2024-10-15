@@ -5,6 +5,7 @@ import os
 import shutil
 import sys
 import tempfile
+from dataclasses import dataclass
 from typing import Callable, Generator, Set
 
 import flask
@@ -158,15 +159,64 @@ def synapse_store():
     yield SynapseStorage()
 
 
-@pytest.fixture(scope="session")
-def manual_test_verification_path(config: Configuration) -> str:
-    """Fixture to create a folder for manual test verification.
+@dataclass
+class ConfigurationForTesting:
+    """Variables that are specific to testing. Specifically these are used to control
+    the flags used during manual verification of some integration test results.
 
-    TODO: Determine if we should set a flag to only create this folder if the test is being run manually.
+    Attributes:
+        manual_test_verification_enabled (bool): Whether manual verification is enabled.
+        manual_test_verification_path (str): The path to the directory where manual test
+            verification files are stored.
+        use_deployed_schematic_api_server (bool): Used to determine if a local flask
+            instance is created during integration testing. If this is true schematic
+            tests will use a schematic API server running outside of the context of the
+            integration test.
+        schematic_api_server_url (str): The URL of the schematic API server. Defaults to
+            http://localhost:3001.
+        local_flask_instance (bool): TEMPORARY: Whether the Flask instance is running
+            locally. This is temporary per dicsussion here: https://github.com/Sage-Bionetworks/schematic/pull/1512#discussion_r1799924847
+
     """
-    path = os.path.join(config.manifest_folder, "manual_test_verification")
-    os.makedirs(path, exist_ok=True)
-    return path
+
+    manual_test_verification_enabled: bool
+    manual_test_verification_path: str
+    use_deployed_schematic_api_server: bool
+    schematic_api_server_url: str
+    local_flask_instance: bool
+
+
+@pytest.fixture(scope="session")
+def testing_config(config: Configuration) -> ConfigurationForTesting:
+    """Configuration variables that are specific to testing."""
+    manual_test_verification_enabled = (
+        os.environ.get("MANUAL_TEST_VERIFICATION", "false").lower() == "true"
+    )
+    use_deployed_schematic_api_server = (
+        os.environ.get("USE_DEPLOYED_SCHEMATIC_API_SERVER", "false").lower() == "true"
+    )
+    schematic_api_server_url = os.environ.get(
+        "SCHEMATIC_API_SERVER_URL", "http://localhost:3001"
+    )
+    local_flask_instance = not use_deployed_schematic_api_server or (
+        use_deployed_schematic_api_server and "localhost" in schematic_api_server_url
+    )
+
+    if manual_test_verification_enabled:
+        manual_test_verification_path = os.path.join(
+            config.manifest_folder, "manual_test_verification"
+        )
+        os.makedirs(manual_test_verification_path, exist_ok=True)
+    else:
+        manual_test_verification_path = ""
+
+    return ConfigurationForTesting(
+        manual_test_verification_enabled=manual_test_verification_enabled,
+        manual_test_verification_path=manual_test_verification_path,
+        use_deployed_schematic_api_server=use_deployed_schematic_api_server,
+        schematic_api_server_url=schematic_api_server_url,
+        local_flask_instance=local_flask_instance,
+    )
 
 
 # These fixtures make copies of existing test manifests.

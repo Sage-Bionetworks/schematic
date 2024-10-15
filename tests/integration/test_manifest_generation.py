@@ -13,29 +13,18 @@ import requests
 from flask.testing import FlaskClient
 from openpyxl import load_workbook
 
+from tests.conftest import ConfigurationForTesting
+
 LIGHT_BLUE = "FFEAF7F9"  # Required cell
 GRAY = "FFE0E0E0"  # Header cell
 WHITE = "00000000"  # Optional cell
-
-manual_test_verification_enabled = (
-    os.environ.get("MANUAL_TEST_VERIFICATION", "false").lower() == "true"
-)
-use_deployed_schematic_api_server = (
-    os.environ.get("USE_DEPLOYED_SCHEMATIC_API_SERVER", "false").lower() == "true"
-)
-schematic_api_server_url = os.environ.get(
-    "SCHEMATIC_API_SERVER_URL", "http://localhost:3001"
-)
-local_flask_instance = not use_deployed_schematic_api_server or (
-    use_deployed_schematic_api_server and "localhost" in schematic_api_server_url
-)
 
 
 class TestManifestGeneration:
     @pytest.mark.manual_verification_required
     def test_single_manifest_generation_excel(
         self,
-        manual_test_verification_path: str,
+        testing_config: ConfigurationForTesting,
         flask_client: FlaskClient,
         syn_token: str,
     ) -> None:
@@ -45,7 +34,8 @@ class TestManifestGeneration:
 
         - The first row of the Excel file contains the column headers
         - The first row is locked on scroll
-        - Each cell in the first row has a comment "TBD"
+        - Each cell in the first row has a comment/tooltip "TBD"
+        - The "Family History" cell has a comment/tooltip with the expected message
         - The cell corresponding to "Sex" in Sheet1 has a dropdown list with values from Sheet2!B2:B4
         - The cell corresponding to "Diagnosis" in Sheet1 has a dropdown list with values from Sheet2!D2:D3
         - The cell corresponding to "Cancer Type" in Sheet1 has a dropdown list with values from Sheet2!F2:F6
@@ -62,7 +52,7 @@ class TestManifestGeneration:
         - When Diagnosis = "Cancer", [Cancer Type, Family History] is Light Blue (Required)
         """
         # GIVEN a valid example manifest to generate
-        url = f"{schematic_api_server_url}/v1/manifest/generate"
+        url = f"{testing_config.schematic_api_server_url}/v1/manifest/generate"
         params = {
             "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
             "title": "Example",
@@ -77,7 +67,7 @@ class TestManifestGeneration:
         # WHEN we make a request to the Schematic API
         response = (
             requests.get(url, headers=headers, params=params, timeout=300)
-            if use_deployed_schematic_api_server
+            if testing_config.use_deployed_schematic_api_server
             else flask_client.get(url, query_string=params, headers=headers)
         )
 
@@ -86,7 +76,9 @@ class TestManifestGeneration:
 
         # Load the response content into memory
         content = BytesIO(
-            response.content if use_deployed_schematic_api_server else response.data
+            response.content
+            if testing_config.use_deployed_schematic_api_server
+            else response.data
         )
         workbook = load_workbook(content)
         sheet1 = workbook["Sheet1"]
@@ -248,10 +240,10 @@ class TestManifestGeneration:
         assert sheet2["H1"].value is None
 
         # AND a copy of the Excel file is saved to the test directory for manual verification
-        if manual_test_verification_enabled:
+        if testing_config.manual_test_verification_enabled:
             workbook.save(
                 os.path.join(
-                    manual_test_verification_path,
+                    testing_config.manual_test_verification_path,
                     "TestManifestGeneration_test_single_manifest_generation_excel.xlsx",
                 )
             )
@@ -259,7 +251,7 @@ class TestManifestGeneration:
     @pytest.mark.manual_verification_required
     def test_single_manifest_generation_google_sheet_with_annotations(
         self,
-        manual_test_verification_path: str,
+        testing_config: ConfigurationForTesting,
         flask_client: FlaskClient,
         syn_token: str,
     ) -> None:
@@ -285,7 +277,7 @@ class TestManifestGeneration:
         - When File Format = "FASTQ", [Genome Build] is White (Optional)
         """
         # GIVEN a valid example manifest to generate
-        url = f"{schematic_api_server_url}/v1/manifest/generate"
+        url = f"{testing_config.schematic_api_server_url}/v1/manifest/generate"
         params = {
             "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
             "title": "Example",
@@ -302,7 +294,7 @@ class TestManifestGeneration:
         # WHEN we make a request to the Schematic API
         response = (
             requests.get(url, headers=headers, params=params, timeout=300)
-            if use_deployed_schematic_api_server
+            if testing_config.use_deployed_schematic_api_server
             else flask_client.get(url, query_string=params, headers=headers)
         )
 
@@ -311,7 +303,9 @@ class TestManifestGeneration:
 
         # Load the Google Sheets URL from the response
         response_content = (
-            response.json() if use_deployed_schematic_api_server else response.json
+            response.json()
+            if testing_config.use_deployed_schematic_api_server
+            else response.json
         )
         assert len(response_content) == 1
         google_sheet_url = response_content[0]
@@ -346,7 +340,7 @@ class TestManifestGeneration:
         assert columns["key_datetime"] is not None
         assert columns["entityId"] is not None
 
-        if local_flask_instance:
+        if testing_config.local_flask_instance:
             assert (
                 sheet1[f"{columns['Filename']}2"].value
                 == "Manifest generation - Manual test - generate an existing manifest/test dataset/test dataset 1/sample A.txt"
@@ -371,7 +365,7 @@ class TestManifestGeneration:
         assert sheet1[f"{columns['key_datetime']}2"].value is not None  # key_datetime
         assert sheet1[f"{columns['entityId']}2"].value == "syn63561081"
 
-        if local_flask_instance:
+        if testing_config.local_flask_instance:
             assert (
                 sheet1[f"{columns['Filename']}3"].value
                 == "Manifest generation - Manual test - generate an existing manifest/test dataset/test dataset 2/sample B.txt"
@@ -394,7 +388,7 @@ class TestManifestGeneration:
         assert sheet1[f"{columns['key_datetime']}3"].value is None
         assert sheet1[f"{columns['entityId']}3"].value == "syn63561082"
 
-        if local_flask_instance:
+        if testing_config.local_flask_instance:
             assert (
                 sheet1[f"{columns['Filename']}4"].value
                 == "Manifest generation - Manual test - generate an existing manifest/test dataset/test dataset 3/sample C.txt"
@@ -543,10 +537,10 @@ class TestManifestGeneration:
         assert sheet2["G1"].value is None
 
         # AND a copy of the Excel file is saved to the test directory for manual verification
-        if manual_test_verification_enabled:
+        if testing_config.manual_test_verification_enabled:
             workbook.save(
                 os.path.join(
-                    manual_test_verification_path,
+                    testing_config.manual_test_verification_path,
                     "TestManifestGeneration_test_single_manifest_generation_google_sheet_with_annotations.xlsx",
                 )
             )
@@ -554,7 +548,7 @@ class TestManifestGeneration:
     @pytest.mark.manual_verification_required
     def test_single_manifest_generation_google_sheet_no_annotations(
         self,
-        manual_test_verification_path: str,
+        testing_config: ConfigurationForTesting,
         flask_client: FlaskClient,
         syn_token: str,
     ) -> None:
@@ -579,7 +573,7 @@ class TestManifestGeneration:
         - When File Format = "CRAM", [Genome Build, Genome FASTA] is Light Blue (Required)
         - When File Format = "FASTQ", [Genome Build] is White (Optional)
         """
-        url = f"{schematic_api_server_url}/v1/manifest/generate"
+        url = f"{testing_config.schematic_api_server_url}/v1/manifest/generate"
         # GIVEN a valid request to the Schematic API to generate a Google Sheet manifest without annotations
         params = {
             "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
@@ -596,7 +590,7 @@ class TestManifestGeneration:
         # WHEN we make a request to the Schematic API
         response = (
             requests.get(url, headers=headers, params=params, timeout=300)
-            if use_deployed_schematic_api_server
+            if testing_config.use_deployed_schematic_api_server
             else flask_client.get(url, query_string=params, headers=headers)
         )
 
@@ -605,7 +599,9 @@ class TestManifestGeneration:
 
         # Load the Google Sheets URL from the response
         response_content = (
-            response.json() if use_deployed_schematic_api_server else response.json
+            response.json()
+            if testing_config.use_deployed_schematic_api_server
+            else response.json
         )
         assert len(response_content) == 1, "Expected a single URL in the response"
         google_sheet_url = response_content[0]
@@ -779,10 +775,10 @@ class TestManifestGeneration:
         assert sheet2["G1"].value is None
 
         # AND a copy of the Excel file is saved to the test directory for manual verification
-        if manual_test_verification_enabled:
+        if testing_config.manual_test_verification_enabled:
             workbook.save(
                 os.path.join(
-                    manual_test_verification_path,
+                    testing_config.manual_test_verification_path,
                     "TestManifestGeneration_test_single_manifest_generation_google_sheet_no_annotations.xlsx",
                 )
             )
@@ -790,7 +786,7 @@ class TestManifestGeneration:
     @pytest.mark.manual_verification_required
     def test_manifest_generation_multiple_blank_google_sheets(
         self,
-        manual_test_verification_path: str,
+        testing_config: ConfigurationForTesting,
         flask_client: FlaskClient,
         syn_token: str,
     ) -> None:
@@ -802,6 +798,7 @@ class TestManifestGeneration:
         - The first row of the Google Sheet contains the column headers
         - The first row is locked on scroll
         - Each cell A-G in the first row has a comment "TBD"
+        - The "Family History" cell has a comment/tooltip with the expected message
         - Cell H in the first row does not have a comment
         - The "Sex" column in "Sheet1" has a dropdown list with the correct values from "Sheet2"
         - The "Diagnosis" column in "Sheet1" has a dropdown list with the correct values from "Sheet2"
@@ -833,7 +830,7 @@ class TestManifestGeneration:
         - When File Format = "CRAM", [Genome Build, Genome FASTA] is Light Blue (Required)
         - When File Format = "FASTQ", [Genome Build] is White (Optional)
         """
-        url = f"{schematic_api_server_url}/v1/manifest/generate"
+        url = f"{testing_config.schematic_api_server_url}/v1/manifest/generate"
         # GIVEN a valid request to the Schematic API to generate two blank Google Sheets manifests
         params = {
             "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
@@ -848,7 +845,7 @@ class TestManifestGeneration:
         # WHEN we make a request to the Schematic API
         response = (
             requests.get(url, headers=headers, params=params, timeout=300)
-            if use_deployed_schematic_api_server
+            if testing_config.use_deployed_schematic_api_server
             else flask_client.get(url, query_string=params, headers=headers)
         )
 
@@ -857,7 +854,9 @@ class TestManifestGeneration:
 
         # Load the Google Sheets URLs from the response
         response_content = (
-            response.json() if use_deployed_schematic_api_server else response.json
+            response.json()
+            if testing_config.use_deployed_schematic_api_server
+            else response.json
         )
         assert (
             len(response_content) == 2
@@ -1064,10 +1063,10 @@ class TestManifestGeneration:
         assert patient_sheet2["H1"].value is None
 
         # AND a copy of the Excel file is saved to the test directory for manual verification
-        if manual_test_verification_enabled:
+        if testing_config.manual_test_verification_enabled:
             patient_workbook.save(
                 os.path.join(
-                    manual_test_verification_path,
+                    testing_config.manual_test_verification_path,
                     "TestManifestGeneration_test_multiple_blank_google_sheets_patient.xlsx",
                 )
             )
@@ -1220,10 +1219,10 @@ class TestManifestGeneration:
         assert rna_seq_sheet2["G1"].value is None
 
         # AND a copy of the Excel file is saved to the test directory for manual verification
-        if manual_test_verification_enabled:
+        if testing_config.manual_test_verification_enabled:
             rna_seq_workbook.save(
                 os.path.join(
-                    manual_test_verification_path,
+                    testing_config.manual_test_verification_path,
                     "TestManifestGeneration_test_multiple_blank_google_sheets_rna_seq.xlsx",
                 )
             )
