@@ -5,7 +5,8 @@
 
 * `schematic` (Schema Engine for Manifest Ingress and Curation) is a python-based software tool that streamlines the retrieval, validation, and submission of metadata for biomedical datasets hosted on Sage Bionetworks' Synapse platform.
 * Users can work with `schematic` in several ways, including through the CLI (see [Command Line Usage](#command-line-usage) for examples), through Docker (see [Docker Usage](#docker-usage) for examples), or with python.
-* `schematic` needs to communicate with Synapse and Google Sheets in order for its processes to work. In order for this to happen, users will need to set up their credentials for authentication with Synapse and the Google Sheets API. Setup instructions are available in the Installation Guides:
+* `schematic` needs to communicate with Synapse and Google Sheets in order for its processes to work. As such, users will need to set up their credentials for authentication with Synapse and the Google Sheets API.
+* To get started with `schematic`, follow one of the Installation Guides depending on your use case:
    * [Installation Guide For: Schematic CLI users](#installation-guide-for-users)
    * [Installation Guide For: Contributors](#installation-guide-for-contributors)
 
@@ -83,8 +84,7 @@ If your current Python version is not supported by Schematic, you can switch to 
 
 ### 2. Set up your virtual environment
 
-Once you are working with a python version supported by Schematic, please activate a virtual environment within which you can install the package. You can
-set up your virtual environment. Below we will instruct how to creat your virtual environment with `venv` and with `conda`.
+Once you are working with a python version supported by `schematic`, you will need to activate a virtual environment within which you can install the package. Below we will show how to create your virtual environment either with `venv` or with `conda`.
 
 #### 2a. Set up your virtual environment with `venv`
 
