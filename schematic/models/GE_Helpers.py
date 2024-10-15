@@ -24,6 +24,7 @@ from great_expectations.data_context.types.resource_identifiers import (
     ExpectationSuiteIdentifier,
 )
 from great_expectations.exceptions.exceptions import GreatExpectationsError
+from opentelemetry import trace
 from ruamel import yaml
 
 import great_expectations as ge
@@ -38,7 +39,7 @@ from schematic.utils.validate_utils import (
 )
 
 logger = logging.getLogger(__name__)
-
+tracer = trace.get_tracer("Schematic")
 
 # List of modifiers that users can add to a rule, that arent rules themselves.
 # as additional modifiers are added will need to update this list
@@ -93,6 +94,7 @@ class GreatExpectationsHelpers(object):
         self.manifest = manifest
         self.manifestPath = manifestPath
 
+    @tracer.start_as_current_span("GreatExpectationsHelpers::build_context")
     def build_context(self):
         """
         Purpose:
@@ -143,6 +145,9 @@ class GreatExpectationsHelpers(object):
         # self.context.test_yaml_config(yaml.dump(datasource_config))
         self.context.add_datasource(**datasource_config)
 
+    @tracer.start_as_current_span(
+        "GreatExpectationsHelpers::add_expectation_suite_if_not_exists"
+    )
     def add_expectation_suite_if_not_exists(self) -> ExpectationSuite:
         """
         Purpose:
@@ -172,6 +177,7 @@ class GreatExpectationsHelpers(object):
 
         return self.suite
 
+    @tracer.start_as_current_span("GreatExpectationsHelpers::build_expectation_suite")
     def build_expectation_suite(
         self,
     ):

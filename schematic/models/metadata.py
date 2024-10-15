@@ -192,6 +192,7 @@ class MetadataModel(object):
         return req_components
 
     # TODO: abstract validation in its own module
+    @tracer.start_as_current_span("MetadataModel::validateModelManifest")
     def validateModelManifest(
         self,
         manifestPath: str,
