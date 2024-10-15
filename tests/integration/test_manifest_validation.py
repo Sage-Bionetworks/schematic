@@ -24,7 +24,6 @@ class TestManifestValidation:
         assert response.status_code == 200, f"Failed to connect to API: {response.text}"
         return url
 
-
     @pytest.mark.parametrize(
         ("input_data_type", "input_file_name"),
         [
@@ -77,7 +76,6 @@ class TestManifestValidation:
             # AND with no expected errors
             assert len(response_json.get("errors")) == 0
 
-
     @pytest.mark.parametrize(
         ("input_data_type", "input_file_name"),
         [
@@ -98,7 +96,7 @@ class TestManifestValidation:
             input_file_name: The name of the manifest file
             setup_api: A pytest fixture returning the API endpoint to use
             helpers: The Helpers object
-        
+
         Returns:
             None
         """
@@ -143,18 +141,17 @@ class TestManifestValidation:
                 "Wrong schema" in error for error in response_json.get("errors")
             ), f"Expected 'Wrong schema' error. Got {response_json.get('errors')}"
 
-
     def test_cross_manifest_validation_with_no_target(
         self, setup_api, helpers: Helpers
     ) -> None:
         """
         Test that the manifest validation API returns warnings when cross validation is triggered
         with no target provided.
-        
+
         Arguments:
             setup_api: A pytest fixture returning the API endpoint to use
             helpers: The Helpers object
-            
+
         Returns:
             None
 
@@ -243,7 +240,6 @@ class TestManifestValidation:
 
             for idx, expected_idx in zip(warnings, expected_warnings):
                 assert idx == expected_idx
-
 
     def test_cross_manifest_validation_with_target(
         self, setup_api, helpers: Helpers
@@ -344,13 +340,13 @@ class TestManifestValidation:
         # TODO: Turn this into a class attribute in case we need the Synapse instance
         # in other places.
         import synapseclient
+
         syn = synapseclient.login()
 
         # WHEN any previous files are deleted
         files_to_delete = syn.getChildren("syn63582792")
         for file_to_delete in files_to_delete:
-            syn.delete(file_to_delete['id'])
-
+            syn.delete(file_to_delete["id"])
 
     def test_manifest_validation_with_rule_combination(
         self, setup_api, helpers: Helpers
