@@ -4,9 +4,10 @@ from typing import Callable
 
 import pandas as pd
 import requests
+from flask.testing import FlaskClient
 from synapseclient.client import Synapse
 
-from tests.conftest import Helpers
+from tests.conftest import ConfigurationForTesting, Helpers
 from tests.utils import CleanupItem
 
 logging.basicConfig(level=logging.DEBUG)
@@ -21,6 +22,8 @@ class TestManifestSubmission:
         syn_token: str,
         download_location: str,
         schedule_for_cleanup: Callable[[CleanupItem], None],
+        testing_config: ConfigurationForTesting,
+        flask_client: FlaskClient,
     ) -> None:
         """Test that a record-based manifest can be submitted with the file_only and replace option
 
@@ -30,6 +33,8 @@ class TestManifestSubmission:
             syn_token (str): synapse access token
             download_location (str): path to download location
             schedule_for_cleanup (Callable[[CleanupItem], None]): Returns a closure that takes an item that should be scheduled for cleanup.
+            testing_config (ConfigurationForTesting): Confiugration for testing
+            flask_client (FlaskClient): Local flask client to use instead of API server.
 
         We are validating the following:
         - The submitted manifest has correct file name: synapse_storage_manifest_<data_type>.csv
@@ -37,7 +42,7 @@ class TestManifestSubmission:
         - The submitted manifest has Id column that is not empty
         """
 
-        url = "http://localhost:3001/v1/model/submit"
+        url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
         data_type = "Biospecimen"
         params = {
             "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
@@ -60,16 +65,30 @@ class TestManifestSubmission:
         )
 
         # THEN we expect a successful response
-        response = requests.post(
-            url,
-            headers=headers,
-            params=params,
-            files={"file_name": open(test_manifest_path, "rb")},
+        response = (
+            requests.post(
+                url,
+                headers=headers,
+                params=params,
+                files={"file_name": open(test_manifest_path, "rb")},
+            )
+            if testing_config.use_deployed_schematic_api_server
+            else flask_client.post(
+                url,
+                headers=headers,
+                query_string=params,
+                data={"file_name": open(test_manifest_path, "rb")},
+            )
         )
+
         assert response.status_code == 200
 
         # Get the manifest ID from the response
-        manifest_id = response.json()
+        manifest_id = (
+            response.json()
+            if testing_config.use_deployed_schematic_api_server
+            else response.json
+        )
         # clean up
         schedule_for_cleanup(CleanupItem(manifest_id))
 
@@ -103,6 +122,8 @@ class TestManifestSubmission:
         syn: Synapse,
         download_location: str,
         schedule_for_cleanup: Callable[[CleanupItem], None],
+        testing_config: ConfigurationForTesting,
+        flask_client: FlaskClient,
     ) -> None:
         """Test that a record-based manifest can be submitted with the table and file and replace option
 
@@ -112,6 +133,8 @@ class TestManifestSubmission:
             syn_token (str): synapse access token
             download_location (str): path to download location
             schedule_for_cleanup (Callable[[CleanupItem], None]): Returns a closure that takes an item that should be scheduled for cleanup.
+            testing_config (ConfigurationForTesting): Confiugration for testing
+            flask_client (FlaskClient): Local flask client to use instead of API server.
 
         We are validating the following:
         - The submitted manifest has correct file name: synapse_storage_manifest_<data_type>.csv
@@ -119,7 +142,7 @@ class TestManifestSubmission:
         - The submitted manifest has Id column that is not empty
         - The table gets created in the parent synapse project
         """
-        url = "http://localhost:3001/v1/model/submit"
+        url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
         data_type = "Biospecimen"
         project_id = "syn63561415"
         dataset_id = "syn63561474"
@@ -146,16 +169,30 @@ class TestManifestSubmission:
         )
 
         # THEN we expect a successful response
-        response = requests.post(
-            url,
-            headers=headers,
-            params=params,
-            files={"file_name": open(test_manifest_path, "rb")},
+        response = (
+            requests.post(
+                url,
+                headers=headers,
+                params=params,
+                files={"file_name": open(test_manifest_path, "rb")},
+            )
+            if testing_config.use_deployed_schematic_api_server
+            else flask_client.post(
+                url,
+                headers=headers,
+                query_string=params,
+                data={"file_name": open(test_manifest_path, "rb")},
+            )
         )
+
         assert response.status_code == 200
 
         # Get the manifest ID from the response
-        manifest_id = response.json()
+        manifest_id = (
+            response.json()
+            if testing_config.use_deployed_schematic_api_server
+            else response.json
+        )
         schedule_for_cleanup(CleanupItem(manifest_id))
 
         # Load then manifest from synapse
