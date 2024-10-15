@@ -7,7 +7,7 @@ import os
 import json
 import pytest
 import requests
-from tests.conftest import Helpers
+from tests.conftest import Helpers, testing_config, ConfigurationForTesting
 
 
 EXAMPLE_SCHEMA_URL = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
@@ -16,18 +16,13 @@ HEADERS = {"Authorization": f"Bearer {syn_token}"}
 
 class TestManifestValidation:
     @pytest.fixture(scope="module")
-    def setup_api(self, local=False):
-        if local:
-            api_server = "http://localhost:3001"
-            url = api_server
-        else:
-            api_server = "https://schematic-dev.api.sagebionetworks.org/v1"
-            url = f"{api_server}/ui"
+    def setup_api(testing_config: ConfigurationForTesting) -> str:
+        url = testing_config.schematic_api_server_url
 
         # Make a request to the API and make sure it is responsive
         response = requests.get(url)
         assert response.status_code == 200, f"Failed to connect to API: {response.text}"
-        return api_server
+        return url
 
 
     @pytest.mark.parametrize(
@@ -53,7 +48,7 @@ class TestManifestValidation:
             None
         """
         # GIVEN the manifest validation endpoint and parameters
-        url = f"{setup_api}/model/validate"
+        url = os.path.join(setup_api, "model/validate")
         params = {
             "schema_url": EXAMPLE_SCHEMA_URL,
             "data_type": input_data_type,
@@ -108,7 +103,7 @@ class TestManifestValidation:
             None
         """
         # GIVEN the manifest validation endpoint and parameters
-        url = f"{setup_api}/model/validate"
+        url = os.path.join(setup_api, "model/validate")
         params = {
             "schema_url": EXAMPLE_SCHEMA_URL,
             "data_type": input_data_type,
@@ -165,7 +160,7 @@ class TestManifestValidation:
 
         """
         # GIVEN the manifest validation endpoint and parameters
-        url = f"{setup_api}/model/validate"
+        url = os.path.join(setup_api, "model/validate")
         params = {
             "schema_url": EXAMPLE_SCHEMA_URL,
             "data_type": "MockComponent",
@@ -265,7 +260,7 @@ class TestManifestValidation:
 
         """
         # WHEN a manifest file has been uploaded to the Synapse project
-        submit_url = f"{setup_api}/model/submit"
+        submit_url = os.path.join(setup_api, "model/submit")
         submit_params = {
             "schema_url": EXAMPLE_SCHEMA_URL,
             "data_type": "MockComponent",
@@ -292,7 +287,7 @@ class TestManifestValidation:
             ), f"File submission was unsuccessful. Got {submit_response.status_code}"
 
         # AND the manifest validation endpoint and parameters are given
-        url = f"{setup_api}/model/validate"
+        url = os.path.join(setup_api, "model/validate")
         params = {
             "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
             "data_type": "MockComponent",
@@ -373,7 +368,7 @@ class TestManifestValidation:
 
         """
         # GIVEN the manifest validation endpoint and parameters
-        url = f"{setup_api}/model/validate"
+        url = os.path.join(setup_api, "model/validate")
         params = {
             "schema_url": EXAMPLE_SCHEMA_URL,
             "data_type": "MockComponent",
