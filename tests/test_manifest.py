@@ -213,9 +213,9 @@ class TestManifestGenerator:
 
         # Confirm contents of Filename column
         assert output["Filename"].tolist() == [
-            "schematic - main/TestDataset-Annotations-v3/Sample_A.txt",
-            "schematic - main/TestDataset-Annotations-v3/Sample_B.txt",
-            "schematic - main/TestDataset-Annotations-v3/Sample_C.txt",
+            "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_A.txt",
+            "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_B.txt",
+            "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_C.txt",
         ]
 
         # Test dimensions of data frame
