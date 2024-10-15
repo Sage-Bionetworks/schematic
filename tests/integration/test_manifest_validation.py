@@ -10,19 +10,24 @@ import requests
 from tests.conftest import Helpers, testing_config, ConfigurationForTesting
 
 
-EXAMPLE_SCHEMA_URL = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
-HEADERS = {"Authorization": f"Bearer {syn_token}"}
+SYNAPSE_PAT = os.getenv("SYNAPSE_PAT")
+if not SYNAPSE_PAT:
+    raise EnvironmentError("SYNAPSE_PAT environment variable is not set.")
 
+HEADERS = {"Authorization": f"Bearer {SYNAPSE_PAT}"}
+EXAMPLE_SCHEMA_URL = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
+
+@pytest.fixture(scope="module")
+def setup_api(testing_config: ConfigurationForTesting) -> str:
+    url = testing_config.schematic_api_server_url
+
+    # Make a request to the API and make sure it is responsive
+    response = requests.get(url)
+
+    assert response.status_code == 200, f"Failed to connect to API: {response.text}"
+    return url
 
 class TestManifestValidation:
-    @pytest.fixture(scope="module")
-    def setup_api(testing_config: ConfigurationForTesting) -> str:
-        url = testing_config.schematic_api_server_url
-
-        # Make a request to the API and make sure it is responsive
-        response = requests.get(url)
-        assert response.status_code == 200, f"Failed to connect to API: {response.text}"
-        return url
 
     @pytest.mark.parametrize(
         ("input_data_type", "input_file_name"),
@@ -48,6 +53,7 @@ class TestManifestValidation:
         """
         # GIVEN the manifest validation endpoint and parameters
         url = os.path.join(setup_api, "model/validate")
+        print(url)
         params = {
             "schema_url": EXAMPLE_SCHEMA_URL,
             "data_type": input_data_type,
