@@ -272,6 +272,7 @@ class TestManifestGeneration:
         - The values in "Sheet2" are as expected
 
         Manual verification steps:
+        - Open the Excel file prefixed with TestManifestGeneration_test_single_manifest_generation_google_sheet_with_annotations.xlsx
         - When File Format = "BAM", [Genome Build] is Light Blue (Required)
         - When File Format = "CRAM", [Genome Build, Genome FASTA] is Light Blue (Required)
         - When File Format = "FASTQ", [Genome Build] is White (Optional)
@@ -569,6 +570,7 @@ class TestManifestGeneration:
         - The values in "Sheet2" are as expected
 
         Manual verification steps:
+        - Open the Excel file prefixed with TestManifestGeneration_test_single_manifest_generation_google_sheet_no_annotations.xlsx
         - When File Format = "BAM", [Genome Build] is Light Blue (Required)
         - When File Format = "CRAM", [Genome Build, Genome FASTA] is Light Blue (Required)
         - When File Format = "FASTQ", [Genome Build] is White (Optional)
@@ -809,7 +811,9 @@ class TestManifestGeneration:
         - The second sheet is hidden
         - The values in "Sheet1" are as expected
         - The values in "Sheet2" are as expected
-        Manual verification steps:
+
+        Manual verification steps (Patient Google Sheet):
+        - Open the Excel file prefixed with TestManifestGeneration_test_multiple_blank_google_sheets_patient.xlsx
         - When Diagnosis = "Cancer", [Cancer Type, Family History] are Light Blue (Required)
 
         For the Bulk RNA-seq Assay Google Sheet:
@@ -825,7 +829,8 @@ class TestManifestGeneration:
         - The values in "Sheet1" are as expected
         - The values in "Sheet2" are as expected
 
-        Manual verification steps:
+        Manual verification steps (Bulk RNA-seq Assay Google Sheet):
+        - Open the Excel file prefixed with TestManifestGeneration_test_multiple_blank_google_sheets_rna_seq.xlsx
         - When File Format = "BAM", [Genome Build] is Light Blue (Required)
         - When File Format = "CRAM", [Genome Build, Genome FASTA] is Light Blue (Required)
         - When File Format = "FASTQ", [Genome Build] is White (Optional)
