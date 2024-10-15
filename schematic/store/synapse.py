@@ -569,6 +569,7 @@ class SynapseStorage(BaseStorage):
 
         return all_results
 
+    @tracer.start_as_current_span("SynapseStorage::getStorageProjects")
     def getStorageProjects(self, project_scope: List = None) -> list[tuple[str, str]]:
         """Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
 
