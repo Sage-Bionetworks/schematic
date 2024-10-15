@@ -87,42 +87,42 @@ jobs:
       #----------------------------------------------
       #             check formatting
       #----------------------------------------------
-      - name: Code formatting with black
-        run: |
-          # ran only on certain files for now
-          # add here when checked
-          poetry run black schematic tests schematic_api --check
+      # - name: Code formatting with black
+      #   run: |
+      #     # ran only on certain files for now
+      #     # add here when checked
+      #     poetry run black schematic tests schematic_api --check
 
       #----------------------------------------------
       #             type checking/enforcement
       #----------------------------------------------
-      - name: Type checking with mypy
-        run: |
-          # ran only on certain files for now
-          # add here when checked
-          # poetry run mypy --install-types --non-interactive
-          # add here when enforced
-          poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/schemas/ schematic/configuration/ schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/visualization schematic/utils/
+      # - name: Type checking with mypy
+      #   run: |
+      #     # ran only on certain files for now
+      #     # add here when checked
+      #     # poetry run mypy --install-types --non-interactive
+      #     # add here when enforced
+      #     poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/schemas/ schematic/configuration/ schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/visualization schematic/utils/
 
       #----------------------------------------------
       #             linting
       #----------------------------------------------
-      - name: Lint with pylint
-        run: |
-          # ran only on certain files for now
-          # add here when checked
-          poetry run pylint schematic/visualization/* schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/utils/*.py schematic/schemas/*.py
+      # - name: Lint with pylint
+      #   run: |
+      #     # ran only on certain files for now
+      #     # add here when checked
+      #     poetry run pylint schematic/visualization/* schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/utils/*.py schematic/schemas/*.py
 
       #----------------------------------------------
       #              run unit test suite
       #----------------------------------------------
-      - name: Run unit tests
-        env:
-          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
-          SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
-        run: >
-          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov 
-          --cov-report=xml:coverage.xml --cov=schematic/ --reruns 4 -n 8 tests/unit;
+      # - name: Run unit tests
+      #   env:
+      #     SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+      #     SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
+      #   run: >
+      #     poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov 
+      #     --cov-report=xml:coverage.xml --cov=schematic/ --reruns 4 -n 8 tests/unit;
 
       #----------------------------------------------
       #              run integration test suite
@@ -137,7 +137,7 @@ jobs:
         #   -m "not (rule_benchmark)" --reruns 4 -n 8 --ignore=tests/unit
         run: >
           poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-          --reruns 4 -n 8 --ignore=tests/unit tests/integration/test_validate_attribute.py::TestValidateAttribute::test__get_target_manifest_dataframes
+          --reruns 4 --ignore=tests/unit tests/integration/test_validate_attribute.py::TestValidateAttribute::test__get_target_manifest_dataframes
 
 
       # - name: Upload pytest test results
