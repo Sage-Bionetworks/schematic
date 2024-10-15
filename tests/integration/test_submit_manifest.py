@@ -103,3 +103,10 @@ class TestManifestSubmission:
             synapse_manifest_entity["_file_handle"]["fileName"]
             == "synapse_storage_manifest_bulkrna-seqassay.csv"
         )
+
+        # AND the manifest table is created
+        expected_table_name = "bulkrna-seqassay_synapse_storage_manifest_table"
+        synapse_id = synapse_store.syn.findEntityId(
+            parent="syn23643250", name=expected_table_name
+        )
+        assert synapse_id is not None
