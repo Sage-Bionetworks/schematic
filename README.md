@@ -232,7 +232,7 @@ The instructions below assume you have already installed [python](https://www.py
 
 When contributing to this repository, please first discuss the change you wish to make via the [service desk](https://sagebionetworks.jira.com/servicedesk/customer/portal/5/group/8) so that we may track these changes.
 
-Once you have finished setting up your development environment using the instructions below, please follow the guidelines in the `CONTRIBUTING.md` during your development.
+Once you have finished setting up your development environment using the instructions below, please follow the guidelines in [CONTRIBUTION.md](https://github.com/Sage-Bionetworks/schematic/blob/develop-fds-2218-update-readme/CONTRIBUTION.md) during your development.
 
 Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
 
