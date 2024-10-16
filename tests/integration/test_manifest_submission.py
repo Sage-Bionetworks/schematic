@@ -3,6 +3,7 @@ import os
 from typing import Any, Callable
 
 import pandas as pd
+import pytest
 import requests
 from flask.testing import FlaskClient
 from synapseclient.client import Synapse
@@ -87,6 +88,7 @@ class TestManifestSubmission:
         assert synapse_id is not None
         schedule_for_cleanup(CleanupItem(synapse_id))
 
+    @pytest.mark.local_or_remote_api
     def test_submit_record_based_test_manifest_file_only(
         self,
         helpers: Helpers,
@@ -162,6 +164,7 @@ class TestManifestSubmission:
             schedule_for_cleanup=schedule_for_cleanup,
         )
 
+    @pytest.mark.local_or_remote_api
     def test_submit_record_based_test_manifest_table_and_file(
         self,
         helpers: Helpers,
@@ -306,6 +309,7 @@ class TestManifestSubmission:
             schedule_for_cleanup=schedule_for_cleanup,
         )
 
+    @pytest.mark.local_or_remote_api
     def test_submit_file_based_test_manifest_table_and_file(
         self,
         helpers: Helpers,

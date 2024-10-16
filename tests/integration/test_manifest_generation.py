@@ -22,6 +22,7 @@ WHITE = "00000000"  # Optional cell
 
 class TestManifestGeneration:
     @pytest.mark.manual_verification_required
+    @pytest.mark.local_or_remote_api
     def test_single_manifest_generation_excel(
         self,
         testing_config: ConfigurationForTesting,
@@ -249,6 +250,7 @@ class TestManifestGeneration:
             )
 
     @pytest.mark.manual_verification_required
+    @pytest.mark.local_or_remote_api
     def test_single_manifest_generation_google_sheet_with_annotations(
         self,
         testing_config: ConfigurationForTesting,
@@ -547,6 +549,7 @@ class TestManifestGeneration:
             )
 
     @pytest.mark.manual_verification_required
+    @pytest.mark.local_or_remote_api
     def test_single_manifest_generation_google_sheet_no_annotations(
         self,
         testing_config: ConfigurationForTesting,
@@ -786,6 +789,7 @@ class TestManifestGeneration:
             )
 
     @pytest.mark.manual_verification_required
+    @pytest.mark.local_or_remote_api
     def test_manifest_generation_multiple_blank_google_sheets(
         self,
         testing_config: ConfigurationForTesting,
