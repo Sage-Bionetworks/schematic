@@ -43,12 +43,13 @@ For new features, bugs, enhancements:
 * After feature work is complete and before creating a PR to the develop branch in upstream
     a. ensure that code runs locally
     b. test for logical correctness locally
+    c. run `pre-commit` to style code if the hook is not installed
     c. wait for git workflow to complete (e.g. tests are run) on github
 
 #### 4. Pull Request and Review
 * Create a PR from `develop-<feature/fix-name>` into the develop branch of the upstream repo
 * Request a code review on the PR
-* Once code is approved merge in the develop branch. We recommend squashing your commits for a cleaner commit history.
+* Once code is approved merge in the develop branch. We suggest creating a merge commit for a cleaner commit history on the `develop` branch.
 * Once the actions pass on the main branch, delete the `develop-<feature/fix-name>` branch
 
 ### Updating readthedocs documentation
@@ -112,7 +113,7 @@ poetry publish  # publish the package to PyPI
 
 * All new code must include tests.
 
-* Tests are written using pytest and are located in the tests/ subdirectory.
+* Tests are written using pytest and are located in the [tests/](https://github.com/Sage-Bionetworks/schematic/tree/develop/tests) subdirectory.
 
 * Run tests with:
 ```
