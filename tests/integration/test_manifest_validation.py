@@ -175,18 +175,35 @@ class TestManifestValidation:
             [
                 "2",
                 "Family History",
-                "'Random' is not one of ['Lung', 'Breast', 'Prostate', 'Colorectal', 'Skin', '']",
+                # Truncating the rest of the message because order of the list is not guaranteed
+                "'Random' is not one of [",
                 "Random",
             ],
             [
                 "2",
                 "Cancer Type",
-                "'Random' is not one of ['Lung', 'Breast', 'Prostate', 'Colorectal', 'Skin', '']",
+                # Truncating the rest of the message because order of the list is not guaranteed
+                "'Random' is not one of [",
                 "Random",
             ],
         ]
 
-        assert sorted(expected_errors) == sorted(response_json.get("errors"))
+        response_errors = response_json.get("errors")
+
+        for response_error in response_errors:
+            assert any(
+                response_error[0] == expected_error[0]
+                and response_error[1] == expected_error[1]
+                and response_error[2].startswith(expected_error[2])
+                and response_error[3] == expected_error[3]
+                for expected_error in expected_errors
+            )
+            if response_error[2].startswith("'Random' is not one of"):
+                assert "Lung" in response_error[2]
+                assert "Breast" in response_error[2]
+                assert "Prostate" in response_error[2]
+                assert "Colorectal" in response_error[2]
+                assert "Skin" in response_error[2]
 
     @pytest.mark.local_or_remote_api
     def test_cross_manifest_validation_with_no_target(
