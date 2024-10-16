@@ -1,6 +1,8 @@
 import logging
 import os
-from typing import Any, Callable
+import tempfile
+import uuid
+from typing import Any, Callable, Dict
 
 import pandas as pd
 import pytest
@@ -8,11 +10,20 @@ import requests
 from flask.testing import FlaskClient
 from synapseclient.client import Synapse
 
+from schematic.store.synapse import SynapseStorage
 from tests.conftest import ConfigurationForTesting, Helpers
 from tests.utils import CleanupItem
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+DATA_MODEL_JSON_LD = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
+
+
+@pytest.fixture
+def request_headers(syn_token: str) -> Dict[str, str]:
+    headers = {"Authorization": "Bearer " + syn_token}
+    return headers
 
 
 class TestManifestSubmission:
@@ -72,7 +83,6 @@ class TestManifestSubmission:
         syn: Synapse,
         project_id: str,
         data_type: str,
-        schedule_for_cleanup: Callable[[CleanupItem], None],
     ) -> None:
         """
         Validates the manifest table by checking if it was created in the parent project.
@@ -81,12 +91,10 @@ class TestManifestSubmission:
             syn (Synapse): An instance of the Synapse client.
             project_id (str): The project ID where the table should be created.
             data_type (str): The data type used in manifest.
-            schedule_for_cleanup (Callable[[CleanupItem], None]): Returns a closure that takes an item that should be scheduled for cleanup.
         """
         expected_table_name = f"{data_type}_synapse_storage_manifest_table".lower()
         synapse_id = syn.findEntityId(parent=project_id, name=expected_table_name)
         assert synapse_id is not None
-        schedule_for_cleanup(CleanupItem(synapse_id))
 
     @pytest.mark.local_or_remote_api
     def test_submit_record_based_test_manifest_file_only(
@@ -94,10 +102,10 @@ class TestManifestSubmission:
         helpers: Helpers,
         download_location: str,
         syn: Synapse,
-        syn_token: str,
         schedule_for_cleanup: Callable[[CleanupItem], None],
         testing_config: ConfigurationForTesting,
         flask_client: FlaskClient,
+        request_headers: Dict[str, str],
     ) -> None:
         """Test that a record-based manifest can be submitted with the file_only and replace option
 
@@ -109,6 +117,7 @@ class TestManifestSubmission:
             schedule_for_cleanup (Callable[[CleanupItem], None]): Returns a closure that takes an item that should be scheduled for cleanup.
             testing_config (ConfigurationForTesting): Confiugration for testing
             flask_client (FlaskClient): Local flask client to use instead of API server.
+            request_headers (Dict[str, str]): Headers to use for the request
 
         We are validating the following:
         - The submitted manifest has correct file name: synapse_storage_manifest_<data_type>.csv
@@ -133,7 +142,6 @@ class TestManifestSubmission:
             "file_annotations_upload": "false",
         }
 
-        headers = {"Authorization": f"Bearer {syn_token}"}
         test_manifest_path = helpers.get_data_path(
             "mock_manifests/mock_example_biospecimen_manifest.csv"
         )
@@ -142,14 +150,15 @@ class TestManifestSubmission:
         response = (
             requests.post(
                 url,
-                headers=headers,
+                headers=request_headers,
                 params=params,
                 files={"file_name": open(test_manifest_path, "rb")},
+                timeout=300,
             )
             if testing_config.use_deployed_schematic_api_server
             else flask_client.post(
                 url,
-                headers=headers,
+                headers=request_headers,
                 query_string=params,
                 data={"file_name": open(test_manifest_path, "rb")},
             )
@@ -174,6 +183,7 @@ class TestManifestSubmission:
         schedule_for_cleanup: Callable[[CleanupItem], None],
         testing_config: ConfigurationForTesting,
         flask_client: FlaskClient,
+        request_headers: Dict[str, str],
     ) -> None:
         """Test that a record-based manifest can be submitted with the table and file and replace option
 
@@ -185,6 +195,7 @@ class TestManifestSubmission:
             schedule_for_cleanup (Callable[[CleanupItem], None]): Returns a closure that takes an item that should be scheduled for cleanup.
             testing_config (ConfigurationForTesting): Confiugration for testing
             flask_client (FlaskClient): Local flask client to use instead of API server.
+            request_headers (Dict[str, str]): Headers to use for the request
 
         We are validating the following:
         - The submitted manifest has correct file name: synapse_storage_manifest_<data_type>.csv
@@ -212,7 +223,6 @@ class TestManifestSubmission:
             "file_annotations_upload": "false",
         }
 
-        headers = {"Authorization": f"Bearer {syn_token}"}
         test_manifest_path = helpers.get_data_path(
             "mock_manifests/mock_example_biospecimen_manifest.csv"
         )
@@ -221,14 +231,15 @@ class TestManifestSubmission:
         response = (
             requests.post(
                 url,
-                headers=headers,
+                headers=request_headers,
                 params=params,
                 files={"file_name": open(test_manifest_path, "rb")},
+                timeout=300,
             )
             if testing_config.use_deployed_schematic_api_server
             else flask_client.post(
                 url,
-                headers=headers,
+                headers=request_headers,
                 query_string=params,
                 data={"file_name": open(test_manifest_path, "rb")},
             )
@@ -246,32 +257,33 @@ class TestManifestSubmission:
             syn=syn,
             project_id=project_id,
             data_type=data_type,
-            schedule_for_cleanup=schedule_for_cleanup,
         )
 
     def test_submit_file_based_test_manifest_file_only(
         self,
         helpers: Helpers,
-        syn_token: str,
         download_location: str,
         schedule_for_cleanup: Callable[[CleanupItem], None],
+        testing_config: ConfigurationForTesting,
         syn: Synapse,
+        request_headers: Dict[str, str],
     ) -> None:
         """Test that a file-based manifest can be submitted with the file_only and replace option
 
         Args:
-            helpers (Helpers): a pytest fixture
-            syn_token (str): synapse access token
-            syn (Synapse): synapse client
+            helpers (Helpers): Utilities for testing
             download_location (str): path to download location
             schedule_for_cleanup (Callable[[CleanupItem], None]): Returns a closure that takes an item that should be scheduled for cleanup.
+            testing_config (ConfigurationForTesting): Confiugration for testing
+            syn (Synapse): synapse client
+            request_headers (Dict[str, str]): Headers to use for the request
 
         We are validating the following:
         - The submitted manifest has correct file name: synapse_storage_manifest_<data_type>.csv
         - The submitted manifest has column entityId and Id
         - The submitted manifest has Id column that is not empty
         """
-        url = "http://localhost:3001/v1/model/submit"
+        url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
         data_type = "BulkRNA-seqAssay"
         params = {
             "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
@@ -288,7 +300,6 @@ class TestManifestSubmission:
             "file_annotations_upload": "false",
         }
 
-        headers = {"Authorization": f"Bearer {syn_token}"}
         test_manifest_path = helpers.get_data_path(
             "mock_manifests/mock_example_bulkrnaseq_manifest.csv"
         )
@@ -296,9 +307,10 @@ class TestManifestSubmission:
         # THEN we expect a successful response
         response = requests.post(
             url,
-            headers=headers,
+            headers=request_headers,
             params=params,
             files={"file_name": open(test_manifest_path, "rb")},
+            timeout=300,
         )
         assert response.status_code == 200
         self.validate_submitted_manifest_file(
@@ -313,12 +325,12 @@ class TestManifestSubmission:
     def test_submit_file_based_test_manifest_table_and_file(
         self,
         helpers: Helpers,
-        syn_token: str,
         syn: Synapse,
         download_location: str,
         schedule_for_cleanup: Callable[[CleanupItem], None],
         testing_config: ConfigurationForTesting,
         flask_client: FlaskClient,
+        request_headers: Dict[str, str],
     ) -> None:
         """Test that a file-based manifest can be submitted with the table and file and replace option
 
@@ -330,6 +342,7 @@ class TestManifestSubmission:
             schedule_for_cleanup (Callable[[CleanupItem], None]): Returns a closure that takes an item that should be scheduled for cleanup.
             testing_config (ConfigurationForTesting): Confiugration for testing
             flask_client (FlaskClient): Local flask client to use instead of API server.
+            request_headers (Dict[str, str]): Headers to use for the request
 
         We are validating the following:
         - The submitted manifest has correct file name: synapse_storage_manifest_<data_type>.csv
@@ -357,7 +370,6 @@ class TestManifestSubmission:
             "file_annotations_upload": "false",
         }
 
-        headers = {"Authorization": f"Bearer {syn_token}"}
         test_manifest_path = helpers.get_data_path(
             "mock_manifests/mock_example_bulkrnaseq_manifest.csv"
         )
@@ -366,14 +378,15 @@ class TestManifestSubmission:
         response = (
             requests.post(
                 url,
-                headers=headers,
+                headers=request_headers,
                 params=params,
                 files={"file_name": open(test_manifest_path, "rb")},
+                timeout=300,
             )
             if testing_config.use_deployed_schematic_api_server
             else flask_client.post(
                 url,
-                headers=headers,
+                headers=request_headers,
                 query_string=params,
                 data={"file_name": open(test_manifest_path, "rb")},
             )
@@ -391,5 +404,477 @@ class TestManifestSubmission:
             syn=syn,
             project_id=project_id,
             data_type=data_type,
-            schedule_for_cleanup=schedule_for_cleanup,
+        )
+
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    @pytest.mark.local_or_remote_api
+    def test_submit_nested_manifest_table_and_file_replace(
+        self,
+        flask_client: FlaskClient,
+        request_headers: Dict[str, str],
+        helpers: Helpers,
+        synapse_store: SynapseStorage,
+        testing_config: ConfigurationForTesting,
+    ) -> None:
+        # GIVEN the parameters to submit a manifest
+        data_type = "BulkRNA-seqAssay"
+        project_id = "syn23643250"
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "data_type": data_type,
+            "restrict_rules": False,
+            "manifest_record_type": "table_and_file",
+            "asset_view": "syn63646213",
+            "dataset_id": "syn63646197",
+            "table_manipulation": "replace",
+            "data_model_labels": "class_label",
+            "table_column_names": "display_name",
+        }
+
+        # AND a test manifest with a nested file entity
+        nested_manifest_replace_csv = helpers.get_data_path(
+            "mock_manifests/TestManifestOperation_test_submit_nested_manifest_table_and_file_replace.csv"
+        )
+
+        # AND a randomized annotation we can verify was added
+        df = helpers.get_data_frame(path=nested_manifest_replace_csv)
+        randomized_annotation_content = str(uuid.uuid4())
+        df["RandomizedAnnotation"] = randomized_annotation_content
+
+        with tempfile.NamedTemporaryFile(delete=True, suffix=".csv") as tmp_file:
+            # Write the DF to a temporary file
+            df.to_csv(tmp_file.name, index=False)
+
+            # WHEN I submit that manifest
+            url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
+            response_csv = (
+                requests.post(
+                    url,
+                    headers=request_headers,
+                    params=params,
+                    files={"file_name": open(tmp_file.name, "rb")},
+                    timeout=300,
+                )
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.post(
+                    url,
+                    headers=request_headers,
+                    query_string=params,
+                    data={"file_name": open(tmp_file.name, "rb")},
+                )
+            )
+
+        # THEN the submission should be successful
+        assert response_csv.status_code == 200
+
+        # AND the file should be uploaded to Synapse with the new annotation
+        modified_file = synapse_store.syn.get(df["entityId"][0], downloadFile=False)
+        assert modified_file is not None
+        assert modified_file["RandomizedAnnotation"][0] == randomized_annotation_content
+
+        # AND the manifest should exist in the dataset folder
+        manifest_synapse_id = synapse_store.syn.findEntityId(
+            name="synapse_storage_manifest_bulkrna-seqassay.csv", parent="syn63646197"
+        )
+        assert manifest_synapse_id is not None
+        synapse_manifest_entity = synapse_store.syn.get(
+            entity=manifest_synapse_id, downloadFile=False
+        )
+        assert synapse_manifest_entity is not None
+        assert (
+            synapse_manifest_entity["_file_handle"]["fileName"]
+            == "synapse_storage_manifest_bulkrna-seqassay.csv"
+        )
+
+        # AND the manifest table is created
+        self.validate_submitted_manifest_table(
+            syn=synapse_store.syn,
+            project_id=project_id,
+            data_type=data_type,
+        )
+
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    @pytest.mark.local_or_remote_api
+    def test_submit_manifest_table_and_file_replace(
+        self,
+        flask_client: FlaskClient,
+        request_headers: Dict[str, str],
+        helpers: Helpers,
+        syn: Synapse,
+        testing_config: ConfigurationForTesting,
+    ) -> None:
+        """Testing submit manifest in a csv format as a table and a file. Only replace the table"""
+        # GIVEN the parameters to submit a manifest
+        data_type = "Biospecimen"
+        project_id = "syn23643250"
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "data_type": data_type,
+            "restrict_rules": False,
+            "hide_blanks": False,
+            "manifest_record_type": "table_and_file",
+            "asset_view": "syn51514344",
+            "dataset_id": "syn51514345",
+            "table_manipulation": "replace",
+            "data_model_labels": "class_label",
+            "table_column_names": "class_label",
+        }
+
+        # AND a test manifest
+        test_manifest_submit = helpers.get_data_path(
+            "mock_manifests/example_biospecimen_test.csv"
+        )
+
+        # WHEN I submit that manifest
+        url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
+        response_csv = (
+            requests.post(
+                url,
+                headers=request_headers,
+                params=params,
+                files={"file_name": open(test_manifest_submit, "rb")},
+                timeout=300,
+            )
+            if testing_config.use_deployed_schematic_api_server
+            else flask_client.post(
+                url,
+                query_string=params,
+                data={"file_name": (open(test_manifest_submit, "rb"), "test.csv")},
+                headers=request_headers,
+            )
+        )
+
+        # THEN the submission should be successful
+        assert response_csv.status_code == 200
+        self.validate_submitted_manifest_table(
+            syn=syn,
+            project_id=project_id,
+            data_type=data_type,
+        )
+
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    @pytest.mark.local_or_remote_api
+    @pytest.mark.parametrize(
+        "data_type",
+        [
+            ("Biospecimen"),
+            ("MockComponent"),
+        ],
+    )
+    def test_submit_manifest_file_only_replace(
+        self,
+        helpers: Helpers,
+        flask_client: FlaskClient,
+        request_headers: Dict[str, str],
+        data_type: str,
+        syn: Synapse,
+        testing_config: ConfigurationForTesting,
+    ) -> None:
+        """Testing submit manifest in a csv format as a file"""
+        # GIVEN a test manifest
+        if data_type == "Biospecimen":
+            manifest_path = helpers.get_data_path(
+                "mock_manifests/example_biospecimen_test.csv"
+            )
+        elif data_type == "MockComponent":
+            manifest_path = helpers.get_data_path(
+                "mock_manifests/Valid_Test_Manifest.csv"
+            )
+
+        # AND the parameters to submit a manifest
+        project_id = "syn23643250"
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "data_type": data_type,
+            "restrict_rules": False,
+            "manifest_record_type": "file_only",
+            "table_manipulation": "replace",
+            "data_model_labels": "class_label",
+            "table_column_names": "class_label",
+        }
+
+        if data_type == "Biospecimen":
+            specific_params = {
+                "asset_view": "syn51514344",
+                "dataset_id": "syn51514345",
+            }
+
+        elif data_type == "MockComponent":
+            python_version = helpers.get_python_version()
+
+            if python_version == "3.10":
+                dataset_id = "syn52656106"
+            elif python_version == "3.9":
+                dataset_id = "syn52656104"
+
+            specific_params = {
+                "asset_view": "syn23643253",
+                "dataset_id": dataset_id,
+                "project_scope": ["syn54126707"],
+            }
+
+        params.update(specific_params)
+
+        # WHEN I submit that manifest
+        url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
+        response_csv = (
+            requests.post(
+                url,
+                headers=request_headers,
+                params=params,
+                files={"file_name": open(manifest_path, "rb")},
+                timeout=300,
+            )
+            if testing_config.use_deployed_schematic_api_server
+            else flask_client.post(
+                url,
+                query_string=params,
+                data={"file_name": (open(manifest_path, "rb"), "test.csv")},
+                headers=request_headers,
+            )
+        )
+
+        # THEN the submission should be successful
+        assert response_csv.status_code == 200
+        self.validate_submitted_manifest_table(
+            syn=syn,
+            project_id=project_id,
+            data_type=data_type,
+        )
+
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    @pytest.mark.local_or_remote_api
+    def test_submit_manifest_json_str_replace(
+        self,
+        flask_client: FlaskClient,
+        request_headers: Dict[str, str],
+        syn: Synapse,
+        testing_config: ConfigurationForTesting,
+    ) -> None:
+        """Submit json str as a file"""
+        # GIVEN a test json str
+        json_str = '[{"Sample ID": 123, "Patient ID": 1,"Tissue Status": "Healthy","Component": "Biospecimen"}]'
+
+        # AND the parameters to submit a manifest
+        project_id = "syn23643250"
+        data_type = "Biospecimen"
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "data_type": data_type,
+            "json_str": json_str,
+            "restrict_rules": False,
+            "manifest_record_type": "file_only",
+            "asset_view": "syn51514344",
+            "dataset_id": "syn51514345",
+            "table_manipulation": "replace",
+            "data_model_labels": "class_label",
+            "table_column_names": "class_label",
+        }
+        params["json_str"] = json_str
+
+        # WHEN I submit that manifest
+        url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
+        response = (
+            requests.post(
+                url,
+                headers=request_headers,
+                params=params,
+                files={"file_name": ""},
+                timeout=300,
+            )
+            if testing_config.use_deployed_schematic_api_server
+            else flask_client.post(
+                url,
+                query_string=params,
+                data={"file_name": ""},
+                headers=request_headers,
+            )
+        )
+
+        # THEN the submission should be successful
+        assert response.status_code == 200
+        self.validate_submitted_manifest_table(
+            syn=syn,
+            project_id=project_id,
+            data_type=data_type,
+        )
+
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    @pytest.mark.local_or_remote_api
+    def test_submit_manifest_w_file_and_entities(
+        self,
+        flask_client: FlaskClient,
+        request_headers: Dict[str, str],
+        helpers: Helpers,
+        syn: Synapse,
+        testing_config: ConfigurationForTesting,
+    ) -> None:
+        # GIVEN the parameters to submit a manifest
+        project_id = "syn23643250"
+        data_type = "Biospecimen"
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "data_type": data_type,
+            "restrict_rules": False,
+            "manifest_record_type": "file_and_entities",
+            "asset_view": "syn51514501",
+            "dataset_id": "syn51514523",
+            "table_manipulation": "replace",
+            "data_model_labels": "class_label",
+            "table_column_names": "class_label",
+            "annotation_keys": "class_label",
+        }
+        test_manifest_submit = helpers.get_data_path(
+            "mock_manifests/example_biospecimen_test.csv"
+        )
+
+        # WHEN I submit that manifest
+        url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
+        response_csv = (
+            requests.post(
+                url,
+                headers=request_headers,
+                params=params,
+                files={"file_name": open(test_manifest_submit, "rb")},
+                timeout=300,
+            )
+            if testing_config.use_deployed_schematic_api_server
+            else flask_client.post(
+                url,
+                query_string=params,
+                data={"file_name": (open(test_manifest_submit, "rb"), "test.csv")},
+                headers=request_headers,
+            )
+        )
+
+        # THEN the submission should be successful
+        assert response_csv.status_code == 200
+        self.validate_submitted_manifest_table(
+            syn=syn,
+            project_id=project_id,
+            data_type=data_type,
+        )
+
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    @pytest.mark.local_or_remote_api
+    def test_submit_manifest_table_and_file_upsert(
+        self,
+        flask_client: FlaskClient,
+        request_headers: Dict[str, str],
+        helpers: Helpers,
+        syn: Synapse,
+        testing_config: ConfigurationForTesting,
+    ) -> None:
+        # GIVEN the parameters to submit a manifest
+        project_id = "syn23643250"
+        data_type = "MockRDB"
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "data_type": data_type,
+            "restrict_rules": False,
+            "manifest_record_type": "table_and_file",
+            "asset_view": "syn51514557",
+            "dataset_id": "syn51514551",
+            "table_manipulation": "upsert",
+            "data_model_labels": "class_label",
+            # have to set table_column_names to display_name to ensure upsert feature works
+            "table_column_names": "display_name",
+        }
+
+        # AND a test manifest
+        test_upsert_manifest_csv = helpers.get_data_path(
+            "mock_manifests/rdb_table_manifest.csv"
+        )
+
+        # WHEN I submit that manifest
+        url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
+        response_csv = (
+            requests.post(
+                url,
+                headers=request_headers,
+                params=params,
+                files={"file_name": open(test_upsert_manifest_csv, "rb")},
+                timeout=300,
+            )
+            if testing_config.use_deployed_schematic_api_server
+            else flask_client.post(
+                url,
+                query_string=params,
+                data={"file_name": (open(test_upsert_manifest_csv, "rb"), "test.csv")},
+                headers=request_headers,
+            )
+        )
+
+        # THEN the submission should be successful
+        assert response_csv.status_code == 200
+        self.validate_submitted_manifest_table(
+            syn=syn,
+            project_id=project_id,
+            data_type=data_type,
+        )
+
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    @pytest.mark.local_or_remote_api
+    def test_submit_and_validate_filebased_manifest(
+        self,
+        flask_client: FlaskClient,
+        request_headers: Dict[str, str],
+        helpers: Helpers,
+        syn: Synapse,
+        testing_config: ConfigurationForTesting,
+    ) -> None:
+        # GIVEN the parameters to submit a manifest
+        project_id = "syn23643250"
+        data_type = "MockFilename"
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "data_type": data_type,
+            "restrict_rules": False,
+            "manifest_record_type": "file_and_entities",
+            "asset_view": "syn23643253",
+            "dataset_id": "syn62822337",
+            "project_scope": "syn23643250",
+            "dataset_scope": "syn62822337",
+            "data_model_labels": "class_label",
+            "table_column_names": "class_label",
+        }
+
+        valid_filename_manifest_csv = helpers.get_data_path(
+            "mock_manifests/ValidFilenameManifest.csv"
+        )
+
+        # WHEN a filebased manifest is validated with the filenameExists rule and uploaded
+        url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
+        response_csv = (
+            requests.post(
+                url,
+                headers=request_headers,
+                params=params,
+                files={"file_name": open(valid_filename_manifest_csv, "rb")},
+                timeout=300,
+            )
+            if testing_config.use_deployed_schematic_api_server
+            else flask_client.post(
+                url,
+                query_string=params,
+                data={
+                    "file_name": (open(valid_filename_manifest_csv, "rb"), "test.csv")
+                },
+                headers=request_headers,
+            )
+        )
+
+        # THEN the validation and submission should be successful
+        assert response_csv.status_code == 200
+        self.validate_submitted_manifest_table(
+            syn=syn,
+            project_id=project_id,
+            data_type=data_type,
         )
