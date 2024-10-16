@@ -44,14 +44,6 @@
   - [Running `schematic` to Validate Manifests](#running-schematic-to-validate-manifests)
     - [Example for macOS/Linux](#example-for-macoslinux)
     - [Example for Windows](#example-for-windows)
-- [Contribution Guidelines](#contribution-guidelines)
-  - [Development process instruction](#development-process-instruction)
-  - [Updating readthedocs documentation](#updating-readthedocs-documentation)
-  - [Update toml file and lock file](#update-toml-file-and-lock-file)
-- [Testing](#testing)
-  - [Updating Synapse test resources](#updating-synapse-test-resources)
-- [Code style](#code-style)
-- [Reporting bugs or feature requests](#reporting-bugs-or-feature-requests)
 - [Contributors](#contributors)
 
 
