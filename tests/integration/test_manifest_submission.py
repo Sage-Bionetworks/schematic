@@ -22,6 +22,7 @@ DATA_MODEL_JSON_LD = "https://raw.githubusercontent.com/Sage-Bionetworks/schemat
 
 @pytest.fixture
 def request_headers(syn_token: str) -> Dict[str, str]:
+    """Simple bearer token header for requests"""
     headers = {"Authorization": "Bearer " + syn_token}
     return headers
 
