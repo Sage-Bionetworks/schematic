@@ -174,8 +174,6 @@ class ConfigurationForTesting:
             integration test.
         schematic_api_server_url (str): The URL of the schematic API server. Defaults to
             http://localhost:3001.
-        local_flask_instance (bool): TEMPORARY: Whether the Flask instance is running
-            locally. This is temporary per dicsussion here: https://github.com/Sage-Bionetworks/schematic/pull/1512#discussion_r1799924847
 
     """
 
@@ -183,7 +181,6 @@ class ConfigurationForTesting:
     manual_test_verification_path: str
     use_deployed_schematic_api_server: bool
     schematic_api_server_url: str
-    local_flask_instance: bool
 
 
 @pytest.fixture(scope="session")
@@ -197,9 +194,6 @@ def testing_config(config: Configuration) -> ConfigurationForTesting:
     )
     schematic_api_server_url = os.environ.get(
         "SCHEMATIC_API_SERVER_URL", "http://localhost:3001"
-    )
-    local_flask_instance = not use_deployed_schematic_api_server or (
-        use_deployed_schematic_api_server and "localhost" in schematic_api_server_url
     )
 
     if manual_test_verification_enabled:
@@ -215,7 +209,6 @@ def testing_config(config: Configuration) -> ConfigurationForTesting:
         manual_test_verification_path=manual_test_verification_path,
         use_deployed_schematic_api_server=use_deployed_schematic_api_server,
         schematic_api_server_url=schematic_api_server_url,
-        local_flask_instance=local_flask_instance,
     )
 
 
