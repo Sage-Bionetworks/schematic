@@ -58,8 +58,8 @@ For new features, bugs, enhancements:
 
 *Helpful resources*:
 
-1. [Getting started with Sphinx](https://haha.readthedocs.io/en/latest/intro/getting-started-with-sphinx.html)
-2. [Installing Sphinx](https://haha.readthedocs.io/en/latest/intro/getting-started-with-sphinx.html)
+1. [Getting started with Sphinx](https://www.sphinx-doc.org/en/master/usage/quickstart.html)
+2. [Installing Sphinx](https://www.sphinx-doc.org/en/master/usage/installation.html)
 
 ### Update toml file and lock file
 If you install external libraries by using `poetry add <name of library>`, please make sure that you include `pyproject.toml` and `poetry.lock` file in your commit.
