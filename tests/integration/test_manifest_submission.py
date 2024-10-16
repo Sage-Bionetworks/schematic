@@ -128,7 +128,7 @@ class TestManifestSubmission:
         url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
         data_type = "Biospecimen"
         params = {
-            "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
+            "schema_url": DATA_MODEL_JSON_LD,
             "data_model_labels": "class_label",
             "data_type": data_type,
             "dataset_id": "syn63561474",
@@ -177,7 +177,6 @@ class TestManifestSubmission:
     def test_submit_record_based_test_manifest_table_and_file(
         self,
         helpers: Helpers,
-        syn_token: str,
         syn: Synapse,
         download_location: str,
         schedule_for_cleanup: Callable[[CleanupItem], None],
@@ -210,7 +209,7 @@ class TestManifestSubmission:
         asset_view = "syn63561606"
 
         params = {
-            "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
+            "schema_url": DATA_MODEL_JSON_LD,
             "data_model_labels": "class_label",
             "data_type": data_type,
             "dataset_id": dataset_id,
@@ -286,7 +285,7 @@ class TestManifestSubmission:
         url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
         data_type = "BulkRNA-seqAssay"
         params = {
-            "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
+            "schema_url": DATA_MODEL_JSON_LD,
             "data_model_labels": "class_label",
             "data_type": data_type,
             "dataset_id": "syn63561911",
@@ -357,7 +356,7 @@ class TestManifestSubmission:
         asset_view = "syn63561920"
 
         params = {
-            "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
+            "schema_url": DATA_MODEL_JSON_LD,
             "data_model_labels": "class_label",
             "data_type": data_type,
             "dataset_id": dataset_id,
@@ -417,6 +416,16 @@ class TestManifestSubmission:
         synapse_store: SynapseStorage,
         testing_config: ConfigurationForTesting,
     ) -> None:
+        """
+        Testing submit manifest in a csv format as a table and a file.
+
+        We are validating the following:
+        - The submission should be successful
+        - The file should be uploaded to Synapse with the new annotation
+        - The manifest should exist in the dataset folder
+        - The manifest table is created
+        - Submission works for a nested manifest
+        """
         # GIVEN the parameters to submit a manifest
         data_type = "BulkRNA-seqAssay"
         project_id = "syn23643250"
@@ -505,7 +514,13 @@ class TestManifestSubmission:
         syn: Synapse,
         testing_config: ConfigurationForTesting,
     ) -> None:
-        """Testing submit manifest in a csv format as a table and a file. Only replace the table"""
+        """Testing submit manifest in a csv format as a table and a file. Only replace
+        the table.
+
+        We are validating the following:
+        - The submission should be successful
+        - The manifest table is created
+        """
         # GIVEN the parameters to submit a manifest
         data_type = "Biospecimen"
         project_id = "syn23643250"
@@ -573,7 +588,12 @@ class TestManifestSubmission:
         syn: Synapse,
         testing_config: ConfigurationForTesting,
     ) -> None:
-        """Testing submit manifest in a csv format as a file"""
+        """Testing submit manifest in a csv format as a file.
+
+        We are validating the following:
+        - The submission should be successful
+        - The manifest table is created
+        """
         # GIVEN a test manifest
         if data_type == "Biospecimen":
             manifest_path = helpers.get_data_path(
@@ -655,7 +675,13 @@ class TestManifestSubmission:
         syn: Synapse,
         testing_config: ConfigurationForTesting,
     ) -> None:
-        """Submit json str as a file"""
+        """Submit json str as a file.
+
+
+        We are validating the following:
+        - The submission should be successful
+        - The manifest table is created
+        """
         # GIVEN a test json str
         json_str = '[{"Sample ID": 123, "Patient ID": 1,"Tissue Status": "Healthy","Component": "Biospecimen"}]'
 
@@ -714,6 +740,13 @@ class TestManifestSubmission:
         syn: Synapse,
         testing_config: ConfigurationForTesting,
     ) -> None:
+        """Testing submit manifest in a csv format as a file and entities.
+
+
+        We are validating the following:
+        - The submission should be successful
+        - The manifest table is created
+        """
         # GIVEN the parameters to submit a manifest
         project_id = "syn23643250"
         data_type = "Biospecimen"
@@ -771,6 +804,14 @@ class TestManifestSubmission:
         syn: Synapse,
         testing_config: ConfigurationForTesting,
     ) -> None:
+        """Testing submit manifest in a csv format as a table and a file. Upsert
+        the table.
+
+
+        We are validating the following:
+        - The submission should be successful
+        - The manifest table is created
+        """
         # GIVEN the parameters to submit a manifest
         project_id = "syn23643250"
         data_type = "MockRDB"
@@ -830,6 +871,13 @@ class TestManifestSubmission:
         syn: Synapse,
         testing_config: ConfigurationForTesting,
     ) -> None:
+        """Testing submit manifest in a csv format as a file.
+
+
+        We are validating the following:
+        - The submission should be successful
+        - The manifest table is created
+        """
         # GIVEN the parameters to submit a manifest
         project_id = "syn23643250"
         data_type = "MockFilename"
@@ -878,3 +926,164 @@ class TestManifestSubmission:
             project_id=project_id,
             data_type=data_type,
         )
+
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    @pytest.mark.local_or_remote_api
+    def test_submit_manifest_with_hide_blanks(
+        self,
+        flask_client: FlaskClient,
+        request_headers: Dict[str, str],
+        helpers: Helpers,
+        syn: Synapse,
+        testing_config: ConfigurationForTesting,
+    ) -> None:
+        """Testing submit manifest in a csv format as a table and a file. Hide blanks.
+
+
+        We are validating the following:
+        - The submission should be successful
+        - A randomized annotation should be added to the file
+        - The blank annotations are not present
+        """
+        # GIVEN the parameters to submit a manifest
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "data_model_labels": "class_label",
+            "dataset_id": "syn63606804",
+            "manifest_record_type": "table_and_file",
+            "restrict_rules": "false",
+            "hide_blanks": "true",
+            "asset_view": "syn63561920",
+            "table_column_names": "class_label",
+            "annotation_keys": "class_label",
+            "file_annotations_upload": "true",
+        }
+
+        # AND a test manifest
+        test_submit_manifest_with_hide_blanks_manifest = helpers.get_data_path(
+            "mock_manifests/TestManifestSubmission_test_submit_manifest_with_hide_blanks.csv"
+        )
+
+        # AND a randomized annotation we can verify was added
+        df = helpers.get_data_frame(path=test_submit_manifest_with_hide_blanks_manifest)
+        randomized_annotation_content = str(uuid.uuid4())
+        df["RandomizedAnnotation"] = randomized_annotation_content
+
+        with tempfile.NamedTemporaryFile(delete=True, suffix=".csv") as tmp_file:
+            # Write the DF to a temporary file
+            df.to_csv(tmp_file.name, index=False)
+
+            # WHEN the manifest is submitted
+            url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
+            response_csv = (
+                requests.post(
+                    url,
+                    headers=request_headers,
+                    params=params,
+                    files={"file_name": open(tmp_file.name, "rb")},
+                    timeout=300,
+                )
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.post(
+                    url,
+                    query_string=params,
+                    data={"file_name": (open(tmp_file.name, "rb"), "test.csv")},
+                    headers=request_headers,
+                )
+            )
+
+        # THEN the validation and submission should be successful
+        assert response_csv.status_code == 200
+
+        # AND the randomized annotation should be added to the file
+        modified_file = syn.get(df["entityId"][0], downloadFile=False)
+        assert modified_file is not None
+        assert modified_file["RandomizedAnnotation"][0] == randomized_annotation_content
+
+        # AND the blank annotations are not present
+        assert "Genome Build" not in modified_file
+        assert "Genome FASTA" not in modified_file
+
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    @pytest.mark.local_or_remote_api
+    def test_submit_manifest_with_blacklisted_characters(
+        self,
+        flask_client: FlaskClient,
+        request_headers: Dict[str, str],
+        helpers: Helpers,
+        syn: Synapse,
+        testing_config: ConfigurationForTesting,
+    ) -> None:
+        """Testing submit manifest in a csv format as a table and a file.
+        Blacklisted characters.
+
+
+        We are validating the following:
+        - The submission should be successful
+        - Annotation with blacklisted characters should not be present
+        - Annotation with the stripped blacklisted characters should be present
+        """
+        # GIVEN the parameters to submit a manifest
+        params = {
+            "schema_url": DATA_MODEL_JSON_LD,
+            "data_model_labels": "class_label",
+            "dataset_id": "syn63607040",
+            "manifest_record_type": "table_and_file",
+            "restrict_rules": "false",
+            "hide_blanks": "true",
+            "asset_view": "syn63561920",
+            "table_column_names": "display_label",
+            "annotation_keys": "display_label",
+            "file_annotations_upload": "true",
+        }
+
+        # AND a test manifest
+        test_submit_manifest_with_blacklisted_characters = helpers.get_data_path(
+            "mock_manifests/TestManifestSubmission_test_submit_manifest_with_blacklisted_characters.csv"
+        )
+        df = helpers.get_data_frame(
+            path=test_submit_manifest_with_blacklisted_characters
+        )
+
+        # WHEN the manifest is submitted
+        url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
+        response_csv = (
+            requests.post(
+                url,
+                headers=request_headers,
+                params=params,
+                files={
+                    "file_name": open(
+                        test_submit_manifest_with_blacklisted_characters, "rb"
+                    )
+                },
+                timeout=300,
+            )
+            if testing_config.use_deployed_schematic_api_server
+            else flask_client.post(
+                url,
+                query_string=params,
+                data={
+                    "file_name": (
+                        open(test_submit_manifest_with_blacklisted_characters, "rb"),
+                        "test.csv",
+                    )
+                },
+                headers=request_headers,
+            )
+        )
+
+        # THEN the validation and submission should be successful
+        assert response_csv.status_code == 200
+
+        # AND the randomized annotation should be added to the file
+        modified_file = syn.get(df["entityId"][0], downloadFile=False)
+        assert modified_file is not None
+
+        # AND the blacklisted characters are not present
+        assert "File-Format" not in modified_file
+
+        # AND the stripped non-blacklisted characters are present
+        assert "FileFormat" in modified_file
