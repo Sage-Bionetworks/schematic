@@ -43,15 +43,6 @@ class TestManifestValidation:
     ) -> None:
         """
         Test that the manifest validation API returns no errors when a valid manifest is provided.
-
-        Arguments:
-            input_data_type: The data type of the manifest
-            input_file_name: The name of the manifest file
-            setup_api: A pytest fixture returning the API endpoint to use
-            helpers: The Helpers object
-
-        Returns:
-            None
         """
         # GIVEN the manifest validation endpoint and parameters
         url = f"{testing_config.schematic_api_server_url}/v1/model/validate"
@@ -104,8 +95,8 @@ class TestManifestValidation:
         ("input_data_type", "input_file_name"),
         [
             (
-                "Biospecimen",
-                "mock_manifests/Invalid_Biospecimen_Missing_Column_Manifest.csv",
+                "Patient",
+                "mock_manifests/TestManifestValidation_test_patient_manifest_invalid.csv",
             ),
         ],
     )
@@ -120,15 +111,6 @@ class TestManifestValidation:
     ) -> None:
         """
         Test that the manifest validation API returns errors when an invalid manifest is provided.
-
-        Arguments:
-            input_data_type: The data type of the manifest
-            input_file_name: The name of the manifest file
-            setup_api: A pytest fixture returning the API endpoint to use
-            helpers: The Helpers object
-
-        Returns:
-            None
         """
         # GIVEN the manifest validation endpoint and parameters
         url = f"{testing_config.schematic_api_server_url}/v1/model/validate"
@@ -183,9 +165,28 @@ class TestManifestValidation:
         ), "Expected at least one error. Got none."
 
         # AND with the expected error message
-        assert any(
-            "Wrong schema" in error for error in response_json.get("errors")
-        ), f"Expected 'Wrong schema' error. Got {response_json.get('errors')}"
+        expected_errors = [
+            [
+                "2",
+                "Family History",
+                "For attribute Family History in row 2 it does not appear as if you provided a comma delimited string. Please check your entry ('Random'') and try again.",
+                "Random",
+            ],
+            [
+                "2",
+                "Family History",
+                "'Random' is not one of ['Lung', 'Breast', 'Prostate', 'Colorectal', 'Skin', '']",
+                "Random",
+            ],
+            [
+                "2",
+                "Cancer Type",
+                "'Random' is not one of ['Lung', 'Breast', 'Prostate', 'Colorectal', 'Skin', '']",
+                "Random",
+            ],
+        ]
+
+        assert sorted(expected_errors) == sorted(response_json.get("errors"))
 
     @pytest.mark.local_or_remote_api
     def test_cross_manifest_validation_with_no_target(
@@ -198,14 +199,6 @@ class TestManifestValidation:
         """
         Test that the manifest validation API returns warnings when cross validation is triggered
         with no target provided.
-
-        Arguments:
-            setup_api: A pytest fixture returning the API endpoint to use
-            helpers: The Helpers object
-
-        Returns:
-            None
-
         """
         # GIVEN the manifest validation endpoint and parameters
         url = f"{testing_config.schematic_api_server_url}/v1/model/validate"
@@ -313,14 +306,6 @@ class TestManifestValidation:
     ) -> None:
         """
         Test that the manifest validation API returns warnings when a manifest target is provided.
-
-        Arguments:
-            setup_api: A pytest fixture returning the API endpoint to use
-            helpers: The Helpers object
-
-        Returns:
-            None
-
         """
         # WHEN a manifest file has been uploaded to the Synapse project
         submit_url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
@@ -437,14 +422,6 @@ class TestManifestValidation:
         """
         Test that the manifest validation API returns the expected warnings and errors when
         simple rule combination validation rules are triggered.
-
-        Arguments:
-            setup_api: A pytest fixture returning the API endpoint to use
-            helpers: The Helpers object
-
-        Returns:
-            None
-
         """
         # GIVEN the manifest validation endpoint and parameters
         url = f"{testing_config.schematic_api_server_url}/v1/model/validate"
