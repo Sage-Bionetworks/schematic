@@ -22,7 +22,6 @@ class TestManifestSubmission:
         download_location: str,
         data_type: str,
         schedule_for_cleanup: Callable[[CleanupItem], None],
-        testing_config: ConfigurationForTesting,
     ) -> None:
         """
         Validates the manifest by downloading it, checking its properties, and ensuring the correct columns.
@@ -36,11 +35,6 @@ class TestManifestSubmission:
             testing_config (ConfigurationForTesting): Confiugration for testing
         """
         # Get the manifest ID from the response
-        # manifest_id = (
-        #     response.json()
-        #     if testing_config.use_deployed_schematic_api_server
-        #     else response.json
-        # )
         try:
             manifest_id = response.json()
         except (ValueError, TypeError):
@@ -163,7 +157,6 @@ class TestManifestSubmission:
         self.validate_submitted_manifest_file(
             response=response,
             syn=syn,
-            testing_config=testing_config,
             data_type=data_type,
             download_location=download_location,
             schedule_for_cleanup=schedule_for_cleanup,
@@ -242,7 +235,6 @@ class TestManifestSubmission:
         self.validate_submitted_manifest_file(
             response=response,
             syn=syn,
-            testing_config=testing_config,
             data_type=data_type,
             download_location=download_location,
             schedule_for_cleanup=schedule_for_cleanup,
@@ -260,7 +252,6 @@ class TestManifestSubmission:
         syn_token: str,
         download_location: str,
         schedule_for_cleanup: Callable[[CleanupItem], None],
-        testing_config: ConfigurationForTesting,
         syn: Synapse,
     ) -> None:
         """Test that a file-based manifest can be submitted with the file_only and replace option
@@ -271,7 +262,6 @@ class TestManifestSubmission:
             syn (Synapse): synapse client
             download_location (str): path to download location
             schedule_for_cleanup (Callable[[CleanupItem], None]): Returns a closure that takes an item that should be scheduled for cleanup.
-            testing_config (ConfigurationForTesting): Confiugration for testing
 
         We are validating the following:
         - The submitted manifest has correct file name: synapse_storage_manifest_<data_type>.csv
@@ -311,8 +301,91 @@ class TestManifestSubmission:
         self.validate_submitted_manifest_file(
             response=response,
             syn=syn,
-            testing_config=testing_config,
             data_type=data_type,
             download_location=download_location,
+            schedule_for_cleanup=schedule_for_cleanup,
+        )
+
+    def test_submit_file_based_test_manifest_table_and_file(
+        self,
+        helpers: Helpers,
+        syn_token: str,
+        syn: Synapse,
+        download_location: str,
+        schedule_for_cleanup: Callable[[CleanupItem], None],
+        testing_config: ConfigurationForTesting,
+        flask_client: FlaskClient,
+    ) -> None:
+        """Test that a file-based manifest can be submitted with the table and file and replace option
+
+        Args:
+            helpers (Helpers): a pytest fixture
+            syn (Synapse): synapse client
+            syn_token (str): synapse access token
+            download_location (str): path to download location
+            schedule_for_cleanup (Callable[[CleanupItem], None]): Returns a closure that takes an item that should be scheduled for cleanup.
+            testing_config (ConfigurationForTesting): Confiugration for testing
+            flask_client (FlaskClient): Local flask client to use instead of API server.
+
+        We are validating the following:
+        - The submitted manifest has correct file name: synapse_storage_manifest_<data_type>.csv
+        - The submitted manifest has column entityId and Id
+        - The submitted manifest has Id column that is not empty
+        - The table gets created in the parent synapse project
+        """
+        url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
+        data_type = "BulkRNA-seqAssay"
+        project_id = "syn63561904"
+        dataset_id = "syn63561911"
+        asset_view = "syn63561920"
+
+        params = {
+            "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
+            "data_model_labels": "class_label",
+            "data_type": data_type,
+            "dataset_id": dataset_id,
+            "manifest_record_type": "table_and_file",
+            "restrict_rules": "false",
+            "hide_blanks": "false",
+            "asset_view": asset_view,
+            "table_column_names": "class_label",
+            "annotation_keys": "class_label",
+            "file_annotations_upload": "false",
+        }
+
+        headers = {"Authorization": f"Bearer {syn_token}"}
+        test_manifest_path = helpers.get_data_path(
+            "mock_manifests/mock_example_bulkrnaseq_manifest.csv"
+        )
+
+        # THEN we expect a successful response
+        response = (
+            requests.post(
+                url,
+                headers=headers,
+                params=params,
+                files={"file_name": open(test_manifest_path, "rb")},
+            )
+            if testing_config.use_deployed_schematic_api_server
+            else flask_client.post(
+                url,
+                headers=headers,
+                query_string=params,
+                data={"file_name": open(test_manifest_path, "rb")},
+            )
+        )
+
+        assert response.status_code == 200
+        self.validate_submitted_manifest_file(
+            response=response,
+            syn=syn,
+            data_type=data_type,
+            download_location=download_location,
+            schedule_for_cleanup=schedule_for_cleanup,
+        )
+        self.validate_submitted_manifest_table(
+            syn=syn,
+            project_id=project_id,
+            data_type=data_type,
             schedule_for_cleanup=schedule_for_cleanup,
         )
