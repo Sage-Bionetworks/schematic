@@ -343,17 +343,10 @@ class TestManifestGeneration:
         assert columns["key_datetime"] is not None
         assert columns["entityId"] is not None
 
-        if testing_config.local_flask_instance:
-            assert (
-                sheet1[f"{columns['Filename']}2"].value
-                == "Manifest generation - Manual test - generate an existing manifest/test dataset/test dataset 1/sample A.txt"
-            )
-        else:
-            assert (
-                sheet1[f"{columns['Filename']}2"].value
-                == "test dataset/test dataset 1/sample A.txt"
-            )
-
+        assert (
+            sheet1[f"{columns['Filename']}2"].value
+            == "Manifest generation - Manual test - generate an existing manifest/test dataset/test dataset 1/sample A.txt"
+        )
         assert sheet1[f"{columns['Sample ID']}2"].value is None
         assert sheet1[f"{columns['File Format']}2"].value is None
         assert sheet1[f"{columns['Component']}2"].value == "BulkRNA-seqAssay"
@@ -368,16 +361,10 @@ class TestManifestGeneration:
         assert sheet1[f"{columns['key_datetime']}2"].value is not None  # key_datetime
         assert sheet1[f"{columns['entityId']}2"].value == "syn63561081"
 
-        if testing_config.local_flask_instance:
-            assert (
-                sheet1[f"{columns['Filename']}3"].value
-                == "Manifest generation - Manual test - generate an existing manifest/test dataset/test dataset 2/sample B.txt"
-            )
-        else:
-            assert (
-                sheet1[f"{columns['Filename']}3"].value
-                == "test dataset/test dataset 2/sample B.txt"
-            )
+        assert (
+            sheet1[f"{columns['Filename']}3"].value
+            == "Manifest generation - Manual test - generate an existing manifest/test dataset/test dataset 2/sample B.txt"
+        )
         assert sheet1[f"{columns['Sample ID']}3"].value is None
         assert sheet1[f"{columns['File Format']}3"].value is None
         assert sheet1[f"{columns['Component']}3"].value == "BulkRNA-seqAssay"
@@ -391,17 +378,10 @@ class TestManifestGeneration:
         assert sheet1[f"{columns['key_datetime']}3"].value is None
         assert sheet1[f"{columns['entityId']}3"].value == "syn63561082"
 
-        if testing_config.local_flask_instance:
-            assert (
-                sheet1[f"{columns['Filename']}4"].value
-                == "Manifest generation - Manual test - generate an existing manifest/test dataset/test dataset 3/sample C.txt"
-            )
-        else:
-            assert (
-                sheet1[f"{columns['Filename']}4"].value
-                == "test dataset/test dataset 3/sample C.txt"
-            )
-
+        assert (
+            sheet1[f"{columns['Filename']}4"].value
+            == "Manifest generation - Manual test - generate an existing manifest/test dataset/test dataset 3/sample C.txt"
+        )
         assert sheet1[f"{columns['Sample ID']}4"].value is None
         assert sheet1[f"{columns['File Format']}4"].value is None
         assert sheet1[f"{columns['Component']}4"].value == "BulkRNA-seqAssay"
