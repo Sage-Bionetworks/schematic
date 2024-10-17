@@ -319,45 +319,12 @@ class TestManifestValidation:
         request_headers: Dict[str, str],
         testing_config: ConfigurationForTesting,
         helpers: Helpers,
-        syn: Synapse,
     ) -> None:
         """
         Test that the manifest validation API returns warnings when a manifest target is provided.
         """
         # WHEN a manifest file has been uploaded to the Synapse project
-        submit_url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
-        submit_params = {
-            "schema_url": EXAMPLE_SCHEMA_URL,
-            "data_type": "MockComponent",
-            "dataset_id": "syn63582792",
-            "data_model_labels": "class_label",
-            "restrict_rules": False,
-            "asset_view": "syn63596704",
-        }
-        submit_file = "mock_manifests/MockComponent-cross-manifest-1.csv"
-        submit_file_path = helpers.get_data_path(submit_file)
-
-        submit_response = (
-            requests.post(
-                submit_url,
-                headers=request_headers,
-                params=submit_params,
-                files={"file_name": open(submit_file_path, "rb")},
-                timeout=300,
-            )
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.post(
-                submit_url,
-                headers=request_headers,
-                query_string=submit_params,
-                data={"file_name": open(submit_file_path, "rb")},
-            )
-        )
-        assert (
-            submit_response.status_code == 200
-        ), f"File submission was unsuccessful. Got {submit_response.status_code}"
-
-        # AND the manifest validation endpoint and parameters are given
+        # the manifest validation endpoint and parameters are given
         url = f"{testing_config.schematic_api_server_url}/v1/model/validate"
         params = {
             "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
@@ -422,11 +389,6 @@ class TestManifestValidation:
 
         for idx, expected_idx in zip(warnings, expected_warnings):
             assert idx == expected_idx
-
-        # WHEN any previous files are deleted
-        files_to_delete = syn.getChildren("syn63582792")
-        for file_to_delete in files_to_delete:
-            syn.delete(file_to_delete["id"])
 
     @pytest.mark.local_or_remote_api
     def test_manifest_validation_with_rule_combination(
