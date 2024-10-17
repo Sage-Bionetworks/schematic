@@ -264,6 +264,7 @@ class TestManifestSubmission:
         download_location: str,
         schedule_for_cleanup: Callable[[CleanupItem], None],
         testing_config: ConfigurationForTesting,
+        flask_client: FlaskClient,
         syn: Synapse,
         request_headers: Dict[str, str],
     ) -> None:
@@ -274,6 +275,7 @@ class TestManifestSubmission:
             download_location (str): path to download location
             schedule_for_cleanup (Callable[[CleanupItem], None]): Returns a closure that takes an item that should be scheduled for cleanup.
             testing_config (ConfigurationForTesting): Confiugration for testing
+            flask_client (FlaskClient): Local flask client to use instead of API server.
             syn (Synapse): synapse client
             request_headers (Dict[str, str]): Headers to use for the request
 
