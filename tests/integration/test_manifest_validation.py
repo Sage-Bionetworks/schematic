@@ -224,7 +224,7 @@ class TestManifestValidation:
             "data_type": "MockComponent",
             "data_model_labels": "class_label",
             "restrict_rules": False,
-            "asset_view": "syn63596704",
+            "asset_view": "syn63825013",
         }
 
         # AND a manifest that triggers cross-manifest validation rules
