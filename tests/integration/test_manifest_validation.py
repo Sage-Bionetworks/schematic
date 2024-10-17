@@ -29,7 +29,10 @@ class TestManifestValidation:
         ("input_data_type", "input_file_name"),
         [
             ("Biospecimen", "mock_manifests/example_biospecimen_test.csv"),
-            ("Patient", "mock_manifests/example.patient_component_rule.manifest.csv"),
+            (
+                "Patient",
+                "mock_manifests/TestManifestValidation_test_manifest_validation_basic_valid.csv",
+            ),
         ],
     )
     def test_manifest_validation_basic_valid(
@@ -89,6 +92,9 @@ class TestManifestValidation:
 
         # AND with no expected errors
         assert len(response_json.get("errors")) == 0
+
+        # AND with no expected warnings
+        assert len(response_json.get("warnings")) == 0
 
     @pytest.mark.local_or_remote_api
     @pytest.mark.parametrize(
