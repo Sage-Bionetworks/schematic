@@ -92,7 +92,7 @@ def set_up_tracing() -> None:
 def set_up_logging() -> None:
     """Set up logging to export to OTLP."""
     logging_export = os.environ.get("LOGGING_EXPORT_FORMAT", None)
-    logging_service_name = os.environ.get("LOGGING_SERVICE_NAME", "schematic")
+    logging_service_name = os.environ.get("LOGGING_SERVICE_NAME", "schematic-api")
     deployment_environment = os.environ.get("DEPLOYMENT_ENVIRONMENT", "")
     if logging_export == "otlp":
         resource = Resource.create(
