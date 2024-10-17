@@ -5,6 +5,7 @@ from typing import Optional
 
 import pandas  # type: ignore
 import synapseclient  # type: ignore
+from opentelemetry import trace
 
 from schematic.store.synapse_tracker import SynapseEntiyTracker
 
@@ -53,6 +54,9 @@ class Synapse:  # pylint: disable=too-many-public-methods
         else:
             syn = synapseclient.Synapse(cache_root_dir=cache_root_dir)
             syn.login(authToken=auth_token, silent=True)
+            current_span = trace.get_current_span()
+            if current_span.is_recording():
+                current_span.set_attribute("user.id", syn.credentials.owner_id)
             self.syn = syn
         self.synapse_entity_tracker = synapse_entity_tracker or SynapseEntiyTracker()
 
