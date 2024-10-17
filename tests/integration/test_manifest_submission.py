@@ -304,13 +304,23 @@ class TestManifestSubmission:
         )
 
         # THEN we expect a successful response
-        response = requests.post(
-            url,
-            headers=request_headers,
-            params=params,
-            files={"file_name": open(test_manifest_path, "rb")},
-            timeout=300,
+        response = (
+            requests.post(
+                url,
+                headers=request_headers,
+                params=params,
+                files={"file_name": open(test_manifest_path, "rb")},
+                timeout=300,
+            )
+            if testing_config.use_deployed_schematic_api_server
+            else flask_client.post(
+                url,
+                headers=request_headers,
+                query_string=params,
+                data={"file_name": open(test_manifest_path, "rb")},
+            )
         )
+
         assert response.status_code == 200
         self.validate_submitted_manifest_file(
             response=response,
