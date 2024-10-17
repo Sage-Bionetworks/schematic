@@ -11,14 +11,14 @@ import tempfile
 import uuid
 from contextlib import nullcontext as does_not_raise
 from typing import Any, Callable, Generator
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.core.exceptions import SynapseHTTPError
-from synapseclient.entity import File
+from synapseclient.entity import File, Project
 from synapseclient.models import Annotations
 from synapseclient.models import Folder as FolderModel
 
@@ -406,7 +406,7 @@ class TestSynapseStorage:
         expected_df = pd.DataFrame.from_records(
             [
                 {
-                    "Filename": "schematic - main/TestDataset-Annotations-v3/Sample_A.txt",
+                    "Filename": "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_A.txt",
                     "author": "bruno, milen, sujay",
                     "impact": "42.9",
                     "confidence": "high",
@@ -416,13 +416,13 @@ class TestSynapseStorage:
                     "IsImportantText": "TRUE",
                 },
                 {
-                    "Filename": "schematic - main/TestDataset-Annotations-v3/Sample_B.txt",
+                    "Filename": "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_B.txt",
                     "confidence": "low",
                     "FileFormat": "csv",
                     "date": "2020-02-01",
                 },
                 {
-                    "Filename": "schematic - main/TestDataset-Annotations-v3/Sample_C.txt",
+                    "Filename": "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_C.txt",
                     "FileFormat": "fastq",
                     "IsImportantBool": "False",
                     "IsImportantText": "FALSE",
@@ -490,7 +490,9 @@ class TestSynapseStorage:
             return_value="syn23643250",
         ) as mock_project_id_patch, patch(
             "synapseclient.entity.Entity.__getattr__", return_value="schematic - main"
-        ) as mock_project_name_patch:
+        ) as mock_project_name_patch, patch.object(
+            synapse_store.syn, "get", return_value=Project(name="schematic - main")
+        ):
             file_list = synapse_store.getFilesInStorageDataset(
                 datasetId="syn_mock", fileNames=None, fullpath=full_path
             )

@@ -27,6 +27,7 @@ from schematic.utils.google_api_utils import (
     build_service_account_creds,
     execute_google_api_requests,
     export_manifest_drive_service,
+    google_api_execute_wrapper,
 )
 from schematic.utils.schema_utils import (
     DisplayLabelType,
@@ -190,11 +191,11 @@ class ManifestGenerator(object):
         copied_file = {"name": copy_title}
 
         # return new copy sheet ID
-        return (
+        return google_api_execute_wrapper(
             self.drive_service.files()
             .copy(fileId=origin_file_id, body=copied_file)
-            .execute()["id"]
-        )
+            .execute
+        )["id"]
 
     def _create_empty_manifest_spreadsheet(self, title: str) -> str:
         """
@@ -215,12 +216,11 @@ class ManifestGenerator(object):
         else:
             spreadsheet_body = {"properties": {"title": title}}
 
-            spreadsheet_id = (
+            spreadsheet_id = google_api_execute_wrapper(
                 self.sheet_service.spreadsheets()
                 .create(body=spreadsheet_body, fields="spreadsheetId")
-                .execute()
-                .get("spreadsheetId")
-            )
+                .execute
+            ).get("spreadsheetId")
 
         return spreadsheet_id
 
@@ -265,7 +265,7 @@ class ManifestGenerator(object):
                 fields="id",
             )
         )
-        batch.execute()
+        google_api_execute_wrapper(batch.execute)
 
     def _store_valid_values_as_data_dictionary(
         self, column_id: int, valid_values: list, spreadsheet_id: str
@@ -297,7 +297,7 @@ class ManifestGenerator(object):
             + str(len(values) + 1)
         )
         valid_values = [{"userEnteredValue": "=" + target_range}]
-        response = (
+        response = google_api_execute_wrapper(
             self.sheet_service.spreadsheets()
             .values()
             .update(
@@ -306,7 +306,7 @@ class ManifestGenerator(object):
                 valueInputOption="RAW",
                 body=body,
             )
-            .execute()
+            .execute
         )
         return valid_values
 
@@ -560,15 +560,31 @@ class ManifestGenerator(object):
         range = "Sheet1!A1:" + str(end_col_letter) + "1"
 
         # adding columns
-        self.sheet_service.spreadsheets().values().update(
-            spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body
-        ).execute()
+        google_api_execute_wrapper(
+            self.sheet_service.spreadsheets()
+            .values()
+            .update(
+                spreadsheetId=spreadsheet_id,
+                range=range,
+                valueInputOption="RAW",
+                body=body,
+            )
+            .execute
+        )
 
         # adding columns to 2nd sheet that can be used for storing data validation ranges (this avoids limitations on number of dropdown items in excel and openoffice)
         range = "Sheet2!A1:" + str(end_col_letter) + "1"
-        self.sheet_service.spreadsheets().values().update(
-            spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body
-        ).execute()
+        google_api_execute_wrapper(
+            self.sheet_service.spreadsheets()
+            .values()
+            .update(
+                spreadsheetId=spreadsheet_id,
+                range=range,
+                valueInputOption="RAW",
+                body=body,
+            )
+            .execute
+        )
 
         # format column header row
         header_format_body = {
@@ -612,10 +628,10 @@ class ManifestGenerator(object):
             ]
         }
 
-        response = (
+        response = google_api_execute_wrapper(
             self.sheet_service.spreadsheets()
             .batchUpdate(spreadsheetId=spreadsheet_id, body=header_format_body)
-            .execute()
+            .execute
         )
         return response, ordered_metadata_fields
 
@@ -664,13 +680,13 @@ class ManifestGenerator(object):
             "data": data,
         }
 
-        response = (
+        response = google_api_execute_wrapper(
             self.sheet_service.spreadsheets()
             .values()
             .batchUpdate(
                 spreadsheetId=spreadsheet_id, body=batch_update_values_request_body
             )
-            .execute()
+            .execute
         )
         return response
 
@@ -765,11 +781,11 @@ class ManifestGenerator(object):
         split_rules = validation_rules[0].split(" ")
         if split_rules[0] == "regex" and split_rules[1] == "match":
             # Set things up:
-            ## Extract the regular expression we are validating against.
+            # Extract the regular expression we are validating against.
             regular_expression = split_rules[2]
-            ## Define text color to update to upon correct user entry
+            # Define text color to update to upon correct user entry
             text_color = {"red": 0, "green": 0, "blue": 0}
-            ## Define google sheets regular expression formula
+            # Define google sheets regular expression formula
             gs_formula = [
                 {
                     "userEnteredValue": '=REGEXMATCH(INDIRECT("RC",FALSE), "{}")'.format(
@@ -777,11 +793,11 @@ class ManifestGenerator(object):
                     )
                 }
             ]
-            ## Set validaiton strictness based on user specifications.
+            # Set validaiton strictness based on user specifications.
             if split_rules[-1].lower() == "strict":
                 strict = True
 
-            ## Create error message for users if they enter value with incorrect formatting
+            # Create error message for users if they enter value with incorrect formatting
             input_message = (
                 f"Values in this column are being validated "
                 f"against the following regular expression ({regular_expression}) "
@@ -790,7 +806,7 @@ class ManifestGenerator(object):
             )
 
             # Create Requests:
-            ## Change request to change the text color of the column we are validating to red.
+            # Change request to change the text color of the column we are validating to red.
             requests_vr_format_body = self._request_update_base_color(
                 i,
                 color={
@@ -800,10 +816,10 @@ class ManifestGenerator(object):
                 },
             )
 
-            ## Create request to for conditionally formatting user input.
+            # Create request to for conditionally formatting user input.
             requests_vr = self._request_regex_vr(gs_formula, i, text_color)
 
-            ## Create request to generate data validator.
+            # Create request to generate data validator.
             requests_data_validation_vr = self._get_column_data_validation_values(
                 spreadsheet_id,
                 valid_values=gs_formula,

@@ -2,14 +2,23 @@
 
 # pylint: disable=logging-fstring-interpolation
 
-import os
-import logging
 import json
-from typing import Any, Union, no_type_check, TypedDict
+import logging
+import os
+from typing import Any, Callable, TypedDict, Union, no_type_check
 
 import pandas as pd
-from googleapiclient.discovery import build, Resource  # type: ignore
 from google.oauth2 import service_account  # type: ignore
+from googleapiclient.discovery import Resource, build  # type: ignore
+from googleapiclient.errors import HttpError  # type: ignore
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_chain,
+    wait_fixed,
+)
+
 from schematic.configuration.configuration import CONFIG
 
 logger = logging.getLogger(__name__)
@@ -86,10 +95,10 @@ def execute_google_api_requests(service, requests_body, **kwargs) -> Any:
         and kwargs["service_type"] == "batch_update"
     ):
         # execute all requests
-        response = (
+        response = google_api_execute_wrapper(
             service.spreadsheets()
             .batchUpdate(spreadsheetId=kwargs["spreadsheet_id"], body=requests_body)
-            .execute()
+            .execute
         )
 
         return response
@@ -118,10 +127,10 @@ def export_manifest_drive_service(
 
     # use google drive
     # Pylint seems to have trouble with the google api classes, recognizing their methods
-    data = (
+    data = google_api_execute_wrapper(
         drive_service.files()  # pylint: disable=no-member
         .export(fileId=spreadsheet_id, mimeType=mime_type)
-        .execute()
+        .execute
     )
 
     # open file and write data
@@ -145,3 +154,25 @@ def export_manifest_csv(file_path: str, manifest: Union[pd.DataFrame, str]) -> N
         manifest.to_csv(file_path, index=False)
     else:
         export_manifest_drive_service(manifest, file_path, mime_type="text/csv")
+
+
+@retry(
+    stop=stop_after_attempt(5),
+    wait=wait_chain(
+        *[wait_fixed(1) for i in range(2)]
+        + [wait_fixed(2) for i in range(2)]
+        + [wait_fixed(5)]
+    ),
+    retry=retry_if_exception_type(HttpError),
+    reraise=True,
+)
+def google_api_execute_wrapper(api_function_to_call: Callable[[], Any]) -> Any:
+    """Retry wrapper for Google API calls, with a backoff strategy.
+
+    Args:
+        api_function_to_call (Callable[[], Any]): The function to call
+
+    Returns:
+        Any: The result of the API call
+    """
+    return api_function_to_call()
