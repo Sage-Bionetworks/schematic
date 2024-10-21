@@ -27,7 +27,7 @@ This object is gotten from doing nx.MultiDiGraph.nodes(data=True)
 """
 
 
-class DataModelValidator: #pylint: disable=too-few-public-methods
+class DataModelValidator:  # pylint: disable=too-few-public-methods
     """
     Check for consistency within data model.
     """
@@ -42,7 +42,6 @@ class DataModelValidator: #pylint: disable=too-few-public-methods
         """
         self.graph = graph
         self.dmr = DataModelRelationships()
-
 
     def run_checks(self) -> tuple[list[list[str]], list[list[str]]]:
         """Run all validation checks on the data model graph.
@@ -168,6 +167,7 @@ def get_node_labels_from(input_dict: dict) -> list:
             node_fields.append(value["node_label"])
     return node_fields
 
+
 def get_missing_fields_from(
     nodes: NodeList, required_fields: Iterable
 ) -> list[Tuple[str, str]]:
@@ -194,7 +194,10 @@ def get_missing_fields_from(
         )
     return missing_fields
 
-def create_missing_fields_error_messages(missing_fields: list[Tuple[str, str]]) -> list[str]:
+
+def create_missing_fields_error_messages(
+    missing_fields: list[Tuple[str, str]]
+) -> list[str]:
     """Creates the error message for when a node is missing a required field
 
     Args:
@@ -216,6 +219,7 @@ def create_missing_fields_error_messages(missing_fields: list[Tuple[str, str]]) 
             )
         )
     return errors
+
 
 def check_characters_in_node_display_name(
     nodes: NodeList, blacklisted_characters: list[str]
@@ -246,14 +250,17 @@ def check_characters_in_node_display_name(
         ]
 
         if blacklisted_characters_found:
-            warnings.append(create_blacklisted_characters_error_message(
-                blacklisted_characters_found, node_display_name
-            ))
+            warnings.append(
+                create_blacklisted_characters_error_message(
+                    blacklisted_characters_found, node_display_name
+                )
+            )
     return warnings
 
+
 def create_blacklisted_characters_error_message(
-        blacklisted_characters: list[str], node_name: str
-    ) -> str:
+    blacklisted_characters: list[str], node_name: str
+) -> str:
     """Creates am error message for the presence of blacklisted characters
 
     Args:
@@ -266,12 +273,11 @@ def create_blacklisted_characters_error_message(
     """
     blacklisted_characters_str = ",".join(blacklisted_characters)
     return (
-        (
-            f"Node: {node_name} contains a blacklisted character(s): "
-            f"{blacklisted_characters_str}, they will be striped if used in "
-            "Synapse annotations."
-        )
+        f"Node: {node_name} contains a blacklisted character(s): "
+        f"{blacklisted_characters_str}, they will be striped if used in "
+        "Synapse annotations."
     )
+
 
 def match_node_names_with_reserved_names(
     node_names: Iterable, reserved_names: Iterable[str]
@@ -293,6 +299,7 @@ def match_node_names_with_reserved_names(
         node for node in node_name_product if node[0].lower() == node[1].lower()
     ]
     return reserved_names_found
+
 
 def create_reserve_name_error_messages(
     reserved_names_found: list[Tuple[str, str]]

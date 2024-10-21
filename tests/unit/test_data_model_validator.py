@@ -13,7 +13,7 @@ from schematic.schemas.data_model_validator import (
     match_node_names_with_reserved_names,
     create_reserve_name_error_messages,
     create_blacklisted_characters_error_message,
-    create_missing_fields_error_messages
+    create_missing_fields_error_messages,
 )
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph
@@ -107,16 +107,17 @@ class TestDataModelValidatorHelpers:
         [
             # If there are either no nodes, or no reserved names, nothing is returned
             ([], []),
-
             (
                 [("node1", "field1")],
-                ["For entry: node1, the required field field1 is missing in the data model graph, please double check your model and generate the graph again."],
+                [
+                    "For entry: node1, the required field field1 is missing in the data model graph, please double check your model and generate the graph again."
+                ],
             ),
             (
                 [("node1", "field1"), ("node1", "field2")],
                 [
                     "For entry: node1, the required field field1 is missing in the data model graph, please double check your model and generate the graph again.",
-                    "For entry: node1, the required field field2 is missing in the data model graph, please double check your model and generate the graph again."
+                    "For entry: node1, the required field field2 is missing in the data model graph, please double check your model and generate the graph again.",
                 ],
             ),
         ],
@@ -126,8 +127,6 @@ class TestDataModelValidatorHelpers:
     ) -> None:
         """Tests for create_missing_fields_error_messages"""
         assert create_missing_fields_error_messages(input_tuples) == expected_msgs
-
-
 
     @pytest.mark.parametrize(
         "input_nodes, input_chars",
