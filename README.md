@@ -136,7 +136,7 @@ Here are some example repos with schema files:
 * https://github.com/nf-osi/nf-metadata-dictionary/
 
 > [!IMPORTANT]
-> Your local working directory would typically have `model.jsonld` and `config.yml` side-by-side. The path to your data model should match what is in `config.yml`
+> Your local working directory would typically have `model.jsonld` and `config.yml` side-by-side. The path to your data model should match what is in `config.yml`. You will find more context on the `config.yml` in section [6. Set up configuration files](#6-set-up-configuration-files).
 
 ### 5. Obtain Google credential files
 
@@ -150,7 +150,7 @@ Any function that interacts with a google sheet (such as `schematic manifest get
 
 2. **Option 2**: Ask your DCC/development team if they have credentials previously set up with a service account.
 
-Once you have obtained credentials, be sure that the json file generated is named in the same way as the `service_acct_creds` parameter in your `config.yml` file.
+Once you have obtained credentials, be sure that the json file generated is named in the same way as the `service_acct_creds` parameter in your `config.yml` file. You will find more context on the `config.yml` in section [6. Set up configuration files](#6-set-up-configuration-files).
 
 > [!NOTE]
 > Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
