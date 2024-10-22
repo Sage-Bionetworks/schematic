@@ -135,9 +135,6 @@ Here are some example repos with schema files:
 * https://github.com/ncihtan/data-models/
 * https://github.com/nf-osi/nf-metadata-dictionary/
 
-> [!IMPORTANT]
-> Your local working directory would typically have `model.jsonld` and `config.yml` side-by-side. The path to your data model should match what is in `config.yml`. You will find more context on the `config.yml` in section [6. Set up configuration files](#6-set-up-configuration-files).
-
 ### 5. Obtain Google credential files
 
 Any function that interacts with a google sheet (such as `schematic manifest get`) requires google cloud credentials.
@@ -203,12 +200,15 @@ such as the Synapse ID of the main file view containing all your project assets,
 Download the `config_example.yml` as a new file called `config.yml` and modify its contents according to your use case.
 
 For example, one of the components in this `config.yml` that will likely be modified is the location of your schema. After acquiring your schema file using the
-instructions in Step 4 above, your `config.yml` should contain something like:
+instructions in step [4. Get your data model as a `JSON-LD` schema file](#4-get-your-data-model-as-a-json-ld-schema-file), your `config.yml` should contain something like:
 
 ```text
 model:
-  location: "path/to/your/example.model.jsonld"
+  location: "path/to/your/model.jsonld"
 ```
+
+> [!IMPORTANT]
+> Please note that for the example above, your local working directory would typically have `model.jsonld` and `config.yml` side-by-side. The path to your data model should match what is in `config.yml`.
 
 > [!IMPORTANT]
 > Be sure to update your `config.yml` with the location of your `.synapseConfig` created in the step above, to avoid authentication errors. Paths can be specified relative to the `config.yml` file or as absolute paths.
