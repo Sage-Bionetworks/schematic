@@ -46,6 +46,15 @@ class TestManifestValidation:
     ) -> None:
         """
         Test that the manifest validation API returns no errors when a valid manifest is provided.
+
+        We are validating the following:
+
+        When we upload a valid manifest file to the /v1/model/validate endpoint...
+        - The response is successful (Response Code 200)
+        - The response content includes an 'errors' and 'warnings' key
+        - There are NO error values for the 'errors' key
+        - There are NO warnings values for the 'warnings' key
+
         """
         # GIVEN the manifest validation endpoint and parameters
         url = f"{testing_config.schematic_api_server_url}/v1/model/validate"
@@ -117,6 +126,15 @@ class TestManifestValidation:
     ) -> None:
         """
         Test that the manifest validation API returns errors when an invalid manifest is provided.
+
+        We are validating the following:
+
+        When we upload an invalid manifest file to the /v1/model/validate endpoint...
+        - The response is successful (Response Code 200)
+        - The response content includes an 'errors' and 'warnings' key
+        - There is at least 1 error value for the 'errors' key
+        - The error value(s) for the 'errors' key matches up with the ``expected_errors`` list
+
         """
         # GIVEN the manifest validation endpoint and parameters
         url = f"{testing_config.schematic_api_server_url}/v1/model/validate"
@@ -222,6 +240,15 @@ class TestManifestValidation:
         """
         Test that the manifest validation API returns warnings when cross validation is triggered
         with no target provided.
+
+        We are validating the following:
+
+        When we upload a valid manifest file that triggers cross-manifest validation rules
+        to the /v1/model/validate endpoint...
+        - The response is successful (Response Code 200)
+        - The response content includes a 'warnings' key
+        - The warning value(s) for the 'warnings' key matches up with the ``expected_warnings`` list
+
         """
         # GIVEN the manifest validation endpoint and parameters
         url = f"{testing_config.schematic_api_server_url}/v1/model/validate"
@@ -328,6 +355,15 @@ class TestManifestValidation:
     ) -> None:
         """
         Test that the manifest validation API returns warnings when a manifest target is provided.
+
+        We are validating the following:
+
+        When we upload a valid manifest file that triggers cross-manifest validation rules
+        to the /v1/model/validate endpoint and a target is provided...
+        - The response is successful (Response Code 200)
+        - The response content includes a 'warnings' key
+        - The warning value(s) for the 'warnings' key matches up with the ``expected_warnings`` list
+
         """
         # WHEN a manifest file has been uploaded to the Synapse project
         # the manifest validation endpoint and parameters are given
@@ -407,6 +443,16 @@ class TestManifestValidation:
         """
         Test that the manifest validation API returns the expected warnings and errors when
         simple rule combination validation rules are triggered.
+
+        We are validating the following:
+
+        When we upload a valid manifest file that triggers rule combination validation rules
+        to the /v1/model/validate endpoint...
+        - The response is successful (Response Code 200)
+        - The response content includes an 'errors' and 'warnings' key
+        - The error value(s) for the 'errors' key matches up with the errors in the ``expected_contents`` list
+        - The warning value(s) for the 'warnings' key matches up with the warnings in the ``expected_contents`` list
+
         """
         # GIVEN the manifest validation endpoint and parameters
         url = f"{testing_config.schematic_api_server_url}/v1/model/validate"
