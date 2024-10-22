@@ -20,9 +20,8 @@ from schematic.schemas.data_model_graph import DataModelGraph
 
 # pylint: disable=protected-access
 
-
 @pytest.fixture(name="test_dmv")
-def fixture_test_dmv() -> Generator[DataModelValidator, None, None]:
+def fixture_test_dmv() -> Generator[MultiDiGraph, None, None]:
     """Yield a DataModelValidator object using test data model"""
     path_to_data_model = "tests/data/validator_test.model.csv"
     data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
@@ -34,6 +33,41 @@ def fixture_test_dmv() -> Generator[DataModelValidator, None, None]:
     # Generate graph
     graph_data_model = data_model_grapher.graph
 
+    yield DataModelValidator(graph_data_model)
+
+
+@pytest.fixture(name="test_dmv_with_missing_field")
+def fixture_test_dmv_with_missing_field() -> Generator[MultiDiGraph, None, None]:
+    """Yield a DataModelValidator object using test data model"""
+    path_to_data_model = "tests/data/validator_test.model.csv"
+    data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Convert parsed model to graph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    graph_data_model = data_model_grapher.graph
+
+    # remove needed field to trigger an error message
+    del graph_data_model.nodes["Cancer"]["label"]
+    yield DataModelValidator(graph_data_model)
+
+@pytest.fixture(name="test_dmv_not_acyclic")
+def fixture_test_dmv_not_acyclic() -> Generator[MultiDiGraph, None, None]:
+    """Yield a DataModelValidator object using test data model"""
+    path_to_data_model = "tests/data/validator_dag_test.model.csv"
+    data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Convert parsed model to graph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    graph_data_model = data_model_grapher.graph
+
+    # remove needed field to trigger an error message
+    del graph_data_model.nodes["Cancer"]["label"]
     yield DataModelValidator(graph_data_model)
 
 
@@ -294,29 +328,37 @@ class TestDataModelValidator:
         empty_dmv._run_cycles()
 
     def test__check_is_dag(
-        self, test_dmv: DataModelValidator, empty_dmv: DataModelValidator
+        self, test_dmv: DataModelValidator, test_dmv_not_acyclic: DataModelValidator
     ) -> None:
         """Tests for DataModelValidator._check_is_dag"""
         errors = test_dmv._check_is_dag()
         assert not errors
-        errors = empty_dmv._check_is_dag()
-        assert not errors
+        errors = test_dmv_not_acyclic._check_is_dag()
+        assert errors == [
+            "Schematic requires models be a directed acyclic graph (DAG). Please inspect your model."
+        ]
 
     def test__check_graph_has_required_node_fields(
-        self, test_dmv: DataModelValidator, empty_dmv: DataModelValidator
+        self, test_dmv: DataModelValidator, test_dmv_with_missing_field: DataModelValidator
     ) -> None:
         """Tests for DataModelValidator._check_graph_has_required_node_fields"""
         errors = test_dmv._check_graph_has_required_node_fields()
         assert not errors
-        errors = empty_dmv._check_graph_has_required_node_fields()
-        assert not errors
+        errors = test_dmv_with_missing_field._check_graph_has_required_node_fields()
+        assert errors == ['For entry: Cancer, the required field label is missing in the data model graph, please double check your model and generate the graph again.']
 
     def test__check_blacklisted_characters(
         self, test_dmv: DataModelValidator, empty_dmv: DataModelValidator
     ) -> None:
         """Tests for DataModelValidator._check_blacklisted_characters"""
         errors = test_dmv._check_blacklisted_characters()
-        assert errors
+        assert errors == [
+            "Node: Patient) contains a blacklisted character(s): ), they will be striped if used in Synapse annotations.",
+            "Node: Patient ID. contains a blacklisted character(s): ., they will be striped if used in Synapse annotations.",
+            "Node: Sex- contains a blacklisted character(s): -, they will be striped if used in Synapse annotations.",
+            "Node: Year of Birth( contains a blacklisted character(s): (, they will be striped if used in Synapse annotations.",
+            "Node: Bulk RNA-seq Assay contains a blacklisted character(s): -, they will be striped if used in Synapse annotations.",
+        ]
         errors = empty_dmv._check_blacklisted_characters()
         assert not errors
 
@@ -325,6 +367,6 @@ class TestDataModelValidator:
     ) -> None:
         """Tests for DataModelValidator._check_reserved_names"""
         errors = test_dmv._check_reserved_names()
-        assert errors
+        assert errors == ["Your data model entry name: EntityId overlaps with the reserved name: entityId. Please change this name in your data model."]
         errors = empty_dmv._check_reserved_names()
         assert not errors

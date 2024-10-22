@@ -47,7 +47,7 @@ class TestDataModelValidator:
         DMV = DataModelValidator(graph_data_model)
 
         # Run validation
-        validator_errors = DMV.check_blacklisted_characters()
+        validator_errors = DMV._check_blacklisted_characters()
 
         # Expected Error
         expected_error = [
@@ -70,7 +70,7 @@ class TestDataModelValidator:
         DMV = DataModelValidator(graph_data_model)
 
         # Run validation
-        validator_errors = DMV.check_reserved_names()
+        validator_errors = DMV._check_reserved_names()
 
         # Expected Error
         expected_error = [
@@ -91,7 +91,7 @@ class TestDataModelValidator:
         DMV = DataModelValidator(graph_data_model)
 
         # Run validation
-        validator_errors = DMV.check_graph_has_required_node_fields()
+        validator_errors = DMV._check_graph_has_required_node_fields()
 
         # Expected Error
         expected_error = [
@@ -112,7 +112,7 @@ class TestDataModelValidator:
         DMV = DataModelValidator(graph_data_model)
 
         # Run validation
-        validator_errors = DMV.check_is_dag()
+        validator_errors = DMV._check_is_dag()
 
         # nodes could be in different order so need to account for that
         expected_errors = [
