@@ -144,14 +144,23 @@ class TestDataModelValidatorHelpers:
             (
                 [("node1", "field1")],
                 [
-                    "For entry: node1, the required field field1 is missing in the data model graph, please double check your model and generate the graph again."
+                    (
+                        "For entry: node1, the required field field1 is missing in the data "
+                        "model graph, please double check your model and generate the graph again."
+                    )
                 ],
             ),
             (
                 [("node1", "field1"), ("node1", "field2")],
                 [
-                    "For entry: node1, the required field field1 is missing in the data model graph, please double check your model and generate the graph again.",
-                    "For entry: node1, the required field field2 is missing in the data model graph, please double check your model and generate the graph again.",
+                    (
+                        "For entry: node1, the required field field1 is missing in the data model "
+                        "graph, please double check your model and generate the graph again."
+                    ),
+                    (
+                        "For entry: node1, the required field field2 is missing in the data model "
+                        "graph, please double check your model and generate the graph again."
+                    )
                 ],
             ),
         ],
@@ -205,12 +214,18 @@ class TestDataModelValidatorHelpers:
             (
                 [],
                 "",
-                "Node:  contains a blacklisted character(s): , they will be striped if used in Synapse annotations.",
+                (
+                    "Node:  contains a blacklisted character(s): , they will be striped if "
+                    "used in Synapse annotations."
+                )
             ),
             (
                 ["x", "y"],
                 "node1",
-                "Node: node1 contains a blacklisted character(s): x,y, they will be striped if used in Synapse annotations.",
+                (
+                    "Node: node1 contains a blacklisted character(s): x,y, they will be striped "
+                    "if used in Synapse annotations."
+                )
             ),
         ],
     )
@@ -287,14 +302,23 @@ class TestDataModelValidatorHelpers:
             (
                 [("node1", "Node1")],
                 [
-                    "Your data model entry name: Node1 overlaps with the reserved name: node1. Please change this name in your data model."
+                    (
+                        "Your data model entry name: Node1 overlaps with the reserved name: node1. "
+                        "Please change this name in your data model."
+                    )
                 ],
             ),
             (
                 [("node1", "Node1"), ("node2", "Node2")],
                 [
-                    "Your data model entry name: Node1 overlaps with the reserved name: node1. Please change this name in your data model.",
-                    "Your data model entry name: Node2 overlaps with the reserved name: node2. Please change this name in your data model.",
+                    (
+                        "Your data model entry name: Node1 overlaps with the reserved name: node1. "
+                        "Please change this name in your data model."
+                    ),
+                    (
+                        "Your data model entry name: Node2 overlaps with the reserved name: node2. "
+                        "Please change this name in your data model."
+                    )
                 ],
             ),
         ],
@@ -321,11 +345,11 @@ class TestDataModelValidator:
         assert not warnings
 
     def test__run_cycles(
-        self, test_dmv: DataModelValidator, empty_dmv: DataModelValidator
+        self, test_dmv: DataModelValidator, test_dmv_not_acyclic: DataModelValidator
     ) -> None:
         """Tests for DataModelValidator._run_cycles"""
         test_dmv._run_cycles()
-        empty_dmv._run_cycles()
+        test_dmv_not_acyclic._run_cycles()
 
     def test__check_is_dag(
         self, test_dmv: DataModelValidator, test_dmv_not_acyclic: DataModelValidator
@@ -334,8 +358,13 @@ class TestDataModelValidator:
         errors = test_dmv._check_is_dag()
         assert not errors
         errors = test_dmv_not_acyclic._check_is_dag()
+        # This test doesn't cover all of this method please see
+        # https://sagebionetworks.jira.com/browse/FDS-2529
         assert errors == [
-            "Schematic requires models be a directed acyclic graph (DAG). Please inspect your model."
+            (
+                "Schematic requires models be a directed acyclic graph (DAG). "
+                "Please inspect your model."
+            )
         ]
 
     def test__check_graph_has_required_node_fields(
@@ -345,7 +374,12 @@ class TestDataModelValidator:
         errors = test_dmv._check_graph_has_required_node_fields()
         assert not errors
         errors = test_dmv_with_missing_field._check_graph_has_required_node_fields()
-        assert errors == ['For entry: Cancer, the required field label is missing in the data model graph, please double check your model and generate the graph again.']
+        assert errors == [
+            (
+                "For entry: Cancer, the required field label is missing in the data model graph, "
+                "please double check your model and generate the graph again."
+            )
+        ]
 
     def test__check_blacklisted_characters(
         self, test_dmv: DataModelValidator, empty_dmv: DataModelValidator
@@ -353,11 +387,26 @@ class TestDataModelValidator:
         """Tests for DataModelValidator._check_blacklisted_characters"""
         errors = test_dmv._check_blacklisted_characters()
         assert errors == [
-            "Node: Patient) contains a blacklisted character(s): ), they will be striped if used in Synapse annotations.",
-            "Node: Patient ID. contains a blacklisted character(s): ., they will be striped if used in Synapse annotations.",
-            "Node: Sex- contains a blacklisted character(s): -, they will be striped if used in Synapse annotations.",
-            "Node: Year of Birth( contains a blacklisted character(s): (, they will be striped if used in Synapse annotations.",
-            "Node: Bulk RNA-seq Assay contains a blacklisted character(s): -, they will be striped if used in Synapse annotations.",
+            (
+                "Node: Patient) contains a blacklisted character(s): ), "
+                "they will be striped if used in Synapse annotations."
+            ),
+            (
+                "Node: Patient ID. contains a blacklisted character(s): ., "
+                "they will be striped if used in Synapse annotations."
+            ),
+            (
+                "Node: Sex- contains a blacklisted character(s): -, "
+                "they will be striped if used in Synapse annotations."
+            ),
+            (
+                "Node: Year of Birth( contains a blacklisted character(s): (, "
+                "they will be striped if used in Synapse annotations."
+            ),
+            (
+                "Node: Bulk RNA-seq Assay contains a blacklisted character(s): -, "
+                "they will be striped if used in Synapse annotations."
+            ),
         ]
         errors = empty_dmv._check_blacklisted_characters()
         assert not errors
@@ -367,6 +416,11 @@ class TestDataModelValidator:
     ) -> None:
         """Tests for DataModelValidator._check_reserved_names"""
         errors = test_dmv._check_reserved_names()
-        assert errors == ["Your data model entry name: EntityId overlaps with the reserved name: entityId. Please change this name in your data model."]
+        assert errors == [
+            (
+                "Your data model entry name: EntityId overlaps with the reserved name: entityId. "
+                "Please change this name in your data model."
+            )
+        ]
         errors = empty_dmv._check_reserved_names()
         assert not errors
