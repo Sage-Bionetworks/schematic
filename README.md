@@ -23,9 +23,9 @@
       - [2a. Set up your virtual environment with `venv`](#2a-set-up-your-virtual-environment-with-venv)
       - [2b. Set up your virtual environment with `conda`](#2b-set-up-your-virtual-environment-with-conda)
     - [3. Install `schematic` dependencies](#3-install-schematic-dependencies)
-    - [4. Set up configuration files](#4-set-up-configuration-files)
-    - [5. Get your data model as a `JSON-LD` schema file](#5-get-your-data-model-as-a-json-ld-schema-file)
-    - [6. Obtain Google credential files](#6-obtain-google-credential-files)
+    - [4. Get your data model as a `JSON-LD` schema file](#4-get-your-data-model-as-a-json-ld-schema-file)
+    - [5. Obtain Google credential files](#5-obtain-google-credential-files)
+    - [6. Set up configuration files](#6-set-up-configuration-files)
     - [7. Verify your setup](#7-verify-your-setup)
   - [Installation Guide For: Contributors](#installation-guide-for-contributors)
     - [1. Clone the `schematic` package repository](#1-clone-the-schematic-package-repository)
@@ -127,7 +127,43 @@ If you run into `ERROR: Failed building wheel for numpy`, the error might be abl
 pip3 install --upgrade pip
 ```
 
-### 4. Set up configuration files
+### 4. Get your data model as a `JSON-LD` schema file
+
+Now you need a schema file, e.g. `model.jsonld`, to have a data model that schematic can work with. While you can download a super basic example data model [here](https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/develop/tests/data/example.model.jsonld), you’ll probably be working with a DCC-specific data model. For non-Sage employees/contributors using the CLI, you might care only about the minimum needed artifact, which is the  `.jsonld`; locate and download only that from the right repo.
+
+Here are some example repos with schema files:
+* https://github.com/ncihtan/data-models/
+* https://github.com/nf-osi/nf-metadata-dictionary/
+
+### 5. Obtain Google credential files
+
+Any function that interacts with a google sheet (such as `schematic manifest get`) requires google cloud credentials.
+
+1. **Option 1**: [Here](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA?referrer=workspace)’s a step-by-step guide on how to create these credentials in Google Cloud.
+   * Depending on your institution's policies, your institutional Google account may or may not have the required permissions to complete this. A possible workaround is to use a personal or temporary Google account.
+
+> [!WARNING]
+> At the time of writing, Sage Bionetworks employees do not have the appropriate permissions to create projects with their Sage Bionetworks Google accounts. You would follow instructions using a personal Google account. 
+
+2. **Option 2**: Ask your DCC/development team if they have credentials previously set up with a service account.
+
+Once you have obtained credentials, be sure that the json file generated is named in the same way as the `service_acct_creds` parameter in your `config.yml` file. You will find more context on the `config.yml` in section [6. Set up configuration files](#6-set-up-configuration-files).
+
+> [!NOTE]
+> Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
+schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
+Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
+requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
+token-based authentication and keep only service account authentication in the future. 
+
+> [!NOTE]
+> Use the ``schematic_service_account_creds.json`` file for the service
+> account mode of authentication (*for Google services/APIs*). Service accounts
+> are special Google accounts that can be used by applications to access Google APIs
+> programmatically via OAuth2.0, with the advantage being that they do not require
+> human authorization. 
+
+### 6. Set up configuration files
 
 The following section will walk through setting up your configuration files with your credentials to allow for communication between `schematic` and the Synapse API.
 
@@ -163,57 +199,22 @@ such as the Synapse ID of the main file view containing all your project assets,
 
 Download the `config_example.yml` as a new file called `config.yml` and modify its contents according to your use case.
 
-For example, if you wanted to change the folder where manifests are downloaded your config should look like:
+For example, one of the components in this `config.yml` that will likely be modified is the location of your schema. After acquiring your schema file using the
+instructions in step [4. Get your data model as a `JSON-LD` schema file](#4-get-your-data-model-as-a-json-ld-schema-file), your `config.yml` should contain something like:
 
 ```text
-manifest:
-  manifest_folder: "my_manifest_folder_path"
+model:
+  location: "path/to/your/model.jsonld"
 ```
+
+> [!IMPORTANT]
+> Please note that for the example above, your local working directory would typically have `model.jsonld` and `config.yml` side-by-side. The path to your data model should match what is in `config.yml`.
 
 > [!IMPORTANT]
 > Be sure to update your `config.yml` with the location of your `.synapseConfig` created in the step above, to avoid authentication errors. Paths can be specified relative to the `config.yml` file or as absolute paths.
 
 > [!NOTE]
 > `config.yml` is ignored by git.
-
-### 5. Get your data model as a `JSON-LD` schema file
-
-Now you need a schema file, e.g. `model.jsonld`, to have a data model that schematic can work with. While you can download a super basic example data model [here](https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/develop/tests/data/example.model.jsonld), you’ll probably be working with a DCC-specific data model. For non-Sage employees/contributors using the CLI, you might care only about the minimum needed artifact, which is the  `.jsonld`; locate and download only that from the right repo.
-
-Here are some example repos with schema files:
-* https://github.com/ncihtan/data-models/
-* https://github.com/nf-osi/nf-metadata-dictionary/
-
-> [!IMPORTANT]
-> Your local working directory would typically have `model.jsonld` and `config.yml` side-by-side. The path to your data model should match what is in `config.yml`
-
-### 6. Obtain Google credential files
-
-Any function that interacts with a google sheet (such as `schematic manifest get`) requires google cloud credentials.
-
-1. **Option 1**: [Here](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA?referrer=workspace)’s a step-by-step guide on how to create these credentials in Google Cloud.
-   * Depending on your institution's policies, your institutional Google account may or may not have the required permissions to complete this. A possible workaround is to use a personal or temporary Google account.
-
-> [!WARNING]
-> At the time of writing, Sage Bionetworks employees do not have the appropriate permissions to create projects with their Sage Bionetworks Google accounts. You would follow instructions using a personal Google account. 
-
-2. **Option 2**: Ask your DCC/development team if they have credentials previously set up with a service account.
-
-Once you have obtained credentials, be sure that the json file generated is named in the same way as the `service_acct_creds` parameter in your `config.yml` file.
-
-> [!NOTE]
-> Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
-schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
-Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
-requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
-token-based authentication and keep only service account authentication in the future. 
-
-> [!NOTE]
-> Use the ``schematic_service_account_creds.json`` file for the service
-> account mode of authentication (*for Google services/APIs*). Service accounts
-> are special Google accounts that can be used by applications to access Google APIs
-> programmatically via OAuth2.0, with the advantage being that they do not require
-> human authorization. 
 
 ### 7. Verify your setup
 After running the steps above, your setup is complete, and you can test it on a `python` instance or by running a command based on the examples in the [Command Line Usage](#command-line-usage) section.
