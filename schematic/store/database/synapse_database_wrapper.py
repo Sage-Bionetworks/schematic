@@ -6,7 +6,7 @@ from typing import Optional
 import pandas  # type: ignore
 import synapseclient  # type: ignore
 
-from schematic.store.synapse_tracker import SynapseEntiyTracker
+from schematic.store.synapse_tracker import SynapseEntityTracker
 
 
 class SynapseTableNameError(Exception):
@@ -36,7 +36,7 @@ class Synapse:  # pylint: disable=too-many-public-methods
         auth_token: str,
         project_id: str,
         cache_root_dir: Optional[str] = None,
-        synapse_entity_tracker: SynapseEntiyTracker = None,
+        synapse_entity_tracker: SynapseEntityTracker = None,
         syn: synapseclient.Synapse = None,
     ) -> None:
         """Init
@@ -54,7 +54,7 @@ class Synapse:  # pylint: disable=too-many-public-methods
             syn = synapseclient.Synapse(cache_root_dir=cache_root_dir)
             syn.login(authToken=auth_token, silent=True)
             self.syn = syn
-        self.synapse_entity_tracker = synapse_entity_tracker or SynapseEntiyTracker()
+        self.synapse_entity_tracker = synapse_entity_tracker or SynapseEntityTracker()
 
     def get_synapse_id_from_table_name(self, table_name: str) -> str:
         """Gets the synapse id from the table name

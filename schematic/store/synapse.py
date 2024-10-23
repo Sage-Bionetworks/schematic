@@ -55,7 +55,7 @@ from schematic.exceptions import AccessCredentialsError
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.base import BaseStorage
 from schematic.store.database.synapse_database import SynapseDatabase
-from schematic.store.synapse_tracker import SynapseEntiyTracker
+from schematic.store.synapse_tracker import SynapseEntityTracker
 from schematic.utils.df_utils import col_in_dataframe, load_df, update_df
 
 # entity_type_mapping, get_dir_size, create_temp_folder, check_synapse_cache_size, and clear_synapse_cache functions are used for AWS deployment
@@ -86,8 +86,8 @@ class ManifestDownload(object):
 
     syn: synapseclient.Synapse
     manifest_id: str
-    synapse_entity_tracker: SynapseEntiyTracker = field(
-        default_factory=SynapseEntiyTracker
+    synapse_entity_tracker: SynapseEntityTracker = field(
+        default_factory=SynapseEntityTracker
     )
 
     def _download_manifest_to_folder(self, use_temporary_folder: bool = True) -> File:
@@ -311,7 +311,7 @@ class SynapseStorage(BaseStorage):
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
         self.root_synapse_cache = self.syn.cache.cache_root_dir
-        self.synapse_entity_tracker = SynapseEntiyTracker()
+        self.synapse_entity_tracker = SynapseEntityTracker()
         if perform_query:
             self.query_fileview(columns=columns, where_clauses=where_clauses)
 
@@ -2917,7 +2917,7 @@ class TableOperations:
         datasetId: str = None,
         existingTableId: str = None,
         restrict: bool = False,
-        synapse_entity_tracker: SynapseEntiyTracker = None,
+        synapse_entity_tracker: SynapseEntityTracker = None,
     ):
         """
         Class governing table operations (creation, replacement, upserts, updates) in schematic
@@ -2936,7 +2936,7 @@ class TableOperations:
         self.datasetId = datasetId
         self.existingTableId = existingTableId
         self.restrict = restrict
-        self.synapse_entity_tracker = synapse_entity_tracker or SynapseEntiyTracker()
+        self.synapse_entity_tracker = synapse_entity_tracker or SynapseEntityTracker()
 
     @tracer.start_as_current_span("TableOperations::createTable")
     def createTable(

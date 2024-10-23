@@ -4,7 +4,7 @@ import pandas as pd
 import synapseclient as sc  # type: ignore
 
 from schematic.store.database.synapse_database_wrapper import Synapse
-from schematic.store.synapse_tracker import SynapseEntiyTracker
+from schematic.store.synapse_tracker import SynapseEntityTracker
 
 
 class SynapseDatabaseMissingTableAnnotationsError(Exception):
@@ -45,7 +45,7 @@ class SynapseDatabase:
         self,
         auth_token: str,
         project_id: str,
-        synapse_entity_tracker: SynapseEntiyTracker = None,
+        synapse_entity_tracker: SynapseEntityTracker = None,
         syn: sc.Synapse = None,
     ) -> None:
         """Init
