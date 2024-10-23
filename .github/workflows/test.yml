@@ -139,7 +139,7 @@ jobs:
           TRACING_SERVICE_NAME: ${{ vars.TRACING_SERVICE_NAME }}
         run: >
           poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-          -m "not (rule_benchmark)" --reruns 4 -n 8 --ignore=tests/unit tests/test_store.py::TestDatasetFileView::test_query
+          -m "not (rule_benchmark)" --reruns 4 -n 8 --ignore=tests/unit
 
 
       # - name: Upload pytest test results
