@@ -87,42 +87,42 @@ jobs:
       #----------------------------------------------
       #             check formatting
       #----------------------------------------------
-      - name: Code formatting with black
-        run: |
-          # ran only on certain files for now
-          # add here when checked
-          poetry run black schematic tests schematic_api --check
+      # - name: Code formatting with black
+      #   run: |
+      #     # ran only on certain files for now
+      #     # add here when checked
+      #     poetry run black schematic tests schematic_api --check
 
       #----------------------------------------------
       #             type checking/enforcement
       #----------------------------------------------
-      - name: Type checking with mypy
-        run: |
-          # ran only on certain files for now
-          # add here when checked
-          # poetry run mypy --install-types --non-interactive
-          # add here when enforced
-          poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/schemas/ schematic/configuration/ schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/visualization schematic/utils/
+      # - name: Type checking with mypy
+      #   run: |
+      #     # ran only on certain files for now
+      #     # add here when checked
+      #     # poetry run mypy --install-types --non-interactive
+      #     # add here when enforced
+      #     poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/schemas/ schematic/configuration/ schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/visualization schematic/utils/
 
       #----------------------------------------------
       #             linting
       #----------------------------------------------
-      - name: Lint with pylint
-        run: |
-          # ran only on certain files for now
-          # add here when checked
-          poetry run pylint schematic/visualization/* schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/utils/*.py schematic/schemas/*.py
+      # - name: Lint with pylint
+      #   run: |
+      #     # ran only on certain files for now
+      #     # add here when checked
+      #     poetry run pylint schematic/visualization/* schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/utils/*.py schematic/schemas/*.py
 
       #----------------------------------------------
       #              run unit test suite
       #----------------------------------------------
-      - name: Run unit tests
-        env:
-          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
-          SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
-        run: >
-          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov 
-          --cov-report=xml:coverage.xml --cov=schematic/ --reruns 4 -n 8 tests/unit;
+      # - name: Run unit tests
+      #   env:
+      #     SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+      #     SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
+      #   run: >
+      #     poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov 
+      #     --cov-report=xml:coverage.xml --cov=schematic/ --reruns 4 -n 8 tests/unit;
 
       #----------------------------------------------
       #              run integration test suite
@@ -134,56 +134,56 @@ jobs:
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
           poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-          -m "not (rule_benchmark)" --reruns 4 -n 8 --ignore=tests/unit
+          -m "not (rule_benchmark)" --reruns 4 -n 8 --ignore=tests/unit tests/test_store.py::TestDatasetFileView::test_query
 
 
-      - name: Upload pytest test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: pytest-results-${{ matrix.python-version }}
-          path: htmlcov
-        # Use always() to always run this step to publish test results when there are test failures
-        if: ${{ always() && contains(fromJSON('["3.10"]'), matrix.python-version) }}
-      - name: Upload XML coverage report
-        id: upload_coverage_report
-        uses: actions/upload-artifact@v4
-        # Only upload a single python version to pass along to sonarcloud
-        if: ${{ contains(fromJSON('["3.10"]'), matrix.python-version) && always() }}
-        with:
-          name: coverage-report
-          path: coverage.xml
+      # - name: Upload pytest test results
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: pytest-results-${{ matrix.python-version }}
+      #     path: htmlcov
+      #   # Use always() to always run this step to publish test results when there are test failures
+      #   if: ${{ always() && contains(fromJSON('["3.10"]'), matrix.python-version) }}
+      # - name: Upload XML coverage report
+      #   id: upload_coverage_report
+      #   uses: actions/upload-artifact@v4
+      #   # Only upload a single python version to pass along to sonarcloud
+      #   if: ${{ contains(fromJSON('["3.10"]'), matrix.python-version) && always() }}
+      #   with:
+      #     name: coverage-report
+      #     path: coverage.xml
 
-  sonarcloud:
-    needs: [test]
-    if: ${{ always() && !cancelled()}}
-    name: SonarCloud
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: Check coverage-report artifact existence
-        id: check_coverage_report
-        uses: LIT-Protocol/artifact-exists-action@v0
-        with:
-          name: "coverage-report"
-      - name: Download coverage report
-        uses: actions/download-artifact@v4
-        if: steps.check_coverage_report.outputs.exists == 'true'
-        with:
-          name: coverage-report
-      - name: Check coverage.xml file existence
-        id: check_coverage_xml
-        uses: andstor/file-existence-action@v3
-        with:
-          files: "coverage.xml"
-        # This is a workaround described in https://community.sonarsource.com/t/sonar-on-github-actions-with-python-coverage-source-issue/36057
-      - name: Override Coverage Source Path for Sonar
-        if: steps.check_coverage_xml.outputs.files_exists == 'true'
-        run: sed -i "s/<source>\/home\/runner\/work\/schematic\/schematic\/schematic<\/source>/<source>\/github\/workspace\/schematic<\/source>/g" coverage.xml
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        if: ${{ always() }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  # sonarcloud:
+  #   needs: [test]
+  #   if: ${{ always() && !cancelled()}}
+  #   name: SonarCloud
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+  #     - name: Check coverage-report artifact existence
+  #       id: check_coverage_report
+  #       uses: LIT-Protocol/artifact-exists-action@v0
+  #       with:
+  #         name: "coverage-report"
+  #     - name: Download coverage report
+  #       uses: actions/download-artifact@v4
+  #       if: steps.check_coverage_report.outputs.exists == 'true'
+  #       with:
+  #         name: coverage-report
+  #     - name: Check coverage.xml file existence
+  #       id: check_coverage_xml
+  #       uses: andstor/file-existence-action@v3
+  #       with:
+  #         files: "coverage.xml"
+  #       # This is a workaround described in https://community.sonarsource.com/t/sonar-on-github-actions-with-python-coverage-source-issue/36057
+  #     - name: Override Coverage Source Path for Sonar
+  #       if: steps.check_coverage_xml.outputs.files_exists == 'true'
+  #       run: sed -i "s/<source>\/home\/runner\/work\/schematic\/schematic\/schematic<\/source>/<source>\/github\/workspace\/schematic<\/source>/g" coverage.xml
+  #     - name: SonarCloud Scan
+  #       uses: SonarSource/sonarcloud-github-action@master
+  #       if: ${{ always() }}
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

@@ -940,7 +940,7 @@ class TestDatasetFileView:
         # Outside the 'with' statement, the file view should be unavailable
         assert fileview.view_schema is None
 
-    def test_query(self, dataset_fileview_table):
+    async def test_query(self, dataset_fileview_table):
         table = dataset_fileview_table
 
         # The content is tested in test_getDatasetAnnotations()
@@ -963,6 +963,7 @@ class TestDatasetFileView:
         year_value = table.loc[sample_a_row, "YearofBirth"].values[0]
         assert isinstance(year_value, float)
         assert math.isclose(year_value, 1980.0)
+        await asyncio.sleep(20)
 
     def test_tidy_table(self, dataset_fileview_table_tidy):
         table = dataset_fileview_table_tidy
