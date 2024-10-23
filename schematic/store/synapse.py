@@ -665,7 +665,9 @@ class SynapseStorage(BaseStorage):
             self.syn, datasetId, includeTypes=["folder", "file"]
         )
 
-        current_entity_location = self.syn.get(entity=datasetId, downloadFile=False)
+        current_entity_location = self.synapse_entity_tracker.get(
+            synapse_id=datasetId, syn=self.syn, download_file=False
+        )
 
         def walk_back_to_project(
             current_location: Entity, location_prefix: str, skip_entry: bool
@@ -702,8 +704,13 @@ class SynapseStorage(BaseStorage):
                 and current_location["concreteType"] == PROJECT_ENTITY
             ):
                 return updated_prefix
+            current_location = self.synapse_entity_tracker.get(
+                synapse_id=current_location["parentId"],
+                syn=self.syn,
+                download_file=False,
+            )
             return walk_back_to_project(
-                current_location=self.syn.get(entity=current_location["parentId"]),
+                current_location=current_location,
                 location_prefix=updated_prefix,
                 skip_entry=False,
             )
