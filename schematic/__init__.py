@@ -1,13 +1,18 @@
+import gzip
 import logging
 import os
 import time
+import zlib
+from io import BytesIO
+from time import sleep
 from typing import Dict, List
 
 import pkg_resources
 from opentelemetry import trace
 from opentelemetry._logs import set_logger_provider
-from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.http import Compression
+from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
@@ -76,9 +81,11 @@ def set_up_tracing() -> None:
         )
 
     if tracing_export == "otlp":
-        trace.get_tracer_provider().add_span_processor(
-            BatchSpanProcessor(OTLPSpanExporter())
-        )
+        exporter = OTLPSpanExporter()
+        import types
+
+        exporter._export = types.MethodType(trace_export_replacement, exporter)
+        trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(exporter))
     elif tracing_export == "file":
         timestamp_millis = int(time.time() * 1000)
         file_name = f"otel_spans_integration_testing_{timestamp_millis}.ndjson"
@@ -102,13 +109,14 @@ def set_up_logging() -> None:
             }
         )
 
-        logger_provider = LoggerProvider(resource=resource)
-        set_logger_provider(logger_provider=logger_provider)
+        # logger_provider = LoggerProvider(resource=resource)
+        # set_logger_provider(logger_provider=logger_provider)
 
-        exporter = OTLPLogExporter()
-        logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
-        handler = LoggingHandler(level=logging.NOTSET, logger_provider=logger_provider)
-        logging.getLogger().addHandler(handler)
+        # exporter = OTLPLogExporter()
+        # # exporter._certificate_file = False
+        # logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
+        # handler = LoggingHandler(level=logging.NOTSET, logger_provider=logger_provider)
+        # logging.getLogger().addHandler(handler)
 
 
 def request_hook(span: Span, environ: Dict) -> None:
@@ -148,6 +156,27 @@ def response_hook(span: Span, status: str, response_headers: List) -> None:
     """Nothing is implemented here yet, but it follows the same pattern as the
     request hook."""
     pass
+
+
+# This is a temporary hack to get around the fact that I am currently using self-signed SSL certs.
+# I have an IT ticket to get a domain to use for this purpose so I can request a proper SSL cert from LetsEncrypt.
+def trace_export_replacement(self, serialized_data: bytes):
+    data = serialized_data
+    if self._compression == Compression.Gzip:
+        gzip_data = BytesIO()
+        with gzip.GzipFile(fileobj=gzip_data, mode="w") as gzip_stream:
+            gzip_stream.write(serialized_data)
+        data = gzip_data.getvalue()
+    elif self._compression == Compression.Deflate:
+        data = zlib.compress(serialized_data)
+
+    return self._session.post(
+        url=self._endpoint,
+        data=data,
+        verify=False,
+        timeout=self._timeout,
+        cert=self._client_cert,
+    )
 
 
 set_up_tracing()
