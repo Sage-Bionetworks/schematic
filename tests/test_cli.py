@@ -1,14 +1,13 @@
 import os
-
-import pytest
 from unittest.mock import patch
 
+import pytest
 from click.testing import CliRunner
 
-from schematic.schemas.commands import schema
+from schematic.configuration.configuration import Configuration
 from schematic.manifest.commands import manifest
 from schematic.models.commands import model
-from schematic.configuration.configuration import Configuration
+from schematic.schemas.commands import schema
 from tests.conftest import Helpers
 
 
@@ -156,9 +155,9 @@ class TestSchemaCli:
         runner: CliRunner,
         helpers: Helpers,
         with_annotations: bool,
-        config: Configuration,
     ) -> None:
         manifest_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
+        config = Configuration()
         config.load_config("config_example.yml")
         config.synapse_master_fileview_id = "syn1234"
 
