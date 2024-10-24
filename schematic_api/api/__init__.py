@@ -1,30 +1,14 @@
 import os
-
-import connexion
+import traceback
 from typing import Tuple
 
-import traceback
-from synapseclient.core.exceptions import (
-    SynapseAuthenticationError,
-)
+import connexion
+from synapseclient.core.exceptions import SynapseAuthenticationError
+
 from schematic.exceptions import AccessCredentialsError
 
-from schematic import CONFIG
-from jaeger_client import Config
-from flask_opentracing import FlaskTracer
 
-config = Config(
-    config={
-        "enabled": True,
-        "sampler": {"type": "const", "param": 1},
-        "logging": True,
-    },
-    service_name="schema-api",
-)
-jaeger_tracer = config.initialize_tracer
-
-
-def create_app():
+def create_app() -> None:
     connexionapp = connexion.FlaskApp(__name__, specification_dir="openapi/")
     connexionapp.add_api(
         "api.yaml", arguments={"title": "Schematic REST API"}, pythonic_params=True
@@ -70,11 +54,6 @@ def create_app():
 
 
 app = create_app()
-
-flask_tracer = FlaskTracer(
-    jaeger_tracer, True, app, ["url", "url_rule", "environ.HTTP_X_REAL_IP", "path"]
-)
-
 
 # def route_code():
 #     import flask_schematic as sc
