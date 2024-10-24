@@ -20,6 +20,7 @@ from schematic.schemas.data_model_graph import DataModelGraph
 
 # pylint: disable=protected-access
 
+
 @pytest.fixture(name="test_dmv")
 def fixture_test_dmv() -> Generator[MultiDiGraph, None, None]:
     """Yield a DataModelValidator object using test data model"""
@@ -52,6 +53,7 @@ def fixture_test_dmv_with_missing_field() -> Generator[MultiDiGraph, None, None]
     # remove needed field to trigger an error message
     del graph_data_model.nodes["Cancer"]["label"]
     yield DataModelValidator(graph_data_model)
+
 
 @pytest.fixture(name="test_dmv_not_acyclic")
 def fixture_test_dmv_not_acyclic() -> Generator[MultiDiGraph, None, None]:
@@ -160,7 +162,7 @@ class TestDataModelValidatorHelpers:
                     (
                         "For entry: node1, the required field field2 is missing in the data model "
                         "graph, please double check your model and generate the graph again."
-                    )
+                    ),
                 ],
             ),
         ],
@@ -217,7 +219,7 @@ class TestDataModelValidatorHelpers:
                 (
                     "Node:  contains a blacklisted character(s): , they will be striped if "
                     "used in Synapse annotations."
-                )
+                ),
             ),
             (
                 ["x", "y"],
@@ -225,7 +227,7 @@ class TestDataModelValidatorHelpers:
                 (
                     "Node: node1 contains a blacklisted character(s): x,y, they will be striped "
                     "if used in Synapse annotations."
-                )
+                ),
             ),
         ],
     )
@@ -318,7 +320,7 @@ class TestDataModelValidatorHelpers:
                     (
                         "Your data model entry name: Node2 overlaps with the reserved name: node2. "
                         "Please change this name in your data model."
-                    )
+                    ),
                 ],
             ),
         ],
@@ -368,7 +370,9 @@ class TestDataModelValidator:
         ]
 
     def test__check_graph_has_required_node_fields(
-        self, test_dmv: DataModelValidator, test_dmv_with_missing_field: DataModelValidator
+        self,
+        test_dmv: DataModelValidator,
+        test_dmv_with_missing_field: DataModelValidator,
     ) -> None:
         """Tests for DataModelValidator._check_graph_has_required_node_fields"""
         errors = test_dmv._check_graph_has_required_node_fields()
