@@ -1,7 +1,4 @@
 import os
-import connexion
-from schematic import CONFIG
-from flask_cors import CORS
 from schematic_api.api import app
 
 

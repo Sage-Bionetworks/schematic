@@ -164,7 +164,7 @@ clean.sh
 # Intermediate files
 data/json_schema_logs/json_schema_log.json
 great_expectations/checkpoints/manifest_checkpoint.yml
-great_expectations/expectations/Manifest_test_suite.json
+great_expectations/expectations/Manifest_test_suite*.json
 
 tests/data/example.MockComponent.schema.json
 tests/data/mock_manifests/Invalid_Test_Manifest_censored.csv
@@ -177,6 +177,7 @@ tests/data/schema.gpickle
 # Created during testting
 Example*
 manifests/*
+https:*
 
 # schematic config file
 config.yml
