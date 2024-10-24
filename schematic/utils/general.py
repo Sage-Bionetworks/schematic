@@ -18,7 +18,7 @@ from synapseclient.core.exceptions import SynapseHTTPError  # type: ignore
 from synapseclient.entity import File, Folder, Project  # type: ignore
 from synapseclient.table import EntityViewSchema  # type: ignore
 
-from schematic.store.synapse_tracker import SynapseEntiyTracker
+from schematic.store.synapse_tracker import SynapseEntityTracker
 
 logger = logging.getLogger(__name__)
 
@@ -185,7 +185,7 @@ def clear_synapse_cache(synapse_cache: cache.Cache, minutes: int) -> int:
 def entity_type_mapping(
     syn: Synapse,
     entity_id: str,
-    synapse_entity_tracker: Optional[SynapseEntiyTracker] = None,
+    synapse_entity_tracker: Optional[SynapseEntityTracker] = None,
 ) -> str:
     """Return the entity type of manifest
 
@@ -203,7 +203,7 @@ def entity_type_mapping(
     # check the type of entity
     try:
         if not synapse_entity_tracker:
-            synapse_entity_tracker = SynapseEntiyTracker()
+            synapse_entity_tracker = SynapseEntityTracker()
         entity = synapse_entity_tracker.get(
             synapse_id=entity_id, syn=syn, download_file=False
         )

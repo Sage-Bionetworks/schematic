@@ -7,7 +7,7 @@ import pandas  # type: ignore
 import synapseclient  # type: ignore
 from opentelemetry import trace
 
-from schematic.store.synapse_tracker import SynapseEntiyTracker
+from schematic.store.synapse_tracker import SynapseEntityTracker
 
 
 class SynapseTableNameError(Exception):
@@ -37,7 +37,7 @@ class Synapse:  # pylint: disable=too-many-public-methods
         auth_token: str,
         project_id: str,
         cache_root_dir: Optional[str] = None,
-        synapse_entity_tracker: SynapseEntiyTracker = None,
+        synapse_entity_tracker: SynapseEntityTracker = None,
         syn: synapseclient.Synapse = None,
     ) -> None:
         """Init
@@ -58,7 +58,7 @@ class Synapse:  # pylint: disable=too-many-public-methods
             if current_span.is_recording():
                 current_span.set_attribute("user.id", syn.credentials.owner_id)
             self.syn = syn
-        self.synapse_entity_tracker = synapse_entity_tracker or SynapseEntiyTracker()
+        self.synapse_entity_tracker = synapse_entity_tracker or SynapseEntityTracker()
 
     def get_synapse_id_from_table_name(self, table_name: str) -> str:
         """Gets the synapse id from the table name

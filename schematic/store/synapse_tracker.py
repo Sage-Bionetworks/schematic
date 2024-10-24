@@ -11,8 +11,8 @@ from synapseclient import Entity, File, Folder, Project, Schema
 
 
 @dataclass
-class SynapseEntiyTracker:
-    """The SynapseEntiyTracker class handles tracking synapse entities throughout the
+class SynapseEntityTracker:
+    """The SynapseEntityTracker class handles tracking synapse entities throughout the
     lifecycle of a request to schematic. It is used to prevent multiple downloads of
     the same entity."""
 

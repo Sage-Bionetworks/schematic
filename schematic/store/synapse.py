@@ -24,6 +24,7 @@ from opentelemetry import trace
 from synapseclient import Annotations as OldAnnotations
 from synapseclient import (
     Column,
+    Entity,
     EntityViewSchema,
     EntityViewType,
     File,
@@ -35,6 +36,7 @@ from synapseclient import (
 )
 from synapseclient.annotations import _convert_to_annotations_list
 from synapseclient.api import get_config_file, get_entity_id_bundle2
+from synapseclient.core.constants.concrete_types import PROJECT_ENTITY
 from synapseclient.core.exceptions import (
     SynapseAuthenticationError,
     SynapseHTTPError,
@@ -55,7 +57,7 @@ from schematic.exceptions import AccessCredentialsError
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.base import BaseStorage
 from schematic.store.database.synapse_database import SynapseDatabase
-from schematic.store.synapse_tracker import SynapseEntiyTracker
+from schematic.store.synapse_tracker import SynapseEntityTracker
 from schematic.utils.df_utils import col_in_dataframe, load_df, update_df
 
 # entity_type_mapping, get_dir_size, create_temp_folder, check_synapse_cache_size, and clear_synapse_cache functions are used for AWS deployment
@@ -86,8 +88,8 @@ class ManifestDownload(object):
 
     syn: synapseclient.Synapse
     manifest_id: str
-    synapse_entity_tracker: SynapseEntiyTracker = field(
-        default_factory=SynapseEntiyTracker
+    synapse_entity_tracker: SynapseEntityTracker = field(
+        default_factory=SynapseEntityTracker
     )
 
     def _download_manifest_to_folder(self, use_temporary_folder: bool = True) -> File:
@@ -323,7 +325,7 @@ class SynapseStorage(BaseStorage):
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
         self.root_synapse_cache = self.syn.cache.cache_root_dir
-        self.synapse_entity_tracker = SynapseEntiyTracker()
+        self.synapse_entity_tracker = SynapseEntityTracker()
         if perform_query:
             self.query_fileview(columns=columns, where_clauses=where_clauses)
 
@@ -682,6 +684,62 @@ class SynapseStorage(BaseStorage):
             self.syn, datasetId, includeTypes=["folder", "file"]
         )
 
+        current_entity_location = self.synapse_entity_tracker.get(
+            synapse_id=datasetId, syn=self.syn, download_file=False
+        )
+
+        def walk_back_to_project(
+            current_location: Entity, location_prefix: str, skip_entry: bool
+        ) -> str:
+            """
+            Recursively walk back up the project structure to get the paths of the
+            names of each of the directories where we started the walk function.
+
+            Args:
+                current_location (Entity): The current entity location in the project structure.
+                location_prefix (str): The prefix to prepend to the path.
+                skip_entry (bool): Whether to skip the current entry in the path. When
+                    this is True it means we are looking at our starting point. If our
+                    starting point is the project itself we can go ahead and return
+                    back the project as the prefix.
+
+            Returns:
+                str: The path of the names of each of the directories up to the project root.
+            """
+            if (
+                skip_entry
+                and "concreteType" in current_location
+                and current_location["concreteType"] == PROJECT_ENTITY
+            ):
+                return f"{current_location.name}/{location_prefix}"
+
+            updated_prefix = (
+                location_prefix
+                if skip_entry
+                else f"{current_location.name}/{location_prefix}"
+            )
+            if (
+                "concreteType" in current_location
+                and current_location["concreteType"] == PROJECT_ENTITY
+            ):
+                return updated_prefix
+            current_location = self.synapse_entity_tracker.get(
+                synapse_id=current_location["parentId"],
+                syn=self.syn,
+                download_file=False,
+            )
+            return walk_back_to_project(
+                current_location=current_location,
+                location_prefix=updated_prefix,
+                skip_entry=False,
+            )
+
+        prefix = walk_back_to_project(
+            current_location=current_entity_location,
+            location_prefix="",
+            skip_entry=True,
+        )
+
         project_id = self.getDatasetProject(datasetId)
         project = self.synapse_entity_tracker.get(
             synapse_id=project_id, syn=self.syn, download_file=False
@@ -704,17 +762,16 @@ class SynapseStorage(BaseStorage):
                     if fullpath:
                         # append directory path to filename
                         if dirpath[0].startswith(f"{project_name}/"):
+                            path_without_project_prefix = (
+                                dirpath[0] + "/"
+                            ).removeprefix(f"{project_name}/")
                             path_filename = (
-                                dirpath[0] + "/" + path_filename[0],
+                                prefix + path_without_project_prefix + path_filename[0],
                                 path_filename[1],
                             )
                         else:
                             path_filename = (
-                                project_name
-                                + "/"
-                                + dirpath[0]
-                                + "/"
-                                + path_filename[0],
+                                prefix + dirpath[0] + "/" + path_filename[0],
                                 path_filename[1],
                             )
 
@@ -2936,7 +2993,7 @@ class TableOperations:
         datasetId: str = None,
         existingTableId: str = None,
         restrict: bool = False,
-        synapse_entity_tracker: SynapseEntiyTracker = None,
+        synapse_entity_tracker: SynapseEntityTracker = None,
     ):
         """
         Class governing table operations (creation, replacement, upserts, updates) in schematic
@@ -2955,7 +3012,7 @@ class TableOperations:
         self.datasetId = datasetId
         self.existingTableId = existingTableId
         self.restrict = restrict
-        self.synapse_entity_tracker = synapse_entity_tracker or SynapseEntiyTracker()
+        self.synapse_entity_tracker = synapse_entity_tracker or SynapseEntityTracker()
 
     @tracer.start_as_current_span("TableOperations::createTable")
     def createTable(
