@@ -6,7 +6,6 @@ import pytest
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_utils import comma_separated_list_regex
-from tests.conftest import Helpers
 
 
 class TestStoreSynapse:
