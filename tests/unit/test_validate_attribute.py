@@ -1933,6 +1933,29 @@ class TestValidateAttributeObject:
         assert len(errors) == 0
         assert len(warnings) == 1
 
+    @pytest.mark.parametrize(
+        "input_column, rule, exception, msg",
+        [
+            (Series([1], name="Check String"), "", ValueError, "val_rule first component:  must be one of"),
+            (Series([1], name="Check String"), "x", ValueError, "val_rule first component: x must be one of"),
+            (Series([1], name="Check String"), "x x x", ValueError, "val_rule must contain no more than two components."),
+        ],
+    )
+    def test_type_validation_exceptions(
+        self,
+        va_obj: ValidateAttribute,
+        input_column: Series,
+        rule: str,
+        exception: Exception,
+        msg: str,
+    ) -> None:
+        """
+        This tests ValidateAttribute.type_validation
+        This test shows failing examples using the type rule
+        """
+        with pytest.raises(exception, match=msg):
+            va_obj.type_validation(rule, input_column)
+
     ################
     # url_validation
     ################
