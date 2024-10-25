@@ -1105,7 +1105,7 @@ class ValidateAttribute(object):
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
-            Check if values for a given manifest attribue are the same type
+            Check if values for a given manifest attribute are the same type
             specified in val_rule.
         Input:
             - val_rule: str, Validation rule, specifying input type, either
@@ -1121,6 +1121,10 @@ class ValidateAttribute(object):
         TODO:
             Convert all inputs to .lower() just to prevent any entry errors.
         """
+
+        val_rule_components = val_rule.split(" ")
+        val_rule_type = val_rule_components[0]
+
         specified_type = {
             "num": (int, np.int64, float),
             "int": (int, np.int64),
@@ -1132,7 +1136,7 @@ class ValidateAttribute(object):
         warnings: list[list[str]] = []
 
         # num indicates either a float or int.
-        if val_rule == "num":
+        if val_rule_type == "num":
             for i, value in enumerate(manifest_col):
                 entry_has_value = self.get_entry_has_value(
                     entry=value,
@@ -1140,7 +1144,7 @@ class ValidateAttribute(object):
                 )
                 if (
                     bool(value)
-                    and not isinstance(value, specified_type[val_rule])
+                    and not isinstance(value, specified_type[val_rule_type])
                     and entry_has_value
                 ):
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
@@ -1152,10 +1156,9 @@ class ValidateAttribute(object):
                     )
                     if vr_errors:
                         errors.append(vr_errors)
-                    # It seems impossible to get warnings with type rules
                     if vr_warnings:
                         warnings.append(vr_warnings)
-        elif val_rule in ["int", "float", "str"]:
+        elif val_rule_type in ["int", "float", "str"]:
             for i, value in enumerate(manifest_col):
                 entry_has_value = self.get_entry_has_value(
                     entry=value,
@@ -1163,7 +1166,7 @@ class ValidateAttribute(object):
                 )
                 if (
                     bool(value)
-                    and not isinstance(value, specified_type[val_rule])
+                    and not isinstance(value, specified_type[val_rule_type])
                     and entry_has_value
                 ):
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
@@ -1175,7 +1178,6 @@ class ValidateAttribute(object):
                     )
                     if vr_errors:
                         errors.append(vr_errors)
-                    # It seems impossible to get warnings with type rules
                     if vr_warnings:
                         warnings.append(vr_warnings)
         return errors, warnings
