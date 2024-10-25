@@ -1258,7 +1258,7 @@
             "sms:displayName": "Check Num",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "num"
+                "num error"
             ]
         },
         {
@@ -1277,7 +1277,7 @@
             "sms:displayName": "Check Float",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "float"
+                "float error"
             ]
         },
         {
@@ -1296,7 +1296,7 @@
             "sms:displayName": "Check Int",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "int"
+                "int error"
             ]
         },
         {
@@ -1315,7 +1315,7 @@
             "sms:displayName": "Check String",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "str"
+                "str error"
             ]
         },
         {
