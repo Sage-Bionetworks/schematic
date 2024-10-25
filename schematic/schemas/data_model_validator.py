@@ -37,18 +37,10 @@ class Node:
     fields: dict
     """Fields of the node"""
 
-    def get_node_display_name(self) -> str:
-        """Gets the display name from the nodes fields if it exists
-
-        Raises:
-            ValueError: If the fields don't contain 'displayName'
-
-        Returns:
-            (str): The display name of the node
-        """
+    def __post_init__(self):
         if "displayName" not in self.fields:
             raise ValueError(f"Node: {str(self.name)} missing displayName field")
-        return str(self.fields["displayName"])
+        self.display_name = str(self.fields["displayName"])
 
 
 class DataModelValidator:  # pylint: disable=too-few-public-methods
@@ -65,6 +57,9 @@ class DataModelValidator:  # pylint: disable=too-few-public-methods
             graph (nx.MultiDiGraph): Graph representation of the data model.
         """
         self.graph = graph
+        self.node_info = [
+            Node(node[0], node[1]) for node in self.graph.nodes(data=True)
+        ]
         self.dmr = DataModelRelationships()
 
     def run_checks(self) -> tuple[list[list[str]], list[list[str]]]:
@@ -88,14 +83,6 @@ class DataModelValidator:  # pylint: disable=too-few-public-methods
         warnings = [warning for warning in warning_checks if warning]
         return errors, warnings
 
-    def _get_node_info(self) -> list[Node]:
-        """Gets the complete node information form the graph
-
-        Returns:
-            list[Node]: A list of nodes from the graph
-        """
-        return [Node(node[0], node[1]) for node in self.graph.nodes(data=True)]
-
     def _check_graph_has_required_node_fields(self) -> list[str]:
         """Checks that the graph has the required node fields for all nodes.
 
@@ -103,7 +90,7 @@ class DataModelValidator:  # pylint: disable=too-few-public-methods
             list[str]: List of error messages for each missing field.
         """
         required_fields = get_node_labels_from(self.dmr.relationships_dictionary)
-        missing_fields = get_missing_fields_from(self._get_node_info(), required_fields)
+        missing_fields = get_missing_fields_from(self.node_info, required_fields)
         return create_missing_fields_error_messages(missing_fields)
 
     def _run_cycles(self) -> None:
@@ -165,7 +152,7 @@ class DataModelValidator:  # pylint: disable=too-few-public-methods
               name that contains blacklisted characters.
         """
         return check_characters_in_node_display_name(
-            self._get_node_info(), BLACKLISTED_CHARACTERS
+            self.node_info, BLACKLISTED_CHARACTERS
         )
 
     def _check_reserved_names(self) -> list[str]:
@@ -269,7 +256,7 @@ def check_characters_in_node_display_name(
     """
     warnings: list[str] = []
     for node in nodes:
-        node_display_name = node.get_node_display_name()
+        node_display_name = node.display_name
 
         blacklisted_characters_found = [
             character

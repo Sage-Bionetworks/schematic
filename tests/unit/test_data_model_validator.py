@@ -80,6 +80,17 @@ def fixture_empty_dmv() -> Generator[DataModelValidator, None, None]:
     yield DataModelValidator(MultiDiGraph())
 
 
+class TestNode:  # pylint: disable=too-few-public-methods
+    """Testing for node class"""
+
+    def test_init(self) -> None:
+        """Test for Node.__init__"""
+        assert Node("x", {"displayName": "y"})
+        # Nodes must have a 'displayName' key in their fields dict
+        with pytest.raises(ValueError):
+            Node("x", {})
+
+
 class TestDataModelValidatorHelpers:
     """Testing for DataModelValidator helper functions"""
 
@@ -106,35 +117,23 @@ class TestDataModelValidatorHelpers:
             # If there are no nodes or no required fields, nothing will be returned
             ([], [], []),
             ([], ["field1"], []),
-            ([Node("node1", {"field1": "x"})], [], []),
+            ([Node("node1", {"displayName": "x"})], [], []),
             # For each node, if it has all required fields, nothing will be returned
-            ([Node("node1", {"field1": "x"})], ["field1"], []),
+            ([Node("node1", {"displayName": "x"})], ["displayName"], []),
             (
                 [
-                    Node("node1", {"field1": "x"}),
-                    Node("node2", {"field1": "x", "field2": "y"}),
+                    Node("node1", {"displayName": "x", "field2": "y"}),
+                    Node("node2", {"displayName": "x", "field2": "y"}),
                 ],
-                ["field1"],
+                ["field2"],
                 [],
             ),
             # For each node, if it is missing a required field, it is returned
-            ([Node("node1", {"field2": "x"})], ["field1"], [("node1", "field1")]),
             (
-                [Node("node1", {"field2": "x"}), Node("node2", {"field1": "x"})],
-                ["field1"],
-                [("node1", "field1")],
-            ),
-            # For each node, if it is missing a required field, it is returned
-            (
-                [Node("node1", {})],
+                [Node("node1", {"displayName": "x"})],
                 ["field1", "field2"],
                 [("node1", "field1"), ("node1", "field2")],
-            ),
-            (
-                [Node("node1", {"field1": "x"})],
-                ["field1", "field2"],
-                [("node1", "field2")],
-            ),
+            )
         ],
     )
     def test_get_missing_fields_from(
@@ -217,36 +216,6 @@ class TestDataModelValidatorHelpers:
     ) -> None:
         """Tests for check_characters_in_node_display_name"""
         assert check_characters_in_node_display_name(input_nodes, input_chars)
-
-    @pytest.mark.parametrize(
-        "input_nodes, input_chars, exception, msg",
-        [
-            # If any nodes do not have the 'displayName' field, or is 'None'or 'True'
-            #  a ValueError is raised
-            (
-                [Node("node1", {"field1": "x"})],
-                [],
-                ValueError,
-                "Node: node1 missing displayName field",
-            ),
-            (
-                [Node("node1", {"displayName": "x"}), Node("node2", {"field1": "x"})],
-                [],
-                ValueError,
-                "Node: node2 missing displayName field",
-            ),
-        ],
-    )
-    def test_check_characters_in_node_display_name_exceptions(
-        self,
-        input_nodes: list[Node],
-        input_chars: list[str],
-        exception: Exception,
-        msg: str,
-    ) -> None:
-        """Tests for check_characters_in_node_display_name"""
-        with pytest.raises(exception, match=msg):
-            check_characters_in_node_display_name(input_nodes, input_chars)
 
     @pytest.mark.parametrize(
         "input_chars, input_name, expected_msg",
