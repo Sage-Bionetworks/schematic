@@ -280,6 +280,104 @@ class TestGenerateError:
                 error_type="unsupported error type",
             )
 
+    @pytest.mark.parametrize(
+        "input_rule, input_num, input_name, input_entry, expected_error, expected_warning",
+        [
+            (
+                "x",
+                0,
+                "Patient",
+                "y",
+                [],
+                [
+                    0,
+                    "Patient",
+                    "On row 0 the attribute Patient does not contain the proper value type x.",
+                    "y",
+                ],
+            ),
+            (
+                "x warning",
+                0,
+                "Patient",
+                "y",
+                [],
+                [
+                    0,
+                    "Patient",
+                    "On row 0 the attribute Patient does not contain the proper value type x.",
+                    "y",
+                ],
+            ),
+            (
+                "x error",
+                0,
+                "Patient",
+                "y",
+                [
+                    0,
+                    "Patient",
+                    "On row 0 the attribute Patient does not contain the proper value type x.",
+                    "y",
+                ],
+                [],
+            ),
+        ],
+    )
+    def test_generate_type_error(
+        self,
+        dmge: DataModelGraphExplorer,
+        input_rule: str,
+        input_num: int,
+        input_name: str,
+        input_entry: str,
+        expected_error: list[str],
+        expected_warning: list[str],
+    ) -> None:
+        """Testing for GenerateError.generate_type_error"""
+        error, warning = GenerateError.generate_type_error(
+            val_rule=input_rule,
+            row_num=input_num,
+            attribute_name=input_name,
+            invalid_entry=input_entry,
+            dmge=dmge,
+        )
+        import logging
+
+        logging.warning(error)
+        logging.warning(warning)
+        assert error == expected_error
+        assert warning == expected_warning
+
+    @pytest.mark.parametrize(
+        "input_rule, input_num, input_name, input_entry, exception",
+        [
+            # Empty rule or entry causes a key error
+            ("", 0, "x", "x", KeyError),
+            ("x", 0, "x", "", KeyError),
+            # Empty attribute causes an index error
+            ("x", 0, "", "x", IndexError),
+        ],
+    )
+    def test_generate_type_error_exceptions(
+        self,
+        dmge: DataModelGraphExplorer,
+        input_rule: str,
+        input_num: int,
+        input_name: str,
+        input_entry: str,
+        exception: Exception,
+    ) -> None:
+        """Testing for GenerateError.generate_type_error"""
+        with pytest.raises(exception):
+            GenerateError.generate_type_error(
+                val_rule=input_rule,
+                row_num=input_num,
+                attribute_name=input_name,
+                invalid_entry=input_entry,
+                dmge=dmge,
+            )
+
 
 class TestValidateAttributeObject:
     """Testing for ValidateAttribute class with all Synapse calls mocked"""
@@ -1792,15 +1890,19 @@ class TestValidateAttributeObject:
         "input_column, rule",
         [
             (Series([1], name="Check String"), "str"),
+            (Series([1], name="Check String"), "str error"),
             (Series(["a"], name="Check Num"), "num"),
+            (Series(["a"], name="Check Num"), "num error"),
             (Series(["20"], name="Check Num"), "num"),
             (Series([1.1], name="Check Int"), "int"),
             (Series(["a"], name="Check Int"), "int"),
+            (Series(["a"], name="Check Int"), "int error"),
             (Series([1], name="Check Float"), "float"),
             (Series(["a"], name="Check Float"), "float"),
+            (Series(["a"], name="Check Float"), "float error"),
         ],
     )
-    def test_type_validation_failing(
+    def test_type_validation_errors(
         self, va_obj: ValidateAttribute, input_column: Series, rule: str
     ) -> None:
         """
@@ -1814,20 +1916,22 @@ class TestValidateAttributeObject:
     @pytest.mark.parametrize(
         "input_column, rule",
         [
-            (Series([1], name="Check String"), "str error"),
             (Series([1], name="Check String"), "str warning"),
+            (Series(["a"], name="Check Num"), "num warning"),
+            (Series(["a"], name="Check Int"), "int warning"),
+            (Series(["a"], name="Check Float"), "float warning"),
         ],
     )
-    def test_type_validation_does_not_work(
+    def test_type_validation_warnings(
         self, va_obj: ValidateAttribute, input_column: Series, rule: str
     ) -> None:
         """
         This tests ValidateAttribute.type_validation
-        This test shows that the msg level parameter doesn't work
+        This test shows failing examples using the type rule
         """
         errors, warnings = va_obj.type_validation(rule, input_column)
         assert len(errors) == 0
-        assert len(warnings) == 0
+        assert len(warnings) == 1
 
     ################
     # url_validation
