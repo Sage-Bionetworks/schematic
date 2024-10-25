@@ -133,7 +133,7 @@ class TestDataModelValidatorHelpers:
                 [Node("node1", {"displayName": "x"})],
                 ["field1", "field2"],
                 [("node1", "field1"), ("node1", "field2")],
-            )
+            ),
         ],
     )
     def test_get_missing_fields_from(
