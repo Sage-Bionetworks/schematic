@@ -37,7 +37,7 @@ class Node:
     fields: dict
     """Fields of the node"""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if "displayName" not in self.fields:
             raise ValueError(f"Node: {str(self.name)} missing displayName field")
         self.display_name = str(self.fields["displayName"])
