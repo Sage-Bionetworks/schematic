@@ -7,6 +7,7 @@ from networkx import MultiDiGraph  # type: ignore
 
 from schematic.schemas.data_model_validator import (
     DataModelValidator,
+    Node,
     get_node_labels_from,
     get_missing_fields_from,
     check_characters_in_node_display_name,
@@ -105,33 +106,40 @@ class TestDataModelValidatorHelpers:
             # If there are no nodes or no required fields, nothing will be returned
             ([], [], []),
             ([], ["field1"], []),
-            ([("node1", {"field1": "x"})], [], []),
+            ([Node("node1", {"field1": "x"})], [], []),
             # For each node, if it has all required fields, nothing will be returned
-            ([("node1", {"field1": "x"})], ["field1"], []),
+            ([Node("node1", {"field1": "x"})], ["field1"], []),
             (
-                [("node1", {"field1": "x"}), ("node2", {"field1": "x", "field2": "y"})],
+                [
+                    Node("node1", {"field1": "x"}),
+                    Node("node2", {"field1": "x", "field2": "y"}),
+                ],
                 ["field1"],
                 [],
             ),
             # For each node, if it is missing a required field, it is returned
-            ([("node1", {"field2": "x"})], ["field1"], [("node1", "field1")]),
+            ([Node("node1", {"field2": "x"})], ["field1"], [("node1", "field1")]),
             (
-                [("node1", {"field2": "x"}), ("node2", {"field1": "x"})],
+                [Node("node1", {"field2": "x"}), Node("node2", {"field1": "x"})],
                 ["field1"],
                 [("node1", "field1")],
             ),
             # For each node, if it is missing a required field, it is returned
             (
-                [("node1", {})],
+                [Node("node1", {})],
                 ["field1", "field2"],
                 [("node1", "field1"), ("node1", "field2")],
             ),
-            ([("node1", {"field1": "x"})], ["field1", "field2"], [("node1", "field2")]),
+            (
+                [Node("node1", {"field1": "x"})],
+                ["field1", "field2"],
+                [("node1", "field2")],
+            ),
         ],
     )
     def test_get_missing_fields_from(
         self,
-        input_nodes: list[Tuple[Any, dict]],
+        input_nodes: list[Node],
         input_fields: list,
         expected_list: list[Tuple[Any, Any]],
     ) -> None:
@@ -180,13 +188,13 @@ class TestDataModelValidatorHelpers:
             ([], []),
             # If all nodes have are formatted correctly, and the 'displayName' field has
             # no black listed characters, nothing will be returned
-            ([("node1", {"displayName": "x"})], []),
-            ([("node1", {"displayName": "x"})], ["y"]),
+            ([Node("node1", {"displayName": "x"})], []),
+            ([Node("node1", {"displayName": "x"})], ["y"]),
         ],
     )
     def test_check_characters_in_node_display_name_no_output(
         self,
-        input_nodes: list[Tuple[Any, dict]],
+        input_nodes: list[Node],
         input_chars: list[str],
     ) -> None:
         """Tests for check_characters_in_node_display_name"""
@@ -197,18 +205,48 @@ class TestDataModelValidatorHelpers:
         [
             # If all nodes have are formatted correctly, and the 'displayName' field has
             # black listed characters, those will be returned
-            ([("node1", {"displayName": "xyz"})], ["x"]),
-            ([("node1", {"displayName": "xyz"})], ["x", "y"]),
-            ([("node1", {"displayName": "xyz"})], ["x", "y", "a"]),
+            ([Node("node1", {"displayName": "xyz"})], ["x"]),
+            ([Node("node1", {"displayName": "xyz"})], ["x", "y"]),
+            ([Node("node1", {"displayName": "xyz"})], ["x", "y", "a"]),
         ],
     )
     def test_check_characters_in_node_display_name_with_output(
         self,
-        input_nodes: list[Tuple[Any, dict]],
+        input_nodes: list[Node],
         input_chars: list[str],
     ) -> None:
         """Tests for check_characters_in_node_display_name"""
         assert check_characters_in_node_display_name(input_nodes, input_chars)
+
+    @pytest.mark.parametrize(
+        "input_nodes, input_chars, exception, msg",
+        [
+            # If any nodes do not have the 'displayName' field, or is 'None'or 'True'
+            #  a ValueError is raised
+            (
+                [Node("node1", {"field1": "x"})],
+                [],
+                ValueError,
+                "Node: node1 missing displayName field",
+            ),
+            (
+                [Node("node1", {"displayName": "x"}), Node("node2", {"field1": "x"})],
+                [],
+                ValueError,
+                "Node: node2 missing displayName field",
+            ),
+        ],
+    )
+    def test_check_characters_in_node_display_name_exceptions(
+        self,
+        input_nodes: list[Node],
+        input_chars: list[str],
+        exception: Exception,
+        msg: str,
+    ) -> None:
+        """Tests for check_characters_in_node_display_name"""
+        with pytest.raises(exception, match=msg):
+            check_characters_in_node_display_name(input_nodes, input_chars)
 
     @pytest.mark.parametrize(
         "input_chars, input_name, expected_msg",
@@ -239,36 +277,6 @@ class TestDataModelValidatorHelpers:
             create_blacklisted_characters_error_message(input_chars, input_name)
             == expected_msg
         )
-
-    @pytest.mark.parametrize(
-        "input_nodes, input_chars, exception, msg",
-        [
-            # If any nodes do not have the 'displayName' field, or is 'None'or 'True'
-            #  a ValueError is raised
-            (
-                [("node1", {"field1": "x"})],
-                [],
-                ValueError,
-                "Node: node1 missing displayName field",
-            ),
-            (
-                [("node1", {"displayName": "x"}), ("node2", {"field1": "x"})],
-                [],
-                ValueError,
-                "Node: node2 missing displayName field",
-            ),
-        ],
-    )
-    def test_check_characters_in_node_display_name_exceptions(
-        self,
-        input_nodes: list[Tuple[Any, dict]],
-        input_chars: list[str],
-        exception: Exception,
-        msg: str,
-    ) -> None:
-        """Tests for check_characters_in_node_display_name"""
-        with pytest.raises(exception, match=msg):
-            check_characters_in_node_display_name(input_nodes, input_chars)
 
     @pytest.mark.parametrize(
         "input_nodes, input_names, expected_list",

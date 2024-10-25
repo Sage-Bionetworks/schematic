@@ -4,6 +4,7 @@ import time
 import logging
 from typing import Tuple, Any, Iterable
 import itertools
+from dataclasses import dataclass
 
 import multiprocessing
 import networkx as nx  # type: ignore
@@ -18,13 +19,36 @@ BLACKLISTED_CHARACTERS = ["(", ")", ".", "-"]
 RESERVED_NAMES = {"entityId"}
 
 
-NodeList = list[Tuple[Any, dict]]
 """
 A list of node tuples.
 The first item is the name of the node.
 The second item is a dict of its fields.
 This object is gotten from doing nx.MultiDiGraph.nodes(data=True)
 """
+
+
+@dataclass
+class Node:
+    """A node in graph from the data model."""
+
+    name: Any
+    """Name of the node."""
+
+    fields: dict
+    """Fields of the node"""
+
+    def get_node_display_name(self) -> str:
+        """Gets the display name from the nodes fields if it exists
+
+        Raises:
+            ValueError: If the fields don't contain 'displayName'
+
+        Returns:
+            (str): The display name of the node
+        """
+        if "displayName" not in self.fields:
+            raise ValueError(f"Node: {str(self.name)} missing displayName field")
+        return str(self.fields["displayName"])
 
 
 class DataModelValidator:  # pylint: disable=too-few-public-methods
@@ -64,6 +88,14 @@ class DataModelValidator:  # pylint: disable=too-few-public-methods
         warnings = [warning for warning in warning_checks if warning]
         return errors, warnings
 
+    def _get_node_info(self) -> list[Node]:
+        """Gets the complete node information form the graph
+
+        Returns:
+            list[Node]: A list of nodes from the graph
+        """
+        return [Node(node[0], node[1]) for node in self.graph.nodes(data=True)]
+
     def _check_graph_has_required_node_fields(self) -> list[str]:
         """Checks that the graph has the required node fields for all nodes.
 
@@ -71,9 +103,7 @@ class DataModelValidator:  # pylint: disable=too-few-public-methods
             list[str]: List of error messages for each missing field.
         """
         required_fields = get_node_labels_from(self.dmr.relationships_dictionary)
-        missing_fields = get_missing_fields_from(
-            self.graph.nodes(data=True), required_fields
-        )
+        missing_fields = get_missing_fields_from(self._get_node_info(), required_fields)
         return create_missing_fields_error_messages(missing_fields)
 
     def _run_cycles(self) -> None:
@@ -135,7 +165,7 @@ class DataModelValidator:  # pylint: disable=too-few-public-methods
               name that contains blacklisted characters.
         """
         return check_characters_in_node_display_name(
-            self.graph.nodes(data=True), BLACKLISTED_CHARACTERS
+            self._get_node_info(), BLACKLISTED_CHARACTERS
         )
 
     def _check_reserved_names(self) -> list[str]:
@@ -169,14 +199,14 @@ def get_node_labels_from(input_dict: dict) -> list:
 
 
 def get_missing_fields_from(
-    nodes: NodeList, required_fields: Iterable
+    nodes: list[Node], required_fields: Iterable
 ) -> list[Tuple[str, str]]:
     """
     Iterates through each node and checks if it contains each required_field.
     Any missing fields are returned.
 
     Args:
-        nodes (NodeList): A list of nodes.
+        nodes (list[Node]): A list of nodes.
         required_fields (Iterable): A Iterable of fields each node should have
 
     Returns:
@@ -184,12 +214,12 @@ def get_missing_fields_from(
             The first item in each field is the nodes name, and the second is the missing field.
     """
     missing_fields: list[Tuple[str, str]] = []
-    for node, node_dict in nodes:
+    for node in nodes:
         missing_fields.extend(
             [
-                (str(node), str(field))
+                (str(node.name), str(field))
                 for field in required_fields
-                if field not in node_dict.keys()
+                if field not in node.fields.keys()
             ]
         )
     return missing_fields
@@ -222,12 +252,12 @@ def create_missing_fields_error_messages(
 
 
 def check_characters_in_node_display_name(
-    nodes: NodeList, blacklisted_characters: list[str]
+    nodes: list[Node], blacklisted_characters: list[str]
 ) -> list[str]:
     """Checks each node 'displayName' field has no blacklisted characters
 
     Args:
-        nodes (NodeList): A list of nodes.
+        nodes (list[Node]): A list of nodes.
         blacklisted_characters (list[str]): A list of characters not allowed in the node
             display name
 
@@ -238,10 +268,8 @@ def check_characters_in_node_display_name(
         list[str]: A list of warning messages
     """
     warnings: list[str] = []
-    for node_name, node_dict in nodes:
-        if "displayName" not in node_dict:
-            raise ValueError(f"Node: {str(node_name)} missing displayName field")
-        node_display_name = str(node_dict["displayName"])
+    for node in nodes:
+        node_display_name = node.get_node_display_name()
 
         blacklisted_characters_found = [
             character
