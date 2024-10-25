@@ -1130,11 +1130,13 @@ class ValidateAttribute(object):
         if len(val_rule_components) > 2:
             raise ValueError("val_rule must contain no more than two components.")
         val_rule_type = val_rule_components[0]
-        if val_rule_type not in ['float', 'int', 'num', 'str']:
-            raise ValueError((
-                f"val_rule first component: {val_rule_type} must be one of "
-                "['float', 'int', 'num', 'str']"
-            ))
+        if val_rule_type not in ["float", "int", "num", "str"]:
+            raise ValueError(
+                (
+                    f"val_rule first component: {val_rule_type} must be one of "
+                    "['float', 'int', 'num', 'str']"
+                )
+            )
 
         specified_type = {
             "num": (int, np.int64, float),

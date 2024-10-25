@@ -1936,9 +1936,24 @@ class TestValidateAttributeObject:
     @pytest.mark.parametrize(
         "input_column, rule, exception, msg",
         [
-            (Series([1], name="Check String"), "", ValueError, "val_rule first component:  must be one of"),
-            (Series([1], name="Check String"), "x", ValueError, "val_rule first component: x must be one of"),
-            (Series([1], name="Check String"), "x x x", ValueError, "val_rule must contain no more than two components."),
+            (
+                Series([1], name="Check String"),
+                "",
+                ValueError,
+                "val_rule first component:  must be one of",
+            ),
+            (
+                Series([1], name="Check String"),
+                "x",
+                ValueError,
+                "val_rule first component: x must be one of",
+            ),
+            (
+                Series([1], name="Check String"),
+                "x x x",
+                ValueError,
+                "val_rule must contain no more than two components.",
+            ),
         ],
     )
     def test_type_validation_exceptions(
