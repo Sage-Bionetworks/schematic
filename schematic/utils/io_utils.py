@@ -9,7 +9,6 @@ import pickle
 from schematic import LOADER
 
 
-
 def load_json(file_path: str) -> Any:
     """Load json document from file path or url
 
@@ -61,6 +60,7 @@ def read_pickle(file_path: str) -> Any:
     with open(file_path, "rb") as fle:
         data = pickle.load(fle)
         return data
+
 
 def cleanup_temporary_storage(
     temporary_storage_directory: str, time_delta_seconds: int
