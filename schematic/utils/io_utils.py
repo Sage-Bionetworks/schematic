@@ -6,7 +6,6 @@ import time
 import urllib.request
 from typing import Any
 import pickle
-from schematic import LOADER
 
 
 def load_json(file_path: str) -> Any:

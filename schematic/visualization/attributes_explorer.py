@@ -13,7 +13,6 @@ from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 from schematic.utils.schema_utils import DisplayLabelType
 from schematic.utils.io_utils import load_json, read_pickle
 from schematic.schemas.data_model_parser import DataModelParser
-from schematic.utils.schema_utils import DisplayLabelType
 
 logger = logging.getLogger(__name__)
 
