@@ -27,6 +27,8 @@ def metadata_model(helpers, data_model_labels):
 
 
 def metadata_model_display(helpers, data_model_labels):
+    # Test which labels are displayed to the user.
+    # Can be either 'display_label' or 'class_label'
     metadata_model = MetadataModel(
         inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
         data_model_labels=data_model_labels,
@@ -48,6 +50,7 @@ class TestMetadataModel:
     )
     def test_get_component_requirements(self, helpers, as_graph, data_model_labels):
         # Instantiate MetadataModel
+        # Set up a metadata model with the given data model labels
         if data_model_labels == "class_label":
             meta_data_model = metadata_model(helpers, data_model_labels)
         else:
