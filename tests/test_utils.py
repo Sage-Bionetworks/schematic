@@ -467,6 +467,19 @@ class TestIOUtils:
         actual_graph_keys = len(schema_org_schema["@graph"])
         assert expected_graph_keys == actual_graph_keys
 
+    def TestReadPickle(self):
+        # Test that the function can read a pickle file
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pickle_file = tmpdir + "/test.pkl"
+            with open(pickle_file, "wb") as f:
+                pickle.dump({"foo": "bar"}, f)
+            assert io_utils.read_pickle(pickle_file) == {"foo": "bar"}
+
+    def test_read_pickle_invalid_file(self):
+        # Test that the function raises an error when trying to read an invalid file
+        with pytest.raises(FileNotFoundError):
+            io_utils.read_pickle("invalid_file.pkl")
+
 
 class TestDfUtils:
     @pytest.mark.parametrize(
