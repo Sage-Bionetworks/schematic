@@ -32,7 +32,6 @@ from schematic.utils.schema_utils import (
     DisplayLabelType,
     extract_component_validation_rules,
 )
-from schematic.utils.df_utils import update_df, load_df
 from schematic.utils.io_utils import read_pickle
 from schematic.utils.validate_utils import rule_in_rule_list
 
@@ -1685,7 +1684,7 @@ class ManifestGenerator(object):
         Args:
             path_to_data_model (str): str path to data model
             data_model_graph_pickle (str, optional): path to pickled networkx MultiDiGraph object. Defaults to None.
-            graph_data_model (str, optional): An networkx MultiDiGraph object. Defaults to None.
+            graph_data_model (nx.MultiDiGraph, optional): An networkx MultiDiGraph object. Defaults to None.
             data_types (list): a list of data types
             access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
             dataset_ids (list, optional): a list of dataset ids when generating an existing manifest. Defaults to None.
