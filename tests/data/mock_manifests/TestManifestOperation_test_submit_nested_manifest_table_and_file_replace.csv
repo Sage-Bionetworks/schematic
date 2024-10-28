@@ -1,0 +1,2 @@
+Filename,Sample ID,File Format,Component,Genome Build,Genome FASTA,Year of Birth,author,confidence,date,eTag,IsImportantBool,IsImportantText,impact,entityId,RandomizedAnnotation
+schematic - main/TestDatasets/TestDataset-Annotations-nested-submit/Sample_C.txt,some sample id,FASTQ,BulkRNA-seqAssay,,,,,,,0bf00691-a6e4-4487-9cab-851e22416ed2,FALSE,FALSE,,syn63646199,
