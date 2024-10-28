@@ -223,6 +223,9 @@ def get_temp_file(url: str, suffix: str) -> str:
     """
     with urllib.request.urlopen(url) as response:
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
+            shutil.copyfileobj(response, tmp_file)
+            return tmp_file.name
+
 
 def get_temp_jsonld(schema_url):
     # retrieve a JSON-LD via URL and store it in a temporary location
