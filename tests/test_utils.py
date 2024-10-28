@@ -2,50 +2,30 @@ import copy
 import json
 import logging
 import os
-import shutil
 import tempfile
 import time
 from datetime import datetime
-from unittest import mock
 from pathlib import Path
-from typing import Union, Generator
-from _pytest.fixtures import FixtureRequest
-
+from typing import Generator, Union
 
 import numpy as np
 import pandas as pd
 import pytest
-import synapseclient
 import synapseclient.core.cache as cache
+from _pytest.fixtures import FixtureRequest
 from pandas.testing import assert_frame_equal
 from synapseclient.core.exceptions import SynapseHTTPError
 
-from schematic.models.validate_manifest import ValidateManifest
 from schematic.models.metadata import MetadataModel
-
-from schematic.schemas.data_model_parser import DataModelParser
-from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.schemas.data_model_jsonld import (
-    DataModelJsonLD,
-    BaseTemplate,
-    PropertyTemplate,
-    ClassTemplate,
-)
+from schematic.models.validate_manifest import ValidateManifest
+from schematic.schemas.data_model_graph import DataModelGraph
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
-
-from schematic.schemas.data_model_relationships import DataModelRelationships
-from schematic.schemas.data_model_jsonld import DataModelJsonLD, convert_graph_to_jsonld
-
-from schematic.exceptions import (
-    MissingConfigValueError,
-    MissingConfigAndArgumentValueError,
+from schematic.schemas.data_model_jsonld import (
+    ClassTemplate,
+    PropertyTemplate,
+    convert_graph_to_jsonld,
 )
-from schematic import LOADER
-from schematic.exceptions import (
-    MissingConfigAndArgumentValueError,
-    MissingConfigValueError,
-)
-
+from schematic.schemas.data_model_parser import DataModelParser
 from schematic.utils import cli_utils, df_utils, general, io_utils, validate_utils
 from schematic.utils.df_utils import load_df
 import pickle
@@ -56,25 +36,26 @@ from schematic.utils.general import (
     entity_type_mapping,
 )
 from schematic.utils.schema_utils import (
+    check_for_duplicate_components,
+    check_if_display_name_is_valid_label,
     export_schema,
-    get_property_label_from_display_name,
+    extract_component_validation_rules,
     get_class_label_from_display_name,
-    strip_context,
+    get_component_name_rules,
+    get_individual_rules,
+    get_json_schema_log_file_path,
     get_label_from_display_name,
+    get_property_label_from_display_name,
     get_schema_label,
     get_stripped_label,
-    check_if_display_name_is_valid_label,
-    get_individual_rules,
-    get_component_name_rules,
-    parse_component_validation_rules,
     parse_single_set_validation_rules,
     parse_validation_rules,
     extract_component_validation_rules,
     check_for_duplicate_components,
     get_json_schema_log_file_path,
     export_graph,
+    strip_context,
 )
-
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

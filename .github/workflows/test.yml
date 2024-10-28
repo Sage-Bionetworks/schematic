@@ -39,10 +39,10 @@ jobs:
       #       check-out repo and set-up python
       #----------------------------------------------
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -67,23 +67,12 @@ jobs:
             | python3 - --version ${{ env.POETRY_VERSION }};
           poetry config virtualenvs.create true;
           poetry config virtualenvs.in-project true;
-      #----------------------------------------------
-      #       load cached venv if cache exists
-      #----------------------------------------------
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v2
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
       #----------------------------------------------
       # install dependencies and root project
       #----------------------------------------------
       - name: Install dependencies and root project
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --all-extras
-
       #----------------------------------------------
       #             perform linting
       #----------------------------------------------
@@ -132,9 +121,8 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
-          source .venv/bin/activate;
-          pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov 
-          --cov-report=xml:coverage.xml --cov=schematic/ --reruns 4 -n 8 tests/unit
+          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov 
+          --cov-report=xml:coverage.xml --cov=schematic/ --reruns 4 -n 8 tests/unit;
 
       #----------------------------------------------
       #              run integration test suite
@@ -145,13 +133,12 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
-          source .venv/bin/activate;
-          pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
+          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
           -m "not (rule_benchmark)" --reruns 4 -n 8 --ignore=tests/unit
 
 
       - name: Upload pytest test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: pytest-results-${{ matrix.python-version }}
           path: htmlcov

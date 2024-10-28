@@ -283,10 +283,6 @@ class MetadataModel(object):
 
             return errors, warnings
 
-        # check if suite has been created. If so, delete it
-        if os.path.exists("great_expectations/expectations/Manifest_test_suite.json"):
-            os.remove("great_expectations/expectations/Manifest_test_suite.json")
-
         errors, warnings, manifest = validate_all(
             self,
             errors=errors,

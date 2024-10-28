@@ -3,15 +3,17 @@ import json
 import logging
 import os
 from typing import Optional, no_type_check
+
 import numpy as np
 import pandas as pd
 import networkx as nx  # type: ignore
 
-from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 from schematic.utils.schema_utils import DisplayLabelType
 from schematic.utils.io_utils import load_json, read_pickle
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.utils.schema_utils import DisplayLabelType
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +53,8 @@ class AttributesExplorer:
             parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate DataModelGraph
-        if data_model_grapher is None:
+        if not data_model_grapher:
+            assert parsed_data_model is not None
             data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
             # Generate graph
             self.graph_data_model = data_model_grapher.graph

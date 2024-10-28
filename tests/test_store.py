@@ -11,14 +11,14 @@ import tempfile
 import uuid
 from contextlib import nullcontext as does_not_raise
 from typing import Any, Callable, Generator
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.core.exceptions import SynapseHTTPError
-from synapseclient.entity import File
+from synapseclient.entity import File, Project
 from synapseclient.models import Annotations
 from synapseclient.models import Folder as FolderModel
 
@@ -27,7 +27,7 @@ from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExp
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
-from schematic.utils.general import check_synapse_cache_size
+from schematic.utils.general import check_synapse_cache_size, create_temp_folder
 from tests.conftest import Helpers
 from tests.utils import CleanupItem
 
@@ -122,6 +122,11 @@ def dmge(
     # Instantiate DataModelGraphExplorer
     dmge = DataModelGraphExplorer(graph_data_model)
     yield dmge
+
+
+@pytest.fixture
+def mock_file() -> File:
+    return File(parentId="syn123", id="syn456", name="mock_file")
 
 
 @pytest.fixture(scope="module")
@@ -406,7 +411,7 @@ class TestSynapseStorage:
         expected_df = pd.DataFrame.from_records(
             [
                 {
-                    "Filename": "schematic - main/TestDataset-Annotations-v3/Sample_A.txt",
+                    "Filename": "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_A.txt",
                     "author": "bruno, milen, sujay",
                     "impact": "42.9",
                     "confidence": "high",
@@ -416,13 +421,13 @@ class TestSynapseStorage:
                     "IsImportantText": "TRUE",
                 },
                 {
-                    "Filename": "schematic - main/TestDataset-Annotations-v3/Sample_B.txt",
+                    "Filename": "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_B.txt",
                     "confidence": "low",
                     "FileFormat": "csv",
                     "date": "2020-02-01",
                 },
                 {
-                    "Filename": "schematic - main/TestDataset-Annotations-v3/Sample_C.txt",
+                    "Filename": "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_C.txt",
                     "FileFormat": "fastq",
                     "IsImportantBool": "False",
                     "IsImportantText": "FALSE",
@@ -490,7 +495,9 @@ class TestSynapseStorage:
             return_value="syn23643250",
         ) as mock_project_id_patch, patch(
             "synapseclient.entity.Entity.__getattr__", return_value="schematic - main"
-        ) as mock_project_name_patch:
+        ) as mock_project_name_patch, patch.object(
+            synapse_store.syn, "get", return_value=Project(name="schematic - main")
+        ):
             file_list = synapse_store.getFilesInStorageDataset(
                 datasetId="syn_mock", fileNames=None, fullpath=full_path
             )
@@ -1018,20 +1025,41 @@ class TestTableOperations:
 
         # AND a copy of all the folders in the manifest. Added to the dataset directory for easy cleanup
         manifest = helpers.get_data_frame(manifest_path)
-        for index, row in manifest.iterrows():
+
+        async def copy_folder_and_update_manifest(
+            row: pd.Series,
+            index: int,
+            datasetId: str,
+            synapse_store: SynapseStorage,
+            manifest: pd.DataFrame,
+            schedule_for_cleanup: Callable[[CleanupItem], None],
+        ) -> None:
+            """Internal function to copy a folder and update the manifest."""
             folder_id = row["entityId"]
-            folder_copy = FolderModel(id=folder_id).copy(
+            folder_copy = await FolderModel(id=folder_id).copy_async(
                 parent_id=datasetId, synapse_client=synapse_store.syn
             )
             schedule_for_cleanup(CleanupItem(synapse_id=folder_copy.id))
             manifest.at[index, "entityId"] = folder_copy.id
+
+        tasks = []
+
+        for index, row in manifest.iterrows():
+            tasks.append(
+                copy_folder_and_update_manifest(
+                    row, index, datasetId, synapse_store, manifest, schedule_for_cleanup
+                )
+            )
+        await asyncio.gather(*tasks)
 
         with patch.object(
             synapse_store, "_generate_table_name", return_value=(table_name, "followup")
         ), patch.object(
             synapse_store, "getDatasetProject", return_value=projectId
         ), tempfile.NamedTemporaryFile(
-            delete=True, suffix=".csv"
+            delete=True,
+            suffix=".csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             # Write the DF to a temporary file to prevent modifying the original
             manifest.to_csv(tmp_file.name, index=False)
@@ -1051,10 +1079,12 @@ class TestTableOperations:
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
 
         # THEN the table should exist
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
+        existing_table_id = synapse_store.syn.findEntityId(
+            name=table_name, parent=projectId
+        )
 
         # assert table exists
-        assert table_name in existing_tables.keys()
+        assert existing_table_id is not None
 
     @pytest.mark.parametrize(
         "table_column_names",
@@ -1088,24 +1118,42 @@ class TestTableOperations:
         # AND a copy of all the folders in the manifest. Added to the dataset directory for easy cleanup
         manifest = helpers.get_data_frame(manifest_path)
         replacement_manifest = helpers.get_data_frame(replacement_manifest_path)
-        for index, row in manifest.iterrows():
+
+        async def copy_folder_and_update_manifest(
+            row: pd.Series,
+            index: int,
+            datasetId: str,
+            synapse_store: SynapseStorage,
+            manifest: pd.DataFrame,
+            schedule_for_cleanup: Callable[[CleanupItem], None],
+        ) -> None:
+            """Internal function to copy a folder and update the manifest."""
             folder_id = row["entityId"]
-            folder_copy = FolderModel(id=folder_id).copy(
+            folder_copy = await FolderModel(id=folder_id).copy_async(
                 parent_id=datasetId, synapse_client=synapse_store.syn
             )
             schedule_for_cleanup(CleanupItem(synapse_id=folder_copy.id))
             manifest.at[index, "entityId"] = folder_copy.id
             replacement_manifest.at[index, "entityId"] = folder_copy.id
 
-        # Check if FollowUp table exists if so delete
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
+        tasks = []
+        for index, row in manifest.iterrows():
+            tasks.append(
+                copy_folder_and_update_manifest(
+                    row, index, datasetId, synapse_store, manifest, schedule_for_cleanup
+                )
+            )
+
+        await asyncio.gather(*tasks)
 
         with patch.object(
             synapse_store, "_generate_table_name", return_value=(table_name, "followup")
         ), patch.object(
             synapse_store, "getDatasetProject", return_value=projectId
         ), tempfile.NamedTemporaryFile(
-            delete=True, suffix=".csv"
+            delete=True,
+            suffix=".csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             # Write the DF to a temporary file to prevent modifying the original
             manifest.to_csv(tmp_file.name, index=False)
@@ -1123,10 +1171,9 @@ class TestTableOperations:
                 annotation_keys=annotation_keys,
             )
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # Query table for DaystoFollowUp column
-        table_id = existing_tables[table_name]
+        table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
         days_to_follow_up = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
             .asDataFrame()
@@ -1141,7 +1188,9 @@ class TestTableOperations:
         ), patch.object(
             synapse_store, "getDatasetProject", return_value=projectId
         ), tempfile.NamedTemporaryFile(
-            delete=True, suffix=".csv"
+            delete=True,
+            suffix=".csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             # Write the DF to a temporary file to prevent modifying the original
             replacement_manifest.to_csv(tmp_file.name, index=False)
@@ -1159,10 +1208,9 @@ class TestTableOperations:
                 annotation_keys=annotation_keys,
             )
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # Query table for DaystoFollowUp column
-        table_id = existing_tables[table_name]
+        table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
         days_to_follow_up = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
             .asDataFrame()
@@ -1200,7 +1248,9 @@ class TestTableOperations:
         ), patch.object(
             synapse_store, "getDatasetProject", return_value=projectId
         ), tempfile.NamedTemporaryFile(
-            delete=True, suffix=".csv"
+            delete=True,
+            suffix=".csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             # Copy to a temporary file to prevent modifying the original
             shutil.copyfile(helpers.get_data_path(manifest_path), tmp_file.name)
@@ -1218,10 +1268,9 @@ class TestTableOperations:
                 annotation_keys=annotation_keys,
             )
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # set primary key annotation for uploaded table
-        table_id = existing_tables[table_name]
+        table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
 
         # Query table for DaystoFollowUp column
         table_query = (
@@ -1240,7 +1289,9 @@ class TestTableOperations:
         ), patch.object(
             synapse_store, "getDatasetProject", return_value=projectId
         ), tempfile.NamedTemporaryFile(
-            delete=True, suffix=".csv"
+            delete=True,
+            suffix=".csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             # Copy to a temporary file to prevent modifying the original
             shutil.copyfile(
@@ -1260,10 +1311,9 @@ class TestTableOperations:
                 annotation_keys=annotation_keys,
             )
             schedule_for_cleanup(CleanupItem(synapse_id=manifest_id))
-        existing_tables = synapse_store.get_table_info(projectId=projectId)
 
         # Query table for DaystoFollowUp column
-        table_id = existing_tables[table_name]
+        table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
         table_query = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
             .asDataFrame()
@@ -1319,9 +1369,7 @@ class TestDownloadManifest:
     @pytest.mark.parametrize("newManifestName", ["", "Example"])
     def test_download_manifest(self, mock_manifest_download, newManifestName):
         # test the download function by downloading a manifest
-        manifest_data = mock_manifest_download.download_manifest(
-            mock_manifest_download, newManifestName
-        )
+        manifest_data = mock_manifest_download.download_manifest(newManifestName)
         assert os.path.exists(manifest_data["path"])
 
         if not newManifestName:
@@ -1336,7 +1384,7 @@ class TestDownloadManifest:
         # attempt to download an uncensored manifest that has access restriction.
         # if the code works correctly, the censored manifest that does not have access restriction would get downloaded (see: syn29862066)
         md = ManifestDownload(synapse_store.syn, "syn29862066")
-        manifest_data = md.download_manifest(md)
+        manifest_data = md.download_manifest()
 
         assert os.path.exists(manifest_data["path"])
 
@@ -1346,7 +1394,7 @@ class TestDownloadManifest:
     def test_download_manifest_on_aws(self, mock_manifest_download, monkeypatch):
         # mock AWS environment by providing SECRETS_MANAGER_SECRETS environment variable and attempt to download a manifest
         monkeypatch.setenv("SECRETS_MANAGER_SECRETS", "mock_value")
-        manifest_data = mock_manifest_download.download_manifest(mock_manifest_download)
+        manifest_data = mock_manifest_download.download_manifest()
 
         assert os.path.exists(manifest_data["path"])
         # clean up
@@ -1357,11 +1405,10 @@ class TestDownloadManifest:
         md = ManifestDownload(synapse_store.syn, entity_id)
         md._entity_type_checking()
         if entity_id == "syn27600053":
-            for record in caplog.records:
-                assert (
-                    "You are using entity type: folder. Please provide a file ID"
-                    in record.message
-                )
+            assert (
+                "You are using entity type: folder. Please provide a file ID"
+                in caplog.text
+            )
 
 
 class TestManifestUpload:
@@ -1425,6 +1472,7 @@ class TestManifestUpload:
         files_in_dataset: str,
         expected_filenames: list[str],
         expected_entity_ids: list[str],
+        mock_file: File,
     ) -> None:
         """test adding annotations to entities files
 
@@ -1447,39 +1495,39 @@ class TestManifestUpload:
         with patch(
             "schematic.store.synapse.SynapseStorage.getFilesInStorageDataset",
             return_value=files_in_dataset,
+        ), patch(
+            "schematic.store.synapse.SynapseStorage.format_row_annotations",
+            return_value=mock_format_row_annos,
+            new_callable=AsyncMock,
+        ) as mock_format_row, patch(
+            "schematic.store.synapse.SynapseStorage._process_store_annos",
+            return_value=mock_process_store_annos,
+            new_callable=AsyncMock,
+        ) as mock_process_store, patch.object(
+            synapse_store.synapse_entity_tracker, "get", return_value=mock_file
         ):
-            with patch(
-                "schematic.store.synapse.SynapseStorage.format_row_annotations",
-                return_value=mock_format_row_annos,
-                new_callable=AsyncMock,
-            ) as mock_format_row:
-                with patch(
-                    "schematic.store.synapse.SynapseStorage._process_store_annos",
-                    return_value=mock_process_store_annos,
-                    new_callable=AsyncMock,
-                ) as mock_process_store:
-                    manifest_df = pd.DataFrame(original_manifest)
+            manifest_df = pd.DataFrame(original_manifest)
 
-                    new_df = await synapse_store.add_annotations_to_entities_files(
-                        dmge,
-                        manifest_df,
-                        manifest_record_type="entity",
-                        datasetId="mock id",
-                        hideBlanks=True,
-                    )
+            new_df = await synapse_store.add_annotations_to_entities_files(
+                dmge,
+                manifest_df,
+                manifest_record_type="entity",
+                datasetId="mock id",
+                hideBlanks=True,
+            )
 
-                    file_names_lst = new_df["Filename"].tolist()
-                    entity_ids_lst = new_df["entityId"].tolist()
+            file_names_lst = new_df["Filename"].tolist()
+            entity_ids_lst = new_df["entityId"].tolist()
 
-                    # test entityId and Id columns get added
-                    assert "entityId" in new_df.columns
-                    assert "Id" in new_df.columns
-                    assert file_names_lst == expected_filenames
-                    assert entity_ids_lst == expected_entity_ids
+            # test entityId and Id columns get added
+            assert "entityId" in new_df.columns
+            assert "Id" in new_df.columns
+            assert file_names_lst == expected_filenames
+            assert entity_ids_lst == expected_entity_ids
 
-                    # make sure async function gets called as expected
-                    assert mock_format_row.call_count == len(expected_entity_ids)
-                    assert mock_process_store.call_count == 1
+            # make sure async function gets called as expected
+            assert mock_format_row.call_count == len(expected_entity_ids)
+            assert mock_process_store.call_count == 1
 
     @pytest.mark.parametrize(
         "mock_manifest_file_path",
@@ -1493,6 +1541,7 @@ class TestManifestUpload:
         helpers: Helpers,
         synapse_store: SynapseStorage,
         mock_manifest_file_path: str,
+        mock_file: File,
     ) -> None:
         """test upload manifest file function
 
@@ -1521,9 +1570,9 @@ class TestManifestUpload:
                 "entityId": {0: "syn1224", 1: "syn1225", 2: "syn1226"},
             }
         )
-        with patch("synapseclient.Synapse.store") as syn_store_mock, patch(
-            "schematic.store.synapse.synapseutils.copy_functions.changeFileMetaData"
-        ) as mock_change_file_metadata:
+        with patch("synapseclient.Synapse.store") as syn_store_mock, patch.object(
+            synapse_store.synapse_entity_tracker, "get", return_value=mock_file
+        ):
             syn_store_mock.return_value.id = "mock manifest id"
             mock_component_name = "BulkRNA-seqAssay"
             mock_file_path = helpers.get_data_path(mock_manifest_file_path)
@@ -1534,20 +1583,8 @@ class TestManifestUpload:
                 restrict_manifest=True,
                 component_name=mock_component_name,
             )
-            if "censored" in mock_manifest_file_path:
-                file_name = (
-                    f"synapse_storage_manifest_{mock_component_name}_censored.csv"
-                )
-            else:
-                file_name = f"synapse_storage_manifest_{mock_component_name}.csv"
 
             assert mock_manifest_synapse_file_id == "mock manifest id"
-            mock_change_file_metadata.assert_called_once_with(
-                forceVersion=False,
-                syn=synapse_store.syn,
-                entity=syn_store_mock.return_value.id,
-                downloadAs=file_name,
-            )
 
     @pytest.mark.parametrize("file_annotations_upload", [True, False])
     @pytest.mark.parametrize("hide_blanks", [True, False])
@@ -1562,6 +1599,7 @@ class TestManifestUpload:
         manifest_record_type: str,
         hide_blanks: bool,
         restrict: bool,
+        mock_file: File,
     ) -> None:
         async def mock_add_annotations_to_entities_files():
             return
@@ -1580,6 +1618,9 @@ class TestManifestUpload:
                 "schematic.store.synapse.SynapseStorage.format_manifest_annotations"
             ) as format_manifest_anno_mock,
             patch.object(synapse_store.syn, "set_annotations"),
+            patch.object(
+                synapse_store.synapse_entity_tracker, "get", return_value=mock_file
+            ),
         ):
             manifest_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
             manifest_df = helpers.get_data_frame(manifest_path)
@@ -1616,6 +1657,7 @@ class TestManifestUpload:
         hide_blanks: bool,
         restrict: bool,
         manifest_record_type: str,
+        mock_file: File,
     ) -> None:
         mock_df = pd.DataFrame()
 
@@ -1640,6 +1682,9 @@ class TestManifestUpload:
             patch(
                 "schematic.store.synapse.SynapseStorage.format_manifest_annotations"
             ) as format_manifest_anno_mock,
+            patch.object(
+                synapse_store.synapse_entity_tracker, "get", return_value=mock_file
+            ),
         ):
             manifest_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
             manifest_df = helpers.get_data_frame(manifest_path)
@@ -1680,6 +1725,7 @@ class TestManifestUpload:
         hide_blanks: bool,
         restrict: bool,
         manifest_record_type: str,
+        mock_file: File,
     ) -> None:
         mock_df = pd.DataFrame()
         manifest_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
@@ -1706,6 +1752,9 @@ class TestManifestUpload:
             patch(
                 "schematic.store.synapse.SynapseStorage.format_manifest_annotations"
             ) as format_manifest_anno_mock,
+            patch.object(
+                synapse_store.synapse_entity_tracker, "get", return_value=mock_file
+            ),
         ):
             synapse_store.upload_manifest_combo(
                 dmge,
@@ -1754,6 +1803,7 @@ class TestManifestUpload:
         expected: str,
         file_annotations_upload: bool,
         dmge: DataModelGraphExplorer,
+        mock_file: File,
     ) -> None:
         with (
             patch(
@@ -1767,6 +1817,9 @@ class TestManifestUpload:
             patch(
                 "schematic.store.synapse.SynapseStorage.upload_manifest_combo",
                 return_value="mock_id_entities",
+            ),
+            patch.object(
+                synapse_store.synapse_entity_tracker, "get", return_value=mock_file
             ),
         ):
             manifest_path = "mock_manifests/test_BulkRNAseq.csv"

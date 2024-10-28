@@ -7,9 +7,10 @@ import os
 import re
 import secrets
 import shutil
+import time
 import uuid  # used to generate unique names for entities
 from copy import deepcopy
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass, field
 from time import sleep
 
 # allows specifying explicit variable types
@@ -20,9 +21,10 @@ import pandas as pd
 import synapseclient
 import synapseutils
 from opentelemetry import trace
-from schematic_db.rdb.synapse_database import SynapseDatabase
+from synapseclient import Annotations as OldAnnotations
 from synapseclient import (
     Column,
+    Entity,
     EntityViewSchema,
     EntityViewType,
     File,
@@ -32,13 +34,14 @@ from synapseclient import (
     Table,
     as_table_columns,
 )
-from synapseclient.api import get_entity_id_bundle2
+from synapseclient.annotations import _convert_to_annotations_list
+from synapseclient.api import get_config_file, get_entity_id_bundle2
+from synapseclient.core.constants.concrete_types import PROJECT_ENTITY
 from synapseclient.core.exceptions import (
     SynapseAuthenticationError,
     SynapseHTTPError,
     SynapseUnmetAccessRestrictions,
 )
-from synapseclient.entity import File
 from synapseclient.models.annotations import Annotations
 from synapseclient.table import CsvFileTable, Schema, build_table
 from tenacity import (
@@ -53,6 +56,8 @@ from schematic.configuration.configuration import CONFIG
 from schematic.exceptions import AccessCredentialsError
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.base import BaseStorage
+from schematic.store.database.synapse_database import SynapseDatabase
+from schematic.store.synapse_tracker import SynapseEntityTracker
 from schematic.utils.df_utils import col_in_dataframe, load_df, update_df
 
 # entity_type_mapping, get_dir_size, create_temp_folder, check_synapse_cache_size, and clear_synapse_cache functions are used for AWS deployment
@@ -64,6 +69,7 @@ from schematic.utils.general import (
     entity_type_mapping,
     get_dir_size,
 )
+from schematic.utils.io_utils import cleanup_temporary_storage
 from schematic.utils.schema_utils import get_class_label_from_display_name
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 
@@ -77,35 +83,98 @@ class ManifestDownload(object):
     """
     syn: an object of type synapseclient.
     manifest_id: id of a manifest
+    synapse_entity_tracker: Tracker for a pull-through cache of Synapse entities
     """
 
     syn: synapseclient.Synapse
     manifest_id: str
+    synapse_entity_tracker: SynapseEntityTracker = field(
+        default_factory=SynapseEntityTracker
+    )
 
-    def _download_manifest_to_folder(self) -> File:
+    def _download_manifest_to_folder(self, use_temporary_folder: bool = True) -> File:
         """
-        try downloading a manifest to local cache or a given folder
-        manifest
+        Try downloading a manifest to a specific folder (temporary or not). When the
+        `use_temporary_folder` is set to True, the manifest will be downloaded to a
+        temporary folder. This is useful for when the code is running as an API server
+        where multiple requests are being made at the same time. This will prevent
+        multiple requests from overwriting the same manifest file. When the
+        `use_temporary_folder` is set to False, the manifest will be downloaded to the
+        default manifest folder.
+
+        Args:
+            use_temporary_folder: boolean argument indicating if a temporary folder
+                should be used to store the manifest file. This is useful when running
+                this code as an API server where multiple requests could be made at the
+                same time. This is set to False when the code is being used from the
+                CLI. Defaults to True.
+
         Return:
             manifest_data: A Synapse file entity of the downloaded manifest
         """
+        manifest_data = self.synapse_entity_tracker.get(
+            synapse_id=self.manifest_id,
+            syn=self.syn,
+            download_file=False,
+            retrieve_if_not_present=False,
+        )
+
+        if manifest_data and manifest_data.path:
+            return manifest_data
+
         if "SECRETS_MANAGER_SECRETS" in os.environ:
             temporary_manifest_storage = "/var/tmp/temp_manifest_download"
-            # clear out all the existing manifests
-            if os.path.exists(temporary_manifest_storage):
-                shutil.rmtree(temporary_manifest_storage)
+            cleanup_temporary_storage(
+                temporary_manifest_storage, time_delta_seconds=3600
+            )
             # create a new directory to store manifest
             if not os.path.exists(temporary_manifest_storage):
                 os.mkdir(temporary_manifest_storage)
             # create temporary folders for storing manifests
-            download_location = create_temp_folder(temporary_manifest_storage)
+            download_location = create_temp_folder(
+                path=temporary_manifest_storage,
+                prefix=f"{self.manifest_id}-{time.time()}-",
+            )
         else:
-            download_location = CONFIG.manifest_folder
-        manifest_data = self.syn.get(
-            self.manifest_id,
-            downloadLocation=download_location,
-            ifcollision="overwrite.local",
+            if use_temporary_folder:
+                download_location = create_temp_folder(
+                    path=CONFIG.manifest_folder,
+                    prefix=f"{self.manifest_id}-{time.time()}-",
+                )
+            else:
+                download_location = CONFIG.manifest_folder
+
+        manifest_data = self.synapse_entity_tracker.get(
+            synapse_id=self.manifest_id,
+            syn=self.syn,
+            download_file=True,
+            retrieve_if_not_present=True,
+            download_location=download_location,
         )
+
+        # This is doing a rename of the downloaded file. The reason this is important
+        # is that if we are re-using a file that was previously downloaded, but the
+        # file had been renamed. The file downloaded from the Synapse client is just
+        # a direct copy of that renamed file. This code will set the name of the file
+        # to the original name that was used to download the file. Note: An MD5 checksum
+        # of the file will still be performed so if the file has changed, it will be
+        # downloaded again.
+        filename = manifest_data._file_handle.fileName
+        if filename != os.path.basename(manifest_data.path):
+            parent_folder = os.path.dirname(manifest_data.path)
+            manifest_original_name_and_path = os.path.join(parent_folder, filename)
+
+            self.syn.cache.remove(
+                file_handle_id=manifest_data.dataFileHandleId, path=manifest_data.path
+            )
+            os.rename(manifest_data.path, manifest_original_name_and_path)
+            manifest_data.path = manifest_original_name_and_path
+            self.syn.cache.add(
+                file_handle_id=manifest_data.dataFileHandleId,
+                path=manifest_original_name_and_path,
+                md5=manifest_data._file_handle.contentMd5,
+            )
+
         return manifest_data
 
     def _entity_type_checking(self) -> str:
@@ -115,15 +184,21 @@ class ManifestDownload(object):
              if the entity type is wrong, raise an error
         """
         # check the type of entity
-        entity_type = entity_type_mapping(self.syn, self.manifest_id)
+        entity_type = entity_type_mapping(
+            syn=self.syn,
+            entity_id=self.manifest_id,
+            synapse_entity_tracker=self.synapse_entity_tracker,
+        )
         if entity_type != "file":
             logger.error(
                 f"You are using entity type: {entity_type}. Please provide a file ID"
             )
 
-    @staticmethod
     def download_manifest(
-        self, newManifestName: str = "", manifest_df: pd.DataFrame = pd.DataFrame()
+        self,
+        newManifestName: str = "",
+        manifest_df: pd.DataFrame = pd.DataFrame(),
+        use_temporary_folder: bool = True,
     ) -> Union[str, File]:
         """
         Download a manifest based on a given manifest id.
@@ -143,7 +218,9 @@ class ManifestDownload(object):
 
         # download a manifest
         try:
-            manifest_data = self._download_manifest_to_folder()
+            manifest_data = self._download_manifest_to_folder(
+                use_temporary_folder=use_temporary_folder
+            )
         except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError):
             # if there's an error getting an uncensored manifest, try getting the censored manifest
             if not manifest_df.empty:
@@ -152,7 +229,9 @@ class ManifestDownload(object):
                 new_manifest_id = manifest_df[censored]["id"][0]
                 self.manifest_id = new_manifest_id
                 try:
-                    manifest_data = self._download_manifest_to_folder()
+                    manifest_data = self._download_manifest_to_folder(
+                        use_temporary_folder=use_temporary_folder
+                    )
                 except (
                     SynapseUnmetAccessRestrictions,
                     SynapseAuthenticationError,
@@ -173,12 +252,25 @@ class ManifestDownload(object):
             parent_folder = os.path.dirname(manifest_data.get("path"))
 
             new_manifest_path_name = os.path.join(parent_folder, new_manifest_filename)
-            os.rename(manifest_data["path"], new_manifest_path_name)
+
+            # Copy file to new location. The purpose of using a copy instead of a rename
+            # is to avoid any potential issues with the file being used in another
+            # process. This avoids any potential race or code cocurrency conditions.
+            shutil.copyfile(src=manifest_data["path"], dst=new_manifest_path_name)
+
+            # Adding this to cache will allow us to re-use the already downloaded
+            # manifest file for up to 1 hour.
+            self.syn.cache.add(
+                file_handle_id=manifest_data.dataFileHandleId,
+                path=new_manifest_path_name,
+                md5=manifest_data._file_handle.contentMd5,
+            )
 
             # Update file names/paths in manifest_data
             manifest_data["name"] = new_manifest_filename
             manifest_data["filename"] = new_manifest_filename
             manifest_data["path"] = new_manifest_path_name
+
         return manifest_data
 
 
@@ -221,9 +313,15 @@ class SynapseStorage(BaseStorage):
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
         self.root_synapse_cache = self.syn.cache.cache_root_dir
+        self.synapse_entity_tracker = SynapseEntityTracker()
         if perform_query:
             self.query_fileview(columns=columns, where_clauses=where_clauses)
 
+    # TODO: When moving this over to a regular cron-job the following logic should be
+    # out of `manifest_download`:
+    # if "SECRETS_MANAGER_SECRETS" in os.environ:
+    #     temporary_manifest_storage = "/var/tmp/temp_manifest_download"
+    #     cleanup_temporary_storage(temporary_manifest_storage, time_delta_seconds=3600)
     @tracer.start_as_current_span("SynapseStorage::_purge_synapse_cache")
     def _purge_synapse_cache(
         self, maximum_storage_allowed_cache_gb: int = 1, minute_buffer: int = 15
@@ -270,9 +368,6 @@ class SynapseStorage(BaseStorage):
             where_clauses (Optional[list], optional): List of where clauses to be used to scope the query. Defaults to None.
         """
         self._purge_synapse_cache()
-
-        self.storageFileview = CONFIG.synapse_master_fileview_id
-        self.manifest = CONFIG.synapse_manifest_basename
 
         # Initialize to assume that the new fileview query will be different from what may already be stored. Initializes to True because generally one will not have already been performed
         self.new_query_different = True
@@ -346,6 +441,7 @@ class SynapseStorage(BaseStorage):
         return
 
     @staticmethod
+    @tracer.start_as_current_span("SynapseStorage::login")
     def login(
         synapse_cache_path: Optional[str] = None,
         access_token: Optional[str] = None,
@@ -369,7 +465,12 @@ class SynapseStorage(BaseStorage):
         # login using a token
         if access_token:
             try:
-                syn = synapseclient.Synapse(cache_root_dir=synapse_cache_path)
+                syn = synapseclient.Synapse(
+                    cache_root_dir=synapse_cache_path,
+                    debug=False,
+                    skip_checks=True,
+                    cache_client=False,
+                )
                 syn.login(authToken=access_token, silent=True)
             except SynapseHTTPError as exc:
                 raise ValueError(
@@ -380,6 +481,9 @@ class SynapseStorage(BaseStorage):
             syn = synapseclient.Synapse(
                 configPath=CONFIG.synapse_configuration_path,
                 cache_root_dir=synapse_cache_path,
+                debug=False,
+                skip_checks=True,
+                cache_client=False,
             )
             syn.login(silent=True)
         return syn
@@ -460,23 +564,20 @@ class SynapseStorage(BaseStorage):
         storageProjects = self.storageFileviewTable["projectId"].unique()
 
         # get the set of storage Synapse project accessible for this user
-
-        # get current user name and user ID
-        currentUser = self.syn.getUserProfile()
-        currentUserName = currentUser.userName
-        currentUserId = currentUser.ownerId
-
         # get a list of projects from Synapse
-        currentUserProjects = self.getPaginatedRestResults(currentUserId)
-
-        # prune results json filtering project id
-        currentUserProjects = [
-            currentUserProject.get("id")
-            for currentUserProject in currentUserProjects["results"]
-        ]
+        current_user_project_headers = self.synapse_entity_tracker.get_project_headers(
+            current_user_id=self.syn.credentials.owner_id, syn=self.syn
+        )
+        project_id_to_name_dict = {}
+        current_user_projects = []
+        for project_header in current_user_project_headers:
+            project_id_to_name_dict[project_header.get("id")] = project_header.get(
+                "name"
+            )
+            current_user_projects.append(project_header.get("id"))
 
         # find set of user projects that are also in this pipeline's storage projects set
-        storageProjects = list(set(storageProjects) & set(currentUserProjects))
+        storageProjects = list(set(storageProjects) & set(current_user_projects))
 
         # Limit projects to scope if specified
         if project_scope:
@@ -490,8 +591,8 @@ class SynapseStorage(BaseStorage):
         # prepare a return list of project IDs and names
         projects = []
         for projectId in storageProjects:
-            projectName = self.syn.get(projectId, downloadFile=False).name
-            projects.append((projectId, projectName))
+            project_name_from_project_header = project_id_to_name_dict.get(projectId)
+            projects.append((projectId, project_name_from_project_header))
 
         sorted_projects_list = sorted(projects, key=lambda tup: tup[0])
 
@@ -511,13 +612,11 @@ class SynapseStorage(BaseStorage):
 
         # select all folders and fetch their names from within the storage project;
         # if folder content type is defined, only select folders that contain datasets
-        areDatasets = False
         if "contentType" in self.storageFileviewTable.columns:
             foldersTable = self.storageFileviewTable[
                 (self.storageFileviewTable["contentType"] == "dataset")
                 & (self.storageFileviewTable["projectId"] == projectId)
             ]
-            areDatasets = True
         else:
             foldersTable = self.storageFileviewTable[
                 (self.storageFileviewTable["type"] == "folder")
@@ -566,8 +665,67 @@ class SynapseStorage(BaseStorage):
             self.syn, datasetId, includeTypes=["folder", "file"]
         )
 
-        project = self.getDatasetProject(datasetId)
-        project_name = self.syn.get(project, downloadFile=False).name
+        current_entity_location = self.synapse_entity_tracker.get(
+            synapse_id=datasetId, syn=self.syn, download_file=False
+        )
+
+        def walk_back_to_project(
+            current_location: Entity, location_prefix: str, skip_entry: bool
+        ) -> str:
+            """
+            Recursively walk back up the project structure to get the paths of the
+            names of each of the directories where we started the walk function.
+
+            Args:
+                current_location (Entity): The current entity location in the project structure.
+                location_prefix (str): The prefix to prepend to the path.
+                skip_entry (bool): Whether to skip the current entry in the path. When
+                    this is True it means we are looking at our starting point. If our
+                    starting point is the project itself we can go ahead and return
+                    back the project as the prefix.
+
+            Returns:
+                str: The path of the names of each of the directories up to the project root.
+            """
+            if (
+                skip_entry
+                and "concreteType" in current_location
+                and current_location["concreteType"] == PROJECT_ENTITY
+            ):
+                return f"{current_location.name}/{location_prefix}"
+
+            updated_prefix = (
+                location_prefix
+                if skip_entry
+                else f"{current_location.name}/{location_prefix}"
+            )
+            if (
+                "concreteType" in current_location
+                and current_location["concreteType"] == PROJECT_ENTITY
+            ):
+                return updated_prefix
+            current_location = self.synapse_entity_tracker.get(
+                synapse_id=current_location["parentId"],
+                syn=self.syn,
+                download_file=False,
+            )
+            return walk_back_to_project(
+                current_location=current_location,
+                location_prefix=updated_prefix,
+                skip_entry=False,
+            )
+
+        prefix = walk_back_to_project(
+            current_location=current_entity_location,
+            location_prefix="",
+            skip_entry=True,
+        )
+
+        project_id = self.getDatasetProject(datasetId)
+        project = self.synapse_entity_tracker.get(
+            synapse_id=project_id, syn=self.syn, download_file=False
+        )
+        project_name = project.name
         file_list = []
 
         # iterate over all results
@@ -585,17 +743,16 @@ class SynapseStorage(BaseStorage):
                     if fullpath:
                         # append directory path to filename
                         if dirpath[0].startswith(f"{project_name}/"):
+                            path_without_project_prefix = (
+                                dirpath[0] + "/"
+                            ).removeprefix(f"{project_name}/")
                             path_filename = (
-                                dirpath[0] + "/" + path_filename[0],
+                                prefix + path_without_project_prefix + path_filename[0],
                                 path_filename[1],
                             )
                         else:
                             path_filename = (
-                                project_name
-                                + "/"
-                                + dirpath[0]
-                                + "/"
-                                + path_filename[0],
+                                prefix + dirpath[0] + "/" + path_filename[0],
                                 path_filename[1],
                             )
 
@@ -635,6 +792,7 @@ class SynapseStorage(BaseStorage):
         datasetId: str,
         downloadFile: bool = False,
         newManifestName: str = "",
+        use_temporary_folder: bool = True,
     ) -> Union[str, File]:
         """Gets the manifest associated with a given dataset.
 
@@ -642,6 +800,11 @@ class SynapseStorage(BaseStorage):
             datasetId: synapse ID of a storage dataset.
             downloadFile: boolean argument indicating if manifest file in dataset should be downloaded or not.
             newManifestName: new name of a manifest that gets downloaded
+            use_temporary_folder: boolean argument indicating if a temporary folder
+                should be used to store the manifest file. This is useful when running
+                this code as an API server where multiple requests could be made at the
+                same time. This is set to False when the code is being used from the
+                CLI. Defaults to True.
 
         Returns:
             manifest_syn_id (String): Synapse ID of exisiting manifest file.
@@ -676,9 +839,15 @@ class SynapseStorage(BaseStorage):
         else:
             manifest_syn_id = self._get_manifest_id(manifest)
             if downloadFile:
-                md = ManifestDownload(self.syn, manifest_id=manifest_syn_id)
-                manifest_data = ManifestDownload.download_manifest(
-                    md, newManifestName=newManifestName, manifest_df=manifest
+                md = ManifestDownload(
+                    self.syn,
+                    manifest_id=manifest_syn_id,
+                    synapse_entity_tracker=self.synapse_entity_tracker,
+                )
+                manifest_data = md.download_manifest(
+                    newManifestName=newManifestName,
+                    manifest_df=manifest,
+                    use_temporary_folder=use_temporary_folder,
                 )
                 # TO DO: revisit how downstream code handle manifest_data. If the downstream code would break when manifest_data is an empty string,
                 # then we should catch the error here without returning an empty string.
@@ -695,7 +864,10 @@ class SynapseStorage(BaseStorage):
             manifestId: synapse ID of a manifest
         """
         # get manifest file path
-        manifest_filepath = self.syn.get(manifestId).path
+        manifest_entity = self.synapse_entity_tracker.get(
+            synapse_id=manifestId, syn=self.syn, download_file=True
+        )
+        manifest_filepath = manifest_entity.path
 
         # load manifest dataframe
         manifest = load_df(
@@ -873,7 +1045,11 @@ class SynapseStorage(BaseStorage):
         if not manifest_id:
             return None
 
-        manifest_filepath = self.syn.get(manifest_id).path
+        manifest_entity = self.synapse_entity_tracker.get(
+            synapse_id=manifest_id, syn=self.syn, download_file=True
+        )
+        manifest_filepath = manifest_entity.path
+
         manifest = load_df(manifest_filepath)
         manifest_is_file_based = "Filename" in manifest.columns
 
@@ -974,7 +1150,9 @@ class SynapseStorage(BaseStorage):
                 # If manifest has annotations specifying component, use that
                 if annotations and "Component" in annotations:
                     component = annotations["Component"]
-                    entity = self.syn.get(manifestId, downloadFile=False)
+                    entity = self.synapse_entity_tracker.get(
+                        synapse_id=manifestId, syn=self.syn, download_file=False
+                    )
                     manifest_name = entity["properties"]["name"]
 
                 # otherwise download the manifest and parse for information
@@ -1124,7 +1302,7 @@ class SynapseStorage(BaseStorage):
                     ("", ""),
                 )
                 if not dry_run:
-                    manifest_syn_id = self.associateMetadataWithFiles(
+                    self.associateMetadataWithFiles(
                         dmge, manifest_path, datasetId, manifest_record_type="table"
                     )
                 manifest_loaded.append(manifest)
@@ -1176,7 +1354,10 @@ class SynapseStorage(BaseStorage):
                     if returnEntities:
                         for entityId in annotation_entities:
                             if not dry_run:
-                                self.syn.move(entityId, datasetId)
+                                moved_entity = self.syn.move(entityId, datasetId)
+                                self.synapse_entity_tracker.add(
+                                    synapse_id=moved_entity.id, entity=moved_entity
+                                )
                             else:
                                 logging.info(
                                     f"{entityId} will be moved to folder {datasetId}."
@@ -1187,6 +1368,10 @@ class SynapseStorage(BaseStorage):
                             projectId + "_archive", parent=newProjectId
                         )
                         archive_project_folder = self.syn.store(archive_project_folder)
+                        self.synapse_entity_tracker.add(
+                            synapse_id=archive_project_folder.id,
+                            entity=archive_project_folder,
+                        )
 
                         # generate dataset folder
                         dataset_archive_folder = Folder(
@@ -1194,11 +1379,20 @@ class SynapseStorage(BaseStorage):
                             parent=archive_project_folder.id,
                         )
                         dataset_archive_folder = self.syn.store(dataset_archive_folder)
+                        self.synapse_entity_tracker.add(
+                            synapse_id=dataset_archive_folder.id,
+                            entity=dataset_archive_folder,
+                        )
 
                         for entityId in annotation_entities:
                             # move entities to folder
                             if not dry_run:
-                                self.syn.move(entityId, dataset_archive_folder.id)
+                                moved_entity = self.syn.move(
+                                    entityId, dataset_archive_folder.id
+                                )
+                                self.synapse_entity_tracker.add(
+                                    synapse_id=moved_entity.id, entity=moved_entity
+                                )
                             else:
                                 logging.info(
                                     f"{entityId} will be moved to folder {dataset_archive_folder.id}."
@@ -1221,27 +1415,6 @@ class SynapseStorage(BaseStorage):
         df = results.asDataFrame(rowIdAndVersionInIndex=False)
 
         return df, results
-
-    @tracer.start_as_current_span("SynapseStorage::_get_tables")
-    def _get_tables(self, datasetId: str = None, projectId: str = None) -> List[Table]:
-        if projectId:
-            project = projectId
-        elif datasetId:
-            project = self.syn.get(self.getDatasetProject(datasetId))
-
-        return list(self.syn.getChildren(project, includeTypes=["table"]))
-
-    def get_table_info(self, datasetId: str = None, projectId: str = None) -> List[str]:
-        """Gets the names of the tables in the schema
-        Can pass in a synID for a dataset or project
-        Returns:
-            list[str]: A list of table names
-        """
-        tables = self._get_tables(datasetId=datasetId, projectId=projectId)
-        if tables:
-            return {table["name"]: table["id"] for table in tables}
-        else:
-            return {None: None}
 
     @missing_entity_handler
     @tracer.start_as_current_span("SynapseStorage::uploadDB")
@@ -1382,34 +1555,27 @@ class SynapseStorage(BaseStorage):
             manifest_table_id: synID of the uploaded table
 
         """
-        table_info = self.get_table_info(datasetId=datasetId)
-        # Put table manifest onto synapse
-        schema = Schema(
-            name=table_name,
-            columns=col_schema,
-            parent=self.getDatasetProject(datasetId),
+        table_parent_id = self.getDatasetProject(datasetId=datasetId)
+        existing_table_id = self.syn.findEntityId(
+            name=table_name, parent=table_parent_id
         )
-
-        if table_name in table_info:
-            existingTableId = table_info[table_name]
-        else:
-            existingTableId = None
 
         tableOps = TableOperations(
             synStore=self,
             tableToLoad=table_manifest,
             tableName=table_name,
             datasetId=datasetId,
-            existingTableId=existingTableId,
+            existingTableId=existing_table_id,
             restrict=restrict,
+            synapse_entity_tracker=self.synapse_entity_tracker,
         )
 
-        if not table_manipulation or table_name not in table_info.keys():
+        if not table_manipulation or existing_table_id is None:
             manifest_table_id = tableOps.createTable(
                 columnTypeDict=col_schema,
                 specifySchema=True,
             )
-        elif table_name in table_info.keys() and table_info[table_name]:
+        elif existing_table_id is not None:
             if table_manipulation.lower() == "replace":
                 manifest_table_id = tableOps.replaceTable(
                     specifySchema=True,
@@ -1423,11 +1589,20 @@ class SynapseStorage(BaseStorage):
                 manifest_table_id = tableOps.updateTable()
 
         if table_manipulation and table_manipulation.lower() == "upsert":
-            existing_tables = self.get_table_info(datasetId=datasetId)
-            tableId = existing_tables[table_name]
-            annos = self.syn.get_annotations(tableId)
+            table_entity = self.synapse_entity_tracker.get(
+                synapse_id=existing_table_id or manifest_table_id,
+                syn=self.syn,
+                download_file=False,
+            )
+            annos = OldAnnotations(
+                id=table_entity.id,
+                etag=table_entity.etag,
+                values=table_entity.annotations,
+            )
             annos["primary_key"] = table_manifest["Component"][0] + "_id"
             annos = self.syn.set_annotations(annos)
+            table_entity.etag = annos.etag
+            table_entity.annotations = annos
 
         return manifest_table_id
 
@@ -1467,24 +1642,89 @@ class SynapseStorage(BaseStorage):
                 + file_extension
             )
 
-        manifestSynapseFile = File(
-            metadataManifestPath,
-            description="Manifest for dataset " + datasetId,
-            parent=datasetId,
-            name=file_name_new,
-        )
-        manifest_synapse_file_id = self.syn.store(
-            manifestSynapseFile, isRestricted=restrict_manifest
-        ).id
+        manifest_synapse_file = None
+        try:
+            # Rename the file to file_name_new then revert
+            # This is to maintain the original file name in-case other code is
+            # expecting that the file exists with the original name
+            original_file_path = metadataManifestPath
+            new_file_path = os.path.join(
+                os.path.dirname(metadataManifestPath), file_name_new
+            )
+            os.rename(original_file_path, new_file_path)
 
-        synapseutils.copy_functions.changeFileMetaData(
-            syn=self.syn,
-            entity=manifest_synapse_file_id,
-            downloadAs=file_name_new,
-            forceVersion=False,
-        )
+            manifest_synapse_file = self._store_file_for_manifest_upload(
+                new_file_path=new_file_path,
+                dataset_id=datasetId,
+                existing_file_name=file_name_full,
+                file_name_new=file_name_new,
+                restrict_manifest=restrict_manifest,
+            )
+            manifest_synapse_file_id = manifest_synapse_file.id
+
+        finally:
+            # Revert the file name back to the original
+            os.rename(new_file_path, original_file_path)
+
+            if manifest_synapse_file:
+                manifest_synapse_file.path = original_file_path
 
         return manifest_synapse_file_id
+
+    def _store_file_for_manifest_upload(
+        self,
+        new_file_path: str,
+        dataset_id: str,
+        existing_file_name: str,
+        file_name_new: str,
+        restrict_manifest: bool,
+    ) -> File:
+        """Handles a create or update of a manifest file that is going to be uploaded.
+        If we already have a copy of the Entity in memory we will update that instance,
+        otherwise create a new File instance to be created in Synapse. Once stored
+        this will add the file to the `synapse_entity_tracker` for future reference.
+
+        Args:
+            new_file_path (str): The path to the new manifest file
+            dataset_id (str): The Synapse ID of the dataset the manifest is associated with
+            existing_file_name (str): The name of the existing file
+            file_name_new (str): The name of the new file
+            restrict_manifest (bool): Whether the manifest should be restricted
+
+        Returns:
+            File: The stored manifest file
+        """
+        local_tracked_file_instance = (
+            self.synapse_entity_tracker.search_local_by_parent_and_name(
+                name=existing_file_name, parent_id=dataset_id
+            )
+            or self.synapse_entity_tracker.search_local_by_parent_and_name(
+                name=file_name_new, parent_id=dataset_id
+            )
+        )
+
+        if local_tracked_file_instance:
+            local_tracked_file_instance.path = new_file_path
+            local_tracked_file_instance.description = (
+                "Manifest for dataset " + dataset_id
+            )
+            manifest_synapse_file = local_tracked_file_instance
+        else:
+            manifest_synapse_file = File(
+                path=new_file_path,
+                description="Manifest for dataset " + dataset_id,
+                parent=dataset_id,
+                name=file_name_new,
+            )
+
+        manifest_synapse_file = self.syn.store(
+            manifest_synapse_file, isRestricted=restrict_manifest
+        )
+
+        self.synapse_entity_tracker.add(
+            synapse_id=manifest_synapse_file.id, entity=manifest_synapse_file
+        )
+        return manifest_synapse_file
 
     async def get_async_annotation(self, synapse_id: str) -> Dict[str, Any]:
         """get annotations asynchronously
@@ -1519,7 +1759,104 @@ class SynapseStorage(BaseStorage):
             etag=annotation_dict["annotations"]["etag"],
             id=annotation_dict["annotations"]["id"],
         )
-        return await annotation_class.store_async(synapse_client=self.syn)
+        annotation_storage_result = await annotation_class.store_async(
+            synapse_client=self.syn
+        )
+        local_entity = self.synapse_entity_tracker.get(
+            synapse_id=annotation_dict["annotations"]["id"],
+            syn=self.syn,
+            download_file=False,
+            retrieve_if_not_present=False,
+        )
+        if local_entity:
+            local_entity.etag = annotation_storage_result.etag
+            local_entity.annotations = annotation_storage_result
+        return annotation_storage_result
+
+    def process_row_annotations(
+        self,
+        dmge: DataModelGraphExplorer,
+        metadata_syn: Dict[str, Any],
+        hide_blanks: bool,
+        csv_list_regex: str,
+        annos: Dict[str, Any],
+        annotation_keys: str,
+    ) -> Dict[str, Any]:
+        """Processes metadata annotations based on the logic below:
+        1. Checks if the hide_blanks flag is True, and if the current annotation value (anno_v) is:
+            An empty or whitespace-only string.
+            A NaN value (if the annotation is a float).
+        if any of the above conditions are met, and hide_blanks is True, the annotation key is not going to be uploaded and skips further processing of that annotation key.
+        if any of the above conditions are met, and hide_blanks is False, assigns an empty string "" as the annotation value for that key.
+
+        2. If the value is a string and matches the pattern defined by csv_list_regex, get validation rule based on "node label" or "node display name".
+        Check if the rule contains "list" as a rule, if it does, split the string by comma and assign the resulting list as the annotation value for that key.
+
+        3. For any other conditions, assigns the original value of anno_v to the annotation key (anno_k).
+
+        4. Returns the updated annotations dictionary.
+
+        Args:
+            dmge (DataModelGraphExplorer): data model graph explorer
+            metadata_syn (dict): metadata used for Synapse storage
+            hideBlanks (bool): if true, does not upload annotation keys with blank values.
+            csv_list_regex (str): Regex to match with comma separated list
+            annos (Dict[str, Any]): dictionary of annotation returned from synapse
+            annotation_keys (str): display_label/class_label
+
+        Returns:
+            Dict[str, Any]: annotations as a dictionary
+
+        ```mermaid
+        flowchart TD
+            A[Start] --> C{Is anno_v empty, whitespace, or NaN?}
+            C -- Yes --> D{Is hide_blanks True?}
+            D -- Yes --> E[Remove this annotation key from the annotation dictionary to be uploaded. Skip further processing]
+            D -- No --> F[Assign empty string to annotation key]
+            C -- No --> G{Is anno_v a string?}
+            G -- No --> H[Assign original value of anno_v to annotation key]
+            G -- Yes --> I{Does anno_v match csv_list_regex?}
+            I -- Yes --> J[Get validation rule of anno_k]
+            J --> K{Does the validation rule contain 'list'}
+            K -- Yes --> L[Split anno_v by commas and assign as list]
+            I -- No --> H
+            K -- No --> H
+        ```
+        """
+        for anno_k, anno_v in metadata_syn.items():
+            # Remove keys with nan or empty string values or string that only contains white space from dict of annotations to be uploaded
+            # if present on current data annotation
+            if hide_blanks and (
+                (isinstance(anno_v, str) and anno_v.strip() == "")
+                or (isinstance(anno_v, float) and np.isnan(anno_v))
+            ):
+                annos["annotations"]["annotations"].pop(anno_k) if anno_k in annos[
+                    "annotations"
+                ]["annotations"].keys() else annos["annotations"]["annotations"]
+                continue
+
+            # Otherwise save annotation as approrpriate
+            if isinstance(anno_v, float) and np.isnan(anno_v):
+                annos["annotations"]["annotations"][anno_k] = ""
+                continue
+
+            # Handle strings that match the csv_list_regex and pass the validation rule
+            if isinstance(anno_v, str) and re.fullmatch(csv_list_regex, anno_v):
+                # Use a dictionary to dynamically choose the argument
+                param = (
+                    {"node_display_name": anno_k}
+                    if annotation_keys == "display_label"
+                    else {"node_label": anno_k}
+                )
+                node_validation_rules = dmge.get_node_validation_rules(**param)
+
+                if rule_in_rule_list("list", node_validation_rules):
+                    annos["annotations"]["annotations"][anno_k] = anno_v.split(",")
+                    continue
+            # default: assign the original value
+            annos["annotations"]["annotations"][anno_k] = anno_v
+
+        return annos
 
     @async_missing_entity_handler
     async def format_row_annotations(
@@ -1570,31 +1907,41 @@ class SynapseStorage(BaseStorage):
                 v = v[0:472] + "[truncatedByDataCuratorApp]"
 
             metadataSyn[keySyn] = v
-        # set annotation(s) for the various objects/items in a dataset on Synapse
-        annos = await self.get_async_annotation(entityId)
 
+        # This will first check if the entity is already in memory, and if so, that
+        # instance is used. Unfortunately, the expected return format needs to match
+        # the Synapse API, so we need to convert the annotations to the expected format.
+        entity = self.synapse_entity_tracker.get(
+            synapse_id=entityId,
+            syn=self.syn,
+            download_file=False,
+            retrieve_if_not_present=False,
+        )
+        if entity is not None:
+            synapse_annotations = _convert_to_annotations_list(
+                annotations=entity.annotations
+            )
+            annos = {
+                "annotations": {
+                    "id": entity.id,
+                    "etag": entity.etag,
+                    "annotations": synapse_annotations,
+                }
+            }
+        else:
+            annos = await self.get_async_annotation(entityId)
+
+        # set annotation(s) for the various objects/items in a dataset on Synapse
         csv_list_regex = comma_separated_list_regex()
-        for anno_k, anno_v in metadataSyn.items():
-            # Remove keys with nan or empty string values from dict of annotations to be uploaded
-            # if present on current data annotation
-            if hideBlanks and (
-                anno_v == "" or (isinstance(anno_v, float) and np.isnan(anno_v))
-            ):
-                annos.pop(anno_k) if anno_k in annos.keys() else annos
-            # Otherwise save annotation as approrpriate
-            else:
-                if isinstance(anno_v, float) and np.isnan(anno_v):
-                    annos[anno_k] = ""
-                elif (
-                    isinstance(anno_v, str)
-                    and re.fullmatch(csv_list_regex, anno_v)
-                    and rule_in_rule_list(
-                        "list", dmge.get_node_validation_rules(anno_k)
-                    )
-                ):
-                    annos[anno_k] = anno_v.split(",")
-                else:
-                    annos[anno_k] = anno_v
+
+        annos = self.process_row_annotations(
+            dmge=dmge,
+            metadata_syn=metadataSyn,
+            hide_blanks=hideBlanks,
+            csv_list_regex=csv_list_regex,
+            annos=annos,
+            annotation_keys=annotation_keys,
+        )
 
         return annos
 
@@ -1606,7 +1953,9 @@ class SynapseStorage(BaseStorage):
         For now just getting the Component.
         """
 
-        entity = self.syn.get(manifest_synapse_id, downloadFile=False)
+        entity = self.synapse_entity_tracker.get(
+            synapse_id=manifest_synapse_id, syn=self.syn, download_file=False
+        )
         is_file = entity.concreteType.endswith(".FileEntity")
         is_table = entity.concreteType.endswith(".TableEntity")
 
@@ -1635,7 +1984,9 @@ class SynapseStorage(BaseStorage):
             metadata = self.getTableAnnotations(manifest_synapse_id)
 
         # Get annotations
-        annos = self.syn.get_annotations(manifest_synapse_id)
+        annos = OldAnnotations(
+            id=entity.id, etag=entity.etag, values=entity.annotations
+        )
 
         # Add metadata to the annotations
         for annos_k, annos_v in metadata.items():
@@ -1826,6 +2177,7 @@ class SynapseStorage(BaseStorage):
         rowEntity = Folder(str(uuid.uuid4()), parent=datasetId)
         rowEntity = self.syn.store(rowEntity)
         entityId = rowEntity["id"]
+        self.synapse_entity_tracker.add(synapse_id=entityId, entity=rowEntity)
         row["entityId"] = entityId
         manifest.loc[idx, "entityId"] = entityId
         return manifest, entityId
@@ -1850,15 +2202,11 @@ class SynapseStorage(BaseStorage):
                     annos = completed_task.result()
 
                     if isinstance(annos, Annotations):
-                        annos_dict = asdict(annos)
-                        normalized_annos = {k.lower(): v for k, v in annos_dict.items()}
-                        entity_id = normalized_annos["id"]
-                        logger.info(f"Successfully stored annotations for {entity_id}")
+                        logger.info(f"Successfully stored annotations for {annos.id}")
                     else:
                         # store annotations if they are not None
                         if annos:
-                            normalized_annos = {k.lower(): v for k, v in annos.items()}
-                            entity_id = normalized_annos["entityid"]
+                            entity_id = annos["annotations"]["id"]
                             logger.info(
                                 f"Obtained and processed annotations for {entity_id} entity"
                             )
@@ -2006,22 +2354,28 @@ class SynapseStorage(BaseStorage):
             )
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(
-            manifest,
-            metadataManifestPath,
-            datasetId,
-            restrict,
+            manifest=manifest,
+            metadataManifestPath=metadataManifestPath,
+            datasetId=datasetId,
+            restrict_manifest=restrict,
             component_name=component_name,
         )
 
         # Set annotations for the file manifest.
         manifest_annotations = self.format_manifest_annotations(
-            manifest, manifest_synapse_file_id
+            manifest=manifest, manifest_synapse_id=manifest_synapse_file_id
         )
-        self.syn.set_annotations(manifest_annotations)
+        annos = self.syn.set_annotations(annotations=manifest_annotations)
+        manifest_entity = self.synapse_entity_tracker.get(
+            synapse_id=manifest_synapse_file_id, syn=self.syn, download_file=False
+        )
+        manifest_entity.annotations = annos
+        manifest_entity.etag = annos.etag
+
         logger.info("Associated manifest file with dataset on Synapse.")
 
         # Update manifest Synapse table with new entity id column.
-        manifest_synapse_table_id, manifest, table_manifest = self.uploadDB(
+        manifest_synapse_table_id, manifest, _ = self.uploadDB(
             dmge=dmge,
             manifest=manifest,
             datasetId=datasetId,
@@ -2033,9 +2387,17 @@ class SynapseStorage(BaseStorage):
 
         # Set annotations for the table manifest
         manifest_annotations = self.format_manifest_annotations(
-            manifest, manifest_synapse_table_id
+            manifest=manifest, manifest_synapse_id=manifest_synapse_table_id
         )
-        self.syn.set_annotations(manifest_annotations)
+        annotations_manifest_table = self.syn.set_annotations(
+            annotations=manifest_annotations
+        )
+        manifest_table_entity = self.synapse_entity_tracker.get(
+            synapse_id=manifest_synapse_table_id, syn=self.syn, download_file=False
+        )
+        manifest_table_entity.annotations = annotations_manifest_table
+        manifest_table_entity.etag = annotations_manifest_table.etag
+
         return manifest_synapse_file_id
 
     @tracer.start_as_current_span("SynapseStorage::upload_manifest_as_csv")
@@ -2093,7 +2455,12 @@ class SynapseStorage(BaseStorage):
         manifest_annotations = self.format_manifest_annotations(
             manifest, manifest_synapse_file_id
         )
-        self.syn.set_annotations(manifest_annotations)
+        annos = self.syn.set_annotations(manifest_annotations)
+        manifest_entity = self.synapse_entity_tracker.get(
+            synapse_id=manifest_synapse_file_id, syn=self.syn, download_file=False
+        )
+        manifest_entity.annotations = annos
+        manifest_entity.etag = annos.etag
 
         logger.info("Associated manifest file with dataset on Synapse.")
 
@@ -2170,7 +2537,12 @@ class SynapseStorage(BaseStorage):
         manifest_annotations = self.format_manifest_annotations(
             manifest, manifest_synapse_file_id
         )
-        self.syn.set_annotations(manifest_annotations)
+        file_manifest_annoations = self.syn.set_annotations(manifest_annotations)
+        manifest_entity = self.synapse_entity_tracker.get(
+            synapse_id=manifest_synapse_file_id, syn=self.syn, download_file=False
+        )
+        manifest_entity.annotations = file_manifest_annoations
+        manifest_entity.etag = file_manifest_annoations.etag
         logger.info("Associated manifest file with dataset on Synapse.")
 
         # Update manifest Synapse table with new entity id column.
@@ -2188,7 +2560,12 @@ class SynapseStorage(BaseStorage):
         manifest_annotations = self.format_manifest_annotations(
             manifest, manifest_synapse_table_id
         )
-        self.syn.set_annotations(manifest_annotations)
+        table_manifest_annotations = self.syn.set_annotations(manifest_annotations)
+        manifest_entity = self.synapse_entity_tracker.get(
+            synapse_id=manifest_synapse_table_id, syn=self.syn, download_file=False
+        )
+        manifest_entity.annotations = table_manifest_annotations
+        manifest_entity.etag = table_manifest_annotations.etag
         return manifest_synapse_file_id
 
     @tracer.start_as_current_span("SynapseStorage::associateMetadataWithFiles")
@@ -2318,7 +2695,9 @@ class SynapseStorage(BaseStorage):
             dict: Annotations as comma-separated strings.
         """
         try:
-            entity = self.syn.get(table_id, downloadFile=False)
+            entity = self.synapse_entity_tracker.get(
+                synapse_id=table_id, syn=self.syn, download_file=False
+            )
             is_table = entity.concreteType.endswith(".TableEntity")
             annotations_raw = entity.annotations
         except SynapseHTTPError:
@@ -2350,7 +2729,9 @@ class SynapseStorage(BaseStorage):
 
         # Get entity metadata, including annotations
         try:
-            entity = self.syn.get(fileId, downloadFile=False)
+            entity = self.synapse_entity_tracker.get(
+                synapse_id=fileId, syn=self.syn, download_file=False
+            )
             is_file = entity.concreteType.endswith(".FileEntity")
             is_folder = entity.concreteType.endswith(".Folder")
             annotations_raw = entity.annotations
@@ -2515,7 +2896,9 @@ class SynapseStorage(BaseStorage):
 
         # Otherwise, check if already project itself
         try:
-            syn_object = self.syn.get(datasetId)
+            syn_object = self.synapse_entity_tracker.get(
+                synapse_id=datasetId, syn=self.syn, download_file=False
+            )
             if syn_object.properties["concreteType"].endswith("Project"):
                 return datasetId
         except SynapseHTTPError:
@@ -2591,6 +2974,7 @@ class TableOperations:
         datasetId: str = None,
         existingTableId: str = None,
         restrict: bool = False,
+        synapse_entity_tracker: SynapseEntityTracker = None,
     ):
         """
         Class governing table operations (creation, replacement, upserts, updates) in schematic
@@ -2600,6 +2984,7 @@ class TableOperations:
         datasetId: synID of the dataset for the manifest
         existingTableId: synId of the table currently exising on synapse (if there is one)
         restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions
+        synapse_entity_tracker: Tracker for a pull-through cache of Synapse entities
 
         """
         self.synStore = synStore
@@ -2608,6 +2993,7 @@ class TableOperations:
         self.datasetId = datasetId
         self.existingTableId = existingTableId
         self.restrict = restrict
+        self.synapse_entity_tracker = synapse_entity_tracker or SynapseEntityTracker()
 
     @tracer.start_as_current_span("TableOperations::createTable")
     def createTable(
@@ -2625,8 +3011,9 @@ class TableOperations:
         Returns:
             table.schema.id: synID of the newly created table
         """
-
-        datasetEntity = self.synStore.syn.get(self.datasetId, downloadFile=False)
+        datasetEntity = self.synapse_entity_tracker.get(
+            synapse_id=self.datasetId, syn=self.synStore.syn, download_file=False
+        )
         datasetName = datasetEntity.name
         table_schema_by_cname = self.synStore._get_table_schema_by_cname(columnTypeDict)
 
@@ -2670,12 +3057,18 @@ class TableOperations:
             )
             table = Table(schema, self.tableToLoad)
             table = self.synStore.syn.store(table, isRestricted=self.restrict)
+            # Commented out until https://sagebionetworks.jira.com/browse/PLFM-8605 is resolved
+            # self.synapse_entity_tracker.add(synapse_id=table.schema.id, entity=table.schema)
+            self.synapse_entity_tracker.remove(synapse_id=table.schema.id)
             return table.schema.id
         else:
             # For just uploading the tables to synapse using default
             # column types.
             table = build_table(self.tableName, datasetParentProject, self.tableToLoad)
             table = self.synStore.syn.store(table, isRestricted=self.restrict)
+            # Commented out until https://sagebionetworks.jira.com/browse/PLFM-8605 is resolved
+            # self.synapse_entity_tracker.add(synapse_id=table.schema.id, entity=table.schema)
+            self.synapse_entity_tracker.remove(synapse_id=table.schema.id)
             return table.schema.id
 
     @tracer.start_as_current_span("TableOperations::replaceTable")
@@ -2694,7 +3087,10 @@ class TableOperations:
         Returns:
            existingTableId: synID of the already existing table that had its metadata replaced
         """
-        datasetEntity = self.synStore.syn.get(self.datasetId, downloadFile=False)
+        datasetEntity = self.synapse_entity_tracker.get(
+            synapse_id=self.datasetId, syn=self.synStore.syn, download_file=False
+        )
+
         datasetName = datasetEntity.name
         table_schema_by_cname = self.synStore._get_table_schema_by_cname(columnTypeDict)
         existing_table, existing_results = self.synStore.get_synapse_table(
@@ -2702,11 +3098,16 @@ class TableOperations:
         )
         # remove rows
         self.synStore.syn.delete(existing_results)
+        # Data changes such as removing all rows causes the eTag to change.
+        self.synapse_entity_tracker.remove(synapse_id=self.existingTableId)
         # wait for row deletion to finish on synapse before getting empty table
         sleep(10)
 
         # removes all current columns
-        current_table = self.synStore.syn.get(self.existingTableId)
+        current_table = self.synapse_entity_tracker.get(
+            synapse_id=self.existingTableId, syn=self.synStore.syn, download_file=False
+        )
+
         current_columns = self.synStore.syn.getTableColumns(current_table)
         for col in current_columns:
             current_table.removeColumn(col)
@@ -2754,7 +3155,12 @@ class TableOperations:
             # adds new columns to schema
             for col in cols:
                 current_table.addColumn(col)
-            self.synStore.syn.store(current_table, isRestricted=self.restrict)
+            table_result = self.synStore.syn.store(
+                current_table, isRestricted=self.restrict
+            )
+            # Commented out until https://sagebionetworks.jira.com/browse/PLFM-8605 is resolved
+            # self.synapse_entity_tracker.add(synapse_id=table_result.schema.id, entity=table_result.schema)
+            self.synapse_entity_tracker.remove(synapse_id=table_result.id)
 
             # wait for synapse store to finish
             sleep(1)
@@ -2766,6 +3172,9 @@ class TableOperations:
             schema.id = self.existingTableId
             table = Table(schema, self.tableToLoad, etag=existing_results.etag)
             table = self.synStore.syn.store(table, isRestricted=self.restrict)
+            # Commented out until https://sagebionetworks.jira.com/browse/PLFM-8605 is resolved
+            # self.synapse_entity_tracker.add(synapse_id=table.schema.id, entity=table.schema)
+            self.synapse_entity_tracker.remove(synapse_id=table.schema.id)
         else:
             logging.error("Must specify a schema for table replacements")
 
@@ -2803,7 +3212,7 @@ class TableOperations:
         # Try getting creds from .synapseConfig file if it exists
         # Primarily useful for local users. Seems to correlate with credentials stored in synaspe object when logged in
         if os.path.exists(CONFIG.synapse_configuration_path):
-            config = self.synStore.syn.getConfigFile(CONFIG.synapse_configuration_path)
+            config = get_config_file(CONFIG.synapse_configuration_path)
 
             # check which credentials are provided in file
             if config.has_option("authentication", "authtoken"):
@@ -2838,6 +3247,8 @@ class TableOperations:
         synapseDB = SynapseDatabase(
             auth_token=authtoken,
             project_id=self.synStore.getDatasetProject(self.datasetId),
+            syn=self.synStore.syn,
+            synapse_entity_tracker=self.synapse_entity_tracker,
         )
 
         try:
@@ -2874,7 +3285,10 @@ class TableOperations:
         """
 
         # Get the columns of the schema
-        schema = self.synStore.syn.get(self.existingTableId)
+        schema = self.synapse_entity_tracker.get(
+            synapse_id=self.existingTableId, syn=self.synStore.syn, download_file=False
+        )
+
         cols = self.synStore.syn.getTableColumns(schema)
 
         # Iterate through columns until `Uuid` column is found
@@ -2891,6 +3305,9 @@ class TableOperations:
                     new_col = Column(columnType="STRING", maximumSize=64, name="Id")
                     schema.addColumn(new_col)
                     schema = self.synStore.syn.store(schema)
+                    # self.synapse_entity_tracker.add(synapse_id=schema.id, entity=schema)
+                    # Commented out until https://sagebionetworks.jira.com/browse/PLFM-8605 is resolved
+                    self.synapse_entity_tracker.remove(synapse_id=schema.id)
                 # If there is not, then use the old `Uuid` column as a basis for the new `Id` column
                 else:
                     # Build ColumnModel that will be used for new column
@@ -2944,10 +3361,15 @@ class TableOperations:
 
         self.tableToLoad = update_df(existing_table, self.tableToLoad, update_col)
         # store table with existing etag data and impose restrictions as appropriate
-        self.synStore.syn.store(
+        table_result = self.synStore.syn.store(
             Table(self.existingTableId, self.tableToLoad, etag=existing_results.etag),
             isRestricted=self.restrict,
         )
+        # We cannot store the Table to the `synapse_entity_tracker` because there is
+        # not `Schema` on the table object. The above `.store()` function call would
+        # also update the ETag of the entity within Synapse. Remove it from the tracker
+        # and re-retrieve it later on if needed again.
+        self.synapse_entity_tracker.remove(synapse_id=table_result.tableId)
 
         return self.existingTableId
 
