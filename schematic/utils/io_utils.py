@@ -53,7 +53,11 @@ def load_schemaorg() -> Any:
 
 
 def read_pickle(file_path: str) -> Any:
-    """Read pickle file"""
+    """Read pickle file and return error if file not a .pkl or .pickle file"""
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+    if not file_path.lower().endswith((".pkl", ".pickle")):
+        raise ValueError(f"File is not a pickle file: {file_path}")
     with open(file_path, "rb") as fle:
         data = pickle.load(fle)
         return data
