@@ -402,6 +402,17 @@ class SynapseStorage(BaseStorage):
                 else:
                     raise AccessCredentialsError(self.storageFileview)
 
+    @staticmethod
+    def build_clause_from_dataset_id(dataset_id: Optional[str]) -> str:
+        """
+        Method to build a where clause for a Synapse FileView query based on a dataset ID that can be used before an object is initialized.
+        Args:
+            dataset_id: Synapse ID of a dataset that should be used to limit the query
+        Returns:
+            clause for the query or an empty string if no dataset ID is provided
+        """
+        return f"parentId='{dataset_id}'" if dataset_id else ""
+
     def _build_query(
         self, columns: Optional[list] = None, where_clauses: Optional[list] = None
     ):
