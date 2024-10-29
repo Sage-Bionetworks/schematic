@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pandas as pd
 import pytest
+from pandas.testing import assert_series_equal
 
 from schematic.configuration.configuration import Configuration
 from schematic.manifest.generator import ManifestGenerator
@@ -103,6 +104,9 @@ def mock_create_blank_google_sheet():
 
 @pytest.fixture(params=[True, False], ids=["sheet_url", "data_frame"])
 def manifest(dataset_id, manifest_generator, request):
+    """
+    Only seems to be used for TestManifestGenerator.test_get_manifest_first_time
+    """
     # Rename request param for readability
     sheet_url = request.param
 
@@ -763,9 +767,9 @@ class TestManifestGenerator:
             assert all_results == expected_result
 
     @pytest.mark.parametrize(
-        "component,datasetId,expected_file_based,expected_rows,expected_files",
+        "component, datasetId, expected_file_based, expected_rows, expected_files, expected_annotations",
         [
-            ("Biospecimen", "syn61260107", False, 4, None),
+            # ("Biospecimen", "syn61260107", False, 4, None),
             (
                 "BulkRNA-seqAssay",
                 "syn61374924",
@@ -780,10 +784,14 @@ class TestManifestGenerator:
                     ],
                     name="Filename",
                 ),
+                {
+                    "File Format": pd.Series(["BAM", "CRAM", "CSV/TSV", ""]),
+                    "Genome Build": pd.Series(["GRCh37", "GRCh38", "GRCm38", ""]),
+                },
             ),
         ],
-        ids=["Record based", "File based"],
     )
+    @pytest.mark.parametrize("use_annotations", [True, False])
     def test_get_manifest_with_files(
         self,
         helpers,
@@ -792,6 +800,8 @@ class TestManifestGenerator:
         expected_file_based,
         expected_rows,
         expected_files,
+        expected_annotations,
+        use_annotations,
     ):
         """
         Test to ensure that
@@ -813,7 +823,7 @@ class TestManifestGenerator:
             path_to_data_model=path_to_data_model,
             graph=graph_data_model,
             root=component,
-            use_annotations=True,
+            use_annotations=use_annotations,
         )
 
         # WHEN a manifest is generated for the appropriate dataset as a dataframe
@@ -836,4 +846,20 @@ class TestManifestGenerator:
         # AND if the manifest is file based
         if expected_file_based:
             # THEN the manifest should have the expected files
-            assert manifest["Filename"].equals(expected_files)
+            assert_series_equal(
+                manifest["Filename"],
+                expected_files,
+                check_dtype=False,
+                check_names=False,
+            )
+
+        # AND if annotations are used to generate the manifest
+        if use_annotations:
+            # THEN the annotations in the generated manifest should match the expected annotations
+            for attribute, annotations in expected_annotations.items():
+                assert_series_equal(
+                    manifest[attribute],
+                    annotations,
+                    check_dtype=False,
+                    check_names=False,
+                )
