@@ -925,6 +925,14 @@ class TestSynapseStorage:
             await synapse_store._process_store_annos(new_tasks)
             mock_store_async.assert_not_called()
 
+    @pytest.mark.parametrize(
+        "dataset_id, expected_clause",
+        [("syn12345678", "parentId='syn12345678'"), (None, "")],
+    )
+    def test_build_clause_from_dataset_id(self, dataset_id, expected_clause):
+        dataset_clause = SynapseStorage.build_clause_from_dataset_id(dataset_id)
+        assert dataset_clause == expected_clause
+
 
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
