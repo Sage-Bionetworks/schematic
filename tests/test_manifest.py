@@ -785,8 +785,32 @@ class TestManifestGenerator:
                     name="Filename",
                 ),
                 {
-                    "File Format": pd.Series(["BAM", "CRAM", "CSV/TSV", ""]),
-                    "Genome Build": pd.Series(["GRCh37", "GRCh38", "GRCm38", ""]),
+                    "File Format": pd.Series(
+                        ["BAM", "CRAM", "CSV/TSV", ""], name="File Format"
+                    ),
+                    "Genome Build": pd.Series(
+                        ["GRCh37", "GRCh38", "GRCm38", ""], name="Genome Build"
+                    ),
+                },
+            ),
+            (
+                "BulkRNA-seqAssay",
+                "syn25614635",
+                True,
+                3,
+                pd.Series(
+                    [
+                        "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_A.txt",
+                        "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_B.txt",
+                        "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_C.txt",
+                    ],
+                    name="Filename",
+                ),
+                {
+                    "File Format": pd.Series(
+                        ["txt", "csv", "fastq"], name="File Format"
+                    ),
+                    "Year of Birth": pd.Series(["1980", "", ""], name="Year of Birth"),
                 },
             ),
         ],
@@ -831,9 +855,6 @@ class TestManifestGenerator:
             dataset_id=datasetId, output_format="dataframe"
         )
 
-        # AND it is determined if the manifest is filebased
-        is_file_based = "Filename" in manifest.columns
-
         # AND the number of rows are checked
         n_rows = manifest.shape[0]
 
@@ -841,7 +862,8 @@ class TestManifestGenerator:
         assert n_rows == expected_rows
 
         # AND the manifest should be filebased or not as expected
-        assert is_file_based == expected_file_based
+        assert "Filename" in manifest.columns
+        assert "entityId" in manifest.columns
 
         # AND if the manifest is file based
         if expected_file_based:
@@ -850,7 +872,6 @@ class TestManifestGenerator:
                 manifest["Filename"],
                 expected_files,
                 check_dtype=False,
-                check_names=False,
             )
 
         # AND if annotations are used to generate the manifest
@@ -861,5 +882,4 @@ class TestManifestGenerator:
                     manifest[attribute],
                     annotations,
                     check_dtype=False,
-                    check_names=False,
                 )
