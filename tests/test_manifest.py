@@ -850,7 +850,7 @@ class TestManifestGenerator:
             use_annotations=use_annotations,
         )
 
-        # WHEN a manifest is generated for the appropriate dataset as a dataframe
+        # WHEN a filebased manifest is generated for the appropriate dataset as a dataframe
         manifest = generator.get_manifest(
             dataset_id=datasetId, output_format="dataframe"
         )
@@ -861,18 +861,16 @@ class TestManifestGenerator:
         # THEN the manifest should have the expected number of rows
         assert n_rows == expected_rows
 
-        # AND the manifest should be filebased or not as expected
+        # AND the manifest should have the columns expected of filebased metadata
         assert "Filename" in manifest.columns
         assert "entityId" in manifest.columns
 
-        # AND if the manifest is file based
-        if expected_file_based:
-            # THEN the manifest should have the expected files
-            assert_series_equal(
-                manifest["Filename"],
-                expected_files,
-                check_dtype=False,
-            )
+        # AND the manifest should have the expected files from the dataset
+        assert_series_equal(
+            manifest["Filename"],
+            expected_files,
+            check_dtype=False,
+        )
 
         # AND if annotations are used to generate the manifest
         if use_annotations:
