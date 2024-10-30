@@ -1,7 +1,6 @@
 import gzip
 import logging
 import os
-import time
 import zlib
 from io import BytesIO
 from typing import Dict, List
@@ -23,12 +22,7 @@ from opentelemetry.sdk.resources import (
     Resource,
 )
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import (
-    BatchSpanProcessor,
-    ConsoleSpanExporter,
-    SimpleSpanProcessor,
-    Span,
-)
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, Span
 from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
 from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
 from synapseclient import Synapse
@@ -42,28 +36,30 @@ Synapse.allow_client_caching(False)
 logger = logging.getLogger(__name__)
 
 
-# borrowed from: https://github.com/Sage-Bionetworks/synapsePythonClient/blob/develop/tests/integration/conftest.py
-class FileSpanExporter(ConsoleSpanExporter):
-    """Create an exporter for OTEL data to a file."""
-
-    def __init__(self, file_path: str) -> None:
-        """Init with a path."""
-        self.file_path = file_path
-
-    def export(self, spans: List[Span]) -> None:
-        """Export the spans to the file."""
-        with open(self.file_path, "a", encoding="utf-8") as f:
-            for span in spans:
-                span_json_one_line = span.to_json().replace("\n", "") + "\n"
-                f.write(span_json_one_line)
-
-
 def create_telemetry_session() -> requests.Session:
     """
     Create a requests session with authorization enabled if environment variables are set.
     If no environment variables are set, the session will be created without authorization.
+
+    Returns:
+        requests.Session: A session object with authorization enabled if environment
+            variables are set. If no environment variables are set, the session will be
+            created without authorization. If no telemetry export format is set, None
+            will be returned.
     """
+    tracing_export = os.environ.get("TRACING_EXPORT_FORMAT", None)
+    logging_export = os.environ.get("LOGGING_EXPORT_FORMAT", None)
+    if not (tracing_export or logging_export):
+        return None
+
     session = requests.Session()
+    static_otlp_headers = os.environ.get("OTEL_EXPORTER_OTLP_HEADERS", None)
+    if static_otlp_headers:
+        logger.info(
+            "Using static OTLP headers set in environment variable `OTEL_EXPORTER_OTLP_HEADERS`."
+        )
+        return session
+
     client_id = os.environ.get("TELEMETRY_EXPORTER_CLIENT_ID", None)
     client_secret = os.environ.get("TELEMETRY_EXPORTER_CLIENT_SECRET", None)
     client_token_endpoint = os.environ.get(
@@ -71,13 +67,13 @@ def create_telemetry_session() -> requests.Session:
     )
     client_audience = os.environ.get("TELEMETRY_EXPORTER_CLIENT_AUDIENCE", None)
     if (
-        client_id is None
-        or client_secret is None
-        or client_token_endpoint is None
-        or client_audience is None
+        not client_id
+        or not client_secret
+        or not client_token_endpoint
+        or not client_audience
     ):
         logger.warning(
-            "No client_id, client_secret, client_audience, or token_endpoint provided for telemetry exporter. Telemetry data will be sent without authorization."
+            "No client_id, client_secret, client_audience, or token_endpoint provided for telemetry exporter. Telemetry data will be sent without authentication."
         )
         return session
 
@@ -87,7 +83,7 @@ def create_telemetry_session() -> requests.Session:
         client_secret=client_secret,
     )
 
-    auth = OAuth2ClientCredentialsAuth(oauth2client, audience=client_audience)
+    auth = OAuth2ClientCredentialsAuth(client=oauth2client, audience=client_audience)
     session.auth = auth
 
     return session
@@ -128,12 +124,6 @@ def set_up_tracing(session: requests.Session) -> None:
         # This is a temporary hack
         exporter._export = types.MethodType(trace_export_replacement, exporter)
         trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(exporter))
-    elif tracing_export == "file":
-        timestamp_millis = int(time.time() * 1000)
-        file_name = f"otel_spans_integration_testing_{timestamp_millis}.ndjson"
-        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
-        processor = SimpleSpanProcessor(FileSpanExporter(file_path))
-        trace.get_tracer_provider().add_span_processor(processor)
     else:
         trace.set_tracer_provider(TracerProvider(sampler=ALWAYS_OFF))
 
