@@ -670,105 +670,15 @@ class SynapseStorage(BaseStorage):
         Raises:
             ValueError: Dataset ID not found.
         """
-        # select all files within a given storage dataset folder (top level folder in
-        # a Synapse storage project or folder marked with contentType = 'dataset')
-        walked_path = synapseutils.walk(
-            self.syn, datasetId, includeTypes=["folder", "file"]
-        )
-
-        current_entity_location = self.synapse_entity_tracker.get(
-            synapse_id=datasetId, syn=self.syn, download_file=False
-        )
-
-        def walk_back_to_project(
-            current_location: Entity, location_prefix: str, skip_entry: bool
-        ) -> str:
-            """
-            Recursively walk back up the project structure to get the paths of the
-            names of each of the directories where we started the walk function.
-
-            Args:
-                current_location (Entity): The current entity location in the project structure.
-                location_prefix (str): The prefix to prepend to the path.
-                skip_entry (bool): Whether to skip the current entry in the path. When
-                    this is True it means we are looking at our starting point. If our
-                    starting point is the project itself we can go ahead and return
-                    back the project as the prefix.
-
-            Returns:
-                str: The path of the names of each of the directories up to the project root.
-            """
-            if (
-                skip_entry
-                and "concreteType" in current_location
-                and current_location["concreteType"] == PROJECT_ENTITY
-            ):
-                return f"{current_location.name}/{location_prefix}"
-
-            updated_prefix = (
-                location_prefix
-                if skip_entry
-                else f"{current_location.name}/{location_prefix}"
-            )
-            if (
-                "concreteType" in current_location
-                and current_location["concreteType"] == PROJECT_ENTITY
-            ):
-                return updated_prefix
-            current_location = self.synapse_entity_tracker.get(
-                synapse_id=current_location["parentId"],
-                syn=self.syn,
-                download_file=False,
-            )
-            return walk_back_to_project(
-                current_location=current_location,
-                location_prefix=updated_prefix,
-                skip_entry=False,
-            )
-
-        prefix = walk_back_to_project(
-            current_location=current_entity_location,
-            location_prefix="",
-            skip_entry=True,
-        )
-
-        project_id = self.getDatasetProject(datasetId)
-        project = self.synapse_entity_tracker.get(
-            synapse_id=project_id, syn=self.syn, download_file=False
-        )
-        project_name = project.name
         file_list = []
+        dataset_clause = SynapseStorage.build_clause_from_dataset_id(datasetId)
+        self.query_fileview(columns=["id", "path"], where_clauses=dataset_clause)
 
-        # iterate over all results
-        for dirpath, _, path_filenames in walked_path:
-            # iterate over all files in a folder
-            for path_filename in path_filenames:
-                if ("manifest" not in path_filename[0] and not fileNames) or (
-                    fileNames and path_filename[0] in fileNames
-                ):
-                    # don't add manifest to list of files unless it is specified in the
-                    # list of specified fileNames; return all found files
-                    # except the manifest if no fileNames have been specified
-                    # TODO: refactor for clarity/maintainability
+        non_manifest_files = self.storageFileviewTable.loc[
+            ~self.storageFileviewTable["path"].str.contains("manifest"), :
+        ]
 
-                    if fullpath:
-                        # append directory path to filename
-                        if dirpath[0].startswith(f"{project_name}/"):
-                            path_without_project_prefix = (
-                                dirpath[0] + "/"
-                            ).removeprefix(f"{project_name}/")
-                            path_filename = (
-                                prefix + path_without_project_prefix + path_filename[0],
-                                path_filename[1],
-                            )
-                        else:
-                            path_filename = (
-                                prefix + dirpath[0] + "/" + path_filename[0],
-                                path_filename[1],
-                            )
-
-                    # add file name file id tuple, rearranged so that id is first and name follows
-                    file_list.append(path_filename[::-1])
+        file_list = list(non_manifest_files.itertuples(index=False, name=None))
 
         return file_list
 
