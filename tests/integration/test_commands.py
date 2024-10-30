@@ -23,14 +23,15 @@ def fixture_runner() -> CliRunner:
     """Fixture for invoking command-line interfaces."""
     return CliRunner()
 
+
 class TestSubmitCommand:
     """Tests the schematic/models/commands submit command"""
 
-    def test_submit_test_manifest(self, runner: CliRunner)  -> None:
+    def test_submit_test_manifest(self, runner: CliRunner) -> None:
         """Tests for a successful submission"""
         # commented out, this command causes an error
         # https://sagebionetworks.jira.com/browse/SCHEMATIC-126
-        '''
+        """
         result = runner.invoke(
             model,
             [
@@ -48,12 +49,13 @@ class TestSubmitCommand:
             ],
         )
         assert result.exit_code == 0
-        '''
+        """
+
 
 class TestValidateCommand:
     """Tests the schematic/models/commands validate command"""
 
-    def test_validate_valid_manifest(self, runner: CliRunner)  -> None:
+    def test_validate_valid_manifest(self, runner: CliRunner) -> None:
         """Tests for validation with no errors"""
         result = runner.invoke(
             model,
@@ -66,8 +68,8 @@ class TestValidateCommand:
                 "--data_type",
                 "MockComponent",
                 "--project_scope",
-                "syn54126707"
-            ]
+                "syn54126707",
+            ],
         )
         assert result.exit_code == 0
         assert result.output.split("\n")[4] == (
@@ -76,7 +78,7 @@ class TestValidateCommand:
             "and it can be submitted without any modifications."
         )
 
-    def test_validate_invalid_manifest(self, runner: CliRunner)  -> None:
+    def test_validate_invalid_manifest(self, runner: CliRunner) -> None:
         """Tests for validation with no errors"""
         result = runner.invoke(
             model,
@@ -87,8 +89,8 @@ class TestValidateCommand:
                 "--manifest_path",
                 "tests/data/mock_manifests/CLI_tests/CLI_patient_invalid.csv",
                 "--data_type",
-                "Patient"
-            ]
+                "Patient",
+            ],
         )
         assert result.exit_code == 0
         assert result.output.split("\n")[3] == (
@@ -100,19 +102,13 @@ class TestValidateCommand:
         assert result.output.split("\n")[5].startswith("error: 'Random' is not one of")
         assert result.output.split("\n")[6].startswith("[['2', 'Family History',")
 
+
 class TestManifestCommand:
     """Tests the schematic/manifest/commands validate manifest command"""
 
-    def test_generate_empty_csv_manifest(self, runner: CliRunner)  -> None:
+    def test_generate_empty_csv_manifest(self, runner: CliRunner) -> None:
         """Generate two empty csv manifests"""
-        result = runner.invoke(
-            manifest,
-            [
-                "--config",
-                "config_example.yml",
-                "get"
-            ]
-        )
+        result = runner.invoke(manifest, ["--config", "config_example.yml", "get"])
         assert result.exit_code == 0
         # Assert the output has file creation messages
         assert result.output.split("\n")[7] == (
@@ -134,16 +130,10 @@ class TestManifestCommand:
         os.remove("tests/data/example.Patient.manifest.csv")
         os.remove("tests/data/example.Patient.schema.json")
 
-    def test_generate_empty_google_sheet_manifests(self, runner: CliRunner)  -> None:
+    def test_generate_empty_google_sheet_manifests(self, runner: CliRunner) -> None:
         """Generate two empty google sheet manifests"""
         result = runner.invoke(
-            manifest,
-            [
-                "--config",
-                "config_example.yml",
-                "get",
-                "--sheet_url"
-            ]
+            manifest, ["--config", "config_example.yml", "get", "--sheet_url"]
         )
         assert result.exit_code == 0
 
@@ -151,7 +141,9 @@ class TestManifestCommand:
         assert result.output.split("\n")[7] == (
             "Find the manifest template using this Google Sheet URL:"
         )
-        assert result.output.split("\n")[8].startswith("https://docs.google.com/spreadsheets/d/")
+        assert result.output.split("\n")[8].startswith(
+            "https://docs.google.com/spreadsheets/d/"
+        )
         assert result.output.split("\n")[9] == (
             "Find the manifest template using this CSV file path: "
             "tests/data/example.Biospecimen.manifest.csv"
@@ -159,7 +151,9 @@ class TestManifestCommand:
         assert result.output.split("\n")[12] == (
             "Find the manifest template using this Google Sheet URL:"
         )
-        assert result.output.split("\n")[13].startswith("https://docs.google.com/spreadsheets/d/")
+        assert result.output.split("\n")[13].startswith(
+            "https://docs.google.com/spreadsheets/d/"
+        )
         assert result.output.split("\n")[14] == (
             "Find the manifest template using this CSV file path: "
             "tests/data/example.Patient.manifest.csv"
@@ -292,7 +286,7 @@ class TestManifestCommand:
             == "Please enter applicable comma-separated items selected from the set of allowable terms for this attribute. See our data standards for allowable terms"
         )
 
-         # AND the dropdown lists exist and are as expected
+        # AND the dropdown lists exist and are as expected
         data_validations = sheet1.data_validations.dataValidation
         sex_validation = None
         diagnosis_validation = None
@@ -335,20 +329,17 @@ class TestManifestCommand:
         for col in ["Year of Birth", "Cancer Type", "Family History"]:
             assert sheet1[f"{columns[col]}2"].fill.start_color.index == WHITE
 
-    def test_generate_empty_excel_manifest(self, runner: CliRunner)  -> None:
+    def test_generate_empty_excel_manifest(self, runner: CliRunner) -> None:
         """Generate an empty patient excel manifest"""
         result = runner.invoke(
             manifest,
-            [
-                "--config",
-                "config_example.yml",
-                "get",
-                "--output_xlsx",
-                "./test.xlsx"
-            ]
+            ["--config", "config_example.yml", "get", "--output_xlsx", "./test.xlsx"],
         )
         assert result.exit_code == 0
-        assert result.output.split("\n")[7] ==  "Find the manifest template using this Excel file path: ./test.xlsx"
+        assert (
+            result.output.split("\n")[7]
+            == "Find the manifest template using this Excel file path: ./test.xlsx"
+        )
 
         # Assert these files were created:
         assert os.path.isfile("tests/data/example.Biospecimen.schema.json")
@@ -412,7 +403,7 @@ class TestManifestCommand:
             == "Please enter applicable comma-separated items selected from the set of allowable terms for this attribute. See our data standards for allowable terms"
         )
 
-         # AND the dropdown lists exist and are as expected
+        # AND the dropdown lists exist and are as expected
         data_validations = sheet1.data_validations.dataValidation
         sex_validation = None
         diagnosis_validation = None
@@ -455,7 +446,7 @@ class TestManifestCommand:
         for col in ["Year of Birth", "Cancer Type", "Family History"]:
             assert sheet1[f"{columns[col]}2"].fill.start_color.index == WHITE
 
-    def test_generate_bulk_rna_google_sheet_manifest(self, runner: CliRunner)  -> None:
+    def test_generate_bulk_rna_google_sheet_manifest(self, runner: CliRunner) -> None:
         """Generate bulk_rna google sheet manifest"""
         result = runner.invoke(
             manifest,
@@ -467,14 +458,16 @@ class TestManifestCommand:
                 "syn63923432",
                 "--data_type",
                 "BulkRNA-seqAssay",
-                "--sheet_url"
-            ]
+                "--sheet_url",
+            ],
         )
         assert result.exit_code == 0
         assert result.output.split("\n")[7] == (
             "Find the manifest template using this Google Sheet URL:"
         )
-        assert result.output.split("\n")[8].startswith("https://docs.google.com/spreadsheets/d/")
+        assert result.output.split("\n")[8].startswith(
+            "https://docs.google.com/spreadsheets/d/"
+        )
         assert result.output.split("\n")[9] == (
             "Find the manifest template using this CSV file path: "
             "tests/data/example.BulkRNA-seqAssay.manifest.csv"
@@ -533,7 +526,6 @@ class TestManifestCommand:
         assert sheet1[f"{columns['entityId']}3"].value == "syn63923439"
         assert sheet1[f"{columns['entityId']}4"].value == "syn63923441"
         assert sheet1[f"{columns['entityId']}5"].value == "syn63923444"
-
 
         # AND there are no more columns in the first sheet
         assert sheet1[f"{columns['entityId']}1"].offset(column=1).value is None
@@ -649,7 +641,7 @@ class TestManifestCommand:
 
     def test_generate_bulk_rna_google_sheet_manifest_with_annotations(
         self, runner: CliRunner
-    )  -> None:
+    ) -> None:
         """Generate bulk_rna google sheet manifest"""
         result = runner.invoke(
             manifest,
@@ -662,14 +654,16 @@ class TestManifestCommand:
                 "--data_type",
                 "BulkRNA-seqAssay",
                 "--sheet_url",
-                "--use_annotations"
-            ]
+                "--use_annotations",
+            ],
         )
         assert result.exit_code == 0
         assert result.output.split("\n")[10] == (
             "Find the manifest template using this Google Sheet URL:"
         )
-        assert result.output.split("\n")[11].startswith("https://docs.google.com/spreadsheets/d/")
+        assert result.output.split("\n")[11].startswith(
+            "https://docs.google.com/spreadsheets/d/"
+        )
         assert result.output.split("\n")[12] == (
             "Find the manifest template using this CSV file path: "
             "tests/data/example.BulkRNA-seqAssay.manifest.csv"
@@ -783,7 +777,7 @@ class TestManifestCommand:
             "impact",
             "author",
             "eTag",
-           	"IsImportantText",
+            "IsImportantText",
             "IsImportantBool",
             "confidence",
             "date",
@@ -830,7 +824,7 @@ class TestManifestCommand:
             "impact",
             "author",
             "eTag",
-           	"IsImportantText",
+            "IsImportantText",
             "IsImportantBool",
             "confidence",
             "date",
@@ -900,11 +894,11 @@ class TestManifestCommand:
                 "--output_xlsx",
                 "test-example.xlsx",
                 "--dataset_id",
-                "syn52746566"
-            ]
+                "syn52746566",
+            ],
         )
         assert result.exit_code == 0
-        assert result.output.split("\n")[8] ==  (
+        assert result.output.split("\n")[8] == (
             "Find the manifest template using this Excel file path: test-example.xlsx"
         )
 
@@ -943,7 +937,9 @@ class TestManifestCommand:
         assert sheet1[f"{columns['Check Regex Format']}2"].value is not None
         assert sheet1[f"{columns['Check Regex Format']}3"].value is not None
 
-        assert sheet1[f"{columns['Check Regex Integer']}1"].value == "Check Regex Integer"
+        assert (
+            sheet1[f"{columns['Check Regex Integer']}1"].value == "Check Regex Integer"
+        )
         assert sheet1[f"{columns['Check Regex Integer']}2"].value is not None
         assert sheet1[f"{columns['Check Regex Integer']}3"].value is not None
 
