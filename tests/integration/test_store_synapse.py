@@ -181,6 +181,28 @@ class TestStoreSynapse:
                     ),
                 ],
             ),
+            (
+                "syn23643253",
+                "syn63927665",
+                [
+                    (
+                        "syn63927670",
+                        "schematic - main/BulkRNAseq nested files/data/txt4.txt",
+                    ),
+                    (
+                        "syn63927671",
+                        "schematic - main/BulkRNAseq nested files/data/txt1.txt",
+                    ),
+                    (
+                        "syn63927672",
+                        "schematic - main/BulkRNAseq nested files/data/txt2.txt",
+                    ),
+                    (
+                        "syn63927673",
+                        "schematic - main/BulkRNAseq nested files/data/txt3.txt",
+                    ),
+                ],
+            ),
         ],
     )
     def test_getFilesInStorageDataset(
