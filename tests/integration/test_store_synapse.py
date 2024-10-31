@@ -1,3 +1,4 @@
+from re import compile as re_compile
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -5,6 +6,7 @@ import pytest
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
+from schematic.utils.general import syn_id_regex
 from schematic.utils.validate_utils import comma_separated_list_regex
 
 
@@ -125,3 +127,73 @@ class TestStoreSynapse:
             "value2",
             "value3",
         ]
+
+    @pytest.mark.parametrize(
+        "asset_view, dataset_id, expected_files",
+        [
+            (
+                "syn23643253",
+                "syn61374924",
+                [
+                    ("syn61374926", "schematic - main/BulkRNASeq and files/txt1.txt"),
+                    ("syn61374930", "schematic - main/BulkRNASeq and files/txt2.txt"),
+                    ("syn62282720", "schematic - main/BulkRNASeq and files/txt4.txt"),
+                    ("syn62282794", "schematic - main/BulkRNASeq and files/txt3.txt"),
+                ],
+            ),
+            (
+                "syn23643253",
+                "syn25614635",
+                [
+                    (
+                        "syn25614636",
+                        "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_A.txt",
+                    ),
+                    (
+                        "syn25614637",
+                        "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_B.txt",
+                    ),
+                    (
+                        "syn25614638",
+                        "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_C.txt",
+                    ),
+                ],
+            ),
+            (
+                "syn63917487",
+                "syn63917494",
+                [
+                    (
+                        "syn63917521",
+                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation//txt1.txt",
+                    ),
+                    (
+                        "syn63917522",
+                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation//txt2.txt",
+                    ),
+                    (
+                        "syn63917520",
+                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation//txt3.txt",
+                    ),
+                    (
+                        "syn63917518",
+                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation//txt4.txt",
+                    ),
+                ],
+            ),
+        ],
+    )
+    def test_getFilesInStorageDataset(
+        self, synapse_store_special_scope, asset_view, dataset_id, expected_files
+    ):
+        # GIVEN a SynapseStorage object with the approrpiate asset view
+        synapse_store_special_scope.storageFileView = asset_view
+        # WHEN getFilesInStorageDataset is called for the given dataset
+        dataset_files = synapse_store_special_scope.getFilesInStorageDataset(dataset_id)
+        # THEN the expected files are returned
+        assert dataset_files == expected_files
+        # AND the (synId, path) order is correct
+        synapse_id_regex = re_compile(syn_id_regex())
+        assert synapse_id_regex.fullmatch(dataset_files[0][0])
+        # AND there are no unexpected files
+        assert len(dataset_files) == len(expected_files)
