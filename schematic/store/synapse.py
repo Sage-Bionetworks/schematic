@@ -678,6 +678,9 @@ class SynapseStorage(BaseStorage):
             ~self.storageFileviewTable["path"].str.contains("manifest"), :
         ]
 
+        if not fullpath:
+            non_manifest_files.path = non_manifest_files.path.apply(os.path.basename)
+
         file_list = list(non_manifest_files.itertuples(index=False, name=None))
 
         return file_list
