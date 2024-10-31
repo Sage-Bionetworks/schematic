@@ -164,20 +164,20 @@ class TestStoreSynapse:
                 "syn63917494",
                 [
                     (
-                        "syn63917521",
-                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation//txt1.txt",
-                    ),
-                    (
-                        "syn63917522",
-                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation//txt2.txt",
+                        "syn63917518",
+                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation/txt4.txt",
                     ),
                     (
                         "syn63917520",
-                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation//txt3.txt",
+                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation/txt1.txt",
                     ),
                     (
-                        "syn63917518",
-                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation//txt4.txt",
+                        "syn63917521",
+                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation/txt2.txt",
+                    ),
+                    (
+                        "syn63917522",
+                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation/txt3.txt",
                     ),
                 ],
             ),
