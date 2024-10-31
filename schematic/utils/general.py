@@ -332,3 +332,7 @@ def normalize_path(path: str, parent_folder: str) -> str:
     if not os.path.isabs(path):
         path = os.path.join(parent_folder, path)
     return os.path.normpath(path)
+
+
+def syn_id_regex():
+    return "(syn\d+\,?)+"
