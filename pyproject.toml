@@ -37,7 +37,7 @@ schematic = "schematic.__main__:main"
 
 [tool.poetry.dependencies]
 python = ">=3.9.0,<3.11"
-
+sphinx = "7.3.7"
 click = "^8.0.0"
 click-log = "^0.4.0"
 google-api-python-client = "^2.0.0"
