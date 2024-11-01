@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import requests
 from jsonschema import ValidationError
+from opentelemetry import trace
 from synapseclient import File
 from synapseclient.core.exceptions import SynapseNoCredentialsError
 
@@ -30,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 MessageLevelType = Literal["warning", "error"]
 ScopeTypes = Literal["set", "value"]
+tracer = trace.get_tracer("schematic")
 
 
 class GenerateError:
@@ -775,6 +777,7 @@ class ValidateAttribute(object):
     def __init__(self, dmge: DataModelGraphExplorer) -> None:
         self.dmge = dmge
 
+    @tracer.start_as_current_span("ValidateAttribute::_login")
     def _login(
         self,
         access_token: Optional[str] = None,
