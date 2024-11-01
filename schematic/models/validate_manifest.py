@@ -203,7 +203,7 @@ class ValidateManifest(object):
                         expectation_suite_name=ge_helpers.expectation_suite_name
                     )
 
-                    validation_results = results.list_validation_results()
+                validation_results = results.list_validation_results()
 
                 # parse validation results dict and generate errors
                 errors, warnings = ge_helpers.generate_errors(
