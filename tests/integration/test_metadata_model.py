@@ -33,9 +33,6 @@ logger = logging.getLogger(__name__)
 DESCRIPTION = "This is an example file."
 CONTENT_TYPE = "text/plain"
 VERSION_COMMENT = "My version comment"
-CONTENT_TYPE_JSON = "text/json"
-BOGUS_URL = "https://www.synapse.org/"
-BOGUS_MD5 = "1234567890"
 
 
 def file_instance() -> File:
