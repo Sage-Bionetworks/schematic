@@ -263,7 +263,7 @@ class TestMetadataModel:
 
         # AND a dataset/files that exist in Synapse
         dataset_folder = await Folder(
-            name=f"test_submit_filebased_manifest_table_and_file_mock_filename{uuid.uuid4()}",
+            name=f"test_submit_filebased_manifest_table_and_file_mock_filename_{uuid.uuid4()}",
             files=[file_instance(), file_instance()],
             parent_id=project_id,
         ).store_async(synapse_client=synapse_store.syn)
