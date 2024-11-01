@@ -335,4 +335,11 @@ def normalize_path(path: str, parent_folder: str) -> str:
 
 
 def syn_id_regex() -> str:
+    """
+    Regex pattern to match synapse ids
+    Args:
+        None
+    Returns:
+        str: synID regex pattern
+    """
     return "(syn\d+\,?)+"
