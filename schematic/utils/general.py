@@ -334,5 +334,5 @@ def normalize_path(path: str, parent_folder: str) -> str:
     return os.path.normpath(path)
 
 
-def syn_id_regex():
+def syn_id_regex() -> str:
     return "(syn\d+\,?)+"
