@@ -342,4 +342,4 @@ def syn_id_regex() -> str:
     Returns:
         str: synID regex pattern
     """
-    return "(syn\d+\,?)+"
+    return r"(syn\d+\,?)+"
