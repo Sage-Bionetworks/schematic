@@ -28,6 +28,7 @@ from schematic.utils.validate_utils import (
 )
 
 logger = logging.getLogger(__name__)
+tracer = trace.get_tracer("Schematic")
 
 MessageLevelType = Literal["warning", "error"]
 ScopeTypes = Literal["set", "value"]
@@ -2009,6 +2010,7 @@ class ValidateAttribute(object):
 
             return (start_time, validation_store)
 
+    @tracer.start_as_current_span("ValidateAttribute::cross_validation")
     def cross_validation(
         self,
         val_rule: str,
@@ -2084,6 +2086,7 @@ class ValidateAttribute(object):
 
         return errors, warnings
 
+    @tracer.start_as_current_span("ValidateAttribute::filename_validation")
     def filename_validation(
         self,
         val_rule: str,
