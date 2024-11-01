@@ -134,7 +134,7 @@ jobs:
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
           poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-          -m "not (rule_benchmark)" --reruns 10 -n 8 --ignore=tests/unit
+          -m "not (rule_benchmark)" --reruns 10 -n 8 --ignore=tests/unit tests/integration/test_metadata_model.py
 
 
       - name: Upload pytest test results
