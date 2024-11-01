@@ -180,39 +180,41 @@ class ValidateManifest(object):
                 ge_helpers.build_expectation_suite()
                 ge_helpers.build_checkpoint()
 
-            try:
-                # run GE validation
-                with tracer.start_as_current_span(
-                    "ValidateManifest::validate_manifest_rules::GreatExpectationsValidation::run_checkpoint"
-                ):
-                    results = ge_helpers.context.run_checkpoint(
-                        checkpoint_name=ge_helpers.checkpoint_name,
-                        batch_request={
-                            "runtime_parameters": {"batch_data": manifest},
-                            "batch_identifiers": {
-                                "default_identifier_name": f"manifestID_{uuid.uuid4()}"
+                try:
+                    # run GE validation
+                    with tracer.start_as_current_span(
+                        "ValidateManifest::validate_manifest_rules::GreatExpectationsValidation::run_checkpoint"
+                    ):
+                        results = ge_helpers.context.run_checkpoint(
+                            checkpoint_name=ge_helpers.checkpoint_name,
+                            batch_request={
+                                "runtime_parameters": {"batch_data": manifest},
+                                "batch_identifiers": {
+                                    "default_identifier_name": f"manifestID_{uuid.uuid4()}"
+                                },
                             },
-                        },
-                        result_format={"result_format": "COMPLETE"},
+                            result_format={"result_format": "COMPLETE"},
+                        )
+                finally:
+                    ge_helpers.context.delete_checkpoint(
+                        name=ge_helpers.checkpoint_name
                     )
-            finally:
-                ge_helpers.context.delete_checkpoint(name=ge_helpers.checkpoint_name)
-                ge_helpers.context.delete_expectation_suite(
-                    expectation_suite_name=ge_helpers.expectation_suite_name
+                    ge_helpers.context.delete_expectation_suite(
+                        expectation_suite_name=ge_helpers.expectation_suite_name
+                    )
+
+                    validation_results = results.list_validation_results()
+
+                # parse validation results dict and generate errors
+                errors, warnings = ge_helpers.generate_errors(
+                    errors=errors,
+                    warnings=warnings,
+                    validation_results=validation_results,
+                    validation_types=validation_types,
+                    dmge=dmge,
                 )
-
-                validation_results = results.list_validation_results()
-
-            # parse validation results dict and generate errors
-            errors, warnings = ge_helpers.generate_errors(
-                errors=errors,
-                warnings=warnings,
-                validation_results=validation_results,
-                validation_types=validation_types,
-                dmge=dmge,
-            )
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(f"GE elapsed time {perf_counter()-t_GE}")
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"GE elapsed time {perf_counter()-t_GE}")
         else:
             logger.info("Great Expetations suite will not be utilized.")
 
