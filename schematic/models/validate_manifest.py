@@ -1,28 +1,20 @@
 import json
 import logging
-import os
-import re
-import sys
+import uuid
 from numbers import Number
-from statistics import mode
-from tabnanny import check
 from time import perf_counter
 
 # allows specifying explicit variable types
-from typing import Any, Dict, List, Optional, Text
-from urllib import error
-from urllib.parse import urlparse
-from urllib.request import HTTPDefaultErrorHandler, OpenerDirector, Request, urlopen
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from jsonschema import Draft7Validator, ValidationError, exceptions
+from jsonschema import Draft7Validator, exceptions
 from opentelemetry import trace
 
 from schematic.models.GE_Helpers import GreatExpectationsHelpers
 from schematic.models.validate_attribute import GenerateError, ValidateAttribute
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
-from schematic.store.synapse import SynapseStorage
 from schematic.utils.schema_utils import extract_component_validation_rules
 from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import (
@@ -71,13 +63,13 @@ class ValidateManifest(object):
     def check_max_rule_num(
         self,
         validation_rules: list[str],
-        col: pd.core.series.Series,
+        col: pd.Series,
         errors: list[list[str]],
     ) -> list[list[str]]:
         """Check that user isnt applying more rule combinations than allowed. Do not consider certain rules as a part of this rule limit.
         Args:
             validation_rules, list: Validation rules for current manifest column/attribute being evaluated
-            col, pd.core.series.Series: the current manifest column being evaluated
+            col, pd.Series: the current manifest column being evaluated
             errors, list[list[str]]: list of errors being compiled.
         Returns:
             errors, list[list[str]]: list of errors being compiled, with additional error list being appended if appropriate
@@ -104,25 +96,25 @@ class ValidateManifest(object):
     @tracer.start_as_current_span("ValidateManifest::validate_manifest_rules")
     def validate_manifest_rules(
         self,
-        manifest: pd.core.frame.DataFrame,
+        manifest: pd.DataFrame,
         dmge: DataModelGraphExplorer,
         restrict_rules: bool,
         project_scope: list[str],
         dataset_scope: Optional[str] = None,
         access_token: Optional[str] = None,
-    ) -> (pd.core.frame.DataFrame, list[list[str]]):
+    ) -> Tuple[pd.DataFrame, list[list[str]]]:
         """
         Purpose:
             Take validation rules set for a particular attribute
             and validate manifest entries based on these rules.
         Input:
-            manifest: pd.core.frame.DataFrame
+            manifest: pd.DataFrame
                 imported from models/metadata.py
                 contains metadata input from user for each attribute.
             dmge: DataModelGraphExplorer
                 initialized within models/metadata.py
         Returns:
-            manifest: pd.core.frame.DataFrame
+            manifest: pd.DataFrame
                 If a 'list' validatior is run, the manifest needs to be
                 updated to change the attribute column values to a list.
                 In this case the manifest will be updated then exported.
@@ -141,12 +133,6 @@ class ValidateManifest(object):
         # to the type of validation that will be run.
 
         validation_types = validation_rule_info()
-
-        type_dict = {
-            "float64": float,
-            "int64": int,
-            "str": str,
-        }
 
         unimplemented_expectations = [
             "url",
@@ -177,7 +163,8 @@ class ValidateManifest(object):
         warnings = []
 
         if not restrict_rules:
-            t_GE = perf_counter()
+            if logger.isEnabledFor(logging.DEBUG):
+                t_GE = perf_counter()
             # operations necessary to set up and run ge suite validation
             with tracer.start_as_current_span(
                 "ValidateManifest::validate_manifest_rules::GreatExpectationsValidation"
@@ -193,43 +180,44 @@ class ValidateManifest(object):
                 ge_helpers.build_expectation_suite()
                 ge_helpers.build_checkpoint()
 
-                try:
-                    # run GE validation
-                    with tracer.start_as_current_span(
-                        "ValidateManifest::validate_manifest_rules::GreatExpectationsValidation::run_checkpoint"
-                    ):
-                        results = ge_helpers.context.run_checkpoint(
-                            checkpoint_name=ge_helpers.checkpoint_name,
-                            batch_request={
-                                "runtime_parameters": {"batch_data": manifest},
-                                "batch_identifiers": {
-                                    "default_identifier_name": "manifestID"
-                                },
+            try:
+                # run GE validation
+                with tracer.start_as_current_span(
+                    "ValidateManifest::validate_manifest_rules::GreatExpectationsValidation::run_checkpoint"
+                ):
+                    results = ge_helpers.context.run_checkpoint(
+                        checkpoint_name=ge_helpers.checkpoint_name,
+                        batch_request={
+                            "runtime_parameters": {"batch_data": manifest},
+                            "batch_identifiers": {
+                                "default_identifier_name": f"manifestID_{uuid.uuid4()}"
                             },
-                            result_format={"result_format": "COMPLETE"},
-                        )
-                finally:
-                    ge_helpers.context.delete_checkpoint(ge_helpers.checkpoint_name)
-                    ge_helpers.context.delete_expectation_suite(
-                        ge_helpers.expectation_suite_name
+                        },
+                        result_format={"result_format": "COMPLETE"},
                     )
+            finally:
+                ge_helpers.context.delete_checkpoint(name=ge_helpers.checkpoint_name)
+                ge_helpers.context.delete_expectation_suite(
+                    expectation_suite_name=ge_helpers.expectation_suite_name
+                )
 
                 validation_results = results.list_validation_results()
 
-                # parse validation results dict and generate errors
-                errors, warnings = ge_helpers.generate_errors(
-                    errors=errors,
-                    warnings=warnings,
-                    validation_results=validation_results,
-                    validation_types=validation_types,
-                    dmge=dmge,
-                )
+            # parse validation results dict and generate errors
+            errors, warnings = ge_helpers.generate_errors(
+                errors=errors,
+                warnings=warnings,
+                validation_results=validation_results,
+                validation_types=validation_types,
+                dmge=dmge,
+            )
+            if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(f"GE elapsed time {perf_counter()-t_GE}")
         else:
             logger.info("Great Expetations suite will not be utilized.")
 
-        t_err = perf_counter()
-        regex_re = re.compile("regex.*")
+        if logger.isEnabledFor(logging.DEBUG):
+            t_err = perf_counter()
 
         # Instantiate Validate Attribute
         validate_attribute = ValidateAttribute(dmge=dmge)
@@ -266,7 +254,8 @@ class ValidateManifest(object):
                         )
                         continue
 
-                    t_indiv_rule = perf_counter()
+                    if logger.isEnabledFor(logging.DEBUG):
+                        t_indiv_rule = perf_counter()
                     # Validate for each individual validation rule.
                     validation_method = getattr(
                         validate_attribute, validation_types[validation_type]["type"]
@@ -300,10 +289,14 @@ class ValidateManifest(object):
                         errors.extend(vr_errors)
                     if vr_warnings:
                         warnings.extend(vr_warnings)
-                    logger.debug(
-                        f"Rule {rule} elapsed time: {perf_counter()-t_indiv_rule}"
-                    )
-        logger.debug(f"In House validation elapsed time {perf_counter()-t_err}")
+
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug(
+                            f"Rule {rule} elapsed time: {perf_counter()-t_indiv_rule}"
+                        )
+
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"In House validation elapsed time {perf_counter()-t_err}")
         return manifest, errors, warnings
 
     def validate_manifest_values(
@@ -311,12 +304,11 @@ class ValidateManifest(object):
         manifest,
         jsonSchema,
         dmge,
-    ) -> (List[List[str]], List[List[str]]):
+    ) -> Tuple[List[List[str]], List[List[str]]]:
         t_json_schema = perf_counter()
 
         errors = []
         warnings = []
-        col_attr = {}  # save the mapping between column index and attribute name
 
         manifest = convert_nan_entries_to_empty_strings(manifest=manifest)
 
@@ -332,12 +324,21 @@ class ValidateManifest(object):
         annotations = json.loads(manifest.to_json(orient="records"))
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
-            for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
+            for sorted_error in sorted(
+                v.iter_errors(annotation), key=exceptions.relevance
+            ):
                 errorRow = str(i + 2)
-                errorCol = error.path[-1] if len(error.path) > 0 else "Wrong schema"
-                errorColName = error.path[0] if len(error.path) > 0 else "Wrong schema"
-                errorMsg = error.message[0:500]
-                errorVal = error.instance if len(error.path) > 0 else "Wrong schema"
+                errorColName = (
+                    sorted_error.path[0]
+                    if len(sorted_error.path) > 0
+                    else "Wrong schema"
+                )
+                errorMsg = sorted_error.message[0:500]
+                errorVal = (
+                    sorted_error.instance
+                    if len(sorted_error.path) > 0
+                    else "Wrong schema"
+                )
 
                 val_errors, val_warnings = GenerateError.generate_schema_error(
                     row_num=errorRow,

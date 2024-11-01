@@ -67,35 +67,12 @@ jobs:
             | python3 - --version ${{ env.POETRY_VERSION }};
           poetry config virtualenvs.create true;
           poetry config virtualenvs.in-project true;
-      #----------------------------------------------
-      #       load cached venv if cache exists
-      #----------------------------------------------
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}-${{ matrix.python-version }}
-      
-      #----------------------------------------------
-      # validate cached venv if it exists and remove if corrupt
-      #----------------------------------------------
-      - name: Check and remove broken virtual environment (if necessary)
-        if: steps.cached-poetry-dependencies.outputs.cache-hit == 'true'
-        run: |
-          VENV_PATH=$(poetry env info --path)
-          if [ -d "$VENV_PATH" ]; then
-          source $VENV_PATH/bin/activate && poetry run black --version || (echo "Removing broken venv"; rm -rf $VENV_PATH; echo "venv-deleted=true" >> $GITHUB_ENV)
-          else
-            echo "Virtual environment not found"
-          fi
+
       #----------------------------------------------
       # install dependencies and root project
       #----------------------------------------------
       - name: Install dependencies and root project
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true' || env.venv-deleted == 'true'
         run: poetry install --no-interaction --all-extras
-
       #----------------------------------------------
       #             perform linting
       #----------------------------------------------
@@ -144,9 +121,8 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
-          source .venv/bin/activate;
-          pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov 
-          --cov-report=xml:coverage.xml --cov=schematic/ --reruns 4 -n 8 tests/unit
+          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov 
+          --cov-report=xml:coverage.xml --cov=schematic/ --reruns 4 -n 8 tests/unit;
 
       #----------------------------------------------
       #              run integration test suite
@@ -157,8 +133,7 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
-          source .venv/bin/activate;
-          pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
+          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
           -m "not (rule_benchmark)" --reruns 4 -n 8 --ignore=tests/unit
 
 

@@ -1,21 +1,16 @@
 import logging
 import os
-import re
-from statistics import mode
-from tabnanny import check
+import uuid
 
 # allows specifying explicit variable types
-from typing import Any, Dict, List, Optional, Text
-from urllib import error
-from urllib.parse import urlparse
-from urllib.request import HTTPDefaultErrorHandler, OpenerDirector, Request, urlopen
+from typing import Dict, List
 
 import numpy as np
-from attr import attr
 from great_expectations.core import ExpectationSuite
 from great_expectations.core.expectation_configuration import ExpectationConfiguration
 from great_expectations.data_context import BaseDataContext
 from great_expectations.data_context.types.base import (
+    AnonymizedUsageStatisticsConfig,
     DataContextConfig,
     DatasourceConfig,
     FilesystemStoreBackendDefaults,
@@ -25,7 +20,6 @@ from great_expectations.data_context.types.resource_identifiers import (
 )
 from great_expectations.exceptions.exceptions import GreatExpectationsError
 from opentelemetry import trace
-from ruamel import yaml
 
 import great_expectations as ge
 from schematic.models.validate_attribute import GenerateError
@@ -121,6 +115,9 @@ class GreatExpectationsHelpers(object):
             },
         }
 
+        # Setting this to False prevents extra data from leaving schematic
+        anonymous_usage_statistics = AnonymizedUsageStatisticsConfig(enabled=False)
+
         # create data context configuration
         data_context_config = DataContextConfig(
             datasources={
@@ -138,6 +135,7 @@ class GreatExpectationsHelpers(object):
             store_backend_defaults=FilesystemStoreBackendDefaults(
                 root_directory=os.path.join(os.getcwd(), "great_expectations")
             ),
+            anonymous_usage_statistics=anonymous_usage_statistics,
         )
 
         # build context and add data source
@@ -156,31 +154,18 @@ class GreatExpectationsHelpers(object):
         Returns:
             saves expectation suite and identifier to self
         """
-        self.expectation_suite_name = "Manifest_test_suite"
-        # Get a list of all expectation suites
-        suite_names = self.context.list_expectation_suite_names()
-        # Get a list of all checkpoints
-        all_checkpoints = self.context.list_checkpoints()
-
-        # if the suite exists, delete it
-        if self.expectation_suite_name in suite_names:
-            self.context.delete_expectation_suite(self.expectation_suite_name)
-
-            # also delete all the checkpoints associated with the suite
-            if all_checkpoints:
-                for checkpoint_name in all_checkpoints:
-                    self.context.delete_checkpoint(checkpoint_name)
-
-        self.suite = self.context.add_expectation_suite(
+        self.expectation_suite_name = f"Manifest_test_suite_{uuid.uuid4()}"
+        expectation_suite = self.context.add_expectation_suite(
             expectation_suite_name=self.expectation_suite_name,
         )
+        self.suite = expectation_suite
 
         return self.suite
 
     @tracer.start_as_current_span("GreatExpectationsHelpers::build_expectation_suite")
     def build_expectation_suite(
         self,
-    ):
+    ) -> None:
         """
         Purpose:
             Construct an expectation suite to validate columns with rules that have expectations
@@ -380,9 +365,11 @@ class GreatExpectationsHelpers(object):
         suite_identifier = ExpectationSuiteIdentifier(
             expectation_suite_name=self.expectation_suite_name
         )
-        self.context.build_data_docs(resource_identifiers=[suite_identifier])
-        ##Webpage DataDocs opened here:
-        # self.context.open_data_docs(resource_identifier=suite_identifier)
+
+        if logger.isEnabledFor(logging.DEBUG):
+            self.context.build_data_docs(resource_identifiers=[suite_identifier])
+            # Webpage DataDocs opened here:
+            # self.context.open_data_docs(resource_identifier=suite_identifier)
 
     def add_expectation(
         self,
@@ -427,7 +414,7 @@ class GreatExpectationsHelpers(object):
             adds checkpoint to self
         """
         # create manifest checkpoint
-        self.checkpoint_name = "manifest_checkpoint"
+        self.checkpoint_name = f"manifest_checkpoint_{uuid.uuid4()}"
         checkpoint_config = {
             "name": self.checkpoint_name,
             "config_version": 1,
@@ -492,6 +479,8 @@ class GreatExpectationsHelpers(object):
 
                 if (
                     "exception_info" in result_dict.keys()
+                    # This changes in 0.18.x of GE, details on this:
+                    # https://docs.greatexpectations.io/docs/0.18/reference/learn/terms/validation_result/
                     and result_dict["exception_info"]["exception_message"]
                 ):
                     raise GreatExpectationsError(
@@ -507,6 +496,14 @@ class GreatExpectationsHelpers(object):
                 # because type validation is column aggregate expectation and not column map expectation when columns are not of object type,
                 # indices and values cannot be returned
                 else:
+                    # This changes in 0.17.x of GE, refactored code:
+                    # for i, item in enumerate(self.manifest[errColumn]):
+                    #     observed_type = result_dict.get("result", {}).get("observed_value", None)
+                    #     is_instance_type = observed_type is not None and isinstance(
+                    #         item, type_dict[observed_type]
+                    #     )
+                    #     indices.append(i) if is_instance_type else indices
+                    #     values.append(item) if is_instance_type else values
                     for i, item in enumerate(self.manifest[errColumn]):
                         observed_type = result_dict["result"]["observed_value"]
                         indices.append(i) if isinstance(

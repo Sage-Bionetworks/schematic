@@ -6,7 +6,6 @@ import pytest
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_utils import comma_separated_list_regex
-from tests.conftest import Helpers
 
 
 class TestStoreSynapse:
@@ -34,12 +33,16 @@ class TestStoreSynapse:
             "CancerType": "   ",  # Blank value (whitespace string)
         }
         annos = {
-            "PatientID": "old_value1",
-            "Sex": "old_value2",
-            "Diagnosis": "old_value3",
-            "FamilyHistory": "old_value4",
-            "YearofBirth": "old_value5",
-            "CancerType": "old_value6",
+            "annotations": {
+                "annotations": {
+                    "PatientID": "old_value1",
+                    "Sex": "old_value2",
+                    "Diagnosis": "old_value3",
+                    "FamilyHistory": "old_value4",
+                    "YearofBirth": "old_value5",
+                    "CancerType": "old_value6",
+                }
+            }
         }
         comma_separated_list = comma_separated_list_regex()
         processed_annos = synapse_store.process_row_annotations(
@@ -50,6 +53,8 @@ class TestStoreSynapse:
             annos=annos,
             annotation_keys=label_options,
         )
+        processed_annos = processed_annos["annotations"]["annotations"]
+
         # make sure that empty keys are removed if hideBlanks is True
         if hideBlanks:
             assert (
@@ -87,7 +92,7 @@ class TestStoreSynapse:
         metadata_syn = {
             "FamilyHistory": "value1,value2,value3",
         }
-        annos = {"FamilyHistory": "old_value"}
+        annos = {"annotations": {"annotations": {"FamilyHistory": "old_value"}}}
 
         dmge.get_node_validation_rules = MagicMock()
 
@@ -115,4 +120,8 @@ class TestStoreSynapse:
             # get_node_validation_rules was called with node_label
             dmge.get_node_validation_rules.assert_any_call(node_label="FamilyHistory")
         # ensure that the value is split into a list
-        assert processed_annos["FamilyHistory"] == ["value1", "value2", "value3"]
+        assert processed_annos["annotations"]["annotations"]["FamilyHistory"] == [
+            "value1",
+            "value2",
+            "value3",
+        ]
