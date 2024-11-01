@@ -270,11 +270,16 @@ poetry debug info
 
 Before you begin, make sure you are in the latest `develop` of the repository.
 
-The following command will install the dependencies based on what we specify in the `poetry.lock` file of this repository. If this step is taking a long time, try to go back to Step 2 and check your version of `poetry`. Alternatively, you can try deleting the lock file and regenerate it by doing `poetry install` (Please note this method should be used as a last resort because this would force other developers to change their development environment)
+The following command will install the dependencies based on what we specify in the `poetry.lock` file of this repository (which is generated from the libraries listed in the `pyproject.toml` file). If this step is taking a long time, try to go back to Step 2 and check your version of `poetry`. Alternatively, you can try deleting the lock file and regenerate it by doing `poetry lock` (Please note this method should be used as a last resort because this would force other developers to change their development environment).
 
 ```
-poetry install --all-extras
+poetry install --dev,doc
 ```
+
+This command will install:
+* The main dependencies required for running the package.
+* Development dependencies for testing, linting, and code formatting.
+* Documentation dependencies such as `sphinx` for building and maintaining documentation.
 
 ### 5. Set up configuration files
 
