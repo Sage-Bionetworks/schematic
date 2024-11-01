@@ -654,12 +654,12 @@ class SynapseStorage(BaseStorage):
 
     @tracer.start_as_current_span("SynapseStorage::getFilesInStorageDataset")
     def getFilesInStorageDataset(
-        self, datasetId: str, fileNames: List = None, fullpath: bool = True
+        self, dataset_id: str, fileNames: List = None, fullpath: bool = True
     ) -> List[Tuple[str, str]]:
         """Gets all files in a given dataset folder.
 
         Args:
-            datasetId: synapse ID of a storage dataset.
+            dataset_id: synapse ID of a storage dataset.
             fileNames: get a list of files with particular names; defaults to None in which case all dataset files are returned (except bookkeeping files, e.g.
             metadata manifests); if fileNames is not None, all files matching the names in the fileNames list are returned if present.
             fullpath: if True return the full path as part of this filename; otherwise return just base filename
@@ -671,8 +671,16 @@ class SynapseStorage(BaseStorage):
             ValueError: Dataset ID not found.
         """
         file_list = []
-        dataset_clause = SynapseStorage.build_clause_from_dataset_id(datasetId)
-        self.query_fileview(columns=["id", "path"], where_clauses=dataset_clause)
+        subfolder_ids = []
+        dataset_clause = f"parentId='{dataset_id}' "
+        subfolders = self.syn.getChildren(dataset_id, includeTypes=["folder"])
+        for subfolder in subfolders:
+            dataset_clause += f"OR parentId='{subfolder['id']}' "
+        dataset_clause = f"({dataset_clause})"
+
+        where_clauses = [dataset_clause, "type='file'"]
+
+        self.query_fileview(columns=["id", "path"], where_clauses=where_clauses)
 
         non_manifest_files = self.storageFileviewTable.loc[
             ~self.storageFileviewTable["path"].str.contains("manifest"), :
