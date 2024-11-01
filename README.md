@@ -486,10 +486,16 @@ docker run -v %cd%:/schematic \
 
 Main contributors and developers:
 
+- [Robert Allaway](https://github.com/allaway)
+- [Gianna Jordan](https://github.com/giajordan)
+- [Lingling Peng](https://github.com/linglp)
+- [Bryan Fauble](https://github.com/BryanFauble)
+
+
+## Alumni
 - [Milen Nikolov](https://github.com/milen-sage)
 - [Mialy DeFelice](https://github.com/mialy-defelice)
 - [Sujay Patil](https://github.com/sujaypatil96)
 - [Bruno Grande](https://github.com/BrunoGrandePhD)
-- [Robert Allaway](https://github.com/allaway)
-- [Gianna Jordan](https://github.com/giajordan)
-- [Lingling Peng](https://github.com/linglp)
+
+
