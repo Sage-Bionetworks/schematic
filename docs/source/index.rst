@@ -50,6 +50,8 @@ Given a filled-out manifest:
       - **Store manifest and annotations** (to update a file view)
       - **Store manifest and update a corresponding Synapse table**
 
+More validation documentation can be found here: https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/3302785036/Schematic+Validation
+
 4. Visualize Data Models
 -------------------------
 
@@ -62,7 +64,5 @@ This endpoint allows you to visulize your data models and their relationships wi
 
    installation
    asset_store
-   generate
-   validate
-   submit
+   configuration
    cli_reference
