@@ -8,3 +8,5 @@ Given a filled-out manifest:
 - A set of validation rules is defined in the data model. Some validation rules are implemented via GX; others are custom Python code. All validation rules have the same interface.
 - Certain GX rules require looping through all projects a user has access to, or a specified scope of projects, to find other projects with manifests.
 - Validation results are provided before the manifest file is uploaded into Synapse.
+
+More validation documentation can be found here: https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/3302785036/Schematic+Validation
