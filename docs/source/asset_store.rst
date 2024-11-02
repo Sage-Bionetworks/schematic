@@ -29,7 +29,7 @@ Access & Project Setup - Multiple Contributing Projects
 4. Within each project, create top-level dataset folders in the **Files** tab for each dataset type.
 5. Create another Synapse Project (e.g., MyDCC) containing the main **Fileview** for all DCC projects.
    - Ensure all teams have **Download** level access to this file view.
-   - Include both file and folder entities and add the columns `id`, `name`, `type`, `parentId`, and `projectId` to the Fileview schema.
+   - Include both file and folder entities and add ALL default columns.
 
 
 Option 2: Single Synapse Project
@@ -52,7 +52,7 @@ Access & Project Setup - Single Contributing Project
 3. Within this project, create dataset folders for each contributor. Organize them as needed.
    - Use `contentType:dataset` for each dataset folder, which should not nest inside other dataset folders and must have unique names.
 4. In MyDCC, create the main **DCC Fileview** with `MyDCC` as scope. Add column `contentType` to the schema and grant teams **Download** level access.
-   - Add both file and folder entities and ensure columns `id`, `name`, `type`, `parentId`, `projectId`, and `contentType` are included.
+   - Add both file and folder entities and add ALL default columns.
 
 
 Synapse External Cloud Buckets Setup
