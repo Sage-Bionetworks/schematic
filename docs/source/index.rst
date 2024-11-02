@@ -14,6 +14,10 @@ Schematic tackles these goals:
 - Add accountability to data contributors for the data they upload
 - Visualize data models and their relationships with each other
 
+.. contents::
+   :depth: 2
+   :local:
+
 Important Concepts
 ------------------
 
@@ -41,22 +45,23 @@ You will hear the term **dataset** used frequently at Sage. The term dataset ref
 2. Schematic Dataset: This refers to a folder containing files. These folders are annotated with `contentType:dataset`.
 3. Synapse Dataset Entity: This is an object in Synapse which appears under the "Dataset" tab and represents a user-defined collection of Synapse files and versions.
 
+JSON-LD
+~~~~~~~
+JSON-LD is a lightweight Linked Data format. The usage of JSON-LD to capture our data models extends beyond the creation, validation, and submission of annotations/manifests into Synapse. It can create relationships between different data models and, in the future, drive transformation of data from one data model to another. Visualization of these data models and their relationships is also possible (see *Schema Visualization - Design & Platform*), which allows the community to see the depth of connections between all the data uploaded into Synapse. As with all products, we must start somewhere.
 
-The usage of JSON-LD
---------------------
 
-The usage of JSON-LD to capture our data models extends beyond the creation, validation, and submission of annotations/manifests into Synapse. It can create relationships between different data models and, in the future, drive transformation of data from one data model to another. Visualization of these data models and their relationships is also possible (see *Schema Visualization - Design & Platform*), which allows the community to see the depth of connections between all the data uploaded into Synapse. As with all products, we must start somewhere.
-
+Schematic services
+------------------
 
 The following are the four main endpoints that assist with the high-level goals outlined above, with additional goals to come.
 
-1. Manifest Generation
-----------------------
+Manifest Generation
+~~~~~~~~~~~~~~~~~~~
 
 Provides a manifest template for users for a particular project or data type. If a project with annotations already exists, a semi-filled-out template is provided to the user so that they do not start from scratch. If there are no existing annotations, an empty manifest template is provided.
 
-2. Validate Manifest
---------------------
+Manifest Validation
+~~~~~~~~~~~~~~~~~~~
 
 Given a filled-out manifest:
 
@@ -66,8 +71,8 @@ Given a filled-out manifest:
 - Certain GX rules require looping through all projects a user has access to, or a specified scope of projects, to find other projects with manifests.
 - Validation results are provided before the manifest file is uploaded into Synapse.
 
-3. Submit Manifest
-------------------
+Manifest Submission
+~~~~~~~~~~~~~~~~~~~
 
 - Validates the manifest. If errors are present, the manifest is not stored.
 - If valid:
@@ -80,10 +85,10 @@ Given a filled-out manifest:
 
 More validation documentation can be found here: https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/3302785036/Schematic+Validation
 
-4. Visualize Data Models
--------------------------
+Data Model Visualization
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-This endpoint allows you to visulize your data models and their relationships with each other.
+These endpoints allows you to visulize your data models and their relationships with each other.
 
 
 .. toctree::
