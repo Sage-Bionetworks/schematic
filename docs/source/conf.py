@@ -25,7 +25,7 @@ toml_file_path = pathlib.Path("../../pyproject.toml")
 
 toml_metadata = _parse_toml(toml_file_path)
 project = toml_metadata["name"]
-copyright = "2022, Sage Bionetworks"
+copyright = "2024, Sage Bionetworks"
 
 author = toml_metadata["authors"]
 
