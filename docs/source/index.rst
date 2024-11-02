@@ -10,8 +10,8 @@ Welcome to Schematic's documentation!
 
 Schematic tackles these goals:
 
-- Ensure the highest quality structured data or metadata be contributed to Synapse BEFORE it lands in Synapse
-- Add accountability to data contributors for the data they upload
+- Ensure the highest quality structured data or metadata be contributed to Synapse before it lands in Synapse
+- Provide excel templates that correspond to a data model that can be filled out by data contributors
 - Visualize data models and their relationships with each other
 
 .. contents::
@@ -22,11 +22,11 @@ Important Concepts
 ------------------
 
 .. important::
-   Before moving reading more about schematic, this section covers essential Synapse concepts relevant for using the Schematic tool effectively.
+   Before moving reading more about schematic, this section covers essential concepts relevant for using the Schematic tool effectively.
 
 Synapse FileViews
 ~~~~~~~~~~~~~~~~~
-Data managers and DCC owners are responsible for setting up a **FileView** that integrates with Schematic. Note that FileViews appear under the "Tables" tab in Synapse and can be named according to the project’s needs. For instance, a FileView for the **NF project** could have a different name than a FileView for the **AD project**.
+Users are responsible for setting up a **FileView** that integrates with Schematic. Note that FileViews appear under the "Tables" tab in Synapse and can be named according to the project's needs. For instance, a FileView for the **Project A** could have a different name than a FileView for the **Project B**.
 
 For more information on Synapse projects, visit:
 - `Synapse projects <https://help.synapse.org/docs/Uploading-and-Organizing-Data-Into-Projects,-Files,-and-Folders.2048327716.html>`_
@@ -39,15 +39,29 @@ Folders in Synapse allow users to organize data within projects. More details on
 
 Datasets
 ~~~~~~~~
-You will hear the term **dataset** used frequently at Sage. The term dataset refers to three different concepts:
+You will hear the term **dataset** used frequently. The term dataset refers to three different concepts:
 
-1. Dataset: This is the concept of a dataset which is a collection of files.
+1. Dataset: A collection of data that is organized and curated for analysis, processing, and/or sharing.
 2. Schematic Dataset: This refers to a folder containing files. These folders are annotated with `contentType:dataset`.
 3. Synapse Dataset Entity: This is an object in Synapse which appears under the "Dataset" tab and represents a user-defined collection of Synapse files and versions.
 
 JSON-LD
 ~~~~~~~
 JSON-LD is a lightweight Linked Data format. The usage of JSON-LD to capture our data models extends beyond the creation, validation, and submission of annotations/manifests into Synapse. It can create relationships between different data models and, in the future, drive transformation of data from one data model to another. Visualization of these data models and their relationships is also possible (see *Schema Visualization - Design & Platform*), which allows the community to see the depth of connections between all the data uploaded into Synapse. As with all products, we must start somewhere.
+
+Manifest
+~~~~~~~~
+A manifest is a structured file that contains metadata about a dataset.
+It is a list of files and their associated metadata. The metadata includes information such as the file name,
+file type, and file size. The manifest is used to validate the metadata before it is uploaded to Synapse.
+The manifest can also used to create a view in Synapse that displays the metadata for each file in the dataset.
+
+Component/Data type
+~~~~~~~~~~~~~~~~~~~
+"component" and "data type" are used interchangeably. The component/data type is determined from the specified JSON-LD data model.
+If the string "component" exists in the depends on column, the "Attribute" value in that row is a data type.
+Examples of a data type is "Biospecimen", "Patient": https://github.com/Sage-Bionetworks/schematic/blob/develop/tests/data/example.model.csv#L3.
+Each data type/component should a manifest template that has different columns.
 
 
 Schematic services
