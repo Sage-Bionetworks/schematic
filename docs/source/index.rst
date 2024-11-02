@@ -48,7 +48,7 @@ The usage of JSON-LD
 The usage of JSON-LD to capture our data models extends beyond the creation, validation, and submission of annotations/manifests into Synapse. It can create relationships between different data models and, in the future, drive transformation of data from one data model to another. Visualization of these data models and their relationships is also possible (see *Schema Visualization - Design & Platform*), which allows the community to see the depth of connections between all the data uploaded into Synapse. As with all products, we must start somewhere.
 
 
-The following are the three main endpoints that assist with the high-level goals outlined above, with additional goals to come.
+The following are the four main endpoints that assist with the high-level goals outlined above, with additional goals to come.
 
 1. Manifest Generation
 ----------------------
