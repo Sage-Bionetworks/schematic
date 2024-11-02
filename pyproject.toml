@@ -96,6 +96,7 @@ pre-commit = "^3.6.2"
 
 [tool.poetry.group.doc.dependencies]
 pdoc = "^14.0.0"
+sphinx-rtd-theme = "3.0.1"
 sphinx = "7.3.7"
 sphinx-click = "4.4.0"
 
