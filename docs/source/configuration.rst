@@ -4,6 +4,7 @@ Configure Schematic
 Schematic takes a configuration file with the following structure:
 
 .. code-block:: yaml
+
     # This is an example config for Schematic.
     # All listed values are those that are the default if a config is not used.
     # Save this as config.yml, this will be gitignored.

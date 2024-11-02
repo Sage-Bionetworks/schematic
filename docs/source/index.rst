@@ -10,9 +10,37 @@ Welcome to Schematic's documentation!
 
 Schematic tackles these goals:
 
-- “Ensure the highest quality structured data or metadata be contributed to Synapse BEFORE it lands in Synapse”
-- “Add accountability to data contributors for the data they upload”
-- “Visualize data models and their relationships with each other”
+- Ensure the highest quality structured data or metadata be contributed to Synapse BEFORE it lands in Synapse
+- Add accountability to data contributors for the data they upload
+- Visualize data models and their relationships with each other
+
+Important Concepts
+------------------
+
+.. important::
+   Before moving reading more about schematic, this section covers essential Synapse concepts relevant for using the Schematic tool effectively.
+
+Synapse FileViews
+~~~~~~~~~~~~~~~~~
+Data managers and DCC owners are responsible for setting up a **FileView** that integrates with Schematic. Note that FileViews appear under the "Tables" tab in Synapse and can be named according to the project’s needs. For instance, a FileView for the **NF project** could have a different name than a FileView for the **AD project**.
+
+For more information on Synapse projects, visit:
+- `Synapse projects <https://help.synapse.org/docs/Uploading-and-Organizing-Data-Into-Projects,-Files,-and-Folders.2048327716.html>`_
+- `Synapse annotations <https://help.synapse.org/docs/Annotating-Data-With-Metadata.2667708522.html>`_
+
+Synapse Folders
+~~~~~~~~~~~~~~~
+
+Folders in Synapse allow users to organize data within projects. More details on uploading and organizing data can be found at `Synapse folders <https://help.synapse.org/docs/Uploading-and-Organizing-Data-Into-Projects,-Files,-and-Folders.2048327716.html>`_
+
+Datasets
+~~~~~~~~
+You will hear the term **dataset** used frequently at Sage. The term dataset refers to three different concepts:
+
+1. Dataset: This is the concept of a dataset which is a collection of files.
+2. Schematic Dataset: This refers to a folder containing files. These folders are annotated with `contentType:dataset`.
+3. Synapse Dataset Entity: This is an object in Synapse which appears under the "Dataset" tab and represents a user-defined collection of Synapse files and versions.
+
 
 The usage of JSON-LD
 --------------------
