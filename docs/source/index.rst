@@ -105,6 +105,11 @@ Data Model Visualization
 These endpoints allows you to visulize your data models and their relationships with each other.
 
 
+API reference
+-------------
+
+For the entire Python API reference documentation, you can visit the docs here: https://sage-bionetworks.github.io/schematic/
+
 .. toctree::
    :maxdepth: 1
    :hidden:
