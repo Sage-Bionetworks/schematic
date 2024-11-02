@@ -27,7 +27,7 @@ Access & Project Setup - Multiple Contributing Projects
 3. Create a Synapse Project for each institution and grant the respective team **Edit** level access.
    - E.g., for institutions A, B, and C, create Projects A, B, and C with Teams A, B, and C. Team A has **Edit** access to Project A, etc.
 4. Within each project, create top-level dataset folders in the **Files** tab for each dataset type.
-5. Create another Synapse Project (e.g., MyDCC) containing the main **Fileview** for all DCC projects.
+5. Create another Synapse Project (e.g., MyDCC) containing the main **Fileview** that includes in the scope all the DCC projects.
    - Ensure all teams have **Download** level access to this file view.
    - Include both file and folder entities and add ALL default columns.
 
