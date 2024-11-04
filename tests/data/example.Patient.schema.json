@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/test",
+  "title": "test",
+  "type": "object",
+  "properties": {
+    "Patient ID": {
+      "not": {
+        "type": "null"
+      },
+      "minLength": 1
+    },
+    "Component": {
+      "not": {
+        "type": "null"
+      },
+      "minLength": 1
+    },
+    "Year of Birth": {},
+    "Diagnosis": {
+      "enum": [
+        "Healthy",
+        "Cancer"
+      ]
+    },
+    "Sex": {
+      "enum": [
+        "Male",
+        "Female",
+        "Other"
+      ]
+    },
+    "Cancer Type": {
+      "enum": [
+        "Prostate",
+        "Breast",
+        "Skin",
+        "Colorectal",
+        "Lung",
+        ""
+      ]
+    },
+    "Family History": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "Prostate",
+          "Breast",
+          "Skin",
+          "Colorectal",
+          "Lung",
+          ""
+        ]
+      },
+      "maxItems": 5
+    }
+  },
+  "required": [
+    "Patient ID",
+    "Component",
+    "Diagnosis",
+    "Sex"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "Diagnosis": {
+            "enum": [
+              "Cancer"
+            ]
+          }
+        },
+        "required": [
+          "Diagnosis"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Cancer Type": {
+            "enum": [
+              "Prostate",
+              "Breast",
+              "Skin",
+              "Colorectal",
+              "Lung"
+            ]
+          }
+        },
+        "required": [
+          "Cancer Type"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Diagnosis": {
+            "enum": [
+              "Cancer"
+            ]
+          }
+        },
+        "required": [
+          "Diagnosis"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Family History": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "Prostate",
+                "Breast",
+                "Skin",
+                "Colorectal",
+                "Lung"
+              ]
+            },
+            "maxItems": 5
+          }
+        },
+        "required": [
+          "Family History"
+        ]
+      }
+    }
+  ]
+}

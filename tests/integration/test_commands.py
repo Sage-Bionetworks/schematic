@@ -8,6 +8,8 @@ import pytest
 import requests
 from openpyxl import load_workbook
 from click.testing import CliRunner
+import pandas as pd
+import numpy as np
 
 from schematic.configuration.configuration import Configuration
 from schematic.manifest.commands import manifest
@@ -16,6 +18,8 @@ from schematic.models.commands import model
 LIGHT_BLUE = "FFEAF7F9"  # Required cell
 GRAY = "FFE0E0E0"  # Header cell
 WHITE = "00000000"  # Optional cell
+
+#from tests.conftest import ConfigurationForTesting
 
 
 @pytest.fixture(name="runner")
@@ -56,7 +60,12 @@ class TestValidateCommand:
     """Tests the schematic/models/commands validate command"""
 
     def test_validate_valid_manifest(self, runner: CliRunner) -> None:
-        """Tests for validation with no errors"""
+        """
+        Tests for:
+        - command has no (python) errors, has exit code 0
+        - command output has success message
+        - command output has no validation errors
+        """
         result = runner.invoke(
             model,
             [
@@ -71,15 +80,25 @@ class TestValidateCommand:
                 "syn54126707",
             ],
         )
+        # command has no (python) errors, has exit code 0
         assert result.exit_code == 0
+        # command output has success message
         assert result.output.split("\n")[4] == (
             "Your manifest has been validated successfully. "
             "There are no errors in your manifest, "
             "and it can be submitted without any modifications."
         )
+        # command output has no validation errors
+        for line in result.output.split("\n")[4]:
+            assert not line.startswith("error")
 
     def test_validate_invalid_manifest(self, runner: CliRunner) -> None:
-        """Tests for validation with no errors"""
+        """
+        Tests for:
+        - command has no (python) errors, has exit code 0
+        - command output includes error message: 'Random' is not a comma delimited string
+        - command output includes error message: 'Random' is not one of
+        """
         result = runner.invoke(
             model,
             [
@@ -92,25 +111,35 @@ class TestValidateCommand:
                 "Patient",
             ],
         )
+        # command has no (python) errors, has exit code 0
         assert result.exit_code == 0
+        # command output includes error message: 'Random' is not a comma delimited string
         assert result.output.split("\n")[3] == (
             "error: For attribute Family History in row 2 it does not appear "
             "as if you provided a comma delimited string. Please check your entry "
             "('Random'') and try again."
         )
+        # command output includes error message: 'Random' is not one of
+        # Note: the list of allowed values seems to have a random order so
+        #   is not included in the test
         assert result.output.split("\n")[4].startswith("error: 'Random' is not one of")
-        assert result.output.split("\n")[5].startswith("error: 'Random' is not one of")
-        assert result.output.split("\n")[6].startswith("[['2', 'Family History',")
 
 
 class TestManifestCommand:
     """Tests the schematic/manifest/commands validate manifest command"""
 
-    def test_generate_empty_csv_manifest(self, runner: CliRunner) -> None:
-        """Generate two empty csv manifests"""
+    def test_generate_empty_csv_manifests(self, runner: CliRunner) -> None:
+        """
+        Tests for:
+        - command has no errors, has exit code 0
+        - command output has file creation messages for 'Patient' and 'Biospecimen' manifests
+        - manifest csvs and json schemas were created (then removed)
+
+        """
         result = runner.invoke(manifest, ["--config", "config_example.yml", "get"])
+        # command has no (python) errors, has exit code 0
         assert result.exit_code == 0
-        # Assert the output has file creation messages
+        # command output has file creation messages for 'Patient' and 'Biospecimen' manifests
         assert result.output.split("\n")[7] == (
             "Find the manifest template using this CSV file path: "
             "tests/data/example.Biospecimen.manifest.csv"
@@ -119,11 +148,33 @@ class TestManifestCommand:
             "Find the manifest template using this CSV file path: "
             "tests/data/example.Patient.manifest.csv"
         )
-        # Assert these files were created:
+        # manifest csvs and json schemas were created
         assert os.path.isfile("tests/data/example.Biospecimen.manifest.csv")
         assert os.path.isfile("tests/data/example.Biospecimen.schema.json")
         assert os.path.isfile("tests/data/example.Patient.manifest.csv")
         assert os.path.isfile("tests/data/example.Patient.schema.json")
+
+        biospecimen_df = pd.read_csv("tests/data/example.Biospecimen.manifest.csv")
+        patient_df = pd.read_csv("tests/data/example.Patient.manifest.csv")
+
+        # manifests have expected columns
+        assert list(biospecimen_df.columns) == [
+            "Sample ID", "Patient ID", "Tissue Status", "Component"
+        ]
+        assert list(patient_df.columns) == [
+            "Patient ID", "Sex", "Year of Birth", "Diagnosis", "Component", "Cancer Type", "Family History"
+        ]
+        # manifests only have one row
+        assert len(biospecimen_df.index) == 1
+        assert len(patient_df.index) == 1
+        # manifests are empty except for component column which contains the name of the component
+        assert biospecimen_df["Component"].to_list() == ["Biospecimen"]
+        assert patient_df["Component"].to_list() == ["Patient"]
+        for column in ["Sample ID", "Patient ID", "Tissue Status"]:
+            assert np.isnan(biospecimen_df[column].to_list()[0])
+        for column in ["Patient ID", "Sex", "Year of Birth", "Diagnosis","Cancer Type", "Family History"]:
+            assert np.isnan(patient_df[column].to_list()[0])
+
         # Remove created files:
         os.remove("tests/data/example.Biospecimen.manifest.csv")
         os.remove("tests/data/example.Biospecimen.schema.json")
@@ -131,32 +182,56 @@ class TestManifestCommand:
         os.remove("tests/data/example.Patient.schema.json")
 
     def test_generate_empty_google_sheet_manifests(self, runner: CliRunner) -> None:
-        """Generate two empty google sheet manifests"""
+        """
+        Tests for:
+        - command has no errors, has exit code 0
+        - command output has file creation messages for 'Patient' and 'Biospecimen' manifest csvs
+        - command output has file creation messages for 'Patient' and 'Biospecimen' manifest links
+
+        Tests for both google sheets:
+        - drop downs are populated correctly
+        - required fields are marked as “light blue”,
+          while other non-required fields are marked as white.
+        - first row comments are 'TBD'
+
+        Tests for Patient google sheet:
+        - first row of 'Family History has its own comment
+
+        Patient sheet Manual tests:
+        - Select 'Diagnosis' to be 'cancer' in the first row:
+            - 'Cancer Type' and 'Family History' cells in first row should be light blue.
+        - Select 'Diagnosis' to NOT be 'cancer' in the first row:
+            - 'Cancer Type' and 'Family History' cells in first row should be white
+
+        """
         result = runner.invoke(
             manifest, ["--config", "config_example.yml", "get", "--sheet_url"]
         )
+        # command has no errors, has exit code 0
         assert result.exit_code == 0
 
-        # Assert that generation of both manifest were successful based on message
+        # command output has file creation messages for 'Patient' and 'Biospecimen' manifest csvs
+        assert result.output.split("\n")[9] == (
+            "Find the manifest template using this CSV file path: "
+            "tests/data/example.Biospecimen.manifest.csv"
+        )
+        assert result.output.split("\n")[14] == (
+            "Find the manifest template using this CSV file path: "
+            "tests/data/example.Patient.manifest.csv"
+        )
+
+        # command output has file creation messages for 'Patient' and 'Biospecimen' manifest links
         assert result.output.split("\n")[7] == (
             "Find the manifest template using this Google Sheet URL:"
         )
         assert result.output.split("\n")[8].startswith(
             "https://docs.google.com/spreadsheets/d/"
         )
-        assert result.output.split("\n")[9] == (
-            "Find the manifest template using this CSV file path: "
-            "tests/data/example.Biospecimen.manifest.csv"
-        )
         assert result.output.split("\n")[12] == (
             "Find the manifest template using this Google Sheet URL:"
         )
         assert result.output.split("\n")[13].startswith(
             "https://docs.google.com/spreadsheets/d/"
-        )
-        assert result.output.split("\n")[14] == (
-            "Find the manifest template using this CSV file path: "
-            "tests/data/example.Patient.manifest.csv"
         )
 
         # Assert these files were created:
@@ -171,11 +246,11 @@ class TestManifestCommand:
         os.remove("tests/data/example.Patient.schema.json")
 
         # Get the google sheet urls form the message
-        google_sheet_url1 = result.output.split("\n")[8]
-        google_sheet_url2 = result.output.split("\n")[13]
+        google_sheet_url_biospecimen = result.output.split("\n")[8]
+        google_sheet_url_patient = result.output.split("\n")[13]
 
         # Download the Google Sheets content as an Excel file and load into openpyxl
-        export_url = f"{google_sheet_url1}/export?format=xlsx"
+        export_url = f"{google_sheet_url_biospecimen}/export?format=xlsx"
         response = requests.get(export_url)
         assert response.status_code == 200
         content = BytesIO(response.content)
@@ -212,7 +287,7 @@ class TestManifestCommand:
         ]:
             assert sheet1[f"{columns[col]}1"].comment.text == "TBD"
 
-        # AND the dropdown lists exist and are as expected
+        # drop downs are populated correctly
         data_validations = sheet1.data_validations.dataValidation
         tissue_status_validation = None
         for dv in data_validations:
@@ -225,12 +300,12 @@ class TestManifestCommand:
         assert tissue_status_validation.type == "list"
         assert tissue_status_validation.formula1 == "Sheet2!$C$2:$C$3"
 
-        # AND the fill colors are as expected
+        # required fields are marked as “light blue”, while other non-required fields are marked as white.
         for col in ["Sample ID", "Patient ID", "Tissue Status", "Component"]:
             assert sheet1[f"{columns[col]}1"].fill.start_color.index == LIGHT_BLUE
 
         # Download the Google Sheets content as an Excel file and load into openpyxl
-        export_url = f"{google_sheet_url2}/export?format=xlsx"
+        export_url = f"{google_sheet_url_patient}/export?format=xlsx"
         response = requests.get(export_url)
         assert response.status_code == 200
         content = BytesIO(response.content)
@@ -278,7 +353,7 @@ class TestManifestCommand:
             "Cancer Type",
             "Family History",
         ]:
-            assert sheet1[f"{columns[col]}1"].comment.text == "TBD"
+            assert sheet1[f"{columns[col]}2"].comment.text == "TBD"
 
         # AND the comment in "Family History" cell is as expected
         assert (
@@ -329,13 +404,44 @@ class TestManifestCommand:
         for col in ["Year of Birth", "Cancer Type", "Family History"]:
             assert sheet1[f"{columns[col]}2"].fill.start_color.index == WHITE
 
+        '''
+        # AND a copy of the Excel file is saved to the test directory for manual verification
+        if testing_config.manual_test_verification_enabled:
+            workbook.save(
+                os.path.join(
+                    testing_config.manual_test_verification_path,
+                    "CLI_TestManifestCommand_google_sheet_empty_patient.xlsx",
+                )
+            )
+        '''
+
     def test_generate_empty_excel_manifest(self, runner: CliRunner) -> None:
-        """Generate an empty patient excel manifest"""
+        """
+        Tests for:
+        - command has no errors, has exit code 0
+        - command output has excel file creation message
+
+        Tests for google sheet:
+        - drop downs are populated correctly
+        - required fields are marked as “light blue”,
+          while other non-required fields are marked as white.
+        - first row comments are 'TBD'
+        - first row of 'Family History has its own comment
+
+
+        Manual tests:
+        - Select 'Diagnosis' to be 'cancer' in the first row:
+            - 'Cancer Type' and 'Family History' cells in first row should be light blue.
+        - Select 'Diagnosis' to NOT be 'cancer' in the first row:
+            - 'Cancer Type' and 'Family History' cells in first row should be white
+        """
         result = runner.invoke(
             manifest,
             ["--config", "config_example.yml", "get", "--output_xlsx", "./test.xlsx"],
         )
+        # command has no errors, has exit code 0
         assert result.exit_code == 0
+        # command output has excel file creation message
         assert (
             result.output.split("\n")[7]
             == "Find the manifest template using this Excel file path: ./test.xlsx"
@@ -446,8 +552,36 @@ class TestManifestCommand:
         for col in ["Year of Birth", "Cancer Type", "Family History"]:
             assert sheet1[f"{columns[col]}2"].fill.start_color.index == WHITE
 
+        '''
+        # AND a copy of the Excel file is saved to the test directory for manual verification
+        if testing_config.manual_test_verification_enabled:
+            workbook.save(
+                os.path.join(
+                    testing_config.manual_test_verification_path,
+                    "CLI_TestManifestCommand_excel_empty_patient.xlsx",
+                )
+            )
+        '''
+
     def test_generate_bulk_rna_google_sheet_manifest(self, runner: CliRunner) -> None:
-        """Generate bulk_rna google sheet manifest"""
+        """
+        Tests for:
+        - command has no errors, has exit code 0
+        - command output has google sheet and csv message
+
+        Tests for google sheet:
+        - drop downs are populated correctly
+        - required fields are marked as “light blue”,
+          while other non-required fields are marked as white.
+        - first row comments are 'TBD'
+
+
+        Manual tests:
+        - Select 'BAM' to be 'File Format' in the first row:
+            - 'Genome Build' cell in first row should be light blue.
+        - Select 'CRAM' to be 'File Format' in the first row:
+            - 'Genome Build' and 'Genome FASTA' cells in first row should be light blue.
+        """
         result = runner.invoke(
             manifest,
             [
@@ -502,6 +636,10 @@ class TestManifestCommand:
         assert columns["Genome FASTA"] is not None
         assert columns["entityId"] is not None
 
+        assert sheet1[f"{columns['Filename']}2"].value is None
+        assert sheet1[f"{columns['Filename']}3"].value is "Schematic CLI automation resources/TestDataset1/Sample_A.csv"
+        assert sheet1[f"{columns['Filename']}4"].value is "Schematic CLI automation resources/TestDataset1/Sample_B.csv"
+        assert sheet1[f"{columns['Filename']}5"].value is "Schematic CLI automation resources/TestDataset1/Sample_C.csv"
         assert sheet1[f"{columns['Sample ID']}2"].value == 2022
         assert sheet1[f"{columns['Sample ID']}3"].value is None
         assert sheet1[f"{columns['Sample ID']}4"].value is None
@@ -639,10 +777,35 @@ class TestManifestCommand:
         # AND there are no more columns in the second sheet
         assert sheet2["G1"].value is None
 
+        '''
+        # A copy of the Excel file is saved to the test directory for manual verification
+        if testing_config.manual_test_verification_enabled:
+            workbook.save(
+                os.path.join(
+                    testing_config.manual_test_verification_path,
+                    "CLI_TestManifestCommand_google_sheet_bulk_rna.xlsx",
+                )
+            )
+        '''
+
     def test_generate_bulk_rna_google_sheet_manifest_with_annotations(
         self, runner: CliRunner
     ) -> None:
-        """Generate bulk_rna google sheet manifest"""
+        """
+        Tests for:
+        - command has no errors, has exit code 0
+        - command output has google sheet and csv message
+
+        Tests for google sheet:
+        - drop downs are populated correctly
+        - required fields are marked as “light blue”,
+          while other non-required fields are marked as white.
+        - first row comments are 'TBD'
+
+
+        Manual tests:
+        - TODO
+        """
         result = runner.invoke(
             manifest,
             [
@@ -707,10 +870,10 @@ class TestManifestCommand:
         assert columns["Year of Birth"] is not None
         assert columns["entityId"] is not None
 
-        assert sheet1[f"{columns['Filename']}2"].value is not None
+        assert sheet1[f"{columns['Filename']}2"].value == "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_A.txt"
         assert sheet1[f"{columns['Sample ID']}2"].value is None
-        assert sheet1[f"{columns['File Format']}2"].value is not None
-        assert sheet1[f"{columns['Component']}2"].value is not None
+        assert sheet1[f"{columns['File Format']}2"].value == "txt"
+        assert sheet1[f"{columns['Component']}2"].value == "BulkRNA-seqAssay"
         assert sheet1[f"{columns['Genome Build']}2"].value is None
         assert sheet1[f"{columns['Genome FASTA']}2"].value is None
         assert sheet1[f"{columns['impact']}2"].value is not None
@@ -723,10 +886,10 @@ class TestManifestCommand:
         assert sheet1[f"{columns['Year of Birth']}2"].value is not None
         assert sheet1[f"{columns['entityId']}2"].value is not None
 
-        assert sheet1[f"{columns['Filename']}3"].value is not None
+        assert sheet1[f"{columns['Filename']}3"].value == "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_B.txt"
         assert sheet1[f"{columns['Sample ID']}3"].value is None
-        assert sheet1[f"{columns['File Format']}3"].value is not None
-        assert sheet1[f"{columns['Component']}3"].value is not None
+        assert sheet1[f"{columns['File Format']}3"].value == "csv"
+        assert sheet1[f"{columns['Component']}3"].value == "BulkRNA-seqAssay"
         assert sheet1[f"{columns['Genome Build']}3"].value is None
         assert sheet1[f"{columns['Genome FASTA']}3"].value is None
         assert sheet1[f"{columns['impact']}3"].value is None
@@ -739,10 +902,10 @@ class TestManifestCommand:
         assert sheet1[f"{columns['Year of Birth']}3"].value is None
         assert sheet1[f"{columns['entityId']}3"].value is not None
 
-        assert sheet1[f"{columns['Filename']}4"].value is not None
+        assert sheet1[f"{columns['Filename']}4"].value == "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_C.txt"
         assert sheet1[f"{columns['Sample ID']}4"].value is None
-        assert sheet1[f"{columns['File Format']}4"].value is not None
-        assert sheet1[f"{columns['Component']}4"].value is not None
+        assert sheet1[f"{columns['File Format']}4"].value == "fastq"
+        assert sheet1[f"{columns['Component']}4"].value == "BulkRNA-seqAssay"
         assert sheet1[f"{columns['Genome Build']}4"].value is None
         assert sheet1[f"{columns['Genome FASTA']}4"].value is None
         assert sheet1[f"{columns['impact']}4"].value is None
@@ -884,7 +1047,11 @@ class TestManifestCommand:
         assert sheet2["G1"].value is None
 
     def test_generate_mock_component_excel_manifest(self, runner: CliRunner) -> None:
-        """Generate an excel manifest with a MockComponent"""
+        """
+        Tests for:
+        - Command has no errors, has exit code 0
+        - Command output has excel file message
+        """
         result = runner.invoke(
             manifest,
             [
@@ -897,7 +1064,9 @@ class TestManifestCommand:
                 "syn52746566",
             ],
         )
+        # Command has no errors, has exit code 0
         assert result.exit_code == 0
+        # Command output has excel file message
         assert result.output.split("\n")[8] == (
             "Find the manifest template using this Excel file path: test-example.xlsx"
         )
@@ -955,10 +1124,74 @@ class TestManifestCommand:
         assert sheet1[f"{columns['Check Int']}2"].value is not None
         assert sheet1[f"{columns['Check Int']}3"].value is not None
 
-        assert sheet1[f"{columns['Check String']}1"].value == "Check String"
-        assert sheet1[f"{columns['Check String']}2"].value is not None
-        assert sheet1[f"{columns['Check String']}3"].value is not None
 
+        required_columns = [
+            "Component",
+            "Patient ID",
+            "Sex",
+            "Diagnosis",
+            "Cancer Type",
+            "Family History",
+            "Sample ID",
+            "Tissue Status",
+            "Filename",
+            "File Format",
+            "Genome Build",
+            "Genome FASTA",
+            "Check List",
+            "Check List Enum",
+            "Check List Like",
+            "Check List Like Enum",
+            "Check List Strict",
+            "Check List Enum Strict",
+            "Check Regex List",
+            "Check Regex List Strict",
+            "Check Regex List Like",
+            "Check Regex Single",
+            "Check Regex Format",
+            "Check Regex Integer",
+            "Check Num",
+            "Check Float",
+            "Check Int",
+            "Check String",
+            "Check URL",
+            "Check Match at Least",
+            "Check Match Exactly",
+            "Check Match None",
+            "Check Match at Least values",
+            "Check Match Exactly values",
+            "Check Match None values",
+            "Check Ages",
+            "Check Unique",
+            "Check Range",
+            "Check Date",
+            "Check NA",
+            "MockRDB_id",
+            "SourceManifest",
+        ]
+
+        optional_columns = [
+            "Patient",
+            "Year of Birth",
+            "Cancer",
+            "Biospecimen",
+            "Bulk RNA-seq Assay",
+            "BAM",
+            "CRAM",
+            "CSV/TSV",
+            "MockComponent",
+            "Check Recommended",
+            "MockRDB",
+            "MockFilename",
+        ]
+
+        # Required columns are light blue
+        for col in required_columns:
+            assert sheet1[f"{columns[col]}1"].fill.start_color.index == LIGHT_BLUE
+
+        # Optional columns are in grey
+        for col in optional_columns:
+            assert sheet1[f"{columns[col]}1"].fill.start_color.index == GRAY
 
 class TestDownloadManifest:
     """Tests the command line interface for downloading a manifest"""
