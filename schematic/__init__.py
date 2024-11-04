@@ -118,11 +118,7 @@ def set_up_tracing(session: requests.Session) -> None:
         )
 
     if tracing_export == "otlp":
-        import types
-
         exporter = OTLPSpanExporter(session=session)
-        # This is a temporary hack
-        exporter._export = types.MethodType(trace_export_replacement, exporter)
         trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(exporter))
     else:
         trace.set_tracer_provider(TracerProvider(sampler=ALWAYS_OFF))
@@ -145,10 +141,6 @@ def set_up_logging(session: requests.Session) -> None:
         set_logger_provider(logger_provider=logger_provider)
 
         exporter = OTLPLogExporter(session=session)
-        import types
-
-        # This is a temporary hack
-        exporter._export = types.MethodType(log_export_replacement, exporter)
         logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
         handler = LoggingHandler(level=logging.NOTSET, logger_provider=logger_provider)
         logging.getLogger().addHandler(handler)
@@ -191,46 +183,6 @@ def response_hook(span: Span, status: str, response_headers: List) -> None:
     """Nothing is implemented here yet, but it follows the same pattern as the
     request hook."""
     pass
-
-
-# This is a temporary hack to get around the fact that I am currently using self-signed SSL certs.
-# I have an IT ticket to get a domain to use for this purpose so I can request a proper SSL cert from LetsEncrypt.
-def trace_export_replacement(self, serialized_data: bytes):
-    data = serialized_data
-    if self._compression == Compression.Gzip:
-        gzip_data = BytesIO()
-        with gzip.GzipFile(fileobj=gzip_data, mode="w") as gzip_stream:
-            gzip_stream.write(serialized_data)
-        data = gzip_data.getvalue()
-    elif self._compression == Compression.Deflate:
-        data = zlib.compress(serialized_data)
-
-    return self._session.post(
-        url=self._endpoint,
-        data=data,
-        verify=False,
-        timeout=self._timeout,
-        cert=self._client_cert,
-    )
-
-
-def log_export_replacement(self, serialized_data: bytes):
-    data = serialized_data
-    if self._compression == Compression.Gzip:
-        gzip_data = BytesIO()
-        with gzip.GzipFile(fileobj=gzip_data, mode="w") as gzip_stream:
-            gzip_stream.write(serialized_data)
-        data = gzip_data.getvalue()
-    elif self._compression == Compression.Deflate:
-        data = zlib.compress(serialized_data)
-
-    return self._session.post(
-        url=self._endpoint,
-        data=data,
-        verify=False,
-        timeout=self._timeout,
-        cert=self._client_cert,
-    )
 
 
 request_session = create_telemetry_session()
