@@ -499,10 +499,21 @@ variables wherever the application is running. Those variables are:
 - `LOGGING_SERVICE_NAME`: The name of the service to attach for all exported logs.
 - `DEPLOYMENT_ENVIRONMENT`: The name of the environment to attach for all exported telemetry data.
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: The endpoint to export telemetry data to.
+
+Authentication (Oauth2 client credential exchange):
+
+Used in cases where an intermediate opentelemetry collector is not, or can not be used.
+This option is not preferred over using an intermediate opentelemetry collector, but is 
+left in the code to show how we may export telemetry data with an authorization header 
+deried from an oauth2 client credential exchange flow.
+
 - `TELEMETRY_EXPORTER_CLIENT_ID`: The ID of the client to use when executing the OAuth2.0 "Client Credentials" flow.
 - `TELEMETRY_EXPORTER_CLIENT_SECRET`: The Secret of the client to use when executing the OAuth2.0 "Client Credentials" flow.
 - `TELEMETRY_EXPORTER_CLIENT_TOKEN_ENDPOINT`: The Token endpoint to use when executing the OAuth2.0 "Client Credentials" flow.
 - `TELEMETRY_EXPORTER_CLIENT_AUDIENCE`: The ID of the API server to use when executing the OAuth2.0 "Client Credentials" flow.
+
+Authentication (Static Bearer token)
+
 - `OTEL_EXPORTER_OTLP_HEADERS`: Used for developers to set a static Bearer token to be used when exporting telemetry data.
 
 The above configuration will work when the application is running locally, in a
