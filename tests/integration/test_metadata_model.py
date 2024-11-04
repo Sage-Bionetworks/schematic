@@ -16,7 +16,6 @@ from contextlib import nullcontext as does_not_raise
 from typing import Callable, Optional
 
 import pandas as pd
-import pytest
 from pytest_mock import MockerFixture
 from synapseclient import Annotations
 from synapseclient.core import utils
@@ -36,6 +35,9 @@ VERSION_COMMENT = "My version comment"
 
 
 def file_instance() -> File:
+    """Creates a file instance with random content, used for manifests to be able to
+    point to real Synapse entities during each test run. The parent folder these are
+    created in is cleaned up post test run."""
     filename = utils.make_bogus_uuid_file()
     return File(
         path=filename,
@@ -47,42 +49,7 @@ def file_instance() -> File:
 
 
 class TestMetadataModel:
-    # Define the test cases as a class attribute
-    test_cases = [
-        # Test 1: Check that a valid manifest can be submitted, and corresponding entities annotated from it
-        (
-            # manifest_path
-            "mock_manifests/filepath_submission_test_manifest.csv",
-            # dataset_id
-            "syn62276880",
-            # validate_component
-            None,
-            # expected_manifest_id
-            "syn62280543",
-            # expected_table_id
-            "syn53011753",
-            # dataset_scope
-            None,
-        ),
-        # Test 2: Change the Sample ID annotation from the previous test to ensure the manifest file is getting updated
-        (
-            "mock_manifests/filepath_submission_test_manifest_sampleidx10.csv",
-            "syn62276880",
-            None,
-            "syn62280543",
-            "syn53011753",
-            None,
-        ),
-        # Test 3: Test manifest file upload with validation based on the MockFilename component and given dataset_scope
-        (
-            "mock_manifests/ValidFilenameManifest.csv",
-            "syn62822337",
-            "MockFilename",
-            "syn62822975",
-            "syn63192751",
-            "syn62822337",
-        ),
-    ]
+    """Test suite for verifying the submission and annotation of file-based manifests."""
 
     def validate_manifest_annotations(
         self,
