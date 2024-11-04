@@ -273,7 +273,7 @@ Before you begin, make sure you are in the latest `develop` of the repository.
 The following command will install the dependencies based on what we specify in the `poetry.lock` file of this repository (which is generated from the libraries listed in the `pyproject.toml` file). If this step is taking a long time, try to go back to Step 2 and check your version of `poetry`. Alternatively, you can try deleting the lock file and regenerate it by doing `poetry lock` (Please note this method should be used as a last resort because this would force other developers to change their development environment).
 
 ```
-poetry install --dev,doc
+poetry install --with dev,doc
 ```
 
 This command will install:
