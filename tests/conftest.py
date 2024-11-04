@@ -13,11 +13,6 @@ import pytest
 from dotenv import load_dotenv
 from flask.testing import FlaskClient
 from opentelemetry import trace
-from opentelemetry._logs import set_logger_provider
-from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
-from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
-from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk.resources import Resource
 from synapseclient.client import Synapse
 
 from schematic.configuration.configuration import CONFIG, Configuration
@@ -322,27 +317,3 @@ def wrap_with_otel(request):
     """Start a new OTEL Span for each test function."""
     with tracer.start_as_current_span(request.node.name):
         yield
-
-
-@pytest.fixture(scope="session", autouse=True)
-def set_up_logging() -> None:
-    """Set up logging to export to OTLP."""
-    logging_export = os.environ.get("LOGGING_EXPORT_FORMAT", None)
-    logging_service_name = os.environ.get("LOGGING_SERVICE_NAME", "schematic-tests")
-    logging_instance_name = os.environ.get("LOGGING_INSTANCE_NAME", "local")
-    if logging_export == "otlp":
-        resource = Resource.create(
-            {
-                "service.name": logging_service_name,
-                "service.instance.id": logging_instance_name,
-            }
-        )
-
-        logger_provider = LoggerProvider(resource=resource)
-        set_logger_provider(logger_provider=logger_provider)
-
-        # TODO: Add support for secure connections
-        exporter = OTLPLogExporter(insecure=True)
-        logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
-        handler = LoggingHandler(level=logging.NOTSET, logger_provider=logger_provider)
-        logging.getLogger().addHandler(handler)

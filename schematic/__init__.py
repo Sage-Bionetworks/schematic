@@ -3,10 +3,20 @@ import os
 import time
 from typing import Dict, List
 
+import pkg_resources
 from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry._logs import set_logger_provider
+from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+from opentelemetry.sdk.resources import (
+    DEPLOYMENT_ENVIRONMENT,
+    SERVICE_NAME,
+    SERVICE_VERSION,
+    Resource,
+)
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
@@ -48,10 +58,17 @@ def set_up_tracing() -> None:
     if tracing_export is not None and tracing_export:
         Synapse.enable_open_telemetry(True)
         tracing_service_name = os.environ.get("TRACING_SERVICE_NAME", "schematic-api")
-
+        deployment_environment = os.environ.get("DEPLOYMENT_ENVIRONMENT", "")
+        package_version = pkg_resources.get_distribution("schematicpy").version
         trace.set_tracer_provider(
             TracerProvider(
-                resource=Resource(attributes={SERVICE_NAME: tracing_service_name})
+                resource=Resource(
+                    attributes={
+                        SERVICE_NAME: tracing_service_name,
+                        SERVICE_VERSION: package_version,
+                        DEPLOYMENT_ENVIRONMENT: deployment_environment,
+                    }
+                )
             )
         )
         FlaskInstrumentor().instrument(
@@ -70,6 +87,28 @@ def set_up_tracing() -> None:
         trace.get_tracer_provider().add_span_processor(processor)
     else:
         trace.set_tracer_provider(TracerProvider(sampler=ALWAYS_OFF))
+
+
+def set_up_logging() -> None:
+    """Set up logging to export to OTLP."""
+    logging_export = os.environ.get("LOGGING_EXPORT_FORMAT", None)
+    logging_service_name = os.environ.get("LOGGING_SERVICE_NAME", "schematic-api")
+    deployment_environment = os.environ.get("DEPLOYMENT_ENVIRONMENT", "")
+    if logging_export == "otlp":
+        resource = Resource.create(
+            {
+                SERVICE_NAME: logging_service_name,
+                DEPLOYMENT_ENVIRONMENT: deployment_environment,
+            }
+        )
+
+        logger_provider = LoggerProvider(resource=resource)
+        set_logger_provider(logger_provider=logger_provider)
+
+        exporter = OTLPLogExporter()
+        logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
+        handler = LoggingHandler(level=logging.NOTSET, logger_provider=logger_provider)
+        logging.getLogger().addHandler(handler)
 
 
 def request_hook(span: Span, environ: Dict) -> None:
@@ -112,3 +151,4 @@ def response_hook(span: Span, status: str, response_headers: List) -> None:
 
 
 set_up_tracing()
+set_up_logging()
