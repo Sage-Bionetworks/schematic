@@ -157,7 +157,8 @@ def synapse_store():
 
 @dataclass
 class ConfigurationForTesting:
-    """Variables that are specific to testing. Specifically these are used to control
+    """
+    Variables that are specific to testing. Specifically these are used to control
     the flags used during manual verification of some integration test results.
 
     Attributes:
