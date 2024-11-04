@@ -1,15 +1,11 @@
-import gzip
 import logging
 import os
-import zlib
-from io import BytesIO
 from typing import Dict, List
 
 import pkg_resources
 import requests
 from opentelemetry import trace
 from opentelemetry._logs import set_logger_provider
-from opentelemetry.exporter.otlp.proto.http import Compression
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
