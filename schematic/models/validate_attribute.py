@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import requests
 from jsonschema import ValidationError
+from opentelemetry import trace
 from synapseclient import File
 from synapseclient.core.exceptions import SynapseNoCredentialsError
 
@@ -27,9 +28,11 @@ from schematic.utils.validate_utils import (
 )
 
 logger = logging.getLogger(__name__)
+tracer = trace.get_tracer("Schematic")
 
 MessageLevelType = Literal["warning", "error"]
 ScopeTypes = Literal["set", "value"]
+tracer = trace.get_tracer("schematic")
 
 
 class GenerateError:
@@ -775,6 +778,7 @@ class ValidateAttribute(object):
     def __init__(self, dmge: DataModelGraphExplorer) -> None:
         self.dmge = dmge
 
+    @tracer.start_as_current_span("ValidateAttribute::_login")
     def _login(
         self,
         access_token: Optional[str] = None,
@@ -1104,23 +1108,40 @@ class ValidateAttribute(object):
         manifest_col: pd.Series,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
-        Purpose:
-            Check if values for a given manifest attribue are the same type
+        Check if values for a given manifest attribute are the same type
             specified in val_rule.
-        Input:
-            - val_rule: str, Validation rule, specifying input type, either
+
+        Args:
+            val_rule (str): Validation rule, specifying input type, either
                 'float', 'int', 'num', 'str'
-            - manifest_col: pd.Series, column for a given
+            manifest_col (pd.Series): column for a given
                 attribute in the manifest
+
+        Raises:
+            ValueError: If after splitting the validation rule by spaces,
+              there are no components left
+            ValueError: If after splitting the validation rule by spaces,
+              there are more than two components left
+            ValueError: If after splitting the validation rule by spaces,
+              the first component is not one of 'float', 'int', 'num', 'str'
+
         Returns:
-            -This function will return errors when the user input value
-            does not match schema specifications.
-            logger.error or logger.warning.
-            Errors: list[str] Error details for further storage.
-            warnings: list[str] Warning details for further storage.
-        TODO:
-            Convert all inputs to .lower() just to prevent any entry errors.
+            tuple[list[list[str]], list[list[str]]]: _description_
         """
+        val_rule_components = val_rule.split(" ")
+        if len(val_rule_components) == 0:
+            raise ValueError("val_rule must contain at least one component.")
+        if len(val_rule_components) > 2:
+            raise ValueError("val_rule must contain no more than two components.")
+        val_rule_type = val_rule_components[0]
+        if val_rule_type not in ["float", "int", "num", "str"]:
+            raise ValueError(
+                (
+                    f"val_rule first component: {val_rule_type} must be one of "
+                    "['float', 'int', 'num', 'str']"
+                )
+            )
+
         specified_type = {
             "num": (int, np.int64, float),
             "int": (int, np.int64),
@@ -1132,7 +1153,7 @@ class ValidateAttribute(object):
         warnings: list[list[str]] = []
 
         # num indicates either a float or int.
-        if val_rule == "num":
+        if val_rule_type == "num":
             for i, value in enumerate(manifest_col):
                 entry_has_value = self.get_entry_has_value(
                     entry=value,
@@ -1140,7 +1161,7 @@ class ValidateAttribute(object):
                 )
                 if (
                     bool(value)
-                    and not isinstance(value, specified_type[val_rule])
+                    and not isinstance(value, specified_type[val_rule_type])
                     and entry_has_value
                 ):
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
@@ -1152,10 +1173,9 @@ class ValidateAttribute(object):
                     )
                     if vr_errors:
                         errors.append(vr_errors)
-                    # It seems impossible to get warnings with type rules
                     if vr_warnings:
                         warnings.append(vr_warnings)
-        elif val_rule in ["int", "float", "str"]:
+        elif val_rule_type in ["int", "float", "str"]:
             for i, value in enumerate(manifest_col):
                 entry_has_value = self.get_entry_has_value(
                     entry=value,
@@ -1163,7 +1183,7 @@ class ValidateAttribute(object):
                 )
                 if (
                     bool(value)
-                    and not isinstance(value, specified_type[val_rule])
+                    and not isinstance(value, specified_type[val_rule_type])
                     and entry_has_value
                 ):
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
@@ -1175,7 +1195,6 @@ class ValidateAttribute(object):
                     )
                     if vr_errors:
                         errors.append(vr_errors)
-                    # It seems impossible to get warnings with type rules
                     if vr_warnings:
                         warnings.append(vr_warnings)
         return errors, warnings
@@ -1991,6 +2010,7 @@ class ValidateAttribute(object):
 
             return (start_time, validation_store)
 
+    @tracer.start_as_current_span("ValidateAttribute::cross_validation")
     def cross_validation(
         self,
         val_rule: str,
@@ -2066,6 +2086,7 @@ class ValidateAttribute(object):
 
         return errors, warnings
 
+    @tracer.start_as_current_span("ValidateAttribute::filename_validation")
     def filename_validation(
         self,
         val_rule: str,
