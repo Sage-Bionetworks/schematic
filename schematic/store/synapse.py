@@ -411,7 +411,7 @@ class SynapseStorage(BaseStorage):
         Returns:
             clause for the query or an empty string if no dataset ID is provided
         """
-        return [f"parentId='{dataset_id}'" if dataset_id else ""]
+        return f"parentId='{dataset_id}'" if dataset_id else ""
 
     def _build_query(
         self, columns: Optional[list] = None, where_clauses: Optional[list] = None

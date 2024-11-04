@@ -927,7 +927,7 @@ class TestSynapseStorage:
 
     @pytest.mark.parametrize(
         "dataset_id, expected_clause",
-        [("syn12345678", ["parentId='syn12345678'"]), (None, [""])],
+        [("syn12345678", "parentId='syn12345678'"), (None, "")],
     )
     def test_build_clause_from_dataset_id(self, dataset_id, expected_clause):
         dataset_clause = SynapseStorage.build_clause_from_dataset_id(dataset_id)
