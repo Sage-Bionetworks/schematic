@@ -654,12 +654,12 @@ class SynapseStorage(BaseStorage):
 
     @tracer.start_as_current_span("SynapseStorage::getFilesInStorageDataset")
     def getFilesInStorageDataset(
-        self, dataset_id: str, fileNames: List = None, fullpath: bool = True
+        self, datasetId: str, fileNames: List = None, fullpath: bool = True
     ) -> List[Tuple[str, str]]:
         """Gets all files in a given dataset folder.
 
         Args:
-            dataset_id: synapse ID of a storage dataset.
+            datasetId: synapse ID of a storage dataset.
             fileNames: get a list of files with particular names; defaults to None in which case all dataset files are returned (except bookkeeping files, e.g.
             metadata manifests); if fileNames is not None, all files matching the names in the fileNames list are returned if present.
             fullpath: if True return the full path as part of this filename; otherwise return just base filename
@@ -672,8 +672,8 @@ class SynapseStorage(BaseStorage):
         """
         file_list = []
         subfolder_ids = []
-        dataset_clause = f"parentId='{dataset_id}' "
-        subfolders = self.syn.getChildren(dataset_id, includeTypes=["folder"])
+        dataset_clause = f"parentId='{datasetId}' "
+        subfolders = self.syn.getChildren(datasetId, includeTypes=["folder"])
         for subfolder in subfolders:
             dataset_clause += f"OR parentId='{subfolder['id']}' "
         dataset_clause = f"({dataset_clause})"
