@@ -16,6 +16,7 @@ from contextlib import nullcontext as does_not_raise
 from typing import Callable, Optional
 
 import pandas as pd
+import pytest
 from pytest_mock import MockerFixture
 from synapseclient import Annotations
 from synapseclient.core import utils
@@ -92,6 +93,7 @@ class TestMetadataModel:
                     == manifest_file_contents[annotation].unique()
                 )
 
+    @pytest.mark.single_process_execution
     async def test_submit_filebased_manifest_file_and_entities_valid_manifest_submitted(
         self,
         helpers: Helpers,
@@ -184,6 +186,7 @@ class TestMetadataModel:
                 already_spied=True,
             )
 
+    @pytest.mark.single_process_execution
     async def test_submit_filebased_manifest_file_and_entities_mock_filename(
         self,
         helpers: Helpers,
@@ -244,6 +247,7 @@ class TestMetadataModel:
                 expected_manifest_name="synapse_storage_manifest_mockfilename.csv",
             )
 
+    @pytest.mark.single_process_execution
     async def test_submit_filebased_manifest_table_and_file_valid_manifest_submitted(
         self,
         helpers: Helpers,
@@ -340,6 +344,7 @@ class TestMetadataModel:
                 already_spied=True,
             )
 
+    @pytest.mark.single_process_execution
     async def test_submit_filebased_manifest_table_and_file_mock_filename(
         self,
         helpers: Helpers,
