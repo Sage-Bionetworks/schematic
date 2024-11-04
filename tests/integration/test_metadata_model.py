@@ -125,35 +125,157 @@ class TestMetadataModel:
                     == manifest_file_contents[annotation].unique()
                 )
 
-    @pytest.mark.parametrize(
-        "manifest_path, dataset_id, validate_component, expected_manifest_id, "
-        "expected_table_id, dataset_scope",
-        test_cases,
-    )
-    def test_submit_filebased_manifest_file_and_entities(
+    async def test_submit_filebased_manifest_file_and_entities_valid_manifest_submitted(
         self,
-        helpers,
-        manifest_path,
-        dataset_id,
-        validate_component,
-        expected_manifest_id,
-        expected_table_id,
-        dataset_scope,
+        helpers: Helpers,
         mocker: MockerFixture,
-        synapse_store,
+        synapse_store: SynapseStorage,
+        schedule_for_cleanup: Callable[[CleanupItem], None],
     ):
-        self._submit_and_verify_manifest(
-            helpers=helpers,
-            mocker=mocker,
-            synapse_store=synapse_store,
-            manifest_path=manifest_path,
-            dataset_id=dataset_id,
-            expected_manifest_id=expected_manifest_id,
-            expected_table_id=expected_table_id,
-            manifest_record_type="file_and_entities",
-            validate_component=validate_component,
-            dataset_scope=dataset_scope,
-        )
+        # GIVEN a project that exists in Synapse
+        project_id = "syn23643250"
+
+        # AND a dataset/files that exist in Synapse
+        dataset_folder = await Folder(
+            name=f"test_submit_filebased_manifest_file_and_entities_valid_manifest_submitted_{uuid.uuid4()}",
+            files=[file_instance(), file_instance()],
+            parent_id=project_id,
+        ).store_async(synapse_client=synapse_store.syn)
+        schedule_for_cleanup(CleanupItem(synapse_id=dataset_folder.id))
+        # Wait for the fileview to be updated
+        await asyncio.sleep(10)
+
+        # AND a CSV file on disk
+        filenames = [
+            f"schematic - main/{dataset_folder.name}/{file.name}"
+            for file in dataset_folder.files
+        ]
+        entity_ids = [file.id for file in dataset_folder.files]
+        random_uuids = [str(uuid.uuid4()) for _ in range(len(filenames))]
+        data = {
+            "Filename": filenames,
+            "Sample ID": random_uuids,
+            "File Format": ["" for _ in range(len(filenames))],
+            "Component": ["BulkRNA-seqAssay" for _ in range(len(filenames))],
+            "Genome Build": ["" for _ in range(len(filenames))],
+            "Genome FASTA": ["" for _ in range(len(filenames))],
+            "Id": random_uuids,
+            "entityId": entity_ids,
+        }
+        df = pd.DataFrame(data)
+
+        with tempfile.NamedTemporaryFile(
+            delete=True,
+            suffix=".csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
+        ) as tmp_file:
+            df.to_csv(tmp_file.name, index=False)
+
+            # WHEN the manifest is submitted (Assertions are handled in the helper method)
+            self._submit_and_verify_manifest(
+                helpers=helpers,
+                mocker=mocker,
+                synapse_store=synapse_store,
+                manifest_path=tmp_file.name,
+                dataset_id=dataset_folder.id,
+                manifest_record_type="file_and_entities",
+                validate_component=None,
+                dataset_scope=None,
+                expected_table_id=None,
+                expected_table_name="bulkrna-seqassay_synapse_storage_manifest_table",
+                project_id=project_id,
+                expected_manifest_id=None,
+                expected_manifest_name="synapse_storage_manifest_bulkrna-seqassay.csv",
+            )
+
+        # AND when the annotatsions are updated and the manifest is resubmitted
+        with tempfile.NamedTemporaryFile(
+            delete=True,
+            suffix=".csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
+        ) as tmp_file:
+            random_uuids = [str(uuid.uuid4()) for _ in range(len(filenames))]
+            df["Sample ID"] = random_uuids
+            df["Id"] = random_uuids
+            df.to_csv(tmp_file.name, index=False)
+
+            # THEN the annotations are updated
+            self._submit_and_verify_manifest(
+                helpers=helpers,
+                mocker=mocker,
+                synapse_store=synapse_store,
+                manifest_path=tmp_file.name,
+                dataset_id=dataset_folder.id,
+                manifest_record_type="file_and_entities",
+                validate_component=None,
+                dataset_scope=None,
+                expected_table_id=None,
+                expected_table_name="bulkrna-seqassay_synapse_storage_manifest_table",
+                project_id=project_id,
+                expected_manifest_id=None,
+                expected_manifest_name="synapse_storage_manifest_bulkrna-seqassay.csv",
+                already_spied=True,
+            )
+
+    async def test_submit_filebased_manifest_file_and_entities_mock_filename(
+        self,
+        helpers: Helpers,
+        mocker: MockerFixture,
+        synapse_store: SynapseStorage,
+        schedule_for_cleanup: Callable[[CleanupItem], None],
+    ):
+        # GIVEN a project that exists in Synapse
+        project_id = "syn23643250"
+
+        # AND a dataset/files that exist in Synapse
+        dataset_folder = await Folder(
+            name=f"test_submit_filebased_manifest_file_and_entities_mock_filename_{uuid.uuid4()}",
+            files=[file_instance(), file_instance()],
+            parent_id=project_id,
+        ).store_async(synapse_client=synapse_store.syn)
+        schedule_for_cleanup(CleanupItem(synapse_id=dataset_folder.id))
+        # Wait for the fileview to be updated
+        await asyncio.sleep(10)
+
+        # AND a CSV file on disk
+        filenames = [
+            f"schematic - main/{dataset_folder.name}/{file.name}"
+            for file in dataset_folder.files
+        ]
+        entity_ids = [file.id for file in dataset_folder.files]
+        random_uuids = [str(uuid.uuid4()) for _ in range(len(filenames))]
+        data = {
+            "Filename": filenames,
+            "Sample ID": random_uuids,
+            "Id": random_uuids,
+            "Component": ["MockFilename" for _ in range(len(filenames))],
+            "entityId": entity_ids,
+        }
+        df = pd.DataFrame(data)
+
+        with tempfile.NamedTemporaryFile(
+            delete=True,
+            suffix=".csv",
+            dir=create_temp_folder(path=tempfile.gettempdir()),
+        ) as tmp_file:
+            df.to_csv(tmp_file.name, index=False)
+
+            # WHEN the manifest is submitted (Assertions are handled in the helper method)
+            self._submit_and_verify_manifest(
+                helpers=helpers,
+                mocker=mocker,
+                synapse_store=synapse_store,
+                manifest_path=tmp_file.name,
+                dataset_id=dataset_folder.id,
+                manifest_record_type="file_and_entities",
+                validate_component="MockFilename",
+                dataset_scope=dataset_folder.id,
+                expected_table_id=None,
+                expected_table_name="mockfilename_synapse_storage_manifest_table",
+                project_id=project_id,
+                expected_manifest_id=None,
+                expected_manifest_name="synapse_storage_manifest_mockfilename.csv",
+            )
 
     async def test_submit_filebased_manifest_table_and_file_valid_manifest_submitted(
         self,
