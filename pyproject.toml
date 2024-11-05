@@ -71,6 +71,7 @@ uWSGI = {version = "^2.0.21", optional = true}
 Jinja2 = {version = ">2.11.3", optional = true}
 asyncio = "^3.4.3"
 PyJWT = "^2.9.0"
+typing-extensions = "4.12.2"
 opentelemetry-api = {version = ">=1.21.0", optional = true}
 opentelemetry-sdk = {version = ">=1.21.0", optional = true}
 opentelemetry-exporter-otlp-proto-grpc = {version="^1.0.0", optional = true}
@@ -93,12 +94,13 @@ mypy = "^1.4.1"
 pylint = "^2.16.1"
 pytest-xdist = "^3.5.0"
 pre-commit = "^3.6.2"
+typing-extensions = "4.12.2"
 
 [tool.poetry.group.doc.dependencies]
 pdoc = "^14.0.0"
 sphinx = "7.3.7"
 sphinx-click = "4.4.0"
-typing_extensions = "^4.12.0"
+typing-extensions = "4.12.2"
 
 [tool.black]
 line-length = 88
