@@ -14,6 +14,13 @@ NOT have the entityId column you will encounter that error.
 To fix: You will want to first check if your Schematic Dataset folder has a manifest without the entityId column.
 If so, you can either submit your manifest using schematic OR (the less preferred solution) manually add the entityId column to the manifest on Synapse.
 
+Manifest Generate: `ValueError: cannot insert eTag, already exists`
+-------------------------------------------------------------------
+
+If there is currently a manifest in your Schematic Dataset folder on Synapse with the 'eTag' column and you try to generate a manifest, it will fail.
+
+To fix: You will want to first check if your Schematic Dataset folder has a manifest with the 'eTag' column and remove that column.
+
 
 Manifest Submit: `RuntimeError: failed with SynapseHTTPError('400 Client Error: nan is not a valid Synapse ID.')`
 -----------------------------------------------------------------------------------------------------------------
