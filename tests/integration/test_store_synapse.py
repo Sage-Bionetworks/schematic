@@ -227,12 +227,25 @@ class TestStoreSynapse:
             ),
         ],
     )
-    def test_getFilesInStorageDataset(self, asset_view, dataset_id, expected_files):
+    @pytest.mark.parametrize("filenames", [None, ["txt1.txt", "txt2.txt"]])
+    def test_getFilesInStorageDataset(
+        self, filenames, asset_view, dataset_id, expected_files
+    ):
         # GIVEN a SynapseStorage object with the appropriate asset view
         syn = SynapseStorage()
         syn.storageFileView = asset_view
         # WHEN getFilesInStorageDataset is called for the given dataset
         dataset_files = syn.getFilesInStorageDataset(dataset_id)
+        # AND the filenames are filtered as appropriate
+        if filenames:
+            for f in expected_files:
+                retain = False
+                for name in filenames:
+                    if name in f[1]:
+                        retain = True
+                if not retain:
+                    expected_files.remove(f)
+
         # THEN the expected files are returned
         # AND there are no unexpected files
         assert dataset_files == expected_files
