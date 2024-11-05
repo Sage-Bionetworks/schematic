@@ -265,6 +265,8 @@ Once you've copied the file, modify its contents according to your use case. For
 
 .. important::
    Be sure to update your ``config.yml`` with the location of your ``.synapseConfig`` created in the step above to avoid authentication errors. Paths can be specified relative to the ``config.yml`` file or as absolute paths.
+   By default, the ``.synapseConfig`` file is created in your home directory, so as an example, the configuration file will have to contain `/full/path/to/.synapseConfig` as the path to the ``.synapseConfig`` file or be in the same
+   directory as the ``config.yml`` file.
 
 .. note::
    ``config.yml`` is ignored by git.
@@ -294,26 +296,8 @@ Once you have obtained credentials, ensure that the JSON file generated is named
 .. note::
    Use the ``schematic_service_account_creds.json`` file for the service account mode of authentication (*for Google services/APIs*). Service accounts are special Google accounts that can be used by applications to access Google APIs programmatically via OAuth2.0, with the advantage being that they do not require human authorization.
 
-7. Set up pre-commit hooks
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This repository is configured to utilize pre-commit hooks as part of the development process. To enable these hooks, run the following command and look for the success message:
-
-.. code-block:: shell
-
-   pre-commit install
-
-   pre-commit installed at .git/hooks/pre-commit
-
-You can run ``pre-commit`` manually across the entire repository like so:
-
-.. code-block:: shell
-
-   pre-commit run --all-files
-
-After running this step, your setup is complete, and you can test it in a Python instance or by running a command based on the examples in the command line usage section.
-
-8. Verify your setup
+7. Verify your setup
 ~~~~~~~~~~~~~~~~~~~~
 
 After running the steps above, your setup is complete, and you can test it in a ``python`` instance or by running a command based on the examples
