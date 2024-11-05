@@ -371,6 +371,7 @@ class SynapseStorage(BaseStorage):
         self,
         columns: Optional[list] = None,
         where_clauses: Optional[list] = None,
+        force_requery: Optional[bool] = False,
     ) -> None:
         """
         Method to query the Synapse FileView and store the results in a pandas DataFrame. The results are stored in the storageFileviewTable attribute.
@@ -378,6 +379,7 @@ class SynapseStorage(BaseStorage):
         Args:
             columns (Optional[list], optional): List of columns to be selected from the table. Defaults behavior is to request all columns.
             where_clauses (Optional[list], optional): List of where clauses to be used to scope the query. Defaults to None.
+            force_requery (Optional[bool], optional): If True, forces a requery of the fileview. Defaults to False.
         """
         self._purge_synapse_cache()
 
@@ -394,8 +396,8 @@ class SynapseStorage(BaseStorage):
         if previous_query_built:
             self.new_query_different = self.fileview_query != previous_query
 
-        # Only perform the query if it is different from the previous query
-        if self.new_query_different:
+        # Only perform the query if it is different from the previous query or we are forcing new results to be retrieved
+        if self.new_query_different or force_requery:
             try:
                 self.storageFileviewTable = self.syn.tableQuery(
                     query=self.fileview_query,
@@ -2845,7 +2847,7 @@ class SynapseStorage(BaseStorage):
         # re-query if no datasets found
         if dataset_row.empty:
             sleep(5)
-            self.query_fileview()
+            self.query_fileview(force_requery=True)
             # Subset main file view
             dataset_index = self.storageFileviewTable["id"] == datasetId
             dataset_row = self.storageFileviewTable[dataset_index]

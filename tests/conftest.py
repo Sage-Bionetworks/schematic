@@ -4,11 +4,16 @@ import logging
 import os
 import shutil
 import sys
+import tempfile
+from dataclasses import dataclass
 from typing import Callable, Generator, Set
 
+import flask
 import pytest
 from dotenv import load_dotenv
+from flask.testing import FlaskClient
 from opentelemetry import trace
+from synapseclient.client import Synapse
 
 from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.models.metadata import MetadataModel
@@ -16,6 +21,8 @@ from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExp
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import load_df
+from schematic.utils.general import create_temp_folder
+from schematic_api.api import create_app
 from tests.utils import CleanupAction, CleanupItem
 
 tracer = trace.get_tracer("Schematic-Tests")
@@ -41,9 +48,26 @@ def dataset_id():
     yield "syn25614635"
 
 
+@pytest.fixture(scope="class")
+def flask_app() -> flask.Flask:
+    """Create a Flask app for testing."""
+    app = create_app()
+    return app
+
+
+@pytest.fixture(scope="class")
+def flask_client(flask_app: flask.Flask) -> Generator[FlaskClient, None, None]:
+    flask_app.config["SCHEMATIC_CONFIG"] = None
+
+    with flask_app.test_client() as client:
+        yield client
+
+
 # This class serves as a container for helper functions that can be
 # passed to individual tests using the `helpers` fixture. This approach
 # was required because fixture functions cannot take arguments.
+
+
 class Helpers:
     @staticmethod
     def get_data_path(path, *paths):
@@ -126,6 +150,60 @@ def synapse_store():
     yield SynapseStorage()
 
 
+@dataclass
+class ConfigurationForTesting:
+    """
+    Variables that are specific to testing. Specifically these are used to control
+    the flags used during manual verification of some integration test results.
+
+    Attributes:
+        manual_test_verification_enabled (bool): Whether manual verification is enabled.
+        manual_test_verification_path (str): The path to the directory where manual test
+            verification files are stored.
+        use_deployed_schematic_api_server (bool): Used to determine if a local flask
+            instance is created during integration testing. If this is true schematic
+            tests will use a schematic API server running outside of the context of the
+            integration test.
+        schematic_api_server_url (str): The URL of the schematic API server. Defaults to
+            http://localhost:3001.
+
+    """
+
+    manual_test_verification_enabled: bool
+    manual_test_verification_path: str
+    use_deployed_schematic_api_server: bool
+    schematic_api_server_url: str
+
+
+@pytest.fixture(scope="session")
+def testing_config(config: Configuration) -> ConfigurationForTesting:
+    """Configuration variables that are specific to testing."""
+    manual_test_verification_enabled = (
+        os.environ.get("MANUAL_TEST_VERIFICATION", "false").lower() == "true"
+    )
+    use_deployed_schematic_api_server = (
+        os.environ.get("USE_DEPLOYED_SCHEMATIC_API_SERVER", "false").lower() == "true"
+    )
+    schematic_api_server_url = os.environ.get(
+        "SCHEMATIC_API_SERVER_URL", "http://localhost:3001"
+    )
+
+    if manual_test_verification_enabled:
+        manual_test_verification_path = os.path.join(
+            config.manifest_folder, "manual_test_verification"
+        )
+        os.makedirs(manual_test_verification_path, exist_ok=True)
+    else:
+        manual_test_verification_path = ""
+
+    return ConfigurationForTesting(
+        manual_test_verification_enabled=manual_test_verification_enabled,
+        manual_test_verification_path=manual_test_verification_path,
+        use_deployed_schematic_api_server=use_deployed_schematic_api_server,
+        schematic_api_server_url=schematic_api_server_url,
+    )
+
+
 # These fixtures make copies of existing test manifests.
 # These copies can the be altered by a given test, and the copy will eb destroyed at the
 # end of the test
@@ -168,6 +246,23 @@ def syn_token(config: Configuration):
     else:
         token = config_parser["authentication"]["authtoken"]
     return token
+
+
+@pytest.fixture(scope="class")
+def syn(syn_token) -> Synapse:
+    syn = Synapse()
+    syn.login(authToken=syn_token, silent=True)
+    return syn
+
+
+@pytest.fixture(scope="session")
+def download_location() -> Generator[str, None, None]:
+    download_location = create_temp_folder(path=tempfile.gettempdir())
+    yield download_location
+
+    # Cleanup after tests have used the temp folder
+    if os.path.exists(download_location):
+        shutil.rmtree(download_location)
 
 
 def metadata_model(helpers, data_model_labels):
