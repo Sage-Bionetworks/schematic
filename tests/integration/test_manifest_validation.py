@@ -9,7 +9,6 @@ from typing import Dict
 import pytest
 import requests
 from flask.testing import FlaskClient
-from synapseclient.client import Synapse
 
 from tests.conftest import ConfigurationForTesting, Helpers
 
