@@ -10,7 +10,10 @@ Whether you are using DCA or schematic API or schematic library/CLI, the followi
 1. What was the command that caused the error?
 2. Is the error listed down below?
 3. Did you follow the workflow outlined in the tutorials section under: "Contributing your manifest with the CLI"?
-4. Create a Github issue or reach out to your respective DCC service desks.  What is the schematic or DCA configuration used? Specifically, it's most important to capture the following:
+
+    1. If you are validating or submitting the manifest, how was the manifest initiatially generated?  If manually and NOT using schematic, there may be errors.
+
+5. Create a Github issue or reach out to your respective DCC service desks.  What is the schematic or DCA configuration used? Specifically, it's most important to capture the following:
 
     1. `data_type`: This is the same as Component in the data model.
     2. `master_fileview_id`: This is the Synapse ID of the file view listing all project datasets.
