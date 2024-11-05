@@ -18,6 +18,8 @@ from synapseclient.core.exceptions import SynapseHTTPError  # type: ignore
 from synapseclient.entity import File, Folder, Project  # type: ignore
 from synapseclient.table import EntityViewSchema  # type: ignore
 
+from schematic.store.synapse_tracker import SynapseEntityTracker
+
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
@@ -180,12 +182,17 @@ def clear_synapse_cache(synapse_cache: cache.Cache, minutes: int) -> int:
     return num_of_deleted_files
 
 
-def entity_type_mapping(syn: Synapse, entity_id: str) -> str:
+def entity_type_mapping(
+    syn: Synapse,
+    entity_id: str,
+    synapse_entity_tracker: Optional[SynapseEntityTracker] = None,
+) -> str:
     """Return the entity type of manifest
 
     Args:
         syn (Synapse): Synapse object
         entity_id (str): id of an entity
+        synapse_entity_tracker: Tracker for a pull-through cache of Synapse entities
 
     Raises:
         SynapseHTTPError: Re-raised SynapseHTTPError
@@ -195,7 +202,11 @@ def entity_type_mapping(syn: Synapse, entity_id: str) -> str:
     """
     # check the type of entity
     try:
-        entity = syn.get(entity_id, downloadFile=False)
+        if not synapse_entity_tracker:
+            synapse_entity_tracker = SynapseEntityTracker()
+        entity = synapse_entity_tracker.get(
+            synapse_id=entity_id, syn=syn, download_file=False
+        )
     except SynapseHTTPError as exc:
         logger.error(
             f"cannot get {entity_id} from asset store. Please make sure that {entity_id} exists"
@@ -213,22 +224,24 @@ def entity_type_mapping(syn: Synapse, entity_id: str) -> str:
     elif isinstance(entity, Project):
         entity_type = "project"
     else:
+        assert entity is not None
         # if there's no matching type, return concreteType
         entity_type = entity.concreteType
     return entity_type
 
 
-def create_temp_folder(path: str) -> str:
+def create_temp_folder(path: str, prefix: Optional[str] = None) -> str:
     """This function creates a temporary directory in the specified directory
     Args:
         path(str): a directory path where all the temporary files will live
+        prefix(str): a prefix to be added to the temporary directory name
     Returns: returns the absolute pathname of the new directory.
     """
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
 
     # Create a temporary directory in the specified directory
-    path = tempfile.mkdtemp(dir=path)
+    path = tempfile.mkdtemp(dir=path, prefix=prefix)
     return path
 
 

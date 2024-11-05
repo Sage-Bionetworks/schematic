@@ -192,6 +192,7 @@ class MetadataModel(object):
         return req_components
 
     # TODO: abstract validation in its own module
+    @tracer.start_as_current_span("MetadataModel::validateModelManifest")
     def validateModelManifest(
         self,
         manifestPath: str,
@@ -272,10 +273,6 @@ class MetadataModel(object):
                 )
 
             return errors, warnings
-
-        # check if suite has been created. If so, delete it
-        if os.path.exists("great_expectations/expectations/Manifest_test_suite.json"):
-            os.remove("great_expectations/expectations/Manifest_test_suite.json")
 
         errors, warnings, manifest = validate_all(
             self,

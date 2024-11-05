@@ -32,10 +32,10 @@ Check Regex List Like,,,,,TRUE,DataProperty,,,list like::regex match [a-f]
 Check Regex Single,,,,,TRUE,DataProperty,,,regex search [a-f]
 Check Regex Format,,,,,TRUE,DataProperty,,,regex match [a-f]
 Check Regex Integer,,,,,TRUE,DataProperty,,,regex search ^\d+$
-Check Num,,,,,TRUE,DataProperty,,,num
-Check Float,,,,,TRUE,DataProperty,,,float
-Check Int,,,,,TRUE,DataProperty,,,int
-Check String,,,,,TRUE,DataProperty,,,str
+Check Num,,,,,TRUE,DataProperty,,,num error
+Check Float,,,,,TRUE,DataProperty,,,float error
+Check Int,,,,,TRUE,DataProperty,,,int error
+Check String,,,,,TRUE,DataProperty,,,str error
 Check URL,,,,,TRUE,DataProperty,,,url
 Check Match at Least,,,,,TRUE,DataProperty,,,matchAtLeastOne Patient.PatientID set
 Check Match Exactly,,,,,TRUE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly set

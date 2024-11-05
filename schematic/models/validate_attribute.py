@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import requests
 from jsonschema import ValidationError
+from opentelemetry import trace
 from synapseclient import File
 from synapseclient.core.exceptions import SynapseNoCredentialsError
 
@@ -27,9 +28,11 @@ from schematic.utils.validate_utils import (
 )
 
 logger = logging.getLogger(__name__)
+tracer = trace.get_tracer("Schematic")
 
 MessageLevelType = Literal["warning", "error"]
 ScopeTypes = Literal["set", "value"]
+tracer = trace.get_tracer("schematic")
 
 
 class GenerateError:
@@ -775,6 +778,7 @@ class ValidateAttribute(object):
     def __init__(self, dmge: DataModelGraphExplorer) -> None:
         self.dmge = dmge
 
+    @tracer.start_as_current_span("ValidateAttribute::_login")
     def _login(
         self,
         access_token: Optional[str] = None,
@@ -873,7 +877,7 @@ class ValidateAttribute(object):
         project_scope: Optional[list[str]],
         access_token: Optional[str] = None,
     ) -> tuple[list[str], list[str]]:
-        """Gets a list of synapse ids of mainfests to check against
+        """Gets a list of synapse ids of manifests to check against
 
         Args:
             target_component (str): Manifet ids are gotten fo this type
@@ -914,14 +918,14 @@ class ValidateAttribute(object):
     def list_validation(
         self,
         val_rule: str,
-        manifest_col: pd.core.series.Series,
-    ) -> tuple[list[list[str]], list[list[str]], pd.core.series.Series]:
+        manifest_col: pd.Series,
+    ) -> tuple[list[list[str]], list[list[str]], pd.Series]:
         """
         Purpose:
             Determine if values for a particular attribute are comma separated.
         Input:
             - val_rule: str, Validation rule
-            - manifest_col: pd.core.series.Series, column for a given attribute
+            - manifest_col: pd.Series, column for a given attribute
         Returns:
             - manifest_col: Input values in manifest arere-formatted to a list
             logger.error or logger.warning.
@@ -932,8 +936,8 @@ class ValidateAttribute(object):
         # For each 'list' (input as a string with a , delimiter) entered,
         # convert to a real list of strings, with leading and trailing
         # white spaces removed.
-        errors = []
-        warnings = []
+        errors: list[list[str]] = []
+        warnings: list[list[str]] = []
         replace_null = True
 
         csv_re = comma_separated_list_regex()
@@ -954,7 +958,10 @@ class ValidateAttribute(object):
                     entry=list_string,
                     node_display_name=manifest_col.name,
                 )
-
+                # Because of the above line: manifest_col = manifest_col.astype(str)
+                # this column has been turned into a string, it's unclear if any values
+                # from this column can be anything other than a string, and therefore this
+                # if statement may not be needed
                 if not isinstance(list_string, str) and entry_has_value:
                     list_error = "not_a_string"
                 elif not re.fullmatch(csv_re, list_string) and entry_has_value:
@@ -983,7 +990,7 @@ class ValidateAttribute(object):
     def regex_validation(
         self,
         val_rule: str,
-        manifest_col: pd.core.series.Series,
+        manifest_col: pd.Series,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
@@ -991,7 +998,7 @@ class ValidateAttribute(object):
             provided in val_rule.
         Input:
             - val_rule: str, Validation rule
-            - manifest_col: pd.core.series.Series, column for a given
+            - manifest_col: pd.Series, column for a given
                 attribute in the manifest
             - dmge: DataModelGraphExplorer Object
             Using this module requres validation rules written in the following manner:
@@ -1005,8 +1012,8 @@ class ValidateAttribute(object):
             - This function will return errors when the user input value
             does not match schema specifications.
             logger.error or logger.warning.
-            Errors: list[str] Error details for further storage.
-            warnings: list[str] Warning details for further storage.
+            Errors: list[list[str]] Error details for further storage.
+            warnings: list[list[str]] Warning details for further storage.
         TODO:
             move validation to convert step.
         """
@@ -1022,13 +1029,15 @@ class ValidateAttribute(object):
                 f" They should be provided as follows ['regex', 'module name', 'regular expression']"
             )
 
-        errors = []
-        warnings = []
+        errors: list[list[str]] = []
+        warnings: list[list[str]] = []
 
         validation_rules = self.dmge.get_node_validation_rules(
             node_display_name=manifest_col.name
         )
-
+        # It seems like this statement can never be true
+        # self.dmge.get_node_validation_rules never returns a list with "::" even when
+        # the attribute has the "list::regex" rule
         if validation_rules and "::" in validation_rules[0]:
             validation_rules = validation_rules[0].split("::")
         # Handle case where validating re's within a list.
@@ -1096,26 +1105,43 @@ class ValidateAttribute(object):
     def type_validation(
         self,
         val_rule: str,
-        manifest_col: pd.core.series.Series,
+        manifest_col: pd.Series,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
-        Purpose:
-            Check if values for a given manifest attribue are the same type
+        Check if values for a given manifest attribute are the same type
             specified in val_rule.
-        Input:
-            - val_rule: str, Validation rule, specifying input type, either
+
+        Args:
+            val_rule (str): Validation rule, specifying input type, either
                 'float', 'int', 'num', 'str'
-            - manifest_col: pd.core.series.Series, column for a given
+            manifest_col (pd.Series): column for a given
                 attribute in the manifest
+
+        Raises:
+            ValueError: If after splitting the validation rule by spaces,
+              there are no components left
+            ValueError: If after splitting the validation rule by spaces,
+              there are more than two components left
+            ValueError: If after splitting the validation rule by spaces,
+              the first component is not one of 'float', 'int', 'num', 'str'
+
         Returns:
-            -This function will return errors when the user input value
-            does not match schema specifications.
-            logger.error or logger.warning.
-            Errors: list[str] Error details for further storage.
-            warnings: list[str] Warning details for further storage.
-        TODO:
-            Convert all inputs to .lower() just to prevent any entry errors.
+            tuple[list[list[str]], list[list[str]]]: _description_
         """
+        val_rule_components = val_rule.split(" ")
+        if len(val_rule_components) == 0:
+            raise ValueError("val_rule must contain at least one component.")
+        if len(val_rule_components) > 2:
+            raise ValueError("val_rule must contain no more than two components.")
+        val_rule_type = val_rule_components[0]
+        if val_rule_type not in ["float", "int", "num", "str"]:
+            raise ValueError(
+                (
+                    f"val_rule first component: {val_rule_type} must be one of "
+                    "['float', 'int', 'num', 'str']"
+                )
+            )
+
         specified_type = {
             "num": (int, np.int64, float),
             "int": (int, np.int64),
@@ -1123,11 +1149,11 @@ class ValidateAttribute(object):
             "str": (str),
         }
 
-        errors = []
-        warnings = []
+        errors: list[list[str]] = []
+        warnings: list[list[str]] = []
 
         # num indicates either a float or int.
-        if val_rule == "num":
+        if val_rule_type == "num":
             for i, value in enumerate(manifest_col):
                 entry_has_value = self.get_entry_has_value(
                     entry=value,
@@ -1135,7 +1161,7 @@ class ValidateAttribute(object):
                 )
                 if (
                     bool(value)
-                    and not isinstance(value, specified_type[val_rule])
+                    and not isinstance(value, specified_type[val_rule_type])
                     and entry_has_value
                 ):
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
@@ -1149,7 +1175,7 @@ class ValidateAttribute(object):
                         errors.append(vr_errors)
                     if vr_warnings:
                         warnings.append(vr_warnings)
-        elif val_rule in ["int", "float", "str"]:
+        elif val_rule_type in ["int", "float", "str"]:
             for i, value in enumerate(manifest_col):
                 entry_has_value = self.get_entry_has_value(
                     entry=value,
@@ -1157,7 +1183,7 @@ class ValidateAttribute(object):
                 )
                 if (
                     bool(value)
-                    and not isinstance(value, specified_type[val_rule])
+                    and not isinstance(value, specified_type[val_rule_type])
                     and entry_has_value
                 ):
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
@@ -1286,14 +1312,14 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def _parse_validation_log(
-        self, validation_log: dict[str, pd.core.series.Series]
-    ) -> tuple[[list[str], list[str], list[str]]]:
+        self, validation_log: dict[str, pd.Series]
+    ) -> tuple[list[str], list[str], list[str]]:
         """Parse validation log, so values can be used to raise warnings/errors
         Args:
-            validation_log, dict[str, pd.core.series.Series]:
+            validation_log, dict[str, pd.Series]:
         Returns:
             invalid_rows, list: invalid rows recorded in the validation log
-            invalid_enties, list: invalid values recorded in the validation log
+            invalid_entities, list: invalid values recorded in the validation log
             manifest_ids, list:
         """
         # Initialize parameters
@@ -1313,12 +1339,15 @@ class ValidateAttribute(object):
         return invalid_rows, invalid_entries, manifest_ids
 
     def _merge_format_invalid_rows_values(
-        self, series_1: pd.core.series.Series, series_2: pd.core.series.Series
-    ) -> tuple[[list[str], list[str]]]:
-        """Merge two series to identify gather all invalid values, and parse out invalid rows and entries
+        self, series_1: pd.Series, series_2: pd.Series
+    ) -> tuple[list[str], list[str]]:
+        """
+        Merge two series to identify gather all invalid values,
+        and parse out invalid rows and entries
+
         Args:
-            series_1, pd.core.series.Series: first set of invalid values to extract
-            series_2, pd.core.series.Series: second set of invalid values to extract
+            series_1, pd.Series: first set of invalid values to extract
+            series_2, pd.Series: second set of invalid values to extract
         Returns:
             invalid_rows, list: invalid rows taken from both series
             invalid_entry, list: invalid values taken from both series
@@ -1342,12 +1371,14 @@ class ValidateAttribute(object):
         return invalid_rows, invalid_entry
 
     def _format_invalid_row_values(
-        self, invalid_values: dict[str, pd.core.series.Series]
-    ) -> tuple[[list[str], list[str]]]:
-        """Parse invalid_values dictionary, to extract invalid_rows and invalid_entry to be used later
-        to raise warnings or errors.
+        self, invalid_values: pd.Series
+    ) -> tuple[list[str], list[str]]:
+        """
+        Parse invalid_values, to extract invalid_rows and invalid_entry
+        to be used later to raise warnings or errors.
+
         Args:
-            invalid_values, dict[str, pd.core.series.Series]:
+            invalid_values, pd.Series:
         Returns:
             invalid_rows, list: invalid rows recorded in invalid_values
             invalid_entry, list: invalid values recorded in invalid_values
@@ -1383,9 +1414,9 @@ class ValidateAttribute(object):
 
         Returns:
             errors, list[str]: list of errors to raise, as appropriate, if values in current manifest do
-            not pass relevant cross mannifest validation across the target manifest(s)
+            not pass relevant cross manifest validation across the target manifest(s)
             warnings, list[str]: list of warnings to raise, as appropriate, if values in current manifest do
-            not pass relevant cross mannifest validation across the target manifest(s)
+            not pass relevant cross manifest validation across the target manifest(s)
         """
         errors: list[str] = []
         warnings: list[str] = []
@@ -1440,21 +1471,28 @@ class ValidateAttribute(object):
         row_num: Optional[list[str]],
         attribute_name: str,
     ) -> tuple[list[str], list[str]]:
-        """Helper to remove NAs from a list of invalid entries (if applicable, and allowed), remove the row
-        too from row_num. This will make sure errors are not rasied for NA entries unless the value is required.
+        """
+        Helper to remove NAs from a list of invalid entries (if applicable, and allowed),
+          remove the row too from row_num. This will make sure errors are not raised for
+          NA entries unless the value is required.
+
         Args:
             invalid_entry, list[str]: default=None, list of entries in the source manifest where
-                invalid values were located.
-            row_num, list[str[: default=None, list of rows in the source manifest where invalid values were located
+              invalid values were located.
+            row_num, list[str[: default=None, list of rows in the source manifest where invalid
+              values were located
             attribute_name, str: source attribute name
+
         Returns:
-            invalid_entry and row_num returned with any NA and corresponding row index value removed, if applicable.
+            invalid_entry and row_num returned with any NA and corresponding row index value
+              removed, if applicable.
         """
         idx_to_remove = []
         # Check if the current attribute column is required, via the data model
         if invalid_entry and row_num:
             # Check each invalid entry and determine if it has a value and/or is required.
-            # If there is no entry and its not required, remove the NA value so an error is not raised.
+            # If there is no entry and its not required, remove the NA value so an
+            #  error is not raised.
             for idx, entry in enumerate(invalid_entry):
                 entry_has_value = self.get_entry_has_value(entry, attribute_name)
                 # If there is no value, and is not required, recored the index
@@ -1466,8 +1504,8 @@ class ValidateAttribute(object):
                 for idx in sorted(idx_to_remove, reverse=True):
                     del invalid_entry[idx]
                     del row_num[idx]
-                # Perform check to make sure length of invalid_entry and row_num is the same. If not that would suggest
-                # there was an issue recording or removing values.
+                # Perform check to make sure length of invalid_entry and row_num is the same.
+                # If not that would suggest there was an issue recording or removing values.
                 if len(invalid_entry) != len(row_num):
                     logger.error(
                         f"There was an error handling and validating a non-entry."
@@ -1530,17 +1568,22 @@ class ValidateAttribute(object):
         source_attribute: str,
         value_validation_store: tuple[pd.Series, pd.Series, pd.Series],
     ) -> tuple[list[str], list[str]]:
-        """For value rule scope, find invalid rows and entries, and generate appropriate errors and warnings
+        """
+        For value rule scope, find invalid rows and entries, and generate
+          appropriate errors and warnings
+
         Args:
             val_rule, str: Validation rule
             source_attribute, str: source manifest column name
             value_validation_store, tuple(pd.Series, pd.Series, pd.Series]):
                 contains missing_values, duplicated_values, and repeat values
         Returns:
-            errors, list[str]: list of errors to raise, as appropriate, if values in current manifest do
-            not pass relevant cross mannifest validation across the target manifest(s)
-            warnings, list[str]: list of warnings to raise, as appropriate, if values in current manifest do
-            not pass relevant cross mannifest validation across the target manifest(s)
+            errors, list[str]: list of errors to raise, as appropriate, if values
+              in current manifest do not pass relevant cross manifest validation
+              across the target manifest(s)
+            warnings, list[str]: list of warnings to raise, as appropriate,
+              if values in current manifest do not pass relevant cross manifest
+              validation across the target manifest(s)
         """
         # Initialize with empty lists
         errors, warnings = [], []
@@ -1580,17 +1623,22 @@ class ValidateAttribute(object):
 
     def _check_if_target_manifest_is_empty(
         self,
-        target_manifest: pd.core.series.Series,
+        target_manifest: pd.DataFrame,
         target_manifest_empty: list[bool],
         column_names: dict[str, str],
     ) -> list[bool]:
-        """If a target manifest is found with the attribute column of interest check to see if the manifest is empty.
+        """
+        If a target manifest is found with the attribute column of interest check to see if
+          the manifest is empty.
+
         Args:
-            target_manifest, pd.core.series.Series: Current target manifest
-            target_manifest_empty, list[bool]: a list of booleans recording if the target manifest are emtpy or not.
+            target_manifest, pd.Dataframe: Current target manifest
+            target_manifest_empty, list[bool]: a list of booleans recording if the target manifest
+              are empty or not.
             column_names, dict[str, str]: {stripped_col_name:original_column_name}
         Returns:
-            target_manifest_empty, list[bool]: a list of booleans recording if the target manifest are emtpy or not.
+            target_manifest_empty, list[bool]: a list of booleans recording if the target manifest
+              are empty or not.
         """
         # Make a copy of the target manifest with only user uploaded columns
         target_manifest_dupe = target_manifest.drop(
@@ -1962,6 +2010,7 @@ class ValidateAttribute(object):
 
             return (start_time, validation_store)
 
+    @tracer.start_as_current_span("ValidateAttribute::cross_validation")
     def cross_validation(
         self,
         val_rule: str,
@@ -2037,10 +2086,11 @@ class ValidateAttribute(object):
 
         return errors, warnings
 
+    @tracer.start_as_current_span("ValidateAttribute::filename_validation")
     def filename_validation(
         self,
         val_rule: str,
-        manifest: pd.core.frame.DataFrame,
+        manifest: pd.DataFrame,
         access_token: str,
         dataset_scope: str,
         project_scope: Optional[list] = None,
@@ -2050,7 +2100,7 @@ class ValidateAttribute(object):
             Validate the filenames in the manifest against the data paths in the fileview.
         Args:
             val_rule: str, Validation rule for the component
-            manifest: pd.core.frame.DataFrame, manifest
+            manifest: pd.DataFrame, manifest
             access_token: str, Asset Store access token
             dataset_scope: str, Dataset with files to validate against
             project_scope: Optional[list] = None: Projects to limit the scope of cross manifest validation to.
