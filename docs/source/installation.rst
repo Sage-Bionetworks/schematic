@@ -149,8 +149,11 @@ The ``.synapseConfig`` is used to log into Synapse if you are not using an envir
 
 In this repository there is a ``config_example.yml`` file with default configurations to various components that are required before running ``schematic``, such as the Synapse ID of the main file view containing all your project assets, the
 
-Installation Guide For: Contributors
-------------------------------------
+Installation Guide For: Developers
+----------------------------------
+
+.. note::
+   This section is for people developing on Schematic only
 
 The instructions below assume you have already installed `python <https://www.python.org/downloads/>`_, with the release version meeting the constraints set in the `Installation Requirements`_ section, and do not have an environment already active (e.g., with ``pyenv``). For development, we recommend working with versions > python 3.9 to avoid issues with ``pre-commit``'s default hook configuration.
 
