@@ -3,6 +3,29 @@ Troubleshooting
 
 These are some common issues you may encounter when using schematic
 
+Debugging
+---------
+Whether you are using DCA or schematic API or schematic library/CLI, the following are some steps that you want to take to debug your issues.  Here are some steps to walk you through the process.
+
+1. What was the command that caused the error?
+2. Is the error listed down below?
+3. Did you follow the workflow outlined in the tutorials section under: "Contributing your manifest with the CLI"?
+4. Create a Github issue or reach out to your respective DCC service desks.  What is the schematic or DCA configuration used? Specifically, it's most important to capture the following:
+
+    1. `data_type`: This is the same as Component in the data model.
+    2. `master_fileview_id`: This is the Synapse ID of the file view listing all project datasets.
+    3. `data model url`: This is the link to your data model.
+    4. `dataset_id`: This is the Schematic Dataset folder (folder annoated with contentType: Datatset).
+    5. What is the command or API call that you made?  If you are using DCA, please provide the step at which you encountered the error (manifest generate, validate, submit, etc)
+
+        .. code-block:: bash
+
+            schematic manifest -c /path/to/config.yml get -dt <your data type> -s
+            # OR (PLEASE REDACT YOUR BEARER TOKEN)
+            curl -X 'GET' \
+                'https://schematic.api.sagebionetworks.org/v1/manifest/generate?schema_url=https%3A%2F%2Fraw.githubusercontent.com%2Fnf-osi%2Fnf-metadata-dictionary%2Fv9.8.0%2FNF.jsonld&title=Example&data_type=EpigeneticsAssayTemplate&use_annotations=true&dataset_id=syn63305821&asset_view=syn16858331&output_format=google_sheet&strict_validation=true&data_model_labels=class_label' \
+                -H 'accept: application/json' ...
+
 
 Manifest Generate: `KeyError: entityId`
 ---------------------------------------
