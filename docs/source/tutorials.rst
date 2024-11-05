@@ -15,6 +15,7 @@ we will cover generating, validating, and submitting your manifest in a structur
     troubleshooting section of the documentation.
 
     Question: What if I've already gone through this workflow, can I download the manifest, modify it and upload it to Synapse without Schematic?
+
     Answer: Yes, but you risk running into errors when others use these commands.  We strongly recommend not doing that.
 
 
