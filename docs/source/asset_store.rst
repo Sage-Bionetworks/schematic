@@ -1,6 +1,9 @@
 Setting up your asset store
 ===========================
 
+.. note::
+
+   You can ignore this section if you are just trying to contribute manifests.
 
 This document covers the minimal recommended elements needed in Synapse to interface with the Data Curator App (DCA) and provides options for Synapse project layout.
 
