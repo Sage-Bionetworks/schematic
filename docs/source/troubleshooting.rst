@@ -1,0 +1,52 @@
+Troubleshooting
+===============
+
+These are some common issues you may encounter when using schematic
+
+
+Manifest Generate: `KeyError: entityId`
+---------------------------------------
+
+If there is currently a manifest in your Schematic Dataset folder on Synapse with an incorrect Filename BUT entityId column.
+You will be able to run manifest generate to create a new manifest with the new Filenames. However, If this manifest on Synapse does
+NOT have the entityId column you will encounter that error. 
+
+To fix: Please submit your manifest using schematic.
+
+
+Manifest Submit: `RuntimeError: failed with SynapseHTTPError('400 Client Error: nan is not a valid Synapse ID.')`
+-----------------------------------------------------------------------------------------------------------------
+
+As for 24.10.2 version of Schematic, we require the `Filename` column to have the full paths to the file on Synapse including the project name.
+If you try and submit a manifest with invalid Filenames (not containing full path), you will encounter the `nan`.  This is because we join the `Filename`
+column together with what's in Synapse to append the `entityId` column if it's missing.
+
+To fix: Please generate a manifest with schematic which should fix the Filenames
+
+
+Manifest Submit: `TypeError: boolean value of NA is ambiguous`
+--------------------------------------------------------------
+
+You may encounter this error if your manifest has a Component column but it is empty.  This may occur if the manifest in your Schematic Dataset folder
+does not contain this column.  During manifest generate, it will create an empty column for you.  
+
+To fix: Please fill out this column with the correct Component values and submit the manifest again.
+
+
+Manifest validation: `The submitted metadata does not contain all required column(s)`
+-------------------------------------------------------------------------------------
+
+The required columns are determined by the data model, but `Component` should be a required column even if it's not set that way in the data model.
+This is the validation error you may get if you don't have the `Component` column.
+
+To fix: Please add the `Component` column (and fill it out) or any other required columns.
+
+
+Manifest validation: `The submitted metadata contains << 'string' >> in the Component column, but requested validation for << expected string >>`
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+If the manifest has incorrect Component values, you might get the validation error message above. This is because the Component value is incorrect,
+and the validation rule uses the "display" value of what's expected in the Component column.  For example, the display name could be "Imaging Assay"
+but the actual Component name is "ImagingAssayTemplate".
+
+To fix: Using the above example, fill out your Component column with "ImagingAssayTemplate"

@@ -6,6 +6,10 @@
 Welcome to Schematic's documentation!
 =====================================
 
+.. warning::
+   This documentation site is a work in progress, and the sublinks may change.  Apologies for the inconvenience.
+
+
 **SCHEMATIC** is an acronym for *Schema Engine for Manifest Ingress and Curation*. The Python-based infrastructure provides a *novel* schema-based, metadata ingress ecosystem, which is meant to streamline the process of biomedical dataset annotation, metadata validation, and submission to a data repository for various data contributors.
 
 Schematic tackles these goals:
@@ -117,4 +121,6 @@ For the entire Python API reference documentation, you can visit the docs here: 
    installation
    asset_store
    configuration
+   tutorials
+   troubleshooting
    cli_reference
