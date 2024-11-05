@@ -17,9 +17,9 @@ Whether you are using DCA or schematic API or schematic library/CLI, the followi
 5. Create a Github issue or reach out to your respective DCC service desks.  What is the schematic or DCA configuration used? Specifically, it's most important to capture the following:
 
     1. `data_type`: This is the same as Component in the data model.
-    2. `master_fileview_id`: This is the Synapse ID of the file view listing all project datasets.
+    2. `master_fileview_id`: This is the Synapse ID of the file view listing all project data.
     3. `data model url`: This is the link to your data model.
-    4. `dataset_id`: This is the Schematic Dataset folder (folder annoated with contentType: Datatset).
+    4. `dataset_id`: This is the "top level folder" (folder annoated with contentType: Datatset).
     5. What is the command or API call that you made?  If you are using DCA, please provide the step at which you encountered the error (manifest generate, validate, submit, etc)
 
         .. code-block:: bash
@@ -34,19 +34,19 @@ Whether you are using DCA or schematic API or schematic library/CLI, the followi
 Manifest Generate: `KeyError: entityId`
 ---------------------------------------
 
-If there is currently a manifest in your Schematic Dataset folder on Synapse with an incorrect Filename BUT entityId column.
+If there is currently a manifest in your "Top Level Folder" on Synapse with an incorrect Filename BUT entityId column.
 You will be able to run manifest generate to create a new manifest with the new Filenames. However, If this manifest on Synapse does
 NOT have the entityId column you will encounter that error. 
 
-To fix: You will want to first check if your Schematic Dataset folder has a manifest without the entityId column.
+To fix: You will want to first check if your "Top Level Folder" has a manifest without the entityId column.
 If so, you can either submit your manifest using schematic OR (the less preferred solution) manually add the entityId column to the manifest on Synapse.
 
 Manifest Generate: `ValueError: cannot insert eTag, already exists`
 -------------------------------------------------------------------
 
-If there is currently a manifest in your Schematic Dataset folder on Synapse with the 'eTag' column and you try to generate a manifest, it will fail.
+If there is currently a manifest in your "Top Level Folder" on Synapse with the 'eTag' column and you try to generate a manifest, it will fail.
 
-To fix: You will want to first check if your Schematic Dataset folder has a manifest with the 'eTag' column and remove that column.
+To fix: You will want to first check if your "Top Level Folder" has a manifest with the 'eTag' column and remove that column.
 
 
 Manifest Submit: `RuntimeError: failed with SynapseHTTPError('400 Client Error: nan is not a valid Synapse ID.')`
@@ -56,14 +56,14 @@ As for 24.10.2 version of Schematic, we require the `Filename` column to have th
 If you try and submit a manifest with invalid Filenames (not containing full path), you will encounter the `nan`.  This is because we join the `Filename`
 column together with what's in Synapse to append the `entityId` column if it's missing.
 
-To fix: You will want to first check if your Schematic Dataset folder has a manifest with invalid Filename values in the column.
+To fix: You will want to first check if your "Top Level Folder" has a manifest with invalid Filename values in the column.
 If so, please generate a manifest with schematic which should fix the Filenames OR (the less preferred solution) manually update the Filenames to include the full path to the file and manually upload.
 
 
 Manifest Submit: `TypeError: boolean value of NA is ambiguous`
 --------------------------------------------------------------
 
-You may encounter this error if your manifest has a Component column but it is empty.  This may occur if the manifest in your Schematic Dataset folder
+You may encounter this error if your manifest has a Component column but it is empty.  This may occur if the manifest in your "Top Level Folder"
 does not contain this column.  During manifest generate, it will create an empty column for you.  
 
 To fix: Check if your manifest has an empty Component column.  Please fill out this column with the correct Component values and submit the manifest again.

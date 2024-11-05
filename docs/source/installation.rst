@@ -88,7 +88,7 @@ If you run into ``ERROR: Failed building wheel for numpy``, the error might be a
 4. Get your data model as a ``JSON-LD`` schema file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now you need a schema file, e.g. ``model.jsonld``, to have a data model that schematic can work with. While you can download a super basic `example data model <https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/develop/tests/data/example.model.jsonld>`_, you’ll probably be working with a DCC-specific data model. For non-Sage employees/contributors using the CLI, you might care only about the minimum needed artifact, which is the  ``.jsonld``; locate and download only that from the right repo.
+Now you need a schema file, e.g. ``model.jsonld``, to have a data model that schematic can work with. While you can download a super basic `example data model <https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/develop/tests/data/example.model.jsonld>`_, you'll probably be working with a DCC-specific data model. For non-Sage employees/contributors using the CLI, you might care only about the minimum needed artifact, which is the  ``.jsonld``; locate and download only that from the right repo.
 
 Here are some example repos with schema files:
 
@@ -111,7 +111,7 @@ Any function that interacts with a Google sheet (such as ``schematic manifest ge
 Once you have obtained credentials, be sure that the json file generated is named in the same way as the ``service_acct_creds`` parameter in your ``config.yml`` file. You will find more context on the ``config.yml`` in section [6. Set up configuration files](#6-set-up-configuration-files).
 
 .. note::
-   Running ``schematic init`` is no longer supported due to security concerns. To obtain ``schematic_service_account_creds.json``, please follow the `instructions <https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA>`_. Schematic uses Google’s API to generate Google sheet templates that users fill in to provide (meta)data. Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate token-based authentication and keep only service account authentication in the future.
+   Running ``schematic init`` is no longer supported due to security concerns. To obtain ``schematic_service_account_creds.json``, please follow the `instructions <https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA>`_. Schematic uses Google's API to generate Google sheet templates that users fill in to provide (meta)data. Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate token-based authentication and keep only service account authentication in the future.
 
 .. note::
    Use the ``schematic_service_account_creds.json`` file for the service account mode of authentication (*for Google services/APIs*). Service accounts are special Google accounts that can be used by applications to access Google APIs programmatically via OAuth2.0, with the advantage being that they do not require human authorization.
@@ -290,7 +290,7 @@ Once you have obtained credentials, ensure that the JSON file generated is named
    For testing, ensure there is no environment variable ``SCHEMATIC_SERVICE_ACCOUNT_CREDS``. Check the file ``.env`` to ensure this is not set. Also, verify that config files used for testing, such as ``config_example.yml``, do not contain ``service_acct_creds_synapse_id``.
 
 .. note::
-   Running ``schematic init`` is no longer supported due to security concerns. To obtain  ``schematic_service_account_creds.json``, please follow the `instructions <https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA>`_. Schematic uses Google’s API to generate Google Sheet templates that users fill in to provide (meta)data.
+   Running ``schematic init`` is no longer supported due to security concerns. To obtain  ``schematic_service_account_creds.json``, please follow the `instructions <https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA>`_. Schematic uses Google's API to generate Google Sheet templates that users fill in to provide (meta)data.
    Most Google Sheet functionality could be authenticated with a service account. However, more complex Google Sheet functionality requires token-based authentication. As browser support that requires token-based authentication diminishes, we hope to deprecate token-based authentication and keep only service account authentication in the future.
 
 .. note::

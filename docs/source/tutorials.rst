@@ -10,13 +10,15 @@ we will cover generating, validating, and submitting your manifest in a structur
 
 .. note::
 
-    Whether you have submitted manifests before to your dataset OR are submitting a new manifest, we **strongly recommend** you to follow this workflow.
+    Whether you have submitted manifests before to your "Top Level Folder" (see important terminology) OR are submitting a new manifest, we **strongly recommend** you to follow this workflow.
     If you deviate from this workflow or upload files to Synapse directly without using schematic, you risk the errors outlined in the
     troubleshooting section of the documentation.
 
     Question: What if I've already gone through this workflow, can I download the manifest, modify it and upload it to Synapse without Schematic?
 
-    Answer: Yes, but you risk running into errors when others use these commands.  We strongly recommend not doing that.
+    Answer: Yes, but you risk running into errors when others use these commands.
+    Updates may have been made to the data model by the DCC and these changes won't be reflected unless you regenerate your manfiest.
+    We strongly recommend not doing that.
 
 
 Prerequisites
@@ -82,9 +84,9 @@ the manifest as part of the submission process, so if you prefer, you can skip t
 
 .. code-block:: bash
 
-    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse dataset folder id> -vc <your data type> -mrt file_only
+    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -vc <your data type> -mrt file_only
 
 This command will:
 
 - Validate your manifest
-- If validation is successful, submit it to the specified Schematic Dataset folder in Synapse.
+- If validation is successful, submit it to the specified "Top Level Folder" (see important terminology) in Synapse.

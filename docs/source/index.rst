@@ -41,13 +41,21 @@ Synapse Folders
 
 Folders in Synapse allow users to organize data within projects. More details on uploading and organizing data can be found at `Synapse folders <https://help.synapse.org/docs/Uploading-and-Organizing-Data-Into-Projects,-Files,-and-Folders.2048327716.html>`_
 
-Datasets
-~~~~~~~~
-You will hear the term **dataset** used frequently. The term dataset refers to three different concepts:
+Synapse Datasets
+~~~~~~~~~~~~~~~~
 
-1. Dataset: A collection of data that is organized and curated for analysis, processing, and/or sharing.
-2. Schematic Dataset: This refers to a folder containing files. These folders are annotated with `contentType:dataset`.
-3. Synapse Dataset Entity: This is an object in Synapse which appears under the "Dataset" tab and represents a user-defined collection of Synapse files and versions.
+This is an object in Synapse which appears under the "Dataset" tab and represents a user-defined collection of Synapse files and versions. https://help.synapse.org/docs/Datasets.2611281979.html
+
+Top Level Folders
+~~~~~~~~~~~~~~~~~
+
+.. note::
+   This concept is subject to feedback and _can_ be changed.  Schematic currently has parameters in the API and CLI that refer to ``dataset``.  This is actually referring to
+   the top level folders.
+
+This is a schematic specific term, this refers to top level Synapse folders that contain Synapse associated to a group of files.
+These folders are often annotated with ``contentType: dataset`` or the name of the folder is used when there is a multi-project setup (This needs to fact check)
+
 
 JSON-LD
 ~~~~~~~
@@ -55,10 +63,10 @@ JSON-LD is a lightweight Linked Data format. The usage of JSON-LD to capture our
 
 Manifest
 ~~~~~~~~
-A manifest is a structured file that contains metadata about a dataset.
+A manifest is a structured file that contains metadata about a files under a "top level folder".
 It is a list of files and their associated metadata. The metadata includes information such as the file name,
 file type, and file size. The manifest is used to validate the metadata before it is uploaded to Synapse.
-The manifest can also used to create a view in Synapse that displays the metadata for each file in the dataset.
+The manifest can also used to create a view in Synapse that displays the metadata for each file in the "top level folder".
 
 Component/Data type
 ~~~~~~~~~~~~~~~~~~~
