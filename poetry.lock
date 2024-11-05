@@ -4926,4 +4926,4 @@ aws = ["uWSGI"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.0,<3.11"
-content-hash = "d03fd3b8c30147632d650d78733cb841c93dd9cb6cb1d2ec6ab9a15a0111857e"
+content-hash = "6c71dbb1a616903a856242d91f59ac8f469a53d914735ac2cec5c3b639382cd3"
