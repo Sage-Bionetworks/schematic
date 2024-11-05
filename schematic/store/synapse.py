@@ -670,12 +670,15 @@ class SynapseStorage(BaseStorage):
         Raises:
             ValueError: Dataset ID not found.
         """
-        file_list = []
-        subfolder_ids = []
+        folders = synapseutils.walk(self.syn, datasetId, includeTypes=["folder"])
+
         dataset_clause = f"parentId='{datasetId}' "
-        subfolders = self.syn.getChildren(datasetId, includeTypes=["folder"])
-        for subfolder in subfolders:
-            dataset_clause += f"OR parentId='{subfolder['id']}' "
+
+        for subfolder, _, path in folders:
+            dataset_clause += f"OR parentId='{subfolder[1]}' "
+
+        file_list = []
+
         dataset_clause = f"({dataset_clause})"
 
         where_clauses = [dataset_clause, "type='file'"]

@@ -203,19 +203,39 @@ class TestStoreSynapse:
                     ),
                 ],
             ),
+            (
+                "syn23643253",
+                "syn63987067",
+                [
+                    (
+                        "syn63987071",
+                        "schematic - main/BulkRNAseq and double nested files/dataset/folder 1/data/txt4.txt",
+                    ),
+                    (
+                        "syn63987072",
+                        "schematic - main/BulkRNAseq and double nested files/dataset/folder 1/data/txt1.txt",
+                    ),
+                    (
+                        "syn63987073",
+                        "schematic - main/BulkRNAseq and double nested files/dataset/folder 1/data/txt2.txt",
+                    ),
+                    (
+                        "syn63987074",
+                        "schematic - main/BulkRNAseq and double nested files/dataset/folder 1/data/txt3.txt",
+                    ),
+                ],
+            ),
         ],
     )
-    def test_getFilesInStorageDataset(
-        self, synapse_store_special_scope, asset_view, dataset_id, expected_files
-    ):
-        # GIVEN a SynapseStorage object with the approrpiate asset view
-        synapse_store_special_scope.storageFileView = asset_view
+    def test_getFilesInStorageDataset(self, asset_view, dataset_id, expected_files):
+        # GIVEN a SynapseStorage object with the appropriate asset view
+        syn = SynapseStorage()
+        syn.storageFileView = asset_view
         # WHEN getFilesInStorageDataset is called for the given dataset
-        dataset_files = synapse_store_special_scope.getFilesInStorageDataset(dataset_id)
+        dataset_files = syn.getFilesInStorageDataset(dataset_id)
         # THEN the expected files are returned
+        # AND there are no unexpected files
         assert dataset_files == expected_files
         # AND the (synId, path) order is correct
         synapse_id_regex = re_compile(syn_id_regex())
         assert synapse_id_regex.fullmatch(dataset_files[0][0])
-        # AND there are no unexpected files
-        assert len(dataset_files) == len(expected_files)
