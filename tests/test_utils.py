@@ -1077,6 +1077,7 @@ class TestValidateUtils:
 
         assert error is None
 
+    @pytest.mark.single_process_execution
     @pytest.mark.parametrize(
         ("manifest", "model", "root_node"),
         [
