@@ -670,28 +670,35 @@ class SynapseStorage(BaseStorage):
         Raises:
             ValueError: Dataset ID not found.
         """
-        folders = synapseutils.walk(self.syn, datasetId, includeTypes=["folder"])
-
-        dataset_clause = f"parentId='{datasetId}' "
-
-        for subfolder, _, path in folders:
-            dataset_clause += f"OR parentId='{subfolder[1]}' "
-
         file_list = []
 
+        # Identify all folders nested under the dataset folder
+        folders = synapseutils.walk(self.syn, datasetId, includeTypes=["folder"])
+
+        # Getting the files directly under the dataset will be the beginning of the query
+        dataset_clause = f"parentId='{datasetId}' "
+
+        # The query will also be ammended to include everything containted in all the subdirectories of the dataset
+        for subfolder, _, path in folders:
+            dataset_clause += f"OR parentId='{subfolder[1]}' "
         dataset_clause = f"({dataset_clause})"
 
+        # When querying, only include files to exclude entity files and subdirectories
         where_clauses = [dataset_clause, "type='file'"]
 
+        # Requery the fileview to specifically get the files in the given dataset
         self.query_fileview(columns=["id", "path"], where_clauses=where_clauses)
 
+        # Exclude manifest files
         non_manifest_files = self.storageFileviewTable.loc[
             ~self.storageFileviewTable["path"].str.contains("manifest"), :
         ]
 
+        # Truncate path if necessary
         if not fullpath:
             non_manifest_files.path = non_manifest_files.path.apply(os.path.basename)
 
+        # Return list of files as expected by other methods
         file_list = list(non_manifest_files.itertuples(index=False, name=None))
 
         return file_list
