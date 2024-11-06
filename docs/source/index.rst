@@ -113,14 +113,14 @@ Given a filled-out manifest:
 Manifest Submission
 ~~~~~~~~~~~~~~~~~~~
 
-- Validates the manifest. If errors are present, the manifest is not stored.
-- If valid:
-  - Stores the manifest in Synapse.
-  - Uploads the manifest to a view, updating file views with annotations as follows:
+Given a filled out manifest, this will allow you to submit the manifest to the "top level folder".
+This is validates the manifest and...
 
-      - **Store manifest only**
-      - **Store manifest and annotations** (to update a file view)
-      - **Store manifest and update a corresponding Synapse table**
+- If manifest is invalid, erorr messages will be returned.
+- If the manifest is valid:
+
+  - Stores the manifest in Synapse.
+  - Uploads the manifest as a Synapse File, Annotations on Files, and/or Synapse Table.
 
 More validation documentation can be found here: https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/3302785036/Schematic+Validation
 
