@@ -10,13 +10,17 @@ Welcome to Schematic's documentation!
    This documentation site is a work in progress, and the sublinks may change.  Apologies for the inconvenience.
 
 
-**SCHEMATIC** is an acronym for *Schema Engine for Manifest Ingress and Curation*. The Python-based infrastructure provides a *novel* schema-based, metadata ingress ecosystem, which is meant to streamline the process of biomedical dataset annotation, metadata validation, and submission to a data repository for various data contributors.
+**SCHEMATIC** is an acronym for *Schema Engine for Manifest Ingress and Curation*.
+The Python-based infrastructure provides a *novel* schema-based, metadata ingress ecosystem,
+which is meant to streamline the process of biomedical dataset annotation, metadata validation,
+and submission to a data repository for various data contributors.  This tool is a recommened to be
+used as a command line tool (CLI) and as an API.
 
 Schematic tackles these goals:
 
-- Ensure the highest quality structured data or metadata be contributed to Synapse before it lands in Synapse
-- Provide excel templates that correspond to a data model that can be filled out by data contributors
-- Visualize data models and their relationships with each other
+- Ensure the highest quality structured data or metadata be contributed to Synapse.
+- Provide excel templates that correspond to a data model that can be filled out by data contributors.
+- Visualize and manage data models and their relationships with each other
 
 .. contents::
    :depth: 2
@@ -26,6 +30,7 @@ Important Concepts
 ------------------
 
 .. important::
+
    Before moving reading more about schematic, this section covers essential concepts relevant for using the Schematic tool effectively.
 
 Synapse FileViews
@@ -33,6 +38,7 @@ Synapse FileViews
 Users are responsible for setting up a **FileView** that integrates with Schematic. Note that FileViews appear under the "Tables" tab in Synapse and can be named according to the project's needs. For instance, a FileView for the **Project A** could have a different name than a FileView for the **Project B**.
 
 For more information on Synapse projects, visit:
+
 - `Synapse projects <https://help.synapse.org/docs/Uploading-and-Organizing-Data-Into-Projects,-Files,-and-Folders.2048327716.html>`_
 - `Synapse annotations <https://help.synapse.org/docs/Annotating-Data-With-Metadata.2667708522.html>`_
 
@@ -48,14 +54,20 @@ This is an object in Synapse which appears under the "Dataset" tab and represent
 
 JSON-LD
 ~~~~~~~
-JSON-LD is a lightweight Linked Data format. The usage of JSON-LD to capture our data models extends beyond the creation, validation, and submission of annotations/manifests into Synapse. It can create relationships between different data models and, in the future, drive transformation of data from one data model to another. Visualization of these data models and their relationships is also possible (see *Schema Visualization - Design & Platform*), which allows the community to see the depth of connections between all the data uploaded into Synapse. As with all products, we must start somewhere.
+JSON-LD is a lightweight Linked Data format. The usage of JSON-LD to capture our data models
+extends beyond the creation, validation, and submission of annotations/manifests into Synapse
+It can create relationships between different data models and, in the future, drive
+transformation of data from one data model to another. Visualization of these data models
+and their relationships is also possible which allows the community to see the depth of
+connections between all the data uploaded into Synapse.
 
 Manifest
 ~~~~~~~~
-A manifest is a structured file that contains metadata about a files under a "top level folder".
-It is a list of files and their associated metadata. The metadata includes information such as the file name,
-file type, and file size. The manifest is used to validate the metadata before it is uploaded to Synapse.
-The manifest can also used to create a view in Synapse that displays the metadata for each file in the "top level folder".
+
+A manifest is a structured file that contains metadata about files under a "top level folder".
+The metadata includes information of the files such as data type and etc.
+The manifest can also used to annotate the data on Synapse and create a file view
+that enables the FAIR principles on each of the files in the "top level folder".
 
 Component/Data type
 ~~~~~~~~~~~~~~~~~~~
@@ -104,14 +116,14 @@ Given a filled-out manifest:
 Manifest Submission
 ~~~~~~~~~~~~~~~~~~~
 
-- Validates the manifest. If errors are present, the manifest is not stored.
-- If valid:
-  - Stores the manifest in Synapse.
-  - Uploads the manifest to a view, updating file views with annotations as follows:
+Given a filled out manifest, this will allow you to submit the manifest to the "top level folder".
+This is validates the manifest and...
 
-      - **Store manifest only**
-      - **Store manifest and annotations** (to update a file view)
-      - **Store manifest and update a corresponding Synapse table**
+- If manifest is invalid, erorr messages will be returned.
+- If the manifest is valid:
+
+  - Stores the manifest in Synapse.
+  - Uploads the manifest as a Synapse File, Annotations on Files, and/or Synapse Table.
 
 More validation documentation can be found here: https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/3302785036/Schematic+Validation
 

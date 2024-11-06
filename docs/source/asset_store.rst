@@ -24,6 +24,10 @@ In each of these project setups, there are two ways you can lay out your data:
 
 2. **Hierarchical Data Layout**: Top level folders are stored within nested folders annotated with ``contentType: dataset``
 
+   .. note::
+
+      This requires you to add the column ``contentType`` to your fileview schema.
+
    .. code-block:: shell
 
       my_heirarchical_project
@@ -59,7 +63,12 @@ Access & Project Setup - Multiple Contributing Projects
 
    - Ensure all teams have **Download** level access to this file view.
    - Include both file and folder entities and add ALL default columns.
-   - Note: If you want to upload data according to hierachical data layout, you can still use distributed projects, just the ``contentType`` column to your fileview, and you will have to annotate your top level folders with ``contentType:dataset``.
+
+.. note::
+
+   Note: If you want to upload data according to hierachical data layout, you can still use
+   distributed projects, just the ``contentType`` column to your fileview, and you will have
+   to annotate your top level folders with ``contentType:dataset``.
 
 
 Option 2: Single Synapse Project
@@ -98,6 +107,11 @@ Access & Project Setup - Single Contributing Project
 
    - Add both file and folder entities and add ALL default columns.
 
+.. note::
+
+   You can technically use the flat data layout with a single project setup, but it is not recommended
+   as if you have different data contributors contributing similar datatypes, it would lead to a
+   proliferation of folders per contributor and data type.
 
 Synapse External Cloud Buckets Setup
 ------------------------------------
