@@ -44,9 +44,9 @@ If so, you can either submit your manifest using schematic OR (the less preferre
 Manifest Generate: `ValueError: cannot insert eTag, already exists`
 -------------------------------------------------------------------
 
-If there is currently a manifest in your "Top Level Folder" on Synapse with the 'eTag' column and you try to generate a manifest, it will fail.
+If you do NOT have a manifest in your "Top Level Folder" on Synapse and your File entities in this folder are annotated with 'eTag' key and you try to generate a manifest, it will fail.
 
-To fix: You will want to first check if your "Top Level Folder" has a manifest with the 'eTag' column and remove that column.
+To fix: This should be fixed in schematic, but for now, remove the 'eTag' annotation from your file.
 
 
 Manifest Submit: `RuntimeError: failed with SynapseHTTPError('400 Client Error: nan is not a valid Synapse ID.')`
