@@ -46,17 +46,6 @@ Synapse Datasets
 
 This is an object in Synapse which appears under the "Dataset" tab and represents a user-defined collection of Synapse files and versions. https://help.synapse.org/docs/Datasets.2611281979.html
 
-Top Level Folders
-~~~~~~~~~~~~~~~~~
-
-.. note::
-   This concept is subject to feedback and `can` be changed.  Schematic currently has parameters in the API and CLI that refer to ``dataset``.  This is actually referring to
-   the top level folders.
-
-This is a schematic specific term, this refers to top level Synapse folders associated to a group of files.
-Depending on whether you pick a flat and hiearchical data project layout, these folders are either annotated with ``contentType: dataset`` or are folders that live directly under the project.
-
-
 JSON-LD
 ~~~~~~~
 JSON-LD is a lightweight Linked Data format. The usage of JSON-LD to capture our data models extends beyond the creation, validation, and submission of annotations/manifests into Synapse. It can create relationships between different data models and, in the future, drive transformation of data from one data model to another. Visualization of these data models and their relationships is also possible (see *Schema Visualization - Design & Platform*), which allows the community to see the depth of connections between all the data uploaded into Synapse. As with all products, we must start somewhere.
@@ -74,6 +63,21 @@ Component/Data type
 If the string "component" exists in the depends on column, the "Attribute" value in that row is a data type.
 Examples of a data type is "Biospecimen", "Patient": https://github.com/Sage-Bionetworks/schematic/blob/develop/tests/data/example.model.csv#L3.
 Each data type/component should a manifest template that has different columns.
+
+Project Data Layout
+~~~~~~~~~~~~~~~~~~~
+
+Regardless of data layout, the data in your Synapse Project(s) are uploaded into Synapse Folders to be curated and annotated by schematic.
+In both layouts listed below, the project administrators along with the data contributors may have preferences on how the
+data is organized. The organization of your data is specified with the "Component / data type" attribute of your data model and
+act as logical groupings for your data. Schematic has a concept of a ``dataset`` (parameters for the API/library/CLI), but this means
+different things under these two layouts.
+
+* **Hierarchical**: The "dataset" parameter under this data layout is associated with any folder that has ``contentType: dataset`` annotated
+  and is often associated with a "dataset".
+* **Flat**: The "dataset" parameter under this data layout is often referred to as "top level folders".
+
+In both of these layouts, these are really just groupings of resources.
 
 
 Schematic services
