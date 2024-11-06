@@ -53,8 +53,8 @@ Top Level Folders
    This concept is subject to feedback and `can` be changed.  Schematic currently has parameters in the API and CLI that refer to ``dataset``.  This is actually referring to
    the top level folders.
 
-This is a schematic specific term, this refers to top level Synapse folders that contain Synapse associated to a group of files.
-These folders are often annotated with ``contentType: dataset``.  Until users add this Synapse Annotation to their folder, it will NOT be a "Top Level Folder"
+This is a schematic specific term, this refers to top level Synapse folders associated to a group of files.
+Depending on whether you pick a flat and hiearchical data project layout, these folders are either annotated with ``contentType: dataset`` or are folders that live directly under the project.
 
 
 JSON-LD
