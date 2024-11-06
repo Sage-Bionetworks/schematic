@@ -12,10 +12,10 @@ build:
     python: "3.9"
   jobs:
     post_install:
-      - pip uninstall sphinx==7.4.7 -y
       - pip install poetry==1.8.3
       - poetry config virtualenvs.create false
       - poetry install --all-extras
+      - pip install sphinx==7.3.7
     #Poetry will install my dependencies into the virtualenv created by readthedocs if I set virtualenvs.create=false
     # You can also specify other tool versions:
     # nodejs: "16"
