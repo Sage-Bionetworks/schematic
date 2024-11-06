@@ -12,7 +12,7 @@ build:
     python: "3.9"
   jobs:
     post_install:
-      - pip install poetry==1.8.3
+      - pip install poetry==1.8.0
       - poetry config virtualenvs.create false
       - poetry install --all-extras
       - pip install sphinx==7.3.7
