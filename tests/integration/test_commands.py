@@ -195,7 +195,6 @@ class TestManifestCommand:
         ]:
             assert np.isnan(patient_df[column].to_list()[0])
 
-
     def test_generate_empty_google_sheet_manifests(
         self,
         runner: CliRunner,
@@ -458,7 +457,13 @@ class TestManifestCommand:
         try:
             result = runner.invoke(
                 manifest,
-                ["--config", "config_example.yml", "get", "--output_xlsx", "./test.xlsx"],
+                [
+                    "--config",
+                    "config_example.yml",
+                    "get",
+                    "--output_xlsx",
+                    "./test.xlsx",
+                ],
             )
             # Assert these files were created:
             assert os.path.isfile("test.xlsx")
