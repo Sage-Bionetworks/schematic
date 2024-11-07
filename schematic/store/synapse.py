@@ -2203,7 +2203,10 @@ class SynapseStorage(BaseStorage):
         manifest_synapse_table_id="",
         annotation_keys: str = "class_label",
     ):
-        """Depending on upload type add Ids to entityId row. Add anotations to connected files.
+        """
+        Depending on upload type add Ids to entityId row. Add anotations to connected
+        files and folders. Despite the name of this function, it also applies to folders.
+
         Args:
             dmge: DataModelGraphExplorer Object
             manifest (pd.DataFrame): loaded df containing user supplied data.
@@ -2247,6 +2250,9 @@ class SynapseStorage(BaseStorage):
                 # If not using entityIds, fill with manifest_table_id so
                 row["entityId"] = manifest_synapse_table_id
                 manifest.loc[idx, "entityId"] = manifest_synapse_table_id
+                entityId = ""
+                # If the row is the manifest table, do not add annotations
+            elif row["entityId"] == manifest_synapse_table_id:
                 entityId = ""
             else:
                 # get the file id of the file to annotate, collected in above step.
