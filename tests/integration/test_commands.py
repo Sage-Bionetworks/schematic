@@ -14,13 +14,11 @@ import numpy as np
 from schematic.configuration.configuration import Configuration
 from schematic.manifest.commands import manifest
 from schematic.models.commands import model
+from tests.conftest import ConfigurationForTesting
 
 LIGHT_BLUE = "FFEAF7F9"  # Required cell
 GRAY = "FFE0E0E0"  # Header cell
 WHITE = "00000000"  # Optional cell
-
-#from tests.conftest import ConfigurationForTesting
-
 
 @pytest.fixture(name="runner")
 def fixture_runner() -> CliRunner:
@@ -54,7 +52,6 @@ class TestSubmitCommand:
         )
         assert result.exit_code == 0
         """
-
 
 class TestValidateCommand:
     """Tests the schematic/models/commands validate command"""
@@ -124,7 +121,6 @@ class TestValidateCommand:
         #   is not included in the test
         assert result.output.split("\n")[4].startswith("error: 'Random' is not one of")
 
-
 class TestManifestCommand:
     """Tests the schematic/manifest/commands validate manifest command"""
 
@@ -181,23 +177,28 @@ class TestManifestCommand:
         os.remove("tests/data/example.Patient.manifest.csv")
         os.remove("tests/data/example.Patient.schema.json")
 
-    def test_generate_empty_google_sheet_manifests(self, runner: CliRunner) -> None:
+    def test_generate_empty_google_sheet_manifests(
+        self,
+        runner: CliRunner,
+        testing_config: ConfigurationForTesting,
+    ) -> None:
         """
         Tests for:
         - command has no errors, has exit code 0
         - command output has file creation messages for 'Patient' and 'Biospecimen' manifest csvs
         - command output has file creation messages for 'Patient' and 'Biospecimen' manifest links
 
-        Tests for both google sheets:
-        - drop downs are populated correctly
+        both google sheets:
+        - have drop downs are populated correctly
         - required fields are marked as “light blue”,
-          while other non-required fields are marked as white.
+        - non-required field are marked as white.
         - first row comments are 'TBD'
 
-        Tests for Patient google sheet:
+        Patient google sheet:
         - first row of 'Family History has its own comment
 
-        Patient sheet Manual tests:
+        Manual tests:
+        - Open 'CLI_TestManifestCommand_google_sheet_empty_patient.xlsx'
         - Select 'Diagnosis' to be 'cancer' in the first row:
             - 'Cancer Type' and 'Family History' cells in first row should be light blue.
         - Select 'Diagnosis' to NOT be 'cancer' in the first row:
@@ -353,7 +354,7 @@ class TestManifestCommand:
             "Cancer Type",
             "Family History",
         ]:
-            assert sheet1[f"{columns[col]}2"].comment.text == "TBD"
+            assert sheet1[f"{columns[col]}1"].comment.text == "TBD"
 
         # AND the comment in "Family History" cell is as expected
         assert (
@@ -404,7 +405,6 @@ class TestManifestCommand:
         for col in ["Year of Birth", "Cancer Type", "Family History"]:
             assert sheet1[f"{columns[col]}2"].fill.start_color.index == WHITE
 
-        '''
         # AND a copy of the Excel file is saved to the test directory for manual verification
         if testing_config.manual_test_verification_enabled:
             workbook.save(
@@ -413,9 +413,12 @@ class TestManifestCommand:
                     "CLI_TestManifestCommand_google_sheet_empty_patient.xlsx",
                 )
             )
-        '''
 
-    def test_generate_empty_excel_manifest(self, runner: CliRunner) -> None:
+    def test_generate_empty_excel_manifest(
+        self,
+        testing_config: ConfigurationForTesting,
+        runner: CliRunner
+    ) -> None:
         """
         Tests for:
         - command has no errors, has exit code 0
@@ -430,6 +433,7 @@ class TestManifestCommand:
 
 
         Manual tests:
+        - Open 'CLI_TestManifestCommand_excel_empty_patient.xlsx'
         - Select 'Diagnosis' to be 'cancer' in the first row:
             - 'Cancer Type' and 'Family History' cells in first row should be light blue.
         - Select 'Diagnosis' to NOT be 'cancer' in the first row:
@@ -552,7 +556,6 @@ class TestManifestCommand:
         for col in ["Year of Birth", "Cancer Type", "Family History"]:
             assert sheet1[f"{columns[col]}2"].fill.start_color.index == WHITE
 
-        '''
         # AND a copy of the Excel file is saved to the test directory for manual verification
         if testing_config.manual_test_verification_enabled:
             workbook.save(
@@ -561,9 +564,12 @@ class TestManifestCommand:
                     "CLI_TestManifestCommand_excel_empty_patient.xlsx",
                 )
             )
-        '''
 
-    def test_generate_bulk_rna_google_sheet_manifest(self, runner: CliRunner) -> None:
+    def test_generate_bulk_rna_google_sheet_manifest(
+        self,
+        testing_config: ConfigurationForTesting,
+        runner: CliRunner
+    ) -> None:
         """
         Tests for:
         - command has no errors, has exit code 0
@@ -577,6 +583,7 @@ class TestManifestCommand:
 
 
         Manual tests:
+        - Open 'CLI_TestManifestCommand_google_sheet_bulk_rna.xlsx'
         - Select 'BAM' to be 'File Format' in the first row:
             - 'Genome Build' cell in first row should be light blue.
         - Select 'CRAM' to be 'File Format' in the first row:
@@ -637,9 +644,9 @@ class TestManifestCommand:
         assert columns["entityId"] is not None
 
         assert sheet1[f"{columns['Filename']}2"].value is None
-        assert sheet1[f"{columns['Filename']}3"].value is "Schematic CLI automation resources/TestDataset1/Sample_A.csv"
-        assert sheet1[f"{columns['Filename']}4"].value is "Schematic CLI automation resources/TestDataset1/Sample_B.csv"
-        assert sheet1[f"{columns['Filename']}5"].value is "Schematic CLI automation resources/TestDataset1/Sample_C.csv"
+        assert sheet1[f"{columns['Filename']}3"].value == "Schematic CLI automation resources/TestDataset1/Sample_A.csv"
+        assert sheet1[f"{columns['Filename']}4"].value == "Schematic CLI automation resources/TestDataset1/Sample_B.csv"
+        assert sheet1[f"{columns['Filename']}5"].value == "Schematic CLI automation resources/TestDataset1/Sample_C.csv"
         assert sheet1[f"{columns['Sample ID']}2"].value == 2022
         assert sheet1[f"{columns['Sample ID']}3"].value is None
         assert sheet1[f"{columns['Sample ID']}4"].value is None
@@ -777,7 +784,6 @@ class TestManifestCommand:
         # AND there are no more columns in the second sheet
         assert sheet2["G1"].value is None
 
-        '''
         # A copy of the Excel file is saved to the test directory for manual verification
         if testing_config.manual_test_verification_enabled:
             workbook.save(
@@ -786,10 +792,11 @@ class TestManifestCommand:
                     "CLI_TestManifestCommand_google_sheet_bulk_rna.xlsx",
                 )
             )
-        '''
 
     def test_generate_bulk_rna_google_sheet_manifest_with_annotations(
-        self, runner: CliRunner
+        self,
+        testing_config: ConfigurationForTesting,
+        runner: CliRunner
     ) -> None:
         """
         Tests for:
@@ -804,7 +811,9 @@ class TestManifestCommand:
 
 
         Manual tests:
-        - TODO
+        - Open CLI_TestManifestCommand_google_sheet_bulk_rna_with_annotations_url.txt
+        - Open the google sheet link in the above file in a browser
+        - In the first row  the File Format column should be txt. Hover over it, and there should be an Invalid error.
         """
         result = runner.invoke(
             manifest,
@@ -1046,6 +1055,16 @@ class TestManifestCommand:
         # AND there are no more columns in the second sheet
         assert sheet2["G1"].value is None
 
+
+        # A copy of the Excel file is saved to the test directory for manual verification
+        if testing_config.manual_test_verification_enabled:
+            path = os.path.join(
+                testing_config.manual_test_verification_path,
+                "CLI_TestManifestCommand_google_sheet_bulk_rna_with_annotations_url.txt",
+            )
+            with open(path, "w") as f:
+                f.write(google_sheet_url)
+
     def test_generate_mock_component_excel_manifest(self, runner: CliRunner) -> None:
         """
         Tests for:
@@ -1127,17 +1146,6 @@ class TestManifestCommand:
 
         required_columns = [
             "Component",
-            "Patient ID",
-            "Sex",
-            "Diagnosis",
-            "Cancer Type",
-            "Family History",
-            "Sample ID",
-            "Tissue Status",
-            "Filename",
-            "File Format",
-            "Genome Build",
-            "Genome FASTA",
             "Check List",
             "Check List Enum",
             "Check List Like",
@@ -1166,11 +1174,20 @@ class TestManifestCommand:
             "Check Range",
             "Check Date",
             "Check NA",
-            "MockRDB_id",
-            "SourceManifest",
         ]
 
         optional_columns = [
+            "Patient ID",
+            "Sex",
+            "Diagnosis",
+            "Cancer Type",
+            "Family History",
+            "Sample ID",
+            "Tissue Status",
+            "Filename",
+            "File Format",
+            "Genome Build",
+            "Genome FASTA",
             "Patient",
             "Year of Birth",
             "Cancer",
@@ -1183,6 +1200,8 @@ class TestManifestCommand:
             "Check Recommended",
             "MockRDB",
             "MockFilename",
+            "MockRDB_id",
+            "SourceManifest",
         ]
 
         # Required columns are light blue
@@ -1191,7 +1210,8 @@ class TestManifestCommand:
 
         # Optional columns are in grey
         for col in optional_columns:
-            assert sheet1[f"{columns[col]}1"].fill.start_color.index == GRAY
+            if col in columns:
+                assert sheet1[f"{columns[col]}1"].fill.start_color.index == GRAY
 
 class TestDownloadManifest:
     """Tests the command line interface for downloading a manifest"""
