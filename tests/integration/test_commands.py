@@ -135,7 +135,20 @@ class TestManifestCommand:
         - manifest csvs and json schemas were created (then removed)
 
         """
-        result = runner.invoke(manifest, ["--config", "config_example.yml", "get"])
+        try:
+            result = runner.invoke(manifest, ["--config", "config_example.yml", "get"])
+            # manifest csvs and json schemas were created
+            assert os.path.isfile("tests/data/example.Biospecimen.manifest.csv")
+            assert os.path.isfile("tests/data/example.Patient.manifest.csv")
+
+            biospecimen_df = pd.read_csv("tests/data/example.Biospecimen.manifest.csv")
+            patient_df = pd.read_csv("tests/data/example.Patient.manifest.csv")
+
+        # Remove created files:
+        finally:
+            os.remove("tests/data/example.Biospecimen.manifest.csv")
+            os.remove("tests/data/example.Patient.manifest.csv")
+
         # command has no (python) errors, has exit code 0
         assert result.exit_code == 0
         # command output has file creation messages for 'Patient' and 'Biospecimen' manifests
@@ -147,12 +160,6 @@ class TestManifestCommand:
             "Find the manifest template using this CSV file path: "
             "tests/data/example.Patient.manifest.csv"
         )
-        # manifest csvs and json schemas were created
-        assert os.path.isfile("tests/data/example.Biospecimen.manifest.csv")
-        assert os.path.isfile("tests/data/example.Patient.manifest.csv")
-
-        biospecimen_df = pd.read_csv("tests/data/example.Biospecimen.manifest.csv")
-        patient_df = pd.read_csv("tests/data/example.Patient.manifest.csv")
 
         # manifests have expected columns
         assert list(biospecimen_df.columns) == [
@@ -188,9 +195,6 @@ class TestManifestCommand:
         ]:
             assert np.isnan(patient_df[column].to_list()[0])
 
-        # Remove created files:
-        os.remove("tests/data/example.Biospecimen.manifest.csv")
-        os.remove("tests/data/example.Patient.manifest.csv")
 
     def test_generate_empty_google_sheet_manifests(
         self,
@@ -220,9 +224,19 @@ class TestManifestCommand:
             - 'Cancer Type' and 'Family History' cells in first row should be white
 
         """
-        result = runner.invoke(
-            manifest, ["--config", "config_example.yml", "get", "--sheet_url"]
-        )
+        try:
+            result = runner.invoke(
+                manifest, ["--config", "config_example.yml", "get", "--sheet_url"]
+            )
+            # Assert these files were created:
+            assert os.path.isfile("tests/data/example.Biospecimen.manifest.csv")
+            assert os.path.isfile("tests/data/example.Patient.manifest.csv")
+
+        finally:
+            # Remove created files:
+            os.remove("tests/data/example.Biospecimen.manifest.csv")
+            os.remove("tests/data/example.Patient.manifest.csv")
+
         # command has no errors, has exit code 0
         assert result.exit_code == 0
 
@@ -249,13 +263,6 @@ class TestManifestCommand:
         assert result.output.split("\n")[13].startswith(
             "https://docs.google.com/spreadsheets/d/"
         )
-
-        # Assert these files were created:
-        assert os.path.isfile("tests/data/example.Biospecimen.manifest.csv")
-        assert os.path.isfile("tests/data/example.Patient.manifest.csv")
-        # Remove created files:
-        os.remove("tests/data/example.Biospecimen.manifest.csv")
-        os.remove("tests/data/example.Patient.manifest.csv")
 
         # Get the google sheet urls form the message
         google_sheet_url_biospecimen = result.output.split("\n")[8]
@@ -448,10 +455,19 @@ class TestManifestCommand:
         - Select 'Diagnosis' to NOT be 'cancer' in the first row:
             - 'Cancer Type' and 'Family History' cells in first row should be white
         """
-        result = runner.invoke(
-            manifest,
-            ["--config", "config_example.yml", "get", "--output_xlsx", "./test.xlsx"],
-        )
+        try:
+            result = runner.invoke(
+                manifest,
+                ["--config", "config_example.yml", "get", "--output_xlsx", "./test.xlsx"],
+            )
+            # Assert these files were created:
+            assert os.path.isfile("test.xlsx")
+
+            workbook = load_workbook("test.xlsx")
+        finally:
+            # Remove created files:
+            os.remove("test.xlsx")
+
         # command has no errors, has exit code 0
         assert result.exit_code == 0
         # command output has excel file creation message
@@ -459,14 +475,6 @@ class TestManifestCommand:
             result.output.split("\n")[7]
             == "Find the manifest template using this Excel file path: ./test.xlsx"
         )
-
-        # Assert these files were created:
-        assert os.path.isfile("test.xlsx")
-
-        workbook = load_workbook("test.xlsx")
-
-        # Remove created files:
-        os.remove("test.xlsx")
 
         sheet1 = workbook["Sheet1"]
         # Track column positions
@@ -592,19 +600,28 @@ class TestManifestCommand:
         - Select 'CRAM' to be 'File Format' in the first row:
             - 'Genome Build' and 'Genome FASTA' cells in first row should be light blue.
         """
-        result = runner.invoke(
-            manifest,
-            [
-                "--config",
-                "tests/data/test_configs/CLI_test_config.yml",
-                "get",
-                "--dataset_id",
-                "syn63923432",
-                "--data_type",
-                "BulkRNA-seqAssay",
-                "--sheet_url",
-            ],
-        )
+        try:
+            result = runner.invoke(
+                manifest,
+                [
+                    "--config",
+                    "tests/data/test_configs/CLI_test_config.yml",
+                    "get",
+                    "--dataset_id",
+                    "syn63923432",
+                    "--data_type",
+                    "BulkRNA-seqAssay",
+                    "--sheet_url",
+                ],
+            )
+            # Assert these files were created:
+            assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.schema.json")
+            assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.manifest.csv")
+        finally:
+            # Remove created files:
+            os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
+            os.remove("tests/data/example.BulkRNA-seqAssay.manifest.csv")
+
         assert result.exit_code == 0
         assert result.output.split("\n")[7] == (
             "Find the manifest template using this Google Sheet URL:"
@@ -616,12 +633,6 @@ class TestManifestCommand:
             "Find the manifest template using this CSV file path: "
             "tests/data/example.BulkRNA-seqAssay.manifest.csv"
         )
-        # Assert these files were created:
-        assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.schema.json")
-        assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.manifest.csv")
-        # Remove created files:
-        os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
-        os.remove("tests/data/example.BulkRNA-seqAssay.manifest.csv")
 
         google_sheet_url = result.output.split("\n")[8]
 
@@ -826,20 +837,29 @@ class TestManifestCommand:
         - In the first row  the File Format column should be txt. Hover over it, and there should be an Invalid error.
         - In the second row  the File Format column should be csv. Hover over it, and there should be an Invalid error.
         """
-        result = runner.invoke(
-            manifest,
-            [
-                "--config",
-                "config_example.yml",
-                "get",
-                "--dataset_id",
-                "syn25614635",
-                "--data_type",
-                "BulkRNA-seqAssay",
-                "--sheet_url",
-                "--use_annotations",
-            ],
-        )
+        try:
+            result = runner.invoke(
+                manifest,
+                [
+                    "--config",
+                    "config_example.yml",
+                    "get",
+                    "--dataset_id",
+                    "syn25614635",
+                    "--data_type",
+                    "BulkRNA-seqAssay",
+                    "--sheet_url",
+                    "--use_annotations",
+                ],
+            )
+            # Assert these files were created:
+            assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.schema.json")
+            assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.manifest.csv")
+        finally:
+            # Remove created files:
+            os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
+            os.remove("tests/data/example.BulkRNA-seqAssay.manifest.csv")
+
         assert result.exit_code == 0
         assert result.output.split("\n")[10] == (
             "Find the manifest template using this Google Sheet URL:"
@@ -851,13 +871,6 @@ class TestManifestCommand:
             "Find the manifest template using this CSV file path: "
             "tests/data/example.BulkRNA-seqAssay.manifest.csv"
         )
-
-        # Assert these files were created:
-        assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.schema.json")
-        assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.manifest.csv")
-        # Remove created files:
-        os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
-        os.remove("tests/data/example.BulkRNA-seqAssay.manifest.csv")
 
         google_sheet_url = result.output.split("\n")[11]
 
@@ -1090,34 +1103,34 @@ class TestManifestCommand:
         - Command has no errors, has exit code 0
         - Command output has excel file message
         """
-        result = runner.invoke(
-            manifest,
-            [
-                "--config",
-                "tests/data/test_configs/CLI_test_config2.yml",
-                "get",
-                "--output_xlsx",
-                "test-example.xlsx",
-                "--dataset_id",
-                "syn52746566",
-            ],
-        )
+        try:
+            result = runner.invoke(
+                manifest,
+                [
+                    "--config",
+                    "tests/data/test_configs/CLI_test_config2.yml",
+                    "get",
+                    "--output_xlsx",
+                    "test-example.xlsx",
+                    "--dataset_id",
+                    "syn52746566",
+                ],
+            )
+            # Assert these files were created:
+            assert os.path.isfile("tests/data/example.MockComponent.schema.json")
+            assert os.path.isfile("test-example.xlsx")
+            workbook = load_workbook("test-example.xlsx")
+        finally:
+            # Remove created files:
+            os.remove("tests/data/example.MockComponent.schema.json")
+            os.remove("test-example.xlsx")
+
         # Command has no errors, has exit code 0
         assert result.exit_code == 0
         # Command output has excel file message
         assert result.output.split("\n")[8] == (
             "Find the manifest template using this Excel file path: test-example.xlsx"
         )
-
-        # Assert these files were created:
-        assert os.path.isfile("tests/data/example.MockComponent.schema.json")
-        assert os.path.isfile("test-example.xlsx")
-
-        workbook = load_workbook("test-example.xlsx")
-
-        # Remove created files:
-        os.remove("tests/data/example.MockComponent.schema.json")
-        os.remove("test-example.xlsx")
 
         sheet1 = workbook["Sheet1"]
         # Track column positions
