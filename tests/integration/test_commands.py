@@ -20,6 +20,7 @@ LIGHT_BLUE = "FFEAF7F9"  # Required cell
 GRAY = "FFE0E0E0"  # Header cell
 WHITE = "00000000"  # Optional cell
 
+
 @pytest.fixture(name="runner")
 def fixture_runner() -> CliRunner:
     """Fixture for invoking command-line interfaces."""
@@ -52,6 +53,7 @@ class TestSubmitCommand:
         )
         assert result.exit_code == 0
         """
+
 
 class TestValidateCommand:
     """Tests the schematic/models/commands validate command"""
@@ -121,6 +123,7 @@ class TestValidateCommand:
         #   is not included in the test
         assert result.output.split("\n")[4].startswith("error: 'Random' is not one of")
 
+
 class TestManifestCommand:
     """Tests the schematic/manifest/commands validate manifest command"""
 
@@ -153,10 +156,19 @@ class TestManifestCommand:
 
         # manifests have expected columns
         assert list(biospecimen_df.columns) == [
-            "Sample ID", "Patient ID", "Tissue Status", "Component"
+            "Sample ID",
+            "Patient ID",
+            "Tissue Status",
+            "Component",
         ]
         assert list(patient_df.columns) == [
-            "Patient ID", "Sex", "Year of Birth", "Diagnosis", "Component", "Cancer Type", "Family History"
+            "Patient ID",
+            "Sex",
+            "Year of Birth",
+            "Diagnosis",
+            "Component",
+            "Cancer Type",
+            "Family History",
         ]
         # manifests only have one row
         assert len(biospecimen_df.index) == 1
@@ -166,7 +178,14 @@ class TestManifestCommand:
         assert patient_df["Component"].to_list() == ["Patient"]
         for column in ["Sample ID", "Patient ID", "Tissue Status"]:
             assert np.isnan(biospecimen_df[column].to_list()[0])
-        for column in ["Patient ID", "Sex", "Year of Birth", "Diagnosis","Cancer Type", "Family History"]:
+        for column in [
+            "Patient ID",
+            "Sex",
+            "Year of Birth",
+            "Diagnosis",
+            "Cancer Type",
+            "Family History",
+        ]:
             assert np.isnan(patient_df[column].to_list()[0])
 
         # Remove created files:
@@ -407,9 +426,7 @@ class TestManifestCommand:
             )
 
     def test_generate_empty_excel_manifest(
-        self,
-        testing_config: ConfigurationForTesting,
-        runner: CliRunner
+        self, testing_config: ConfigurationForTesting, runner: CliRunner
     ) -> None:
         """
         Tests for:
@@ -554,9 +571,7 @@ class TestManifestCommand:
             )
 
     def test_generate_bulk_rna_google_sheet_manifest(
-        self,
-        testing_config: ConfigurationForTesting,
-        runner: CliRunner
+        self, testing_config: ConfigurationForTesting, runner: CliRunner
     ) -> None:
         """
         Tests for:
@@ -632,9 +647,18 @@ class TestManifestCommand:
         assert columns["entityId"] is not None
 
         assert sheet1[f"{columns['Filename']}2"].value is None
-        assert sheet1[f"{columns['Filename']}3"].value == "Schematic CLI automation resources/TestDataset1/Sample_A.csv"
-        assert sheet1[f"{columns['Filename']}4"].value == "Schematic CLI automation resources/TestDataset1/Sample_B.csv"
-        assert sheet1[f"{columns['Filename']}5"].value == "Schematic CLI automation resources/TestDataset1/Sample_C.csv"
+        assert (
+            sheet1[f"{columns['Filename']}3"].value
+            == "Schematic CLI automation resources/TestDataset1/Sample_A.csv"
+        )
+        assert (
+            sheet1[f"{columns['Filename']}4"].value
+            == "Schematic CLI automation resources/TestDataset1/Sample_B.csv"
+        )
+        assert (
+            sheet1[f"{columns['Filename']}5"].value
+            == "Schematic CLI automation resources/TestDataset1/Sample_C.csv"
+        )
         assert sheet1[f"{columns['Sample ID']}2"].value == 2022
         assert sheet1[f"{columns['Sample ID']}3"].value is None
         assert sheet1[f"{columns['Sample ID']}4"].value is None
@@ -782,9 +806,7 @@ class TestManifestCommand:
             )
 
     def test_generate_bulk_rna_google_sheet_manifest_with_annotations(
-        self,
-        testing_config: ConfigurationForTesting,
-        runner: CliRunner
+        self, testing_config: ConfigurationForTesting, runner: CliRunner
     ) -> None:
         """
         Tests for:
@@ -868,7 +890,10 @@ class TestManifestCommand:
         assert columns["Year of Birth"] is not None
         assert columns["entityId"] is not None
 
-        assert sheet1[f"{columns['Filename']}2"].value == "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_A.txt"
+        assert (
+            sheet1[f"{columns['Filename']}2"].value
+            == "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_A.txt"
+        )
         assert sheet1[f"{columns['Sample ID']}2"].value is None
         assert sheet1[f"{columns['File Format']}2"].value == "txt"
         assert sheet1[f"{columns['Component']}2"].value == "BulkRNA-seqAssay"
@@ -884,7 +909,10 @@ class TestManifestCommand:
         assert sheet1[f"{columns['Year of Birth']}2"].value is not None
         assert sheet1[f"{columns['entityId']}2"].value is not None
 
-        assert sheet1[f"{columns['Filename']}3"].value == "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_B.txt"
+        assert (
+            sheet1[f"{columns['Filename']}3"].value
+            == "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_B.txt"
+        )
         assert sheet1[f"{columns['Sample ID']}3"].value is None
         assert sheet1[f"{columns['File Format']}3"].value == "csv"
         assert sheet1[f"{columns['Component']}3"].value == "BulkRNA-seqAssay"
@@ -900,7 +928,10 @@ class TestManifestCommand:
         assert sheet1[f"{columns['Year of Birth']}3"].value is None
         assert sheet1[f"{columns['entityId']}3"].value is not None
 
-        assert sheet1[f"{columns['Filename']}4"].value == "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_C.txt"
+        assert (
+            sheet1[f"{columns['Filename']}4"].value
+            == "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_C.txt"
+        )
         assert sheet1[f"{columns['Sample ID']}4"].value is None
         assert sheet1[f"{columns['File Format']}4"].value == "fastq"
         assert sheet1[f"{columns['Component']}4"].value == "BulkRNA-seqAssay"
@@ -1044,7 +1075,6 @@ class TestManifestCommand:
         # AND there are no more columns in the second sheet
         assert sheet2["G1"].value is None
 
-
         # A copy of the Excel file is saved to the test directory for manual verification
         if testing_config.manual_test_verification_enabled:
             path = os.path.join(
@@ -1132,7 +1162,6 @@ class TestManifestCommand:
         assert sheet1[f"{columns['Check Int']}2"].value is not None
         assert sheet1[f"{columns['Check Int']}3"].value is not None
 
-
         required_columns = [
             "Component",
             "Check List",
@@ -1201,6 +1230,7 @@ class TestManifestCommand:
         for col in optional_columns:
             if col in columns:
                 assert sheet1[f"{columns[col]}1"].fill.start_color.index == GRAY
+
 
 class TestDownloadManifest:
     """Tests the command line interface for downloading a manifest"""
