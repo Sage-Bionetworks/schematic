@@ -2219,8 +2219,19 @@ class SynapseStorage(BaseStorage):
 
         """
 
-        # Expected behavior is to annotate files if `Filename` is present and if file_annotations_upload is set to True regardless of `-mrt` setting
-        if "filename" in [col.lower() for col in manifest.columns]:
+        filename_column_present = False
+        filename_column = None
+
+        # Find the exact column name for 'Filename'
+        for col in manifest.columns:
+            if col.lower() == "filename":
+                filename_column_present = True
+                filename_column = col
+                break
+
+        # Expected behavior is to annotate files if `Filename` is present and if
+        # file_annotations_upload is set to True regardless of `-mrt` setting
+        if filename_column_present:
             # get current list of files and store as dataframe
             dataset_files = self.getFilesInStorageDataset(datasetId)
             files_and_entityIds = self._get_file_entityIds(
@@ -2247,6 +2258,9 @@ class SynapseStorage(BaseStorage):
                 # If not using entityIds, fill with manifest_table_id so
                 row["entityId"] = manifest_synapse_table_id
                 manifest.loc[idx, "entityId"] = manifest_synapse_table_id
+                entityId = ""
+            elif filename_column_present and not row[filename_column]:
+                # Skip any attempt to annotate a row which does not have a filename
                 entityId = ""
             else:
                 # get the file id of the file to annotate, collected in above step.
