@@ -140,6 +140,8 @@ class TestManifestCommand:
             # manifest csvs and json schemas were created
             assert os.path.isfile("tests/data/example.Biospecimen.manifest.csv")
             assert os.path.isfile("tests/data/example.Patient.manifest.csv")
+            assert os.path.isfile("tests/data/example.Biospecimen.schema.json")
+            assert os.path.isfile("tests/data/example.Patient.schema.json")
 
             biospecimen_df = pd.read_csv("tests/data/example.Biospecimen.manifest.csv")
             patient_df = pd.read_csv("tests/data/example.Patient.manifest.csv")
@@ -148,6 +150,8 @@ class TestManifestCommand:
         finally:
             os.remove("tests/data/example.Biospecimen.manifest.csv")
             os.remove("tests/data/example.Patient.manifest.csv")
+            os.remove("tests/data/example.Biospecimen.schema.json")
+            os.remove("tests/data/example.Patient.schema.json")
 
         # command has no (python) errors, has exit code 0
         assert result.exit_code == 0
@@ -472,12 +476,14 @@ class TestManifestCommand:
             # Assert these files were created:
             assert os.path.isfile("test.xlsx")
             assert os.path.isfile("tests/data/example.Patient.schema.json")
+            assert os.path.isfile("tests/data/example.Biospecimen.schema.json")
 
             workbook = load_workbook("test.xlsx")
         finally:
             # Remove created files:
             os.remove("test.xlsx")
             os.remove("tests/data/example.Patient.schema.json")
+            os.remove("tests/data/example.Biospecimen.schema.json")
 
         # command has no errors, has exit code 0
         assert result.exit_code == 0
