@@ -814,6 +814,7 @@ class TestManifestCommand:
         - Open CLI_TestManifestCommand_google_sheet_bulk_rna_with_annotations_url.txt
         - Open the google sheet link in the above file in a browser
         - In the first row  the File Format column should be txt. Hover over it, and there should be an Invalid error.
+        - In the second row  the File Format column should be csv. Hover over it, and there should be an Invalid error.
         """
         result = runner.invoke(
             manifest,
