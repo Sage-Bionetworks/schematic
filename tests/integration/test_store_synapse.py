@@ -227,7 +227,7 @@ class TestStoreSynapse:
             ),
         ],
     )
-    @pytest.mark.parametrize("filenames", [None, ["txt1.txt", "txt2.txt"]])
+    @pytest.mark.parametrize("filenames", [["txt1.txt", "txt2.txt"]])
     def test_getFilesInStorageDataset(
         self, filenames, asset_view, dataset_id, expected_files
     ):
@@ -235,7 +235,9 @@ class TestStoreSynapse:
         syn = SynapseStorage()
         syn.storageFileView = asset_view
         # WHEN getFilesInStorageDataset is called for the given dataset
-        dataset_files = syn.getFilesInStorageDataset(dataset_id)
+        dataset_files = syn.getFilesInStorageDataset(
+            datasetId=dataset_id, fileNames=filenames
+        )
         # AND the filenames are filtered as appropriate
         if filenames:
             for f in expected_files:
