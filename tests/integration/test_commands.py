@@ -146,9 +146,7 @@ class TestManifestCommand:
         )
         # manifest csvs and json schemas were created
         assert os.path.isfile("tests/data/example.Biospecimen.manifest.csv")
-        assert os.path.isfile("tests/data/example.Biospecimen.schema.json")
         assert os.path.isfile("tests/data/example.Patient.manifest.csv")
-        assert os.path.isfile("tests/data/example.Patient.schema.json")
 
         biospecimen_df = pd.read_csv("tests/data/example.Biospecimen.manifest.csv")
         patient_df = pd.read_csv("tests/data/example.Patient.manifest.csv")
@@ -173,9 +171,7 @@ class TestManifestCommand:
 
         # Remove created files:
         os.remove("tests/data/example.Biospecimen.manifest.csv")
-        os.remove("tests/data/example.Biospecimen.schema.json")
         os.remove("tests/data/example.Patient.manifest.csv")
-        os.remove("tests/data/example.Patient.schema.json")
 
     def test_generate_empty_google_sheet_manifests(
         self,
@@ -237,14 +233,10 @@ class TestManifestCommand:
 
         # Assert these files were created:
         assert os.path.isfile("tests/data/example.Biospecimen.manifest.csv")
-        assert os.path.isfile("tests/data/example.Biospecimen.schema.json")
         assert os.path.isfile("tests/data/example.Patient.manifest.csv")
-        assert os.path.isfile("tests/data/example.Patient.schema.json")
         # Remove created files:
         os.remove("tests/data/example.Biospecimen.manifest.csv")
-        os.remove("tests/data/example.Biospecimen.schema.json")
         os.remove("tests/data/example.Patient.manifest.csv")
-        os.remove("tests/data/example.Patient.schema.json")
 
         # Get the google sheet urls form the message
         google_sheet_url_biospecimen = result.output.split("\n")[8]
@@ -452,15 +444,11 @@ class TestManifestCommand:
         )
 
         # Assert these files were created:
-        assert os.path.isfile("tests/data/example.Biospecimen.schema.json")
-        assert os.path.isfile("tests/data/example.Patient.schema.json")
         assert os.path.isfile("test.xlsx")
 
         workbook = load_workbook("test.xlsx")
 
         # Remove created files:
-        os.remove("tests/data/example.Biospecimen.schema.json")
-        os.remove("tests/data/example.Patient.schema.json")
         os.remove("test.xlsx")
 
         sheet1 = workbook["Sheet1"]
