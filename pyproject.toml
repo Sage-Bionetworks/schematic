@@ -34,10 +34,8 @@ packages = [
 [tool.poetry.scripts]
 schematic = "schematic.__main__:main"
 
-
 [tool.poetry.dependencies]
 python = ">=3.9.0,<3.11"
-
 click = "^8.0.0"
 click-log = "^0.4.0"
 google-api-python-client = "^2.0.0"
@@ -58,11 +56,9 @@ synapseclient = "4.6.0"
 tenacity = "^8.0.1"
 toml = "^0.10.2"
 great-expectations = "^0.15.0"
-sphinx-click = "^4.0.0"
 itsdangerous = "^2.0.0"
 openpyxl = "^3.0.9"
 "backports.zoneinfo" = {markers = "python_version < \"3.9\"", version = "^0.2.1"}
-pdoc = "^14.0.0"
 dateparser = "^1.1.4"
 pandarallel = "^1.6.4"
 pyopenssl = {version = "^23.0.0", optional = true}
@@ -84,7 +80,6 @@ opentelemetry-instrumentation-flask = {version=">=0.48b0 ", optional = true}
 api = ["connexion", "Flask", "Flask-Cors", "Jinja2", "pyopenssl", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-exporter-otlp-proto-grpc", "opentelemetry-instrumentation-flask"]
 aws = ["uWSGI"]
 
-
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
 pytest-cov = "^4.0.0"
@@ -98,6 +93,11 @@ mypy = "^1.4.1"
 pylint = "^2.16.1"
 pytest-xdist = "^3.5.0"
 pre-commit = "^3.6.2"
+
+[tool.poetry.group.doc.dependencies]
+pdoc = "^14.0.0"
+sphinx = "7.3.7"
+sphinx-click = "4.4.0"
 
 [tool.black]
 line-length = 88

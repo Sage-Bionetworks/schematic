@@ -49,7 +49,7 @@ For new features, bugs, enhancements:
 #### 4. Pull Request and Review
 * Create a PR from `develop-<feature/fix-name>` into the develop branch of the upstream repo
 * Request a code review on the PR
-* Once code is approved merge in the develop branch. We suggest creating a merge commit for a cleaner commit history on the `develop` branch.
+* Once code is approved merge in the develop branch. The **"Squash and merge"** strategy should be used for a cleaner commit history on the `develop` branch. The description of the squash commit should include enough information to understand the context of the changes that were made.
 * Once the actions pass on the main branch, delete the `develop-<feature/fix-name>` branch
 
 ### Updating readthedocs documentation
