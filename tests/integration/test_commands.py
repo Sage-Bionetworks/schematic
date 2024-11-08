@@ -28,31 +28,46 @@ def fixture_runner() -> CliRunner:
 
 
 class TestSubmitCommand:
-    """Tests the schematic/models/commands submit command"""
-
+    """
+    Tests for:
+    - The command ran without error
+    - The output contained a message indicating no validation errors
+    - The output contained a message indicating the file was submitted
+    """
     def test_submit_test_manifest(self, runner: CliRunner) -> None:
         """Tests for a successful submission"""
-        # commented out, this command causes an error
-        # https://sagebionetworks.jira.com/browse/SCHEMATIC-126
-        """
-        result = runner.invoke(
-            model,
-            [
-                "--config",
-                "config_example.yml",
-                "submit",
-                "-mp",
-                "tests/data/mock_manifests/CLI_tests/CLI_biospecimen.csv",
-                "-vc",
-                "Biospecimen",
-                "-mrt",
-                "table_and_file",
-                "-d",
-                "syn23643250"
-            ],
-        )
+        try:
+            result = runner.invoke(
+                model,
+                [
+                    "--config",
+                    "config_example.yml",
+                    "submit",
+                    "-mp",
+                    "tests/data/mock_manifests/CLI_tests/CLI_biospecimen.csv",
+                    "-vc",
+                    "Biospecimen",
+                    "-mrt",
+                    "table_and_file",
+                    "-d",
+                    "syn23643250",
+                    "--no-file_annotations_upload",
+                ],
+            )
+            assert os.path.isfile("tests/data/example.Biospecimen.schema.json")
+
+        finally:
+            os.remove("tests/data/example.Biospecimen.schema.json")
+
         assert result.exit_code == 0
-        """
+        assert "No validation errors occured during validation." in result.output
+        assert (
+            (
+                "File at 'tests/data/mock_manifests/CLI_tests/CLI_biospecimen.csv' was "
+                "successfully associated with dataset 'syn23643250'."
+            )
+            in result.output
+        )
 
 
 class TestValidateCommand:
