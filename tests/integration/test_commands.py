@@ -34,6 +34,7 @@ class TestSubmitCommand:
     - The output contained a message indicating no validation errors
     - The output contained a message indicating the file was submitted
     """
+
     def test_submit_test_manifest(self, runner: CliRunner) -> None:
         """Tests for a successful submission"""
         try:
@@ -62,12 +63,9 @@ class TestSubmitCommand:
         assert result.exit_code == 0
         assert "No validation errors occured during validation." in result.output
         assert (
-            (
-                "File at 'tests/data/mock_manifests/CLI_tests/CLI_biospecimen.csv' was "
-                "successfully associated with dataset 'syn23643250'."
-            )
-            in result.output
-        )
+            "File at 'tests/data/mock_manifests/CLI_tests/CLI_biospecimen.csv' was "
+            "successfully associated with dataset 'syn23643250'."
+        ) in result.output
 
 
 class TestValidateCommand:
