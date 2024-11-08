@@ -712,7 +712,8 @@ class SynapseStorage(BaseStorage):
 
         # Exclude manifest files
         non_manifest_files = self.storageFileviewTable.loc[
-            ~self.storageFileviewTable["path"].str.contains("manifest"), :
+            ~self.storageFileviewTable["path"].str.contains("synapse_storage_manifest"),
+            :,
         ]
 
         # Remove all files that are not in the list of fileNames
