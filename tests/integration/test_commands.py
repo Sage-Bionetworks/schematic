@@ -11,7 +11,7 @@ from click.testing import CliRunner
 import pandas as pd
 import numpy as np
 
-from schematic.configuration.configuration import Configuration
+from schematic.configuration.configuration import Configuration, CONFIG
 from schematic.manifest.commands import manifest
 from schematic.models.commands import model
 from tests.conftest import ConfigurationForTesting
@@ -639,6 +639,9 @@ class TestManifestCommand:
             os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
             os.remove("tests/data/example.BulkRNA-seqAssay.manifest.csv")
 
+            # Reset config to it's default values
+            CONFIG.load_config("config_example.yml")
+
         assert result.exit_code == 0
         assert result.output.split("\n")[7] == (
             "Find the manifest template using this Google Sheet URL:"
@@ -1141,6 +1144,9 @@ class TestManifestCommand:
             # Remove created files:
             os.remove("tests/data/example.MockComponent.schema.json")
             os.remove("test-example.xlsx")
+
+            # Reset config to it's default values
+            CONFIG.load_config("config_example.yml")
 
         # Command has no errors, has exit code 0
         assert result.exit_code == 0
