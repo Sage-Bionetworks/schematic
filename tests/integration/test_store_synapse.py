@@ -227,7 +227,8 @@ class TestStoreSynapse:
             ),
         ],
     )
-    @pytest.mark.parametrize("filenames", [["txt1.txt", "txt2.txt"]])
+    @pytest.mark.test_this
+    @pytest.mark.parametrize("filenames", [None, ["txt1.txt", "txt2.txt"]])
     def test_getFilesInStorageDataset(
         self, filenames, asset_view, dataset_id, expected_files
     ):
@@ -240,17 +241,22 @@ class TestStoreSynapse:
         )
         # AND the filenames are filtered as appropriate
         if filenames:
+            files_to_remove = []
             for f in expected_files:
                 retain = False
                 for name in filenames:
                     if name in f[1]:
                         retain = True
                 if not retain:
-                    expected_files.remove(f)
+                    files_to_remove.append(f)
+
+            for file in files_to_remove:
+                expected_files.remove(file)
 
         # THEN the expected files are returned
         # AND there are no unexpected files
         assert dataset_files == expected_files
         # AND the (synId, path) order is correct
         synapse_id_regex = re_compile(syn_id_regex())
-        assert synapse_id_regex.fullmatch(dataset_files[0][0])
+        if dataset_files:
+            assert synapse_id_regex.fullmatch(dataset_files[0][0])

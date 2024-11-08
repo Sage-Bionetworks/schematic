@@ -715,6 +715,16 @@ class SynapseStorage(BaseStorage):
             ~self.storageFileviewTable["path"].str.contains("manifest"), :
         ]
 
+        # Remove all files that are not in the list of fileNames
+        if fileNames:
+            filename_regex = "|".join(fileNames)
+
+            matching_files = non_manifest_files["path"].str.contains(
+                filename_regex, case=False, regex=True
+            )
+
+            non_manifest_files = non_manifest_files.loc[matching_files, :]
+
         # Truncate path if necessary
         if not fullpath:
             non_manifest_files.path = non_manifest_files.path.apply(os.path.basename)
