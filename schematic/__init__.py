@@ -30,6 +30,7 @@ from werkzeug import Request
 
 from schematic.configuration.configuration import CONFIG
 from schematic.loader import LOADER
+from schematic.version import __version__
 from schematic_api.api.security_controller import info_from_bearer_auth
 
 Synapse.allow_client_caching(False)

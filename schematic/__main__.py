@@ -13,7 +13,7 @@ from schematic.schemas.commands import (
 from schematic.visualization.commands import (
     viz as viz_cli,
 )  # viz generation commands
-from schematic.version import __version__
+from schematic import __version__
 
 logger = logging.getLogger()
 click_log.basic_config(logger)
