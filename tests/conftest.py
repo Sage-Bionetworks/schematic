@@ -145,7 +145,7 @@ def config():
     yield CONFIG
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def synapse_store():
     yield SynapseStorage()
 
