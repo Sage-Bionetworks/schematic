@@ -10,6 +10,7 @@ import requests
 from flask.testing import FlaskClient
 from synapseclient.client import Synapse
 
+from schematic.configuration.configuration import CONFIG
 from schematic.store.synapse import SynapseStorage
 from tests.conftest import ConfigurationForTesting, Helpers
 from tests.utils import CleanupItem
@@ -148,22 +149,27 @@ class TestManifestSubmission:
         )
 
         # THEN we expect a successful response
-        response = (
-            requests.post(
-                url,
-                headers=request_headers,
-                params=params,
-                files={"file_name": open(test_manifest_path, "rb")},
-                timeout=300,
+        try:
+            response = (
+                requests.post(
+                    url,
+                    headers=request_headers,
+                    params=params,
+                    files={"file_name": open(test_manifest_path, "rb")},
+                    timeout=300,
+                )
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.post(
+                    url,
+                    headers=request_headers,
+                    query_string=params,
+                    data={"file_name": open(test_manifest_path, "rb")},
+                )
             )
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.post(
-                url,
-                headers=request_headers,
-                query_string=params,
-                data={"file_name": open(test_manifest_path, "rb")},
-            )
-        )
+        finally:
+            # Resets the config to its default state
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
+            CONFIG.load_config("config_example.yml")
 
         assert response.status_code == 200
         self.validate_submitted_manifest_file(
@@ -229,22 +235,27 @@ class TestManifestSubmission:
         )
 
         # THEN we expect a successful response
-        response = (
-            requests.post(
-                url,
-                headers=request_headers,
-                params=params,
-                files={"file_name": open(test_manifest_path, "rb")},
-                timeout=300,
+        try:
+            response = (
+                requests.post(
+                    url,
+                    headers=request_headers,
+                    params=params,
+                    files={"file_name": open(test_manifest_path, "rb")},
+                    timeout=300,
+                )
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.post(
+                    url,
+                    headers=request_headers,
+                    query_string=params,
+                    data={"file_name": open(test_manifest_path, "rb")},
+                )
             )
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.post(
-                url,
-                headers=request_headers,
-                query_string=params,
-                data={"file_name": open(test_manifest_path, "rb")},
-            )
-        )
+        finally:
+            # Resets the config to its default state
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
+            CONFIG.load_config("config_example.yml")
 
         assert response.status_code == 200
         self.validate_submitted_manifest_file(
@@ -388,22 +399,27 @@ class TestManifestSubmission:
         )
 
         # THEN we expect a successful response
-        response = (
-            requests.post(
-                url,
-                headers=request_headers,
-                params=params,
-                files={"file_name": open(test_manifest_path, "rb")},
-                timeout=300,
+        try:
+            response = (
+                requests.post(
+                    url,
+                    headers=request_headers,
+                    params=params,
+                    files={"file_name": open(test_manifest_path, "rb")},
+                    timeout=300,
+                )
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.post(
+                    url,
+                    headers=request_headers,
+                    query_string=params,
+                    data={"file_name": open(test_manifest_path, "rb")},
+                )
             )
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.post(
-                url,
-                headers=request_headers,
-                query_string=params,
-                data={"file_name": open(test_manifest_path, "rb")},
-            )
-        )
+        finally:
+            # Resets the config to its default state
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
+            CONFIG.load_config("config_example.yml")
 
         assert response.status_code == 200
         self.validate_submitted_manifest_file(
@@ -471,22 +487,27 @@ class TestManifestSubmission:
 
             # WHEN I submit that manifest
             url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
-            response_csv = (
-                requests.post(
-                    url,
-                    headers=request_headers,
-                    params=params,
-                    files={"file_name": open(tmp_file.name, "rb")},
-                    timeout=300,
+            try:
+                response_csv = (
+                    requests.post(
+                        url,
+                        headers=request_headers,
+                        params=params,
+                        files={"file_name": open(tmp_file.name, "rb")},
+                        timeout=300,
+                    )
+                    if testing_config.use_deployed_schematic_api_server
+                    else flask_client.post(
+                        url,
+                        headers=request_headers,
+                        query_string=params,
+                        data={"file_name": open(tmp_file.name, "rb")},
+                    )
                 )
-                if testing_config.use_deployed_schematic_api_server
-                else flask_client.post(
-                    url,
-                    headers=request_headers,
-                    query_string=params,
-                    data={"file_name": open(tmp_file.name, "rb")},
-                )
-            )
+            finally:
+                # Resets the config to its default state
+                # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
+                CONFIG.load_config("config_example.yml")
 
         # THEN the submission should be successful
         assert response_csv.status_code == 200
@@ -558,22 +579,27 @@ class TestManifestSubmission:
 
         # WHEN I submit that manifest
         url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
-        response_csv = (
-            requests.post(
-                url,
-                headers=request_headers,
-                params=params,
-                files={"file_name": open(test_manifest_submit, "rb")},
-                timeout=300,
+        try:
+            response_csv = (
+                requests.post(
+                    url,
+                    headers=request_headers,
+                    params=params,
+                    files={"file_name": open(test_manifest_submit, "rb")},
+                    timeout=300,
+                )
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.post(
+                    url,
+                    query_string=params,
+                    data={"file_name": (open(test_manifest_submit, "rb"), "test.csv")},
+                    headers=request_headers,
+                )
             )
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.post(
-                url,
-                query_string=params,
-                data={"file_name": (open(test_manifest_submit, "rb"), "test.csv")},
-                headers=request_headers,
-            )
-        )
+        finally:
+            # Resets the config to its default state
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
+            CONFIG.load_config("config_example.yml")
 
         # THEN the submission should be successful
         assert response_csv.status_code == 200
@@ -718,22 +744,27 @@ class TestManifestSubmission:
 
         # WHEN I submit that manifest
         url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
-        response = (
-            requests.post(
-                url,
-                headers=request_headers,
-                params=params,
-                files={"file_name": ""},
-                timeout=300,
+        try:
+            response = (
+                requests.post(
+                    url,
+                    headers=request_headers,
+                    params=params,
+                    files={"file_name": ""},
+                    timeout=300,
+                )
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.post(
+                    url,
+                    query_string=params,
+                    data={"file_name": ""},
+                    headers=request_headers,
+                )
             )
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.post(
-                url,
-                query_string=params,
-                data={"file_name": ""},
-                headers=request_headers,
-            )
-        )
+        finally:
+            # Resets the config to its default state
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
+            CONFIG.load_config("config_example.yml")
 
         # THEN the submission should be successful
         assert response.status_code == 200
@@ -782,22 +813,27 @@ class TestManifestSubmission:
 
         # WHEN I submit that manifest
         url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
-        response_csv = (
-            requests.post(
-                url,
-                headers=request_headers,
-                params=params,
-                files={"file_name": open(test_manifest_submit, "rb")},
-                timeout=300,
+        try:
+            response_csv = (
+                requests.post(
+                    url,
+                    headers=request_headers,
+                    params=params,
+                    files={"file_name": open(test_manifest_submit, "rb")},
+                    timeout=300,
+                )
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.post(
+                    url,
+                    query_string=params,
+                    data={"file_name": (open(test_manifest_submit, "rb"), "test.csv")},
+                    headers=request_headers,
+                )
             )
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.post(
-                url,
-                query_string=params,
-                data={"file_name": (open(test_manifest_submit, "rb"), "test.csv")},
-                headers=request_headers,
-            )
-        )
+        finally:
+            # Resets the config to its default state
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
+            CONFIG.load_config("config_example.yml")
 
         # THEN the submission should be successful
         assert response_csv.status_code == 200
@@ -849,22 +885,27 @@ class TestManifestSubmission:
 
         # WHEN I submit that manifest
         url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
-        response_csv = (
-            requests.post(
-                url,
-                headers=request_headers,
-                params=params,
-                files={"file_name": open(test_upsert_manifest_csv, "rb")},
-                timeout=300,
+        try:
+            response_csv = (
+                requests.post(
+                    url,
+                    headers=request_headers,
+                    params=params,
+                    files={"file_name": open(test_upsert_manifest_csv, "rb")},
+                    timeout=300,
+                )
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.post(
+                    url,
+                    query_string=params,
+                    data={"file_name": (open(test_upsert_manifest_csv, "rb"), "test.csv")},
+                    headers=request_headers,
+                )
             )
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.post(
-                url,
-                query_string=params,
-                data={"file_name": (open(test_upsert_manifest_csv, "rb"), "test.csv")},
-                headers=request_headers,
-            )
-        )
+        finally:
+            # Resets the config to its default state
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
+            CONFIG.load_config("config_example.yml")
 
         # THEN the submission should be successful
         assert response_csv.status_code == 200
@@ -914,24 +955,29 @@ class TestManifestSubmission:
 
         # WHEN a filebased manifest is validated with the filenameExists rule and uploaded
         url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
-        response_csv = (
-            requests.post(
-                url,
-                headers=request_headers,
-                params=params,
-                files={"file_name": open(valid_filename_manifest_csv, "rb")},
-                timeout=300,
+        try:
+            response_csv = (
+                requests.post(
+                    url,
+                    headers=request_headers,
+                    params=params,
+                    files={"file_name": open(valid_filename_manifest_csv, "rb")},
+                    timeout=300,
+                )
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.post(
+                    url,
+                    query_string=params,
+                    data={
+                        "file_name": (open(valid_filename_manifest_csv, "rb"), "test.csv")
+                    },
+                    headers=request_headers,
+                )
             )
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.post(
-                url,
-                query_string=params,
-                data={
-                    "file_name": (open(valid_filename_manifest_csv, "rb"), "test.csv")
-                },
-                headers=request_headers,
-            )
-        )
+        finally:
+            # Resets the config to its default state
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
+            CONFIG.load_config("config_example.yml")
 
         # THEN the validation and submission should be successful
         assert response_csv.status_code == 200
@@ -990,22 +1036,27 @@ class TestManifestSubmission:
 
             # WHEN the manifest is submitted
             url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
-            response_csv = (
-                requests.post(
-                    url,
-                    headers=request_headers,
-                    params=params,
-                    files={"file_name": open(tmp_file.name, "rb")},
-                    timeout=300,
+            try:
+                response_csv = (
+                    requests.post(
+                        url,
+                        headers=request_headers,
+                        params=params,
+                        files={"file_name": open(tmp_file.name, "rb")},
+                        timeout=300,
+                    )
+                    if testing_config.use_deployed_schematic_api_server
+                    else flask_client.post(
+                        url,
+                        query_string=params,
+                        data={"file_name": (open(tmp_file.name, "rb"), "test.csv")},
+                        headers=request_headers,
+                    )
                 )
-                if testing_config.use_deployed_schematic_api_server
-                else flask_client.post(
-                    url,
-                    query_string=params,
-                    data={"file_name": (open(tmp_file.name, "rb"), "test.csv")},
-                    headers=request_headers,
-                )
-            )
+            finally:
+                # Resets the config to its default state
+                # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
+                CONFIG.load_config("config_example.yml")
 
         # THEN the validation and submission should be successful
         assert response_csv.status_code == 200
@@ -1063,31 +1114,36 @@ class TestManifestSubmission:
 
         # WHEN the manifest is submitted
         url = f"{testing_config.schematic_api_server_url}/v1/model/submit"
-        response_csv = (
-            requests.post(
-                url,
-                headers=request_headers,
-                params=params,
-                files={
-                    "file_name": open(
-                        test_submit_manifest_with_blacklisted_characters, "rb"
-                    )
-                },
-                timeout=300,
+        try:
+            response_csv = (
+                requests.post(
+                    url,
+                    headers=request_headers,
+                    params=params,
+                    files={
+                        "file_name": open(
+                            test_submit_manifest_with_blacklisted_characters, "rb"
+                        )
+                    },
+                    timeout=300,
+                )
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.post(
+                    url,
+                    query_string=params,
+                    data={
+                        "file_name": (
+                            open(test_submit_manifest_with_blacklisted_characters, "rb"),
+                            "test.csv",
+                        )
+                    },
+                    headers=request_headers,
+                )
             )
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.post(
-                url,
-                query_string=params,
-                data={
-                    "file_name": (
-                        open(test_submit_manifest_with_blacklisted_characters, "rb"),
-                        "test.csv",
-                    )
-                },
-                headers=request_headers,
-            )
-        )
+        finally:
+            # Resets the config to its default state
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
+            CONFIG.load_config("config_example.yml")
 
         # THEN the validation and submission should be successful
         assert response_csv.status_code == 200

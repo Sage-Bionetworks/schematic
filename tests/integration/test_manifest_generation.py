@@ -303,6 +303,7 @@ class TestManifestGeneration:
             )
         finally:
             # Resets the config to its default state
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
             CONFIG.load_config("config_example.yml")
 
         # THEN we expect a successful response
@@ -585,6 +586,7 @@ class TestManifestGeneration:
             )
         finally:
             # Resets the config to its default state
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
             CONFIG.load_config("config_example.yml")
 
         # THEN we expect a successful response
