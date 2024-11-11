@@ -206,6 +206,7 @@ class TestSynapseStorage:
         else:
             pass
 
+    @pytest.mark.slow_test
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("full_path", [True, False])
     @pytest.mark.parametrize("file_names", [None, "Sample_A.txt"])
@@ -1226,6 +1227,7 @@ class TestManifestOperation:
         )
         assert response_csv.status_code == 200
 
+    @pytest.mark.slow_test
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
     @pytest.mark.parametrize(
@@ -1349,6 +1351,7 @@ class TestManifestOperation:
         )
         assert response_csv.status_code == 200
 
+    @pytest.mark.slow_test
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
     def test_submit_manifest_table_and_file_upsert(

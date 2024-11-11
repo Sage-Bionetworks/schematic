@@ -174,6 +174,7 @@ class TestManifestSubmission:
             schedule_for_cleanup=schedule_for_cleanup,
         )
 
+    @pytest.mark.slow_test
     @pytest.mark.local_or_remote_api
     def test_submit_record_based_test_manifest_table_and_file(
         self,
