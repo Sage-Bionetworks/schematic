@@ -35,13 +35,13 @@ def client(flask_app: flask.Flask) -> Generator[FlaskClient, None, None]:
         yield client
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def valid_test_manifest_csv(helpers) -> str:
     test_manifest_path = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
     return test_manifest_path
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def valid_filename_manifest_csv(helpers) -> str:
     test_manifest_path = helpers.get_data_path(
         "mock_manifests/ValidFilenameManifest.csv"
@@ -49,7 +49,7 @@ def valid_filename_manifest_csv(helpers) -> str:
     return test_manifest_path
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def invalid_filename_manifest_csv(helpers) -> str:
     test_manifest_path = helpers.get_data_path(
         "mock_manifests/InvalidFilenameManifest.csv"
@@ -57,7 +57,7 @@ def invalid_filename_manifest_csv(helpers) -> str:
     return test_manifest_path
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def test_manifest_submit(helpers) -> str:
     test_manifest_path = helpers.get_data_path(
         "mock_manifests/example_biospecimen_test.csv"
@@ -65,7 +65,7 @@ def test_manifest_submit(helpers) -> str:
     return test_manifest_path
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def test_invalid_manifest(helpers) -> pd.DataFrame:
     test_invalid_manifest = helpers.get_data_frame(
         "mock_manifests/Invalid_Test_Manifest.csv", preserve_raw_input=False
@@ -73,7 +73,7 @@ def test_invalid_manifest(helpers) -> pd.DataFrame:
     return test_invalid_manifest
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def test_upsert_manifest_csv(helpers) -> str:
     test_upsert_manifest_path = helpers.get_data_path(
         "mock_manifests/rdb_table_manifest.csv"
@@ -81,7 +81,7 @@ def test_upsert_manifest_csv(helpers) -> str:
     return test_upsert_manifest_path
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def test_manifest_json(helpers) -> str:
     test_manifest_path = helpers.get_data_path(
         "mock_manifests/Example.Patient.manifest.json"
