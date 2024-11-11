@@ -14,6 +14,7 @@ from flask.testing import FlaskClient
 from openpyxl import load_workbook
 
 from tests.conftest import ConfigurationForTesting
+from schematic.configuration.configuration import CONFIG
 
 LIGHT_BLUE = "FFEAF7F9"  # Required cell
 GRAY = "FFE0E0E0"  # Header cell
@@ -280,26 +281,29 @@ class TestManifestGeneration:
         - When File Format = "FASTQ", [Genome Build] is White (Optional)
         """
         # GIVEN a valid example manifest to generate
-        url = f"{testing_config.schematic_api_server_url}/v1/manifest/generate"
-        params = {
-            "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
-            "title": "Example",
-            "data_type": "BulkRNA-seqAssay",
-            "use_annotations": "true",
-            "dataset_id": "syn63561056",
-            "asset_view": "syn63561086",
-            "output_format": "google_sheet",
-            "strict_validation": "true",
-            "data_model_labels": "class_label",
-        }
-        headers = {"accept": "application/json", "Authorization": f"Bearer {syn_token}"}
-
-        # WHEN we make a request to the Schematic API
-        response = (
-            requests.get(url, headers=headers, params=params, timeout=300)
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.get(url, query_string=params, headers=headers)
-        )
+        try:
+            url = f"{testing_config.schematic_api_server_url}/v1/manifest/generate"
+            params = {
+                "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
+                "title": "Example",
+                "data_type": "BulkRNA-seqAssay",
+                "use_annotations": "true",
+                "dataset_id": "syn63561056",
+                "asset_view": "syn63561086",
+                "output_format": "google_sheet",
+                "strict_validation": "true",
+                "data_model_labels": "class_label",
+            }
+            headers = {"accept": "application/json", "Authorization": f"Bearer {syn_token}"}
+            # WHEN we make a request to the Schematic API
+            response = (
+                requests.get(url, headers=headers, params=params, timeout=300)
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.get(url, query_string=params, headers=headers)
+            )
+        finally:
+            # Resets the config to its default state
+            CONFIG.load_config("config_example.yml")
 
         # THEN we expect a successful response
         assert response.status_code == 200
@@ -558,26 +562,30 @@ class TestManifestGeneration:
         - When File Format = "CRAM", [Genome Build, Genome FASTA] is Light Blue (Required)
         - When File Format = "FASTQ", [Genome Build] is White (Optional)
         """
-        url = f"{testing_config.schematic_api_server_url}/v1/manifest/generate"
-        # GIVEN a valid request to the Schematic API to generate a Google Sheet manifest without annotations
-        params = {
-            "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
-            "title": "Example",
-            "data_type": "BulkRNA-seqAssay",
-            "use_annotations": "false",
-            "dataset_id": "syn63561056",
-            "asset_view": "syn63561086",
-            "output_format": "google_sheet",
-            "strict_validation": "true",
-            "data_model_labels": "class_label",
-        }
-        headers = {"accept": "application/json", "Authorization": f"Bearer {syn_token}"}
-        # WHEN we make a request to the Schematic API
-        response = (
-            requests.get(url, headers=headers, params=params, timeout=300)
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.get(url, query_string=params, headers=headers)
-        )
+        try:
+            url = f"{testing_config.schematic_api_server_url}/v1/manifest/generate"
+            # GIVEN a valid request to the Schematic API to generate a Google Sheet manifest without annotations
+            params = {
+                "schema_url": "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld",
+                "title": "Example",
+                "data_type": "BulkRNA-seqAssay",
+                "use_annotations": "false",
+                "dataset_id": "syn63561056",
+                "asset_view": "syn63561086",
+                "output_format": "google_sheet",
+                "strict_validation": "true",
+                "data_model_labels": "class_label",
+            }
+            headers = {"accept": "application/json", "Authorization": f"Bearer {syn_token}"}
+            # WHEN we make a request to the Schematic API
+            response = (
+                requests.get(url, headers=headers, params=params, timeout=300)
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.get(url, query_string=params, headers=headers)
+            )
+        finally:
+            # Resets the config to its default state
+            CONFIG.load_config("config_example.yml")
 
         # THEN we expect a successful response
         assert response.status_code == 200
