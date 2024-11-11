@@ -15,6 +15,7 @@ from unittest.mock import AsyncMock, patch
 
 import pandas as pd
 import pytest
+from numpy import nan
 from pandas.testing import assert_frame_equal, assert_series_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.core.exceptions import SynapseHTTPError
@@ -991,33 +992,70 @@ class TestDatasetFileView:
         assert isinstance(year_value, str)
         assert year_value == "1980"
 
-    def test_tidy_no_manifest_uploaded(self, synapse_store):
+    def test_tidy_table_no_manifest_uploaded(self, synapse_store):
         """
         Test to ensure that the table can be tidied without issue when a DatasetFileView object is instantiated
         based on a dataset that has files annotated but no manifest uploaded.
         Covers the case where a user validates a manifest with schematic, and annotates the files with a non-schematic tool (ie the R client),
         and then tries to generate a manifest for the dataset with schematic.
         """
-        # GIVEN a dataset that has files annotated but no manifest uplodaded
+        # GIVEN a dataset that has files annotated (including the eTag annotation) but no manifest uplodaded
         dataset_id = "syn64019998"
+
+        # AND the expected metadata from the files in the dataset
+        expected_metadata = pd.DataFrame(
+            {
+                "Component": {
+                    0: nan,
+                    1: "BulkRNA-seqAssay",
+                    2: "BulkRNA-seqAssay",
+                    3: "BulkRNA-seqAssay",
+                    4: "BulkRNA-seqAssay",
+                },
+                "FileFormat": {0: nan, 1: "BAM", 2: "BAM", 3: "BAM", 4: "BAM"},
+                "GenomeBuild": {
+                    0: nan,
+                    1: "GRCh37",
+                    2: "GRCh37",
+                    3: "GRCh37",
+                    4: "GRCh37",
+                },
+                "entityId": {
+                    0: "syn64019999",
+                    1: "syn64020000",
+                    2: "syn64020001",
+                    3: "syn64020002",
+                    4: "syn64020003",
+                },
+            },
+        ).set_index("entityId", drop=False)
+
         # WHEN a DatasetFileView object is instantiated based on the dataset
         dataset_fileview = DatasetFileView(dataset_id, synapse_store.syn)
-        # AND the fileview is queried
+
+        # AND the fileview is queried without being tidied
         table = dataset_fileview.query(tidy=False, force=True)
+
         # THEN a table should be present
         assert isinstance(table, pd.DataFrame)
+
         # AND the table should not be empty
         assert not table.empty
-        # AND the table should already include the eTag column
+
+        # AND the table should already include the eTag column that will be removed and saved for comparison later
         assert "eTag" in table.columns
-        original_etag_colum = table["eTag"]
-        # AND the table should be able to be tidied without an exception being raised
+        original_etag_colum = table.pop("eTag")
+
+        # AND when the table is tidied no exception should be raised
         with does_not_raise():
             table = dataset_fileview.tidy_table()
-        # AND the expected metadata should be present in the table
 
         # AND the eTag column should be different from the original eTag column
-        assert (table["eTag"] != original_etag_colum).all()
+        new_etag_column = table.pop("eTag").reset_index(drop=True)
+        assert (new_etag_column != original_etag_colum).all()
+
+        # AND the expected metadata should be present in the table
+        assert_frame_equal(table, expected_metadata)
 
 
 @pytest.mark.table_operations
