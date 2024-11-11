@@ -175,7 +175,7 @@ class ConfigurationForTesting:
     schematic_api_server_url: str
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def testing_config(config: Configuration) -> ConfigurationForTesting:
     """Configuration variables that are specific to testing."""
     manual_test_verification_enabled = (
@@ -235,7 +235,7 @@ def DMGE(helpers: Helpers) -> DataModelGraphExplorer:
     return dmge
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def syn_token(config: Configuration):
     synapse_config_path = config.synapse_configuration_path
     config_parser = configparser.ConfigParser()
@@ -248,7 +248,7 @@ def syn_token(config: Configuration):
     return token
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def syn(syn_token) -> Synapse:
     syn = Synapse()
     syn.login(authToken=syn_token, silent=True)
