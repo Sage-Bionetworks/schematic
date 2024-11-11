@@ -135,14 +135,14 @@ class Helpers:
         return python_projects[version]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def helpers():
     yield Helpers
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def config():
-    yield CONFIG
+    yield Configuration()
 
 
 @pytest.fixture(scope="function")
