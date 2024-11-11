@@ -294,7 +294,10 @@ class TestManifestGeneration:
                 "strict_validation": "true",
                 "data_model_labels": "class_label",
             }
-            headers = {"accept": "application/json", "Authorization": f"Bearer {syn_token}"}
+            headers = {
+                "accept": "application/json",
+                "Authorization": f"Bearer {syn_token}",
+            }
             # WHEN we make a request to the Schematic API
             response = (
                 requests.get(url, headers=headers, params=params, timeout=300)
@@ -577,7 +580,10 @@ class TestManifestGeneration:
                 "strict_validation": "true",
                 "data_model_labels": "class_label",
             }
-            headers = {"accept": "application/json", "Authorization": f"Bearer {syn_token}"}
+            headers = {
+                "accept": "application/json",
+                "Authorization": f"Bearer {syn_token}",
+            }
             # WHEN we make a request to the Schematic API
             response = (
                 requests.get(url, headers=headers, params=params, timeout=300)

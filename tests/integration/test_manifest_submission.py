@@ -898,7 +898,9 @@ class TestManifestSubmission:
                 else flask_client.post(
                     url,
                     query_string=params,
-                    data={"file_name": (open(test_upsert_manifest_csv, "rb"), "test.csv")},
+                    data={
+                        "file_name": (open(test_upsert_manifest_csv, "rb"), "test.csv")
+                    },
                     headers=request_headers,
                 )
             )
@@ -969,7 +971,10 @@ class TestManifestSubmission:
                     url,
                     query_string=params,
                     data={
-                        "file_name": (open(valid_filename_manifest_csv, "rb"), "test.csv")
+                        "file_name": (
+                            open(valid_filename_manifest_csv, "rb"),
+                            "test.csv",
+                        )
                     },
                     headers=request_headers,
                 )
@@ -1133,7 +1138,9 @@ class TestManifestSubmission:
                     query_string=params,
                     data={
                         "file_name": (
-                            open(test_submit_manifest_with_blacklisted_characters, "rb"),
+                            open(
+                                test_submit_manifest_with_blacklisted_characters, "rb"
+                            ),
                             "test.csv",
                         )
                     },
