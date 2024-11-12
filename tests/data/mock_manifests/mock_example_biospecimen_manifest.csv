@@ -1,2 +1,2 @@
-Sample ID,Patient ID,Tissue Status,Component,Id,entityId
-1,1,Healthy,Biospecimen,61a70a22-f26d-46b1-8f6f-29ed54658a58,
+Sample ID,Patient ID,Tissue Status,Component
+1,1,Healthy,Biospecimen
