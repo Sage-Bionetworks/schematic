@@ -2,7 +2,6 @@ import logging
 import os
 from typing import Dict, List
 
-import pkg_resources
 import requests
 from opentelemetry import trace
 from opentelemetry._logs import set_logger_provider
@@ -11,12 +10,7 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk.resources import (
-    DEPLOYMENT_ENVIRONMENT,
-    SERVICE_NAME,
-    SERVICE_VERSION,
-    Resource,
-)
+from opentelemetry.sdk.resources import DEPLOYMENT_ENVIRONMENT, SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, Span
 from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
@@ -97,13 +91,16 @@ def set_up_tracing(session: requests.Session) -> None:
         Synapse.enable_open_telemetry(True)
         tracing_service_name = os.environ.get("TRACING_SERVICE_NAME", "schematic-api")
         deployment_environment = os.environ.get("DEPLOYMENT_ENVIRONMENT", "")
-        package_version = pkg_resources.get_distribution("schematicpy").version
         trace.set_tracer_provider(
             TracerProvider(
                 resource=Resource(
                     attributes={
                         SERVICE_NAME: tracing_service_name,
-                        SERVICE_VERSION: package_version,
+                        # TODO: Revisit this portion later on. As of 11/12/2024 when
+                        # deploying this to ECS or running within a docker container,
+                        # the package version errors out with the following error:
+                        # importlib.metadata.PackageNotFoundError: No package metadata was found for schematicpy
+                        # SERVICE_VERSION: package_version,
                         DEPLOYMENT_ENVIRONMENT: deployment_environment,
                     }
                 )
