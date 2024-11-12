@@ -2,7 +2,6 @@ import logging
 import os
 from typing import Dict, List
 
-import pkg_resources
 import requests
 from opentelemetry import trace
 from opentelemetry._logs import set_logger_provider
@@ -24,6 +23,7 @@ from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
 from synapseclient import Synapse
 from werkzeug import Request
 
+from schematic import version
 from schematic.configuration.configuration import CONFIG
 from schematic.loader import LOADER
 from schematic_api.api.security_controller import info_from_bearer_auth
@@ -97,7 +97,7 @@ def set_up_tracing(session: requests.Session) -> None:
         Synapse.enable_open_telemetry(True)
         tracing_service_name = os.environ.get("TRACING_SERVICE_NAME", "schematic-api")
         deployment_environment = os.environ.get("DEPLOYMENT_ENVIRONMENT", "")
-        package_version = pkg_resources.get_distribution("schematicpy").version
+        package_version = version.__version__
         trace.set_tracer_provider(
             TracerProvider(
                 resource=Resource(
