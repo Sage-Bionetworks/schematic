@@ -2825,7 +2825,7 @@ class SynapseStorage(BaseStorage):
             try:
                 logger.info("Trying batch mode for retrieving Synapse annotations")
                 table = self.getDatasetAnnotationsBatch(datasetId, dataset_file_ids)
-            except (SynapseAuthenticationError, SynapseHTTPError):
+            except (SynapseAuthenticationError, SynapseHTTPError, ValueError):
                 logger.info(
                     f"Unable to create a temporary file view bound to {datasetId}. "
                     "Defaulting to slower iterative retrieval of annotations."
