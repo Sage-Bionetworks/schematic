@@ -29,4 +29,7 @@ RUN poetry install --no-interaction --no-ansi --no-root
 
 COPY . ./
 
+# Install self to support grabbing package version
+RUN pip install --no-cache-dir .
+
 RUN poetry install --only-root
