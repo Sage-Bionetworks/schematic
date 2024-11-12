@@ -1006,23 +1006,26 @@ class TestDatasetFileView:
         expected_metadata = pd.DataFrame(
             {
                 "Component": {
-                    0: "BulkRNA-seqAssay",
+                    0: nan,
                     1: "BulkRNA-seqAssay",
                     2: "BulkRNA-seqAssay",
                     3: "BulkRNA-seqAssay",
+                    4: "BulkRNA-seqAssay",
                 },
-                "FileFormat": {0: "BAM", 1: "BAM", 2: "BAM", 3: "BAM"},
+                "FileFormat": {0: nan, 1: "BAM", 2: "BAM", 3: "BAM", 4: "BAM"},
                 "GenomeBuild": {
-                    0: "GRCh37",
+                    0: nan,
                     1: "GRCh37",
                     2: "GRCh37",
                     3: "GRCh37",
+                    4: "GRCh37",
                 },
                 "entityId": {
-                    0: "syn64020000",
-                    1: "syn64020001",
-                    2: "syn64020002",
-                    3: "syn64020003",
+                    0: "syn64019999",
+                    1: "syn64020000",
+                    2: "syn64020001",
+                    3: "syn64020002",
+                    4: "syn64020003",
                 },
             },
         ).set_index("entityId", drop=False)
