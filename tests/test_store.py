@@ -1002,6 +1002,7 @@ class TestDatasetFileView:
 
 @pytest.mark.table_operations
 class TestTableOperations:
+    @pytest.mark.slow_test
     @pytest.mark.parametrize(
         "table_column_names",
         ["display_name", "display_label", "class_label"],
@@ -1094,6 +1095,7 @@ class TestTableOperations:
         # assert table exists
         assert existing_table_id is not None
 
+    @pytest.mark.slow_test
     @pytest.mark.parametrize(
         "table_column_names",
         ["display_label", "class_label"],
