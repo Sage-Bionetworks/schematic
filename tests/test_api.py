@@ -1302,7 +1302,9 @@ class TestManifestOperation:
             response_csv = client.post(
                 "http://localhost:3001/v1/model/submit",
                 query_string=params,
-                data={"file_name": (open(manifest_path, "rb"), f"test_{uuid.uuid4()}.csv")},
+                data={
+                    "file_name": (open(manifest_path, "rb"), f"test_{uuid.uuid4()}.csv")
+                },
                 headers=request_headers,
             )
         finally:

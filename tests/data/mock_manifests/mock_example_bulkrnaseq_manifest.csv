@@ -1,2 +1,2 @@
-Filename,Sample ID,File Format,Component,Genome Build,Genome FASTA,entityId
-Manifest Submission - Manual test - file-based manifest submission/test-dataset/sample A.txt,1,FASTQ,BulkRNA-seqAssay,,,syn63561932
+Filename,Sample ID,File Format,Component,Genome Build,Genome FASTA,entityId,Id
+Manifest Submission - Manual test - file-based manifest submission/test-dataset/sample A.txt,1,FASTQ,BulkRNA-seqAssay,,,syn63561932,1453e4c5-9847-4527-b70b-c8b8f5cd89a7
