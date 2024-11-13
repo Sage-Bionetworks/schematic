@@ -104,6 +104,7 @@ class DataModelParser:
         print(self.path_to_data_model)
         import requests
         import tempfile
+
         def download_to_temp_file(url: str) -> str:
             response = requests.get(url)
             response.raise_for_status()  # Raise an error for bad responses

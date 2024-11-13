@@ -138,7 +138,9 @@ def check_synapse_cache_size(directory: str = "/root/.synapseCache") -> float:
     Returns:
         float: size of .synapsecache directory in bytes
     """
-    total_size = sum(f.stat().st_size for f in Path(directory).rglob('*') if f.is_file())
+    total_size = sum(
+        f.stat().st_size for f in Path(directory).rglob("*") if f.is_file()
+    )
     return total_size
 
 
