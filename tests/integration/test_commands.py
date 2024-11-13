@@ -243,7 +243,15 @@ class TestManifestCommand:
         try:
             # TODO: Set specific paths json output files with https://sagebionetworks.jira.com/browse/SCHEMATIC-209
             result = runner.invoke(
-                manifest, ["--config", "config_example.yml", "get", "--sheet_url", "--output_csv", "CLI_empty_gs.csv"]
+                manifest,
+                [
+                    "--config",
+                    "config_example.yml",
+                    "get",
+                    "--sheet_url",
+                    "--output_csv",
+                    "CLI_empty_gs.csv",
+                ],
             )
             # command has no errors, has exit code 0
             assert result.exit_code == 0
@@ -258,12 +266,10 @@ class TestManifestCommand:
 
         # command output has file creation messages for 'Patient' and 'Biospecimen' manifest csvs
         assert result.output.split("\n")[9] == (
-            "Find the manifest template using this CSV file path: "
-            "CLI_empty_gs.csv"
+            "Find the manifest template using this CSV file path: " "CLI_empty_gs.csv"
         )
         assert result.output.split("\n")[14] == (
-            "Find the manifest template using this CSV file path: "
-            "CLI_empty_gs.csv"
+            "Find the manifest template using this CSV file path: " "CLI_empty_gs.csv"
         )
 
         # command output has file creation messages for 'Patient' and 'Biospecimen' manifest links
@@ -451,7 +457,6 @@ class TestManifestCommand:
                 )
             )
 
-
     @pytest.mark.manual_verification_required
     def test_generate_empty_excel_manifest(
         self, testing_config: ConfigurationForTesting, runner: CliRunner
@@ -497,7 +502,6 @@ class TestManifestCommand:
                 os.remove("tests/data/example.Patient.schema.json")
             if os.path.isfile("tests/data/example.Biospecimen.schema.json"):
                 os.remove("tests/data/example.Biospecimen.schema.json")
-
 
         # command output has excel file creation message
         assert (
@@ -646,7 +650,7 @@ class TestManifestCommand:
                     "BulkRNA-seqAssay",
                     "--sheet_url",
                     "--output_csv",
-                    "./CLI_gs_bulk_rna.csv"
+                    "./CLI_gs_bulk_rna.csv",
                 ],
             )
             assert result.exit_code == 0
@@ -660,7 +664,6 @@ class TestManifestCommand:
             # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
             # Reset config to it's default values
             CONFIG.load_config("config_example.yml")
-
 
         assert result.output.split("\n")[7] == (
             "Find the manifest template using this Google Sheet URL:"
@@ -895,7 +898,7 @@ class TestManifestCommand:
                     "--sheet_url",
                     "--use_annotations",
                     "--output_csv",
-                    "./CLI_gs_bulk_rna_annos.csv"
+                    "./CLI_gs_bulk_rna_annos.csv",
                 ],
             )
             assert result.exit_code == 0
@@ -904,7 +907,6 @@ class TestManifestCommand:
             if os.path.isfile("tests/data/example.BulkRNA-seqAssay.schema.json"):
                 os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
             os.remove("./CLI_gs_bulk_rna_annos.csv")
-
 
         assert result.output.split("\n")[10] == (
             "Find the manifest template using this Google Sheet URL:"
