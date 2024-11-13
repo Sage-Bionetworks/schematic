@@ -101,6 +101,7 @@ class DataModelParser:
           off base model.
         """
         # base_model = self.parse_base_model()
+
         # Call appropriate data model parser and return parsed model.
         if self.model_type == "CSV":
             csv_parser = DataModelCSVParser()
