@@ -22,6 +22,7 @@ from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File, Project
 from synapseclient.models import Annotations
 from synapseclient.models import Folder as FolderModel
+from synapseclient.table import build_table
 
 from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
@@ -478,7 +479,7 @@ class TestSynapseStorage:
             (
                 ("parent_folder", "syn123"),
                 [("test_folder", "syn124")],
-                [("test_file", "syn126")],
+                [],
             ),
             (
                 (
@@ -486,22 +487,28 @@ class TestSynapseStorage:
                     "syn124",
                 ),
                 [],
-                [("test_file_2", "syn125")],
+                [],
             ),
         ]
+        mock_table_dataFrame = pd.DataFrame(
+            {
+                "id": ["syn126", "syn125"],
+                "path": [
+                    "schematic - main/parent_folder/test_file",
+                    "schematic - main/parent_folder/test_folder/test_file_2",
+                ],
+            }
+        )
+        mock_table = build_table("Mock Table", "syn123", mock_table_dataFrame)
+
         with patch(
             "synapseutils.walk_functions._help_walk", return_value=mock_return
-        ) as mock_walk_patch, patch(
-            "schematic.store.synapse.SynapseStorage.getDatasetProject",
-            return_value="syn23643250",
-        ) as mock_project_id_patch, patch(
-            "synapseclient.entity.Entity.__getattr__", return_value="schematic - main"
-        ) as mock_project_name_patch, patch.object(
-            synapse_store.syn, "get", return_value=Project(name="schematic - main")
-        ):
-            file_list = synapse_store.getFilesInStorageDataset(
-                datasetId="syn_mock", fileNames=None, fullpath=full_path
-            )
+        ) as mock_walk_patch:
+            with patch.object(synapse_store, "syn") as mocked_synapse_client:
+                mocked_synapse_client.tableQuery.return_value = mock_table
+                file_list = synapse_store.getFilesInStorageDataset(
+                    datasetId="syn_mock", fileNames=None, fullpath=full_path
+                )
         assert file_list == expected
 
     @pytest.mark.parametrize("downloadFile", [True, False])
