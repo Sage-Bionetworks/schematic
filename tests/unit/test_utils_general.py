@@ -1,18 +1,21 @@
 import pytest
 from pathlib import Path
-from schematic.utils.general import check_synapse_cache_size  # Replace 'your_module' with the actual module name.
+from schematic.utils.general import (
+    check_synapse_cache_size,
+)  # Replace 'your_module' with the actual module name.
 
 import pytest
 from unittest.mock import MagicMock
 from unittest import mock
 
+
 @pytest.mark.parametrize(
     "directory, file_sizes, expected_size",
     [
-        ('', [1024], 1024),  # Default directory with 1 KB file
+        ("", [1024], 1024),  # Default directory with 1 KB file
         ("/custom/directory", [2048], 2048),  # Custom directory with 2 KB file
-        ('', [], 0),  # Empty directory
-        ('', [1024, 2048], 3072),  # Directory with multiple files (1 KB + 2 KB)
+        ("", [], 0),  # Empty directory
+        ("", [1024, 2048], 3072),  # Directory with multiple files (1 KB + 2 KB)
     ],
 )
 def test_check_synapse_cache_size(mocker, directory, file_sizes, expected_size):
@@ -26,10 +29,12 @@ def test_check_synapse_cache_size(mocker, directory, file_sizes, expected_size):
         mock_files.append(mock_file)
 
     # Mock Path().rglob() to return the mocked files
-    mock_rglob = mocker.patch("schematic.utils.general.Path.rglob", return_value=mock_files)
+    mock_rglob = mocker.patch(
+        "schematic.utils.general.Path.rglob", return_value=mock_files
+    )
     # Call the function with the directory parameter
     result = check_synapse_cache_size(directory=directory)
-    
+
     # Assert the result matches the expected size
     assert result == expected_size
 
