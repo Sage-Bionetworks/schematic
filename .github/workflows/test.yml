@@ -133,7 +133,7 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
-          poetry run pytest tests/integration/test_commands.py --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
+          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
           -m "not (rule_benchmark or single_process_execution)" --reruns 4 -n 8 --ignore=tests/unit
 
       #- name: Run integration tests single process

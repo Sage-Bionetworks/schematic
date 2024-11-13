@@ -647,9 +647,11 @@ class TestManifestCommand:
             )
             # Assert these files were created:
             assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.manifest.csv")
+            assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.schema.json")
         finally:
             # Remove created files:
             os.remove("tests/data/example.BulkRNA-seqAssay.manifest.csv")
+            os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
 
             # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
             # Reset config to it's default values
