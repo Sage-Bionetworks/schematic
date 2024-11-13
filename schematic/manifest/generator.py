@@ -380,7 +380,6 @@ class ManifestGenerator(object):
             Dictionary, containing portions of the json schema
         TODO: Do we even allow people to provide a json_schema_filepath anyore?
         """
-        print(json_schema_filepath)
         if not json_schema_filepath:
             # TODO Catch error if no JSONLD or JSON path provided.
             data_model_js = DataModelJSONSchema(
@@ -392,7 +391,6 @@ class ManifestGenerator(object):
         else:
             with open(json_schema_filepath) as jsonfile:
                 json_schema = json.load(jsonfile)
-            print(json_schema)
         return json_schema
 
     def _get_required_metadata_fields(self, json_schema, fields):

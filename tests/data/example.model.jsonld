@@ -1353,7 +1353,7 @@
             "sms:displayName": "Check Match at Least",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "matchAtLeastOne Patient.PatientID set error"
+                "matchAtLeastOne Patient.PatientID set"
             ]
         },
         {
