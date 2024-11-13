@@ -100,6 +100,7 @@ class TestMetadataModel:
         except:
             pass
 
+    @pytest.mark.slow_test
     @pytest.mark.parametrize("file_annotations_upload", [True, False])
     @pytest.mark.parametrize("restrict_rules", [True, False])
     @pytest.mark.parametrize("hide_blanks", [True, False])
