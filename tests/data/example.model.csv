@@ -37,7 +37,7 @@ Check Float,,,,,TRUE,DataProperty,,,float error
 Check Int,,,,,TRUE,DataProperty,,,int error
 Check String,,,,,TRUE,DataProperty,,,str error
 Check URL,,,,,TRUE,DataProperty,,,url
-Check Match at Least,,,,,TRUE,DataProperty,,,matchAtLeastOne Patient.PatientID set
+Check Match at Least,,,,,TRUE,DataProperty,,,matchAtLeastOne Patient.PatientID set error
 Check Match Exactly,,,,,TRUE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly set
 Check Match None,,,,,TRUE,DataProperty,,,matchNone MockComponent.checkMatchNone set error
 Check Match at Least values,,,,,TRUE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeastvalues value

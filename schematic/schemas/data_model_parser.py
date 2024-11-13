@@ -101,14 +101,29 @@ class DataModelParser:
           off base model.
         """
         # base_model = self.parse_base_model()
+        print(self.path_to_data_model)
+        import requests
+        import tempfile
+        def download_to_temp_file(url: str) -> str:
+            response = requests.get(url)
+            response.raise_for_status()  # Raise an error for bad responses
+            temp_file = tempfile.NamedTemporaryFile(delete=False)
+            temp_file.write(response.content)
+            temp_file.close()
+            return temp_file.name  # Return the path to the temporary file
 
+        # Determine if the path is a URL and download if necessary
+        if self.path_to_data_model.startswith("http"):
+            temp_file_path = download_to_temp_file(self.path_to_data_model)
+        else:
+            temp_file_path = self.path_to_data_model
         # Call appropriate data model parser and return parsed model.
         if self.model_type == "CSV":
             csv_parser = DataModelCSVParser()
-            model_dict = csv_parser.parse_csv_model(self.path_to_data_model)
+            model_dict = csv_parser.parse_csv_model(temp_file_path)
         elif self.model_type == "JSONLD":
             jsonld_parser = DataModelJSONLDParser()
-            model_dict = jsonld_parser.parse_jsonld_model(self.path_to_data_model)
+            model_dict = jsonld_parser.parse_jsonld_model(temp_file_path)
         else:
             raise ValueError(
                 (
