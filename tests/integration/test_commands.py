@@ -149,25 +149,26 @@ class TestManifestCommand:
 
         """
         try:
+            # TODO: Set specific paths for csv and json output files with https://sagebionetworks.jira.com/browse/SCHEMATIC-209
             result = runner.invoke(manifest, ["--config", "config_example.yml", "get"])
-            # manifest csvs and json schemas were created
-            assert os.path.isfile("tests/data/example.Biospecimen.manifest.csv")
-            assert os.path.isfile("tests/data/example.Patient.manifest.csv")
-            assert os.path.isfile("tests/data/example.Biospecimen.schema.json")
-            assert os.path.isfile("tests/data/example.Patient.schema.json")
+
+            # command has no (python) errors, has exit code 0
+            assert result.exit_code == 0
 
             biospecimen_df = pd.read_csv("tests/data/example.Biospecimen.manifest.csv")
             patient_df = pd.read_csv("tests/data/example.Patient.manifest.csv")
 
         # Remove created files:
         finally:
-            os.remove("tests/data/example.Biospecimen.manifest.csv")
-            os.remove("tests/data/example.Patient.manifest.csv")
-            os.remove("tests/data/example.Biospecimen.schema.json")
-            os.remove("tests/data/example.Patient.schema.json")
+            if os.path.isfile("tests/data/example.Biospecimen.manifest.csv"):
+                os.remove("tests/data/example.Biospecimen.manifest.csv")
+            if os.path.isfile("tests/data/example.Patient.manifest.csv"):
+                os.remove("tests/data/example.Patient.manifest.csv")
+            if os.path.isfile("tests/data/example.Biospecimen.schema.json"):
+                os.remove("tests/data/example.Biospecimen.schema.json")
+            if os.path.isfile("tests/data/example.Patient.schema.json"):
+                os.remove("tests/data/example.Patient.schema.json")
 
-        # command has no (python) errors, has exit code 0
-        assert result.exit_code == 0
         # command output has file creation messages for 'Patient' and 'Biospecimen' manifests
         assert result.output.split("\n")[7] == (
             "Find the manifest template using this CSV file path: "
@@ -212,6 +213,7 @@ class TestManifestCommand:
         ]:
             assert np.isnan(patient_df[column].to_list()[0])
 
+    @pytest.mark.manual_verification_required
     def test_generate_empty_google_sheet_manifests(
         self,
         runner: CliRunner,
@@ -234,41 +236,34 @@ class TestManifestCommand:
 
         Manual tests:
         - Open 'CLI_TestManifestCommand_google_sheet_empty_patient.xlsx'
-        - Select 'Diagnosis' to be 'cancer' in the first row:
-            - 'Cancer Type' and 'Family History' cells in first row should be light blue.
-        - Select 'Diagnosis' to NOT be 'cancer' in the first row:
-            - 'Cancer Type' and 'Family History' cells in first row should be white
+        - Confirm 'Diagnosis' column to be 'cancer' in the first row
+        - Confirm 'Cancer Type' and 'Family History' cells in first row should be light blue.
 
         """
         try:
+            # TODO: Set specific paths json output files with https://sagebionetworks.jira.com/browse/SCHEMATIC-209
             result = runner.invoke(
-                manifest, ["--config", "config_example.yml", "get", "--sheet_url"]
+                manifest, ["--config", "config_example.yml", "get", "--sheet_url", "--output_csv", "CLI_empty_gs.csv"]
             )
-            # Assert these files were created:
-            assert os.path.isfile("tests/data/example.Biospecimen.manifest.csv")
-            assert os.path.isfile("tests/data/example.Patient.manifest.csv")
-            assert os.path.isfile("tests/data/example.Biospecimen.schema.json")
-            assert os.path.isfile("tests/data/example.Patient.schema.json")
+            # command has no errors, has exit code 0
+            assert result.exit_code == 0
 
         finally:
             # Remove created files:
-            os.remove("tests/data/example.Biospecimen.manifest.csv")
-            os.remove("tests/data/example.Patient.manifest.csv")
-            os.remove("tests/data/example.Biospecimen.schema.json")
-            os.remove("tests/data/example.Patient.schema.json")
-
-        # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
-        # command has no errors, has exit code 0
-        assert result.exit_code == 0
+            os.remove("CLI_empty_gs.csv")
+            if os.path.isfile("tests/data/example.Biospecimen.schema.json"):
+                os.remove("tests/data/example.Biospecimen.schema.json")
+            if os.path.isfile("tests/data/example.Patient.schema.json"):
+                os.remove("tests/data/example.Patient.schema.json")
 
         # command output has file creation messages for 'Patient' and 'Biospecimen' manifest csvs
         assert result.output.split("\n")[9] == (
             "Find the manifest template using this CSV file path: "
-            "tests/data/example.Biospecimen.manifest.csv"
+            "CLI_empty_gs.csv"
         )
         assert result.output.split("\n")[14] == (
             "Find the manifest template using this CSV file path: "
-            "tests/data/example.Patient.manifest.csv"
+            "CLI_empty_gs.csv"
         )
 
         # command output has file creation messages for 'Patient' and 'Biospecimen' manifest links
@@ -444,6 +439,9 @@ class TestManifestCommand:
         for col in ["Year of Birth", "Cancer Type", "Family History"]:
             assert sheet1[f"{columns[col]}2"].fill.start_color.index == WHITE
 
+        # AND conditional formatting is functioning as expected (MANUAL VERIFICATION)
+        workbook["Sheet1"][f"{columns['Diagnosis']}2"].value = "Cancer"
+
         # AND a copy of the Excel file is saved to the test directory for manual verification
         if testing_config.manual_test_verification_enabled:
             workbook.save(
@@ -453,6 +451,8 @@ class TestManifestCommand:
                 )
             )
 
+
+    @pytest.mark.manual_verification_required
     def test_generate_empty_excel_manifest(
         self, testing_config: ConfigurationForTesting, runner: CliRunner
     ) -> None:
@@ -471,12 +471,11 @@ class TestManifestCommand:
 
         Manual tests:
         - Open 'CLI_TestManifestCommand_excel_empty_patient.xlsx'
-        - Select 'Diagnosis' to be 'cancer' in the first row:
-            - 'Cancer Type' and 'Family History' cells in first row should be light blue.
-        - Select 'Diagnosis' to NOT be 'cancer' in the first row:
-            - 'Cancer Type' and 'Family History' cells in first row should be white
+        - Confirm 'Diagnosis' column to be 'cancer' in the first row:
+        - Confirm 'Cancer Type' and 'Family History' cells in first row should be light blue.
         """
         try:
+            # TODO: Set specific paths for csv and json output files with https://sagebionetworks.jira.com/browse/SCHEMATIC-209
             result = runner.invoke(
                 manifest,
                 [
@@ -484,27 +483,26 @@ class TestManifestCommand:
                     "config_example.yml",
                     "get",
                     "--output_xlsx",
-                    "./test.xlsx",
+                    "./CLI_empty_excel.xlsx",
                 ],
             )
-            # Assert these files were created:
-            assert os.path.isfile("test.xlsx")
-            assert os.path.isfile("tests/data/example.Patient.schema.json")
-            assert os.path.isfile("tests/data/example.Biospecimen.schema.json")
 
-            workbook = load_workbook("test.xlsx")
+            # command has no errors, has exit code 0
+            assert result.exit_code == 0
+            workbook = load_workbook("CLI_empty_excel.xlsx")
         finally:
             # Remove created files:
-            os.remove("test.xlsx")
-            os.remove("tests/data/example.Patient.schema.json")
-            os.remove("tests/data/example.Biospecimen.schema.json")
+            os.remove("CLI_empty_excel.xlsx")
+            if os.path.isfile("tests/data/example.Patient.schema.json"):
+                os.remove("tests/data/example.Patient.schema.json")
+            if os.path.isfile("tests/data/example.Biospecimen.schema.json"):
+                os.remove("tests/data/example.Biospecimen.schema.json")
 
-        # command has no errors, has exit code 0
-        assert result.exit_code == 0
+
         # command output has excel file creation message
         assert (
             result.output.split("\n")[7]
-            == "Find the manifest template using this Excel file path: ./test.xlsx"
+            == "Find the manifest template using this Excel file path: ./CLI_empty_excel.xlsx"
         )
 
         sheet1 = workbook["Sheet1"]
@@ -600,6 +598,8 @@ class TestManifestCommand:
         for col in ["Year of Birth", "Cancer Type", "Family History"]:
             assert sheet1[f"{columns[col]}2"].fill.start_color.index == WHITE
 
+        # AND conditional formatting is functioning as expected (MANUAL VERIFICATION)
+        workbook["Sheet1"][f"{columns['Diagnosis']}2"].value = "Cancer"
         # AND a copy of the Excel file is saved to the test directory for manual verification
         if testing_config.manual_test_verification_enabled:
             workbook.save(
@@ -609,6 +609,7 @@ class TestManifestCommand:
                 )
             )
 
+    @pytest.mark.manual_verification_required
     def test_generate_bulk_rna_google_sheet_manifest(
         self, testing_config: ConfigurationForTesting, runner: CliRunner
     ) -> None:
@@ -626,12 +627,13 @@ class TestManifestCommand:
 
         Manual tests:
         - Open 'CLI_TestManifestCommand_google_sheet_bulk_rna.xlsx'
-        - Select 'BAM' to be 'File Format' in the first row:
-            - 'Genome Build' cell in first row should be light blue.
-        - Select 'CRAM' to be 'File Format' in the first row:
-            - 'Genome Build' and 'Genome FASTA' cells in first row should be light blue.
+        - Confirm 'File Format' column to be 'BAM' in the first row
+        - Confirm 'Genome Build' cell in first row should be light blue
+        - Confirm 'File Format' column to be 'CRAM' in the second row:
+        - Confirm 'Genome Build' and 'Genome FASTA' cells in second row should be light blue.
         """
         try:
+            # TODO: Set specific paths for json output files with https://sagebionetworks.jira.com/browse/SCHEMATIC-209
             result = runner.invoke(
                 manifest,
                 [
@@ -643,21 +645,23 @@ class TestManifestCommand:
                     "--data_type",
                     "BulkRNA-seqAssay",
                     "--sheet_url",
+                    "--output_csv",
+                    "./CLI_gs_bulk_rna.csv"
                 ],
             )
-            # Assert these files were created:
-            assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.manifest.csv")
-            assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.schema.json")
+            assert result.exit_code == 0
+
         finally:
             # Remove created files:
-            os.remove("tests/data/example.BulkRNA-seqAssay.manifest.csv")
-            os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
+            os.remove("CLI_gs_bulk_rna.csv")
+            if os.path.isfile("tests/data/example.BulkRNA-seqAssay.schema.json"):
+                os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
 
             # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
             # Reset config to it's default values
             CONFIG.load_config("config_example.yml")
 
-        assert result.exit_code == 0
+
         assert result.output.split("\n")[7] == (
             "Find the manifest template using this Google Sheet URL:"
         )
@@ -666,7 +670,7 @@ class TestManifestCommand:
         )
         assert result.output.split("\n")[9] == (
             "Find the manifest template using this CSV file path: "
-            "tests/data/example.BulkRNA-seqAssay.manifest.csv"
+            "./CLI_gs_bulk_rna.csv"
         )
 
         google_sheet_url = result.output.split("\n")[8]
@@ -842,6 +846,9 @@ class TestManifestCommand:
         # AND there are no more columns in the second sheet
         assert sheet2["G1"].value is None
 
+        # AND conditional formatting is functioning as expected (MANUAL VERIFICATION)
+        workbook["Sheet1"][f"{columns['File Format']}2"].value = "BAM"
+        workbook["Sheet1"][f"{columns['File Format']}3"].value = "CRAM"
         # A copy of the Excel file is saved to the test directory for manual verification
         if testing_config.manual_test_verification_enabled:
             workbook.save(
@@ -851,6 +858,7 @@ class TestManifestCommand:
                 )
             )
 
+    @pytest.mark.manual_verification_required
     def test_generate_bulk_rna_google_sheet_manifest_with_annotations(
         self, testing_config: ConfigurationForTesting, runner: CliRunner
     ) -> None:
@@ -873,6 +881,7 @@ class TestManifestCommand:
         - In the second row  the File Format column should be csv. Hover over it, and there should be an Invalid error.
         """
         try:
+            # TODO: Set specific paths for json output files with https://sagebionetworks.jira.com/browse/SCHEMATIC-209
             result = runner.invoke(
                 manifest,
                 [
@@ -885,17 +894,18 @@ class TestManifestCommand:
                     "BulkRNA-seqAssay",
                     "--sheet_url",
                     "--use_annotations",
+                    "--output_csv",
+                    "./CLI_gs_bulk_rna_annos.csv"
                 ],
             )
-            # Assert these files were created:
-            assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.schema.json")
-            assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.manifest.csv")
+            assert result.exit_code == 0
         finally:
             # Remove created files:
-            os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
-            os.remove("tests/data/example.BulkRNA-seqAssay.manifest.csv")
+            if os.path.isfile("tests/data/example.BulkRNA-seqAssay.schema.json"):
+                os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
+            os.remove("./CLI_gs_bulk_rna_annos.csv")
 
-        assert result.exit_code == 0
+
         assert result.output.split("\n")[10] == (
             "Find the manifest template using this Google Sheet URL:"
         )
@@ -904,7 +914,7 @@ class TestManifestCommand:
         )
         assert result.output.split("\n")[12] == (
             "Find the manifest template using this CSV file path: "
-            "tests/data/example.BulkRNA-seqAssay.manifest.csv"
+            "./CLI_gs_bulk_rna_annos.csv"
         )
 
         google_sheet_url = result.output.split("\n")[11]
@@ -1139,6 +1149,7 @@ class TestManifestCommand:
         - Command output has excel file message
         """
         try:
+            # TODO: Set specific paths for json output files with https://sagebionetworks.jira.com/browse/SCHEMATIC-209
             result = runner.invoke(
                 manifest,
                 [
@@ -1146,29 +1157,28 @@ class TestManifestCommand:
                     "tests/data/test_configs/CLI_test_config2.yml",
                     "get",
                     "--output_xlsx",
-                    "test-example.xlsx",
+                    "./CLI_mock_comp.xlsx",
                     "--dataset_id",
                     "syn52746566",
                 ],
             )
-            # Assert these files were created:
-            assert os.path.isfile("tests/data/example.MockComponent.schema.json")
-            assert os.path.isfile("test-example.xlsx")
-            workbook = load_workbook("test-example.xlsx")
+
+            # Command has no errors, has exit code 0
+            assert result.exit_code == 0
+            workbook = load_workbook("./CLI_mock_comp.xlsx")
         finally:
             # Remove created files:
-            os.remove("tests/data/example.MockComponent.schema.json")
-            os.remove("test-example.xlsx")
+            if os.path.isfile("tests/data/example.MockComponent.schema.json"):
+                os.remove("tests/data/example.MockComponent.schema.json")
+            os.remove("./CLI_mock_comp.xlsx")
 
             # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
             # Reset config to it's default values
             CONFIG.load_config("config_example.yml")
 
-        # Command has no errors, has exit code 0
-        assert result.exit_code == 0
         # Command output has excel file message
         assert result.output.split("\n")[8] == (
-            "Find the manifest template using this Excel file path: test-example.xlsx"
+            "Find the manifest template using this Excel file path: ./CLI_mock_comp.xlsx"
         )
 
         sheet1 = workbook["Sheet1"]
