@@ -169,10 +169,10 @@ TEST_DN_DICT = {
 DATA_MODEL_DICT = {"example.model.csv": "CSV", "example.model.jsonld": "JSONLD"}
 
 test_disk_storage = [
-    (2, 4000, 16000),
-    (1000, 4000, 16000),
-    (2000000, 1900000, 2000000),
-    (1073741825, 1073741824, 1181116006.4),
+    (2, 2),
+    (1000, 1000),
+    (2000000, 2000000),
+    (1073741825, 1073741825),
 ]
 
 
@@ -272,7 +272,6 @@ class TestGeneral:
             )
 
     # this test might fail for windows machine
-    @pytest.mark.not_windows
     @pytest.mark.parametrize(
         "create_temp_query_file,local_disk_size,gh_disk_size",
         test_disk_storage,
@@ -282,16 +281,10 @@ class TestGeneral:
         self,
         create_temp_query_file,
         local_disk_size: int,
-        gh_disk_size: Union[int, float],
     ) -> None:
         mock_synapse_cache_dir, _, _ = create_temp_query_file
         disk_size = check_synapse_cache_size(mock_synapse_cache_dir)
-
-        # For some reasons, when running in github action, the size of file changes.
-        if IN_GITHUB_ACTIONS:
-            assert disk_size == gh_disk_size
-        else:
-            assert disk_size == local_disk_size
+        assert disk_size == local_disk_size
 
     def test_find_duplicates(self):
         mock_list = ["foo", "bar", "foo"]

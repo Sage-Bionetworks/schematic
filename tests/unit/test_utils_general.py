@@ -2,7 +2,7 @@ import pytest
 from pathlib import Path
 from schematic.utils.general import (
     check_synapse_cache_size,
-)  # Replace 'your_module' with the actual module name.
+)
 
 import pytest
 from unittest.mock import MagicMock
