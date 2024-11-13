@@ -74,11 +74,11 @@ PyJWT = "^2.9.0"
 opentelemetry-api = {version = ">=1.21.0", optional = true}
 opentelemetry-sdk = {version = ">=1.21.0", optional = true}
 opentelemetry-exporter-otlp-proto-http = {version="^1.0.0", optional = true}
-opentelemetry-instrumentation-flask = {version=">=0.48b0", optional = true}
+opentelemetry-instrumentation-flask = ">=0.48b0"
 requests-oauth2client = {version=">=1.6.0", optional = true}
 
 [tool.poetry.extras]
-api = ["connexion", "Flask", "Flask-Cors", "Jinja2", "pyopenssl", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-instrumentation-flask", "requests-oauth2client"]
+api = ["connexion", "Flask", "Flask-Cors", "Jinja2", "pyopenssl", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-exporter-otlp-proto-http", "requests-oauth2client"]
 aws = ["uWSGI"]
 
 [tool.poetry.group.dev.dependencies]

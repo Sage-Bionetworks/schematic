@@ -2547,7 +2547,7 @@ wrapt = ">=1.0.0,<2.0.0"
 name = "opentelemetry-instrumentation-flask"
 version = "0.49b1"
 description = "Flask instrumentation for OpenTelemetry"
-optional = true
+optional = false
 python-versions = ">=3.8"
 files = [
     {file = "opentelemetry_instrumentation_flask-0.49b1-py3-none-any.whl", hash = "sha256:e3abb8aaccb86372bfddaa894fa9b4c6cc8c1ac2e023e0bb64c97f07d9df3d28"},
@@ -2643,7 +2643,7 @@ opentelemetry-util-http = "0.49b1"
 name = "opentelemetry-instrumentation-wsgi"
 version = "0.49b1"
 description = "WSGI Middleware for OpenTelemetry"
-optional = true
+optional = false
 python-versions = ">=3.8"
 files = [
     {file = "opentelemetry_instrumentation_wsgi-0.49b1-py3-none-any.whl", hash = "sha256:6ab07115dc5c38f9c5b368e1ae4d9741cddeeef857ad01b211ee314a72ffdbea"},
@@ -4897,10 +4897,10 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 type = ["pytest-mypy"]
 
 [extras]
-api = ["Flask", "Flask-Cors", "Jinja2", "connexion", "opentelemetry-api", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-instrumentation-flask", "opentelemetry-sdk", "pyopenssl", "requests-oauth2client"]
+api = ["Flask", "Flask-Cors", "Jinja2", "connexion", "opentelemetry-api", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-sdk", "pyopenssl", "requests-oauth2client"]
 aws = ["uWSGI"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.0,<3.11"
-content-hash = "e6a9548ab006a486b1f64fecfd32177821b373ad8b6a4528e79a38449cfe8065"
+content-hash = "51c3ee12af9b2e5be886b577dcccf8a4de7de411381225db30ea5bcfaa247cd5"
