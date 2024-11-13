@@ -273,7 +273,7 @@ class TestGeneral:
 
     # this test might fail for windows machine
     @pytest.mark.parametrize(
-        "create_temp_query_file,local_disk_size,gh_disk_size",
+        "create_temp_query_file,local_disk_size",
         test_disk_storage,
         indirect=["create_temp_query_file"],
     )
