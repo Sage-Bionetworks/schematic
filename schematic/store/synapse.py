@@ -2831,7 +2831,7 @@ class SynapseStorage(BaseStorage):
             try:
                 logger.info("Trying batch mode for retrieving Synapse annotations")
                 table = self.getDatasetAnnotationsBatch(datasetId, dataset_file_ids)
-            except (SynapseAuthenticationError, SynapseHTTPError):
+            except (SynapseAuthenticationError, SynapseHTTPError, ValueError):
                 logger.info(
                     f"Unable to create a temporary file view bound to {datasetId}. "
                     "Defaulting to slower iterative retrieval of annotations."
@@ -3514,6 +3514,12 @@ class DatasetFileView:
         # Rename ROW_ETAG column to eTag and place at end of data frame
         if "ROW_ETAG" in self.table:
             row_etags = self.table.pop("ROW_ETAG")
+
+            # eTag column may already present if users annotated data without submitting manifest
+            # we're only concerned with the new values and not the existing ones
+            if "eTag" in self.table:
+                del self.table["eTag"]
+
             self.table.insert(len(self.table.columns), "eTag", row_etags)
 
         return self.table
