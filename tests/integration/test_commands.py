@@ -257,6 +257,7 @@ class TestManifestCommand:
             os.remove("tests/data/example.Biospecimen.schema.json")
             os.remove("tests/data/example.Patient.schema.json")
 
+        # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
         # command has no errors, has exit code 0
         assert result.exit_code == 0
 
@@ -645,13 +646,12 @@ class TestManifestCommand:
                 ],
             )
             # Assert these files were created:
-            assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.schema.json")
             assert os.path.isfile("tests/data/example.BulkRNA-seqAssay.manifest.csv")
         finally:
             # Remove created files:
-            os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
             os.remove("tests/data/example.BulkRNA-seqAssay.manifest.csv")
 
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
             # Reset config to it's default values
             CONFIG.load_config("config_example.yml")
 
@@ -1158,6 +1158,7 @@ class TestManifestCommand:
             os.remove("tests/data/example.MockComponent.schema.json")
             os.remove("test-example.xlsx")
 
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
             # Reset config to it's default values
             CONFIG.load_config("config_example.yml")
 
