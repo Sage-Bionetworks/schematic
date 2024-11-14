@@ -28,7 +28,8 @@ classifiers = [
 ]
 
 packages = [
-    { include = "schematic" }
+    { include = "schematic" },
+    { include = "schematic_api" }
 ]
 
 [tool.poetry.scripts]
