@@ -908,18 +908,18 @@ class TestManifestCommand:
                 os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
             os.remove("./CLI_gs_bulk_rna_annos.csv")
 
-        assert result.output.split("\n")[10] == (
+        assert result.output.split("\n")[11] == (
             "Find the manifest template using this Google Sheet URL:"
         )
-        assert result.output.split("\n")[11].startswith(
+        assert result.output.split("\n")[12].startswith(
             "https://docs.google.com/spreadsheets/d/"
         )
-        assert result.output.split("\n")[12] == (
+        assert result.output.split("\n")[13] == (
             "Find the manifest template using this CSV file path: "
             "./CLI_gs_bulk_rna_annos.csv"
         )
 
-        google_sheet_url = result.output.split("\n")[11]
+        google_sheet_url = result.output.split("\n")[12]
 
         # Download the Google Sheets content as an Excel file and load into openpyxl
         export_url = f"{google_sheet_url}/export?format=xlsx"
