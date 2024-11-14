@@ -1,0 +1,13 @@
+Patient ID,Sex,Year of Birth,Diagnosis,Component,Cancer Type,Family History
+1,Male,,Healthy,Patient,,"Breast,Colorectal,Lung"
+2,Male,,Healthy,Patient,,"Breast,Colorectal,Lung"
+3,Male,,Healthy,Patient,,"Breast,Colorectal,Lung"
+4,Male,,Healthy,Patient,,"Breast,Colorectal,Lung"
+5,Male,,Healthy,Patient,,"Breast,Colorectal,Lung"
+6,Male,,Healthy,Patient,,"Breast,Colorectal,Lung"
+7,Male,,Healthy,Patient,,"Breast,Colorectal,Lung"
+8,Male,,Healthy,Patient,,"Breast,Colorectal,Lung"
+9,Male,,Cancer,Patient,Colorectal,"Breast,Colorectal"
+10,Male,,Cancer,Patient,Colorectal,"Breast,Colorectal"
+11,Male,,Cancer,Patient,Prostate,"Breast,Colorectal"
+12,Male,,Cancer,Patient,Skin,"Breast,Colorectal"

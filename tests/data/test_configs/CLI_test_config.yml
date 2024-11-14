@@ -1,0 +1,8 @@
+# This config is used to change the fileview for certain CLI tests
+asset_store:
+  synapse:
+    config: "../../../.synapseConfig"
+    master_fileview_id:  'syn63923487'
+
+google_sheets:
+  service_acct_creds: "../../../schematic_service_account_creds.json"
