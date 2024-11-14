@@ -11,6 +11,7 @@ import requests
 from flask.testing import FlaskClient
 
 from tests.conftest import ConfigurationForTesting, Helpers
+from schematic.configuration.configuration import CONFIG
 
 EXAMPLE_SCHEMA_URL = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
 
@@ -397,22 +398,27 @@ class TestManifestValidation:
         input_file_path = helpers.get_data_path(input_file)
 
         # AND we make a POST request to validate the file
-        response = (
-            requests.post(
-                url,
-                headers=request_headers,
-                params=params,
-                files={"file_name": open(input_file_path, "rb")},
-                timeout=300,
+        try:
+            response = (
+                requests.post(
+                    url,
+                    headers=request_headers,
+                    params=params,
+                    files={"file_name": open(input_file_path, "rb")},
+                    timeout=300,
+                )
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.post(
+                    url,
+                    headers=request_headers,
+                    query_string=params,
+                    data={"file_name": open(input_file_path, "rb")},
+                )
             )
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.post(
-                url,
-                headers=request_headers,
-                query_string=params,
-                data={"file_name": open(input_file_path, "rb")},
-            )
-        )
+        finally:
+            # Resets the config to its default state
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
+            CONFIG.load_config("config_example.yml")
 
         # THEN we expect a successful response
         assert (
@@ -468,22 +474,27 @@ class TestManifestValidation:
         input_file_path = helpers.get_data_path(input_file)
 
         # AND we make a POST request to validate the file
-        response = (
-            requests.post(
-                url,
-                headers=request_headers,
-                params=params,
-                files={"file_name": open(input_file_path, "rb")},
-                timeout=300,
+        try:
+            response = (
+                requests.post(
+                    url,
+                    headers=request_headers,
+                    params=params,
+                    files={"file_name": open(input_file_path, "rb")},
+                    timeout=300,
+                )
+                if testing_config.use_deployed_schematic_api_server
+                else flask_client.post(
+                    url,
+                    headers=request_headers,
+                    query_string=params,
+                    data={"file_name": open(input_file_path, "rb")},
+                )
             )
-            if testing_config.use_deployed_schematic_api_server
-            else flask_client.post(
-                url,
-                headers=request_headers,
-                query_string=params,
-                data={"file_name": open(input_file_path, "rb")},
-            )
-        )
+        finally:
+            # Resets the config to its default state
+            # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
+            CONFIG.load_config("config_example.yml")
 
         # AND the expected response contents is given
         expected_contents = {
