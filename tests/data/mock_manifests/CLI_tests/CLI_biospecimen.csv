@@ -1,0 +1,3 @@
+Sample ID,Patient ID,Tissue Status,Component,Id,entityId
+123,123,Malignant,Biospecimen,3e413bde-0571-458c-ad93-d56c2b25fadd,syn61260197
+456,456,Healthy,Biospecimen,fc314afe-5714-4b58-8c95-3dfd78dc827d,syn61260197
