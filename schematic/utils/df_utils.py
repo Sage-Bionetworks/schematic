@@ -4,12 +4,13 @@
 
 import logging
 from copy import deepcopy
-from time import perf_counter
-from typing import Union, Any, Optional
 from datetime import datetime
+from time import perf_counter
+from typing import Any, Optional, Union
+
 import dateparser as dp
-import pandas as pd
 import numpy as np
+import pandas as pd
 from pandarallel import pandarallel  # type: ignore
 
 logger = logging.getLogger(__name__)

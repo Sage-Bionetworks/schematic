@@ -1,24 +1,23 @@
 """Schema Commands"""
 
 import logging
-import time
 import re
-from typing import get_args, Optional, Any
+import time
+from typing import Any, Optional, get_args
 
 import click
 import click_log  # type: ignore
 
+from schematic.help import schema_commands
+from schematic.schemas.data_model_graph import DataModelGraph
+from schematic.schemas.data_model_jsonld import convert_graph_to_jsonld
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_validator import DataModelValidator
+from schematic.utils.cli_utils import query_dict
+from schematic.utils.schema_utils import DisplayLabelType, export_schema
+
 # pylint: disable=logging-fstring-interpolation
 
-from schematic.schemas.data_model_parser import DataModelParser
-from schematic.schemas.data_model_graph import DataModelGraph
-from schematic.schemas.data_model_validator import DataModelValidator
-from schematic.schemas.data_model_jsonld import convert_graph_to_jsonld
-
-from schematic.utils.schema_utils import DisplayLabelType
-from schematic.utils.cli_utils import query_dict
-from schematic.utils.schema_utils import export_schema
-from schematic.help import schema_commands
 
 logger = logging.getLogger("schematic")
 click_log.basic_config(logger)

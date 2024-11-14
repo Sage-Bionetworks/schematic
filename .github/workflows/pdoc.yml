@@ -12,12 +12,12 @@ permissions:
   contents: read
 
 concurrency:
-  # cancel the current running workflow from the same branch, PR when a new workflow is triggered 
+  # cancel the current running workflow from the same branch, PR when a new workflow is triggered
   # when the trigger is not a PR but a push, it will use the commit sha to generate the concurrency group
   # {{ github.workflow }}: the workflow name is used to generate the concurrency group. This allows you to have more than one workflows
-  # {{ github.ref_type }}: the type of Git ref object created in the repository. Can be either branch or tag 
-  # {{ github.event.pull_request.number}}: get PR number 
-  # {{ github.sha }}: full commit sha 
+  # {{ github.ref_type }}: the type of Git ref object created in the repository. Can be either branch or tag
+  # {{ github.event.pull_request.number}}: get PR number
+  # {{ github.sha }}: full commit sha
   # credit: https://github.com/Sage-Bionetworks-Workflows/sagetasks/blob/main/.github/workflows/ci.yml
   group: >-
     ${{ github.workflow }}-${{ github.ref_type }}-
@@ -32,7 +32,7 @@ jobs:
 
     steps:
       #----------------------------------------------
-      #       check-out repo and set-up python     
+      #       check-out repo and set-up python
       #----------------------------------------------
       - name: Check out repository
         uses: actions/checkout@v4
@@ -41,16 +41,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      
+
       #----------------------------------------------
-      #          install & configure poetry         
+      #          install & configure poetry
       #----------------------------------------------
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org \
             | python3 - --version ${{ env.POETRY_VERSION }};
-          poetry config virtualenvs.create true; 
-          poetry config virtualenvs.in-project true; 
+          poetry config virtualenvs.create true;
+          poetry config virtualenvs.in-project true;
 
       #----------------------------------------------
       # install dependencies and root project

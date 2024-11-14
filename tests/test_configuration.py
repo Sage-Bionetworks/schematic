@@ -1,18 +1,19 @@
 """Testing for Configuration module"""
 
 import os
+
 import pytest
 from pydantic import ValidationError
 
+from schematic.configuration.configuration import (
+    ConfigNonAllowedFieldError,
+    Configuration,
+)
 from schematic.configuration.dataclasses import (
-    SynapseConfig,
+    GoogleSheetsConfig,
     ManifestConfig,
     ModelConfig,
-    GoogleSheetsConfig,
-)
-from schematic.configuration.configuration import (
-    Configuration,
-    ConfigNonAllowedFieldError,
+    SynapseConfig,
 )
 
 

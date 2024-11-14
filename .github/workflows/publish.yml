@@ -13,7 +13,7 @@ jobs:
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
     steps:
       #----------------------------------------------
-      #       check-out repo and set-up python     
+      #       check-out repo and set-up python
       #----------------------------------------------
       - name: Check out repository
         uses: actions/checkout@v4
@@ -38,10 +38,10 @@ jobs:
       #----------------------------------------------
       - name: Install dependencies and root project
         run: poetry install --no-interaction --all-extras
-        
+
       #----------------------------------------------
       #    get current pushed tag
-      #----------------------------------------------      
+      #----------------------------------------------
       - name: Show GitHub ref
         run: echo "$GITHUB_REF"
 
@@ -49,17 +49,17 @@ jobs:
         run:  |
           echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
           echo ${{ env.RELEASE_VERSION }}
-          
+
       #----------------------------------------------
-      #    override version tag 
-      #----------------------------------------------      
+      #    override version tag
+      #----------------------------------------------
       - name: Override version tag
         run: poetry run python3 override_version.py
         shell: sh
 
       #----------------------------------------------
       #    publish to testpypi
-      #----------------------------------------------      
+      #----------------------------------------------
       # - run: poetry config repositories.testpypi https://test.pypi.org/legacy/
       # - run: poetry config pypi-token.testpypi ${{ secrets.TWINE_TEST_TOKEN }}
       # - name: Publish package to test Pypi
@@ -67,7 +67,7 @@ jobs:
 
       #----------------------------------------------
       #    check tag
-      #----------------------------------------------      
+      #----------------------------------------------
       - name: Check Tag
         id: check-tag
         run: |
@@ -76,7 +76,7 @@ jobs:
           fi
       #----------------------------------------------
       #    publish to pypi
-      #----------------------------------------------  
+      #----------------------------------------------
       - name: Publish package to Pypi
         id: publish-to-pypi
         if: steps.check-tag.outputs.match == 'true'
@@ -88,7 +88,7 @@ jobs:
 
       #----------------------------------------------
       #    post a message to slack
-      #----------------------------------------------  
+      #----------------------------------------------
 
       - name: Post to a Slack channel
         if: steps.publish-to-pypi.outcome == 'success'

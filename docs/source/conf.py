@@ -12,10 +12,12 @@
 #
 import os
 import sys
-file_dir = os.path.dirname(__file__) 
+
+file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
-from utils import _parse_toml
 import pathlib
+
+from utils import _parse_toml
 
 sys.path.insert(0, os.path.abspath(".."))
 

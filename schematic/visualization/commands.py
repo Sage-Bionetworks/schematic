@@ -6,18 +6,17 @@
 
 import logging
 import sys
-from typing import Any, get_args, cast
+from typing import Any, cast, get_args
 
 import click
 import click_log  # type: ignore
 
-from schematic.visualization.attributes_explorer import AttributesExplorer
-from schematic.visualization.tangled_tree import TangledTree, FigureType, TextType
+from schematic.configuration.configuration import CONFIG
+from schematic.help import model_commands, viz_commands
 from schematic.utils.cli_utils import log_value_from_config, query_dict
 from schematic.utils.schema_utils import DisplayLabelType
-from schematic.help import viz_commands
-from schematic.help import model_commands
-from schematic.configuration.configuration import CONFIG
+from schematic.visualization.attributes_explorer import AttributesExplorer
+from schematic.visualization.tangled_tree import FigureType, TangledTree, TextType
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)

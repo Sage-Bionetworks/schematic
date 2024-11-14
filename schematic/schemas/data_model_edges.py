@@ -1,5 +1,6 @@
 """Data Model Edges"""
-from typing import Union, Any
+from typing import Any, Union
+
 from schematic.schemas.data_model_relationships import DataModelRelationships
 
 

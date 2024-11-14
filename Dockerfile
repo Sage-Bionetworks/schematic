@@ -14,7 +14,7 @@ WORKDIR /usr/src/app
 RUN apt-get update -qqy \
   && apt-get install -qqy \
   libopenblas-dev \
-  gfortran 
+  gfortran
 
 # remove libtiff5 for security reasons
 RUN apt remove -y libtiff5

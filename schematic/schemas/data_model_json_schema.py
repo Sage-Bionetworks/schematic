@@ -9,8 +9,8 @@ import networkx as nx  # type: ignore
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
-from schematic.utils.validate_utils import rule_in_rule_list
 from schematic.utils.schema_utils import get_json_schema_log_file_path
+from schematic.utils.validate_utils import rule_in_rule_list
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import logging
+
 import click
 import click_log
 
@@ -10,9 +11,7 @@ from schematic.models.commands import model as model_cli  # submit manifest comm
 from schematic.schemas.commands import (
     schema as schema_cli,
 )  # schema conversion commands
-from schematic.visualization.commands import (
-    viz as viz_cli,
-)  # viz generation commands
+from schematic.visualization.commands import viz as viz_cli  # viz generation commands
 
 logger = logging.getLogger()
 click_log.basic_config(logger)

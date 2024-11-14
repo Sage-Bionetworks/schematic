@@ -1,23 +1,23 @@
 """Unit testing for the ValidateAttribute class"""
 
-from typing import Generator, Any, Tuple, Iterable
-import pytest
+from typing import Any, Generator, Iterable, Tuple
 
+import pytest
 from networkx import MultiDiGraph  # type: ignore
 
+from schematic.schemas.data_model_graph import DataModelGraph
+from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_validator import (
     DataModelValidator,
     Node,
-    get_node_labels_from,
-    get_missing_fields_from,
     check_characters_in_node_display_name,
-    match_node_names_with_reserved_names,
-    create_reserve_name_error_messages,
     create_blacklisted_characters_error_message,
     create_missing_fields_error_messages,
+    create_reserve_name_error_messages,
+    get_missing_fields_from,
+    get_node_labels_from,
+    match_node_names_with_reserved_names,
 )
-from schematic.schemas.data_model_parser import DataModelParser
-from schematic.schemas.data_model_graph import DataModelGraph
 
 # pylint: disable=protected-access
 
