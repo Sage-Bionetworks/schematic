@@ -4,14 +4,14 @@ import os
 import uuid
 from io import BytesIO
 
+import numpy as np
+import pandas as pd
 import pytest
 import requests
-from openpyxl import load_workbook
 from click.testing import CliRunner
-import pandas as pd
-import numpy as np
+from openpyxl import load_workbook
 
-from schematic.configuration.configuration import Configuration, CONFIG
+from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.manifest.commands import manifest
 from schematic.models.commands import model
 from tests.conftest import ConfigurationForTesting
@@ -665,18 +665,18 @@ class TestManifestCommand:
             # Reset config to it's default values
             CONFIG.load_config("config_example.yml")
 
-        assert result.output.split("\n")[7] == (
+        assert result.output.split("\n")[8] == (
             "Find the manifest template using this Google Sheet URL:"
         )
-        assert result.output.split("\n")[8].startswith(
+        assert result.output.split("\n")[9].startswith(
             "https://docs.google.com/spreadsheets/d/"
         )
-        assert result.output.split("\n")[9] == (
+        assert result.output.split("\n")[10] == (
             "Find the manifest template using this CSV file path: "
             "./CLI_gs_bulk_rna.csv"
         )
 
-        google_sheet_url = result.output.split("\n")[8]
+        google_sheet_url = result.output.split("\n")[9]
 
         # Download the Google Sheets content as an Excel file and load into openpyxl
         export_url = f"{google_sheet_url}/export?format=xlsx"
