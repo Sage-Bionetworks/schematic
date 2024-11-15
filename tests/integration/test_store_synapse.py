@@ -246,13 +246,12 @@ class TestStoreSynapse:
         ids=["no file filtering", "file filtering"],
     )
     def test_getFilesInStorageDataset(
-        self, filenames, asset_view, dataset_id, expected_files
+        self, filenames, asset_view, dataset_id, expected_files, synapse_store
     ):
         # GIVEN a SynapseStorage object with the appropriate asset view
-        syn = SynapseStorage()
-        syn.storageFileView = asset_view
+        synapse_store.storageFileView = asset_view
         # WHEN getFilesInStorageDataset is called for the given dataset
-        dataset_files = syn.getFilesInStorageDataset(
+        dataset_files = synapse_store.getFilesInStorageDataset(
             datasetId=dataset_id, fileNames=filenames
         )
         # AND the filenames are filtered as appropriate
