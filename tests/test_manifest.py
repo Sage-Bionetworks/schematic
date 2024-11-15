@@ -769,7 +769,6 @@ class TestManifestGenerator:
     @pytest.mark.parametrize(
         "component, datasetId, expected_file_based, expected_rows, expected_files, expected_annotations",
         [
-            # ("Biospecimen", "syn61260107", False, 4, None),
             (
                 "BulkRNA-seqAssay",
                 "syn61374924",
