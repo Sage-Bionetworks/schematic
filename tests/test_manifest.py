@@ -811,6 +811,10 @@ class TestManifestGenerator:
                 },
             ),
         ],
+        ids=[
+            "top level folder",
+            "nested dataset",
+        ],
     )
     @pytest.mark.parametrize("use_annotations", [True, False])
     def test_get_manifest_with_files(
