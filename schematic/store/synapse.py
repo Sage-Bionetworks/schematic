@@ -697,10 +697,11 @@ class SynapseStorage(BaseStorage):
         folders = synapseutils.walk(self.syn, datasetId, includeTypes=["folder"])
 
         # Getting the files directly under the dataset will be the beginning of the query
-        dataset_clause = f"parentId='{datasetId}' "
+        dataset_clause = SynapseStorage.build_clause_from_dataset_id(datasetId)
 
         # The query will also be ammended to include everything containted in all the subdirectories of the dataset
-        for subfolder, _, path in folders:
+        for subfolder, s2, path in folders:
+            # print(f"({subfolder}, {s2}, {path}),")
             dataset_clause += f"OR parentId='{subfolder[1]}' "
         dataset_clause = f"({dataset_clause})"
 
