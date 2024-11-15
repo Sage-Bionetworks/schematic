@@ -701,7 +701,6 @@ class SynapseStorage(BaseStorage):
 
         # The query will also be ammended to include everything containted in all the subdirectories of the dataset
         for subfolder, s2, path in folders:
-            # print(f"({subfolder}, {s2}, {path}),")
             dataset_clause += f"OR parentId='{subfolder[1]}' "
         dataset_clause = f"({dataset_clause})"
 
