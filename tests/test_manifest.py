@@ -767,12 +767,11 @@ class TestManifestGenerator:
             assert all_results == expected_result
 
     @pytest.mark.parametrize(
-        "component, datasetId, expected_file_based, expected_rows, expected_files, expected_annotations",
+        "component, datasetId, expected_rows, expected_files, expected_annotations",
         [
             (
                 "BulkRNA-seqAssay",
                 "syn61374924",
-                True,
                 4,
                 pd.Series(
                     [
@@ -795,7 +794,6 @@ class TestManifestGenerator:
             (
                 "BulkRNA-seqAssay",
                 "syn25614635",
-                True,
                 3,
                 pd.Series(
                     [
@@ -820,7 +818,6 @@ class TestManifestGenerator:
         helpers,
         component,
         datasetId,
-        expected_file_based,
         expected_rows,
         expected_files,
         expected_annotations,
