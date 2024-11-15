@@ -231,9 +231,20 @@ class TestStoreSynapse:
                 ],
             ),
         ],
+        ids=[
+            "top level folder",
+            "nested dataset",
+            "contentType:dataset annotation",
+            "nested data files",
+            "doubly nested data files",
+        ],
     )
     @pytest.mark.test_this
-    @pytest.mark.parametrize("filenames", [None, ["txt1.txt", "txt2.txt"]])
+    @pytest.mark.parametrize(
+        "filenames",
+        [None, ["txt1.txt", "txt2.txt"]],
+        ids=["no file filtering", "file filtering"],
+    )
     def test_getFilesInStorageDataset(
         self, filenames, asset_view, dataset_id, expected_files
     ):
@@ -390,9 +401,20 @@ class TestStoreSynapse:
                 ],
             ),
         ],
+        ids=[
+            "top level folder",
+            "nested dataset",
+            "contentType:dataset annotation",
+            "nested data files",
+            "doubly nested data files",
+        ],
     )
     @pytest.mark.test_this
-    @pytest.mark.parametrize("filenames", [None, ["txt1.txt", "txt2.txt"]])
+    @pytest.mark.parametrize(
+        "filenames",
+        [None, ["txt1.txt", "txt2.txt"]],
+        ids=["no file filtering", "file filtering"],
+    )
     def test_mock_getFilesInStorageDataset(
         self,
         synapse_store,
