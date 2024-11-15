@@ -700,7 +700,7 @@ class SynapseStorage(BaseStorage):
         dataset_clause = SynapseStorage.build_clause_from_dataset_id(datasetId)
 
         # The query will also be ammended to include everything containted in all the subdirectories of the dataset
-        for subfolder, s2, path in folders:
+        for subfolder, _, _ in folders:
             dataset_clause += f"OR parentId='{subfolder[1]}' "
         dataset_clause = f"({dataset_clause})"
 
