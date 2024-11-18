@@ -127,11 +127,30 @@ jobs:
       #----------------------------------------------
       #              run integration test suite
       #----------------------------------------------
+
+      - name: Retrieve telemetry access token from IDP
+        if: ${{ contains(fromJSON('["3.10"]'), matrix.python-version) }}
+        id: retrieve-telemetry-access-token
+        run: |
+          response=$(curl --request POST \
+            --url ${{ vars.TELEMETRY_AUTH_CLIENT_URL }} \
+            --header 'content-type: application/json' \
+            --data '{"client_id":"${{ vars.TELEMETRY_AUTH_CLIENT_ID }}","client_secret":"${{ secrets.TELEMETRY_AUTH_CLIENT_SECRET }}","audience":"${{ vars.TELEMETRY_AUTH_AUDIENCE }}","grant_type":"client_credentials"}')
+          access_token=$(echo $response | jq -r .access_token)
+          echo "::add-mask::$access_token"
+          echo "TELEMETRY_ACCESS_TOKEN=$access_token" >> "$GITHUB_OUTPUT"
       - name: Run integration tests
         if: ${{ contains(fromJSON('["3.10"]'), matrix.python-version) }}
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
+          OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Bearer ${{ steps.retrieve-telemetry-access-token.outputs.TELEMETRY_ACCESS_TOKEN }}"
+          DEPLOYMENT_ENVIRONMENT: ${{ vars.DEPLOYMENT_ENVIRONMENT }}
+          OTEL_EXPORTER_OTLP_ENDPOINT: ${{ vars.OTEL_EXPORTER_OTLP_ENDPOINT }}
+          TRACING_EXPORT_FORMAT: ${{ vars.TRACING_EXPORT_FORMAT }}
+          LOGGING_EXPORT_FORMAT: ${{ vars.LOGGING_EXPORT_FORMAT }}
+          TRACING_SERVICE_NAME: ${{ vars.TRACING_SERVICE_NAME }}
+          LOGGING_SERVICE_NAME: ${{ vars.LOGGING_SERVICE_NAME }}
         run: >
           poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
           -m "not (rule_benchmark or single_process_execution)" --reruns 4 -n 8 --ignore=tests/unit
