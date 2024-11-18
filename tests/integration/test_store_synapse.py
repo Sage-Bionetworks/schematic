@@ -272,7 +272,7 @@ class TestStoreSynapse:
         # AND there are no unexpected files
         assert dataset_files == expected_files
         # AND the (synId, path) order is correct
-        synapse_id_regex = re_compile(syn_id_regex())
+        synapse_id_regex = re_compile(syn_id_regex)
         if dataset_files:
             assert synapse_id_regex.fullmatch(dataset_files[0][0])
 
@@ -463,6 +463,6 @@ class TestStoreSynapse:
                 # AND there are no unexpected files
                 assert dataset_files == expected_files
                 # AND the (synId, path) order is correct
-                synapse_id_regex = re_compile(syn_id_regex())
+                synapse_id_regex = re_compile(syn_id_regex)
                 if dataset_files:
                     assert synapse_id_regex.fullmatch(dataset_files[0][0])

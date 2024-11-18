@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
+syn_id_regex = r"(syn\d+\,?)+"
+
 
 def find_duplicates(_list: list[T]) -> set[T]:
     """Find duplicate items in a list"""
@@ -332,14 +334,3 @@ def normalize_path(path: str, parent_folder: str) -> str:
     if not os.path.isabs(path):
         path = os.path.join(parent_folder, path)
     return os.path.normpath(path)
-
-
-def syn_id_regex() -> str:
-    """
-    Regex pattern to match synapse ids
-    Args:
-        None
-    Returns:
-        str: synID regex pattern
-    """
-    return r"(syn\d+\,?)+"

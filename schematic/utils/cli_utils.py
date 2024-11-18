@@ -70,7 +70,7 @@ def parse_syn_ids(
     if not syn_ids:
         return None
 
-    project_regex = re.compile(syn_id_regex())
+    project_regex = re.compile(syn_id_regex)
     valid = project_regex.fullmatch(syn_ids)
 
     if not valid:
