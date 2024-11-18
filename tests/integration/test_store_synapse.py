@@ -11,7 +11,7 @@ from synapseclient.table import build_table
 from schematic.configuration.configuration import Configuration
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
-from schematic.utils.general import syn_id_regex
+from schematic.utils.general import SYN_ID_REGEX
 from schematic.utils.validate_utils import comma_separated_list_regex
 
 
@@ -272,7 +272,7 @@ class TestStoreSynapse:
         # AND there are no unexpected files
         assert dataset_files == expected_files
         # AND the (synId, path) order is correct
-        synapse_id_regex = re_compile(syn_id_regex)
+        synapse_id_regex = re_compile(SYN_ID_REGEX)
         if dataset_files:
             assert synapse_id_regex.fullmatch(dataset_files[0][0])
 
@@ -463,6 +463,6 @@ class TestStoreSynapse:
                 # AND there are no unexpected files
                 assert dataset_files == expected_files
                 # AND the (synId, path) order is correct
-                synapse_id_regex = re_compile(syn_id_regex)
+                synapse_id_regex = re_compile(SYN_ID_REGEX)
                 if dataset_files:
                     assert synapse_id_regex.fullmatch(dataset_files[0][0])
