@@ -245,7 +245,7 @@ class TestStoreSynapse:
         [None, ["txt1.txt", "txt2.txt"]],
         ids=["no file filtering", "file filtering"],
     )
-    def test_getFilesInStorageDataset(
+    def test_get_files_in_storage_dataset(
         self, filenames, asset_view, dataset_id, expected_files, synapse_store
     ):
         # GIVEN a SynapseStorage object with the appropriate asset view
@@ -414,7 +414,7 @@ class TestStoreSynapse:
         [None, ["txt1.txt", "txt2.txt"]],
         ids=["no file filtering", "file filtering"],
     )
-    def test_mock_getFilesInStorageDataset(
+    def test_mock_get_files_in_storage_dataset(
         self,
         synapse_store,
         filenames,
