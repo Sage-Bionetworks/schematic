@@ -690,7 +690,7 @@ class SynapseStorage(BaseStorage):
     def getFilesInStorageDataset(
         self, datasetId: str, fileNames: List = None, fullpath: bool = True
     ) -> List[Tuple[str, str]]:
-        """Gets all files in a given dataset folder.
+        """Gets all files (excluding manifest files) in a given dataset folder.
 
         Args:
             datasetId: synapse ID of a storage dataset.
@@ -707,6 +707,10 @@ class SynapseStorage(BaseStorage):
         file_list = []
         folder_list = []
         # Identify all folders nested under the dataset folder
+        with DatasetFileView(
+            datasetId=datasetId, synapse=self.syn, temporary=True
+        ) as temp_view:
+            temp_view.query()
         folders = synapseutils.walk(self.syn, datasetId, includeTypes=["folder"])
         for subfolder, _, _ in folders:
             folder_list.append(subfolder[1])
@@ -3414,7 +3418,7 @@ class DatasetFileView:
             parent=self.parentId,
             scopes=self.datasetId,
             includeEntityTypes=[EntityViewType.FILE, EntityViewType.FOLDER],
-            addDefaultViewColumns=False,
+            addDefaultViewColumns=True,
             addAnnotationColumns=True,
         )
 

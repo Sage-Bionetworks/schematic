@@ -692,8 +692,8 @@ paths:
         - Synapse Storage
   /storage/dataset/files:
     get:
-      summary: Get all files in a given dataset folder
-      description: Get all files in a given dataset folder
+      summary: Get all files (excluding manifest files) in a given dataset folder
+      description: Get all files (excluding manifest files) in a given dataset folder
       operationId: schematic_api.api.routes.get_files_storage_dataset
       security:
         - access_token: []
