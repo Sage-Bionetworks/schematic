@@ -708,11 +708,10 @@ class SynapseStorage(BaseStorage):
         folder_list = []
         # Identify all folders nested under the dataset folder
         folders = synapseutils.walk(self.syn, datasetId, includeTypes=["folder"])
-
-        # The query will also be ammended to include everything containted in all the subdirectories of the dataset
         for subfolder, _, _ in folders:
             folder_list.append(subfolder[1])
 
+        # The query will include everything containted in all the subdirectories of the dataset
         dataset_clause = SynapseStorage.build_clause_from_dataset_id(
             dataset_folder_list=folder_list
         )
