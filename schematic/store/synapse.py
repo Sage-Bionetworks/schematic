@@ -417,15 +417,28 @@ class SynapseStorage(BaseStorage):
                     raise AccessCredentialsError(self.storageFileview)
 
     @staticmethod
-    def build_clause_from_dataset_id(dataset_id: Optional[str]) -> str:
+    def build_clause_from_dataset_id(
+        dataset_id: Optional[str] = None, dataset_folder_list: Optional[list] = None
+    ) -> str:
         """
         Method to build a where clause for a Synapse FileView query based on a dataset ID that can be used before an object is initialized.
         Args:
             dataset_id: Synapse ID of a dataset that should be used to limit the query
+            dataset_folder_list: List of Synapse IDs of a dataset and all its subfolders that should be used to limit the query
         Returns:
             clause for the query or an empty string if no dataset ID is provided
         """
-        return f"parentId='{dataset_id}'" if dataset_id else ""
+        # Calling this method without specifying synIDs will complete but will not scope the view
+        if (not dataset_id) and (not dataset_folder_list):
+            return ""
+
+        # This will be used to gather files under a dataset recursively with a fileview query instead of walking
+        if dataset_folder_list:
+            search_folders = ", ".join(f"'{synId}'" for synId in dataset_folder_list)
+            return f"parentId IN ({search_folders})"
+
+        # `dataset_id` should be provided when all files are stored directly under the dataset folder
+        return f"parentId='{dataset_id}'"
 
     def _build_query(
         self, columns: Optional[list] = None, where_clauses: Optional[list] = None
@@ -692,17 +705,17 @@ class SynapseStorage(BaseStorage):
             ValueError: Dataset ID not found.
         """
         file_list = []
-
+        folder_list = []
         # Identify all folders nested under the dataset folder
         folders = synapseutils.walk(self.syn, datasetId, includeTypes=["folder"])
 
-        # Getting the files directly under the dataset will be the beginning of the query
-        dataset_clause = SynapseStorage.build_clause_from_dataset_id(datasetId)
-
         # The query will also be ammended to include everything containted in all the subdirectories of the dataset
         for subfolder, _, _ in folders:
-            dataset_clause += f"OR parentId='{subfolder[1]}' "
-        dataset_clause = f"({dataset_clause})"
+            folder_list.append(subfolder[1])
+
+        dataset_clause = SynapseStorage.build_clause_from_dataset_id(
+            dataset_folder_list=folder_list
+        )
 
         # When querying, only include files to exclude entity files and subdirectories
         where_clauses = [dataset_clause, "type='file'"]

@@ -2119,7 +2119,9 @@ class ValidateAttribute(object):
 
         where_clauses = []
 
-        dataset_clause = SynapseStorage.build_clause_from_dataset_id(dataset_scope)
+        dataset_clause = SynapseStorage.build_clause_from_dataset_id(
+            dataset_id=dataset_scope
+        )
         where_clauses.append(dataset_clause)
 
         self._login(
