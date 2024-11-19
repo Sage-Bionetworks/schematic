@@ -934,11 +934,23 @@ class TestSynapseStorage:
             mock_store_async.assert_not_called()
 
     @pytest.mark.parametrize(
-        "dataset_id, expected_clause",
-        [("syn12345678", "parentId='syn12345678'"), (None, "")],
+        "dataset_id, dataset_folder_list, expected_clause",
+        [
+            ("syn12345678", None, "parentId='syn12345678'"),
+            (
+                "syn63927665",
+                ["syn63927665", "syn63927667"],
+                "parentId IN ('syn63927665', 'syn63927667')",
+            ),
+            (None, None, ""),
+        ],
     )
-    def test_build_clause_from_dataset_id(self, dataset_id, expected_clause):
-        dataset_clause = SynapseStorage.build_clause_from_dataset_id(dataset_id)
+    def test_build_clause_from_dataset_id(
+        self, dataset_id, dataset_folder_list, expected_clause
+    ):
+        dataset_clause = SynapseStorage.build_clause_from_dataset_id(
+            dataset_id=dataset_id, dataset_folder_list=dataset_folder_list
+        )
         assert dataset_clause == expected_clause
 
 
