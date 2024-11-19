@@ -62,7 +62,7 @@ Access & Project Setup - Multiple Contributing Projects
 5. Create another Synapse Project (e.g., MyDCC) containing the main **Fileview** that includes in the scope all the DCC projects.
 
    - Ensure all teams have **Download** level access to this file view.
-   - Include both file and folder entities and add ALL default columns.
+   - Include both file and folder entities and add **ALL default columns**.
 
 .. note::
 
@@ -105,7 +105,8 @@ Access & Project Setup - Single Contributing Project
 
 4. In MyDCC, create the main **DCC Fileview** with `MyDCC` as the scope. Add column ``contentType`` to the schema and grant teams **Download** level access.
 
-   - Add both file and folder entities and add ALL default columns.
+   - Ensure all teams have **Download** level access to this file view.
+   - Add both file and folder entities and add **ALL default columns**.
 
 .. note::
 
