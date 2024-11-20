@@ -102,10 +102,6 @@ def set_up_tracing(session: requests.Session) -> None:
                 resource=Resource(
                     attributes={
                         SERVICE_NAME: tracing_service_name,
-                        # TODO: Revisit this portion later on. As of 11/12/2024 when
-                        # deploying this to ECS or running within a docker container,
-                        # the package version errors out with the following error:
-                        # importlib.metadata.PackageNotFoundError: No package metadata was found for schematicpy
                         SERVICE_VERSION: __version__,
                         DEPLOYMENT_ENVIRONMENT: deployment_environment,
                     }
@@ -133,6 +129,7 @@ def set_up_logging(session: requests.Session) -> None:
             {
                 SERVICE_NAME: logging_service_name,
                 DEPLOYMENT_ENVIRONMENT: deployment_environment,
+                SERVICE_VERSION: __version__,
             }
         )
 
