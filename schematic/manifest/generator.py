@@ -1904,6 +1904,8 @@ class ManifestGenerator(object):
         # TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
+        # TODO: determine which parts of fileview are necessary for `get` operations
+        # and pass query parameters at object instantiation to avoid having to re-query
         if access_token:
             # for getting an existing manifest on AWS
             store = SynapseStorage(access_token=access_token)
