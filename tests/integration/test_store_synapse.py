@@ -142,8 +142,8 @@ class TestStoreSynapse:
                 [
                     ("syn61374926", "schematic - main/BulkRNASeq and files/txt1.txt"),
                     ("syn61374930", "schematic - main/BulkRNASeq and files/txt2.txt"),
-                    ("syn62282720", "schematic - main/BulkRNASeq and files/txt4.txt"),
                     ("syn62282794", "schematic - main/BulkRNASeq and files/txt3.txt"),
+                    ("syn62282720", "schematic - main/BulkRNASeq and files/txt4.txt"),
                 ],
             ),
             (
@@ -169,10 +169,6 @@ class TestStoreSynapse:
                 "syn63917494",
                 [
                     (
-                        "syn63917518",
-                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation/txt4.txt",
-                    ),
-                    (
                         "syn63917520",
                         "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation/txt1.txt",
                     ),
@@ -184,16 +180,16 @@ class TestStoreSynapse:
                         "syn63917522",
                         "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation/txt3.txt",
                     ),
+                    (
+                        "syn63917518",
+                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation/txt4.txt",
+                    ),
                 ],
             ),
             (
                 "syn23643253",
                 "syn63927665",
                 [
-                    (
-                        "syn63927670",
-                        "schematic - main/BulkRNAseq nested files/data/txt4.txt",
-                    ),
                     (
                         "syn63927671",
                         "schematic - main/BulkRNAseq nested files/data/txt1.txt",
@@ -206,16 +202,16 @@ class TestStoreSynapse:
                         "syn63927673",
                         "schematic - main/BulkRNAseq nested files/data/txt3.txt",
                     ),
+                    (
+                        "syn63927670",
+                        "schematic - main/BulkRNAseq nested files/data/txt4.txt",
+                    ),
                 ],
             ),
             (
                 "syn23643253",
                 "syn63987067",
                 [
-                    (
-                        "syn63987071",
-                        "schematic - main/BulkRNAseq and double nested files/dataset/folder 1/data/txt4.txt",
-                    ),
                     (
                         "syn63987072",
                         "schematic - main/BulkRNAseq and double nested files/dataset/folder 1/data/txt1.txt",
@@ -227,6 +223,10 @@ class TestStoreSynapse:
                     (
                         "syn63987074",
                         "schematic - main/BulkRNAseq and double nested files/dataset/folder 1/data/txt3.txt",
+                    ),
+                    (
+                        "syn63987071",
+                        "schematic - main/BulkRNAseq and double nested files/dataset/folder 1/data/txt4.txt",
                     ),
                 ],
             ),
