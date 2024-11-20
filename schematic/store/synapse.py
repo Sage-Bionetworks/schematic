@@ -707,10 +707,6 @@ class SynapseStorage(BaseStorage):
         file_list = []
         folder_list = []
         # Identify all folders nested under the dataset folder
-        with DatasetFileView(
-            datasetId=datasetId, synapse=self.syn, temporary=True
-        ) as temp_view:
-            temp_view.query()
         folders = synapseutils.walk(self.syn, datasetId, includeTypes=["folder"])
         for subfolder, _, _ in folders:
             folder_list.append(subfolder[1])
