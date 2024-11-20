@@ -239,7 +239,6 @@ class TestStoreSynapse:
             "doubly nested data files",
         ],
     )
-    @pytest.mark.test_this
     @pytest.mark.parametrize(
         "filenames",
         [None, ["txt1.txt", "txt2.txt"]],
@@ -408,7 +407,6 @@ class TestStoreSynapse:
             "doubly nested data files",
         ],
     )
-    @pytest.mark.test_this
     @pytest.mark.parametrize(
         "filenames",
         [None, ["txt1.txt", "txt2.txt"]],
