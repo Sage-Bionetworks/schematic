@@ -87,7 +87,11 @@ jobs:
       #----------------------------------------------
       #             check formatting
       #----------------------------------------------
-      - uses: pre-commit/action@v3.0.1
+      - name: Code formatting with black
+        run: |
+          # ran only on certain files for now
+          # add here when checked
+          poetry run black schematic tests schematic_api --check
 
       #----------------------------------------------
       #             type checking/enforcement
