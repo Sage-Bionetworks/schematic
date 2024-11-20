@@ -705,19 +705,12 @@ class SynapseStorage(BaseStorage):
             ValueError: Dataset ID not found.
         """
         file_list = []
-        folder_list = []
-        # Identify all folders nested under the dataset folder
-        folders = synapseutils.walk(self.syn, datasetId, includeTypes=["folder"])
-        for subfolder, _, _ in folders:
-            folder_list.append(subfolder[1])
 
-        # The query will include everything containted in all the subdirectories of the dataset
-        dataset_clause = SynapseStorage.build_clause_from_dataset_id(
-            dataset_folder_list=folder_list
-        )
+        # Get path to dataset folder from fileview to avoid building a new fileview and walking to determine folders and files within
+        dataset_path = f"'{self.storageFileviewTable.loc[self.storageFileviewTable['id']==datasetId,'path'][0]}/%'"
 
         # When querying, only include files to exclude entity files and subdirectories
-        where_clauses = [dataset_clause, "type='file'"]
+        where_clauses = [f"path like {dataset_path}", "type='file'"]
 
         # Requery the fileview to specifically get the files in the given dataset
         self.query_fileview(columns=["id", "path"], where_clauses=where_clauses)
