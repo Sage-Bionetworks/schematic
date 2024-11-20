@@ -276,7 +276,7 @@ class TestStoreSynapse:
             assert synapse_id_regex.fullmatch(dataset_files[0][0])
 
     @pytest.mark.parametrize(
-        "asset_view, dataset_id, expected_files, mock_walk_return",
+        "asset_view, dataset_id, expected_files",
         [
             (
                 "syn23643253",
@@ -284,11 +284,8 @@ class TestStoreSynapse:
                 [
                     ("syn61374926", "schematic - main/BulkRNASeq and files/txt1.txt"),
                     ("syn61374930", "schematic - main/BulkRNASeq and files/txt2.txt"),
-                    ("syn62282720", "schematic - main/BulkRNASeq and files/txt4.txt"),
                     ("syn62282794", "schematic - main/BulkRNASeq and files/txt3.txt"),
-                ],
-                [
-                    (("BulkRNASeq and files", "syn61374924"), [], []),
+                    ("syn62282720", "schematic - main/BulkRNASeq and files/txt4.txt"),
                 ],
             ),
             (
@@ -308,18 +305,11 @@ class TestStoreSynapse:
                         "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_C.txt",
                     ),
                 ],
-                [
-                    (("TestDataset-Annotations-v3", "syn25614635"), [], []),
-                ],
             ),
             (
                 "syn63917487",
                 "syn63917494",
                 [
-                    (
-                        "syn63917518",
-                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation/txt4.txt",
-                    ),
                     (
                         "syn63917520",
                         "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation/txt1.txt",
@@ -332,19 +322,16 @@ class TestStoreSynapse:
                         "syn63917522",
                         "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation/txt3.txt",
                     ),
-                ],
-                [
-                    (("Test BulkRNAseq w annotation", "syn63917494"), [], []),
+                    (
+                        "syn63917518",
+                        "schematic - main/Test files and dataset annotations/Test BulkRNAseq w annotation/txt4.txt",
+                    ),
                 ],
             ),
             (
                 "syn23643253",
                 "syn63927665",
                 [
-                    (
-                        "syn63927670",
-                        "schematic - main/BulkRNAseq nested files/data/txt4.txt",
-                    ),
                     (
                         "syn63927671",
                         "schematic - main/BulkRNAseq nested files/data/txt1.txt",
@@ -357,24 +344,16 @@ class TestStoreSynapse:
                         "syn63927673",
                         "schematic - main/BulkRNAseq nested files/data/txt3.txt",
                     ),
-                ],
-                [
                     (
-                        ("BulkRNAseq nested files", "syn63927665"),
-                        [("data", "syn63927667")],
-                        [],
+                        "syn63927670",
+                        "schematic - main/BulkRNAseq nested files/data/txt4.txt",
                     ),
-                    (("BulkRNAseq nested files/data", "syn63927667"), [], []),
                 ],
             ),
             (
                 "syn23643253",
                 "syn63987067",
                 [
-                    (
-                        "syn63987071",
-                        "schematic - main/BulkRNAseq and double nested files/dataset/folder 1/data/txt4.txt",
-                    ),
                     (
                         "syn63987072",
                         "schematic - main/BulkRNAseq and double nested files/dataset/folder 1/data/txt1.txt",
@@ -387,15 +366,10 @@ class TestStoreSynapse:
                         "syn63987074",
                         "schematic - main/BulkRNAseq and double nested files/dataset/folder 1/data/txt3.txt",
                     ),
-                ],
-                [
-                    (("dataset", "syn63987067"), [("folder 1", "syn63987068")], []),
                     (
-                        ("dataset/folder 1", "syn63987068"),
-                        [("data", "syn63987069")],
-                        [],
+                        "syn63987071",
+                        "schematic - main/BulkRNAseq and double nested files/dataset/folder 1/data/txt4.txt",
                     ),
-                    (("dataset/folder 1/data", "syn63987069"), [], []),
                 ],
             ),
         ],
@@ -419,16 +393,13 @@ class TestStoreSynapse:
         asset_view,
         dataset_id,
         expected_files,
-        mock_walk_return,
     ):
         # GIVEN a test configuration
         TEST_CONFIG = Configuration()
 
         with patch(
             "schematic.store.synapse.CONFIG", return_value=TEST_CONFIG
-        ) as mock_config, patch(
-            "synapseutils.walk_functions._help_walk", return_value=mock_walk_return
-        ) as mock_walk_patch:
+        ) as mock_config:
             with patch.object(synapse_store, "syn") as mock_synapse_client:
                 # AND the appropriate asset view
                 mock_config.synapse_master_fileview_id = asset_view
