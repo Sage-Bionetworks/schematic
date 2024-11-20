@@ -1,4 +1,7 @@
 import os
+
+import pickle
+import json
 from unittest.mock import patch
 
 import pytest
@@ -45,18 +48,76 @@ class TestSchemaCli:
         except:
             pass
 
-    def test_schema_convert_cli(self, runner, helpers):
-        data_model_csv_path = helpers.get_data_path("example.model.csv")
-
-        output_path = helpers.get_data_path("example.model.jsonld")
-
+    @pytest.mark.parametrize(
+        "output_path",
+        [
+            # Test case 1: pickle file passed to output_path
+            "tests/data/example.model.pickle",
+            # Test case 2: jsonld file passed to output_path
+            "tests/data/example.model.jsonld",
+        ],
+        ids=["output_path_pickle", "output_path_jsonld"],
+    )
+    @pytest.mark.parametrize(
+        "output_type",
+        [
+            # Test case 1: jsonld passed to output_type
+            "jsonld",
+            # Test case 2: graph passed to output_type
+            "graph",
+            # Test case 3: both jsonld and graph are created
+            "all",
+        ],
+        ids=["output_type_jsonld", "output_type_graph", "output_type_all"],
+    )
+    def test_schema_convert_cli(self, runner, output_path, output_type):
+        model = "tests/data/example.model.csv"
         label_type = "class_label"
+        expected = 0
+
+        result_one = runner.invoke(schema, ["convert", model])
+
+        assert result_one.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
+
+        result_two = runner.invoke(
+            schema, ["convert", model, "--output_path", output_path]
+        )
+
+        assert result_two.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
+
+        result_three = runner.invoke(
+            schema, ["convert", model, "--output_type", output_type]
+        )
+
+        assert result_three.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
+
+        result_four = runner.invoke(
+            schema,
+            [
+                "convert",
+                model,
+                "--output_type",
+                output_type,
+                "--output_jsonld",
+                output_path,
+            ],
+        )
+
+        assert result_four.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
 
         result = runner.invoke(
             schema,
             [
                 "convert",
-                data_model_csv_path,
+                model,
                 "--output_jsonld",
                 output_path,
                 "--data_model_labels",
@@ -64,13 +125,33 @@ class TestSchemaCli:
             ],
         )
 
-        assert result.exit_code == 0
+        assert result.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
 
-        expected_substr = (
-            "The Data Model was created and saved to " f"'{output_path}' location."
+        result_five = runner.invoke(
+            schema,
+            [
+                "convert",
+                model,
+                "--output_jsonld",
+                "tests/data/example.model.pickle",
+                "--output_path",
+                "tests/data/example.model.pickle",
+            ],
         )
 
-        assert expected_substr in result.output
+        assert result_five.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
+
+        result_six = runner.invoke(
+            schema, ["convert", model, "--output_jsonld", "", "--output_path", ""]
+        )
+
+        assert result_six.exit_code == expected
+        # check output_path file is created then remove it
+        assert os.path.exists(output_path)
 
     # get manifest by default
     # by default this should download the manifest as a CSV file

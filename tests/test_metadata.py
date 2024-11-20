@@ -20,6 +20,22 @@ def metadata_model(helpers, data_model_labels):
         inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
         data_model_labels=data_model_labels,
         inputMModelLocationType="local",
+        data_model_graph_pickle=helpers.get_data_path("example.model.pickle"),
+    )
+
+    return metadata_model
+
+
+def metadata_model_display(helpers, data_model_labels):
+    # Test which labels are displayed to the user.
+    # Can be either 'display_label' or 'class_label'
+    metadata_model = MetadataModel(
+        inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
+        data_model_labels=data_model_labels,
+        inputMModelLocationType="local",
+        data_model_graph_pickle=helpers.get_data_path(
+            "example.display.label.model.pickle"
+        ),
     )
 
     return metadata_model
@@ -34,7 +50,11 @@ class TestMetadataModel:
     )
     def test_get_component_requirements(self, helpers, as_graph, data_model_labels):
         # Instantiate MetadataModel
-        meta_data_model = metadata_model(helpers, data_model_labels)
+        # Set up a metadata model with the given data model labels
+        if data_model_labels == "class_label":
+            meta_data_model = metadata_model(helpers, data_model_labels)
+        else:
+            meta_data_model = metadata_model_display(helpers, data_model_labels)
 
         if data_model_labels == "display_label":
             source_component = "BulkRNAseqAssay"

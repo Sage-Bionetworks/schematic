@@ -28,6 +28,7 @@ from schematic.schemas.data_model_jsonld import (
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.utils import cli_utils, df_utils, general, io_utils, validate_utils
 from schematic.utils.df_utils import load_df
+import pickle
 from schematic.utils.general import (
     calculate_datetime,
     check_synapse_cache_size,
@@ -49,6 +50,10 @@ from schematic.utils.schema_utils import (
     get_stripped_label,
     parse_single_set_validation_rules,
     parse_validation_rules,
+    extract_component_validation_rules,
+    check_for_duplicate_components,
+    get_json_schema_log_file_path,
+    export_graph,
     strip_context,
 )
 
@@ -461,6 +466,19 @@ class TestIOUtils:
         expected_graph_keys = 2801
         actual_graph_keys = len(schema_org_schema["@graph"])
         assert expected_graph_keys == actual_graph_keys
+
+    def TestReadPickle(self):
+        # Test that the function can read a pickle file
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pickle_file = tmpdir + "/test.pkl"
+            with open(pickle_file, "wb") as f:
+                pickle.dump({"foo": "bar"}, f)
+            assert io_utils.read_pickle(pickle_file) == {"foo": "bar"}
+
+    def test_read_pickle_invalid_file(self):
+        # Test that the function raises an error when trying to read an invalid file
+        with pytest.raises(FileNotFoundError):
+            io_utils.read_pickle("invalid_file.pkl")
 
 
 class TestDfUtils:
@@ -1003,6 +1021,51 @@ class TestSchemaUtils:
             else:
                 return
         return
+
+
+class TestExportGraph:
+    def test_export_graph_success(self, tmp_path):
+        # Create a temporary file path
+        file_path = tmp_path / "graph.pickle"
+
+        # Define a sample schema
+        schema = {
+            "node1": {"edges": ["node2", "node3"]},
+            "node2": {"edges": []},
+            "node3": {"edges": []},
+        }
+
+        # Call the export_graph function
+        export_graph(schema, str(file_path))
+
+        # Check if the file exists
+        assert file_path.exists()
+
+        # Load the saved schema from the file
+        with open(file_path, "rb") as file:
+            saved_schema = pickle.load(file)
+
+        # Check if the saved schema is equal to the original schema
+        assert saved_schema == schema
+
+    def test_export_graph_failure(self, tmp_path, caplog):
+        # Create a temporary file path
+        file_path = tmp_path / "graph.pickle"
+
+        # Define a sample schema
+        schema = {
+            "node1": {"edges": ["node2", "node3"]},
+            "node2": {"edges": []},
+            "node3": {"edges": []},
+        }
+
+        # Set the file path to a non-existent directory
+        invalid_file_path = str(tmp_path / "non_existent_directory" / "graph.pickle")
+
+        # Call the export_graph function with an invalid file path
+        # and catch the exception
+        with pytest.raises(FileNotFoundError):
+            export_graph(schema, invalid_file_path)
 
     @pytest.mark.parametrize(
         "data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values())

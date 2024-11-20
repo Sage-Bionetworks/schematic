@@ -25,6 +25,7 @@ from schematic.utils.schema_utils import (
     DisplayLabelType,
     get_property_label_from_display_name,
 )
+from schematic.utils.io_utils import read_pickle
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.visualization.tangled_tree import TangledTree
 
@@ -213,6 +214,19 @@ def initalize_metadata_model(schema_url, data_model_labels):
     return metadata_model
 
 
+def get_temp_file(url: str, suffix: str) -> str:
+    """
+    Retrieve a file via URL and store it in a temporary location
+    :param url str: URL to the file
+    :param suffix str: Suffix of the file
+    :return: Path to the temporary file
+    """
+    with urllib.request.urlopen(url) as response:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
+            shutil.copyfileobj(response, tmp_file)
+            return tmp_file.name
+
+
 def get_temp_jsonld(schema_url):
     # retrieve a JSON-LD via URL and store it in a temporary location
     with urllib.request.urlopen(schema_url) as response:
@@ -237,7 +251,6 @@ def get_temp_csv(schema_url):
         ) as tmp_file:
             shutil.copyfileobj(response, tmp_file)
 
-    # get path to temporary csv file
     return tmp_file.name
 
 
@@ -246,12 +259,14 @@ def get_temp_model_path(schema_url):
     # Get model type:
     model_extension = pathlib.Path(schema_url).suffix.replace(".", "").upper()
     if model_extension == "CSV":
-        temp_path = get_temp_csv(schema_url)
+        temp_path = get_temp_file(schema_url, ".model.csv")
     elif model_extension == "JSONLD":
-        temp_path = get_temp_jsonld(schema_url)
+        temp_path = get_temp_file(schema_url, ".model.jsonld")
+    elif model_extension == "PICKLE":
+        temp_path = get_temp_file(schema_url, ".model.pickle")
     else:
         raise ValueError(
-            "Did not provide a valid model type CSV or JSONLD, please check submission and try again."
+            "Did not provide a valid model type CSV or JSONLD or PICKLE, please check submission and try again."
         )
     return temp_path
 
@@ -267,6 +282,7 @@ def get_manifest_route(
     strict_validation: bool = True,
     data_model_labels: DisplayLabelType = "class_label",
     data_type: str = None,
+    graph_url: str = None,
 ):
     """Get the immediate dependencies that are related to a given source node.
     Args:
@@ -278,6 +294,7 @@ def get_manifest_route(
         use_annotations: Whether to use existing annotations during manifest generation
         asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
         strict: bool, strictness with which to apply validation rules to google sheets.
+        graph_url: str, URL to a pickled graph object.
     Returns:
         Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
     """
@@ -285,6 +302,11 @@ def get_manifest_route(
     access_token = get_access_token()
 
     config_handler(asset_view=asset_view)
+
+    graph_data_model = None
+    if graph_url is not None:
+        graph_path = get_temp_model_path(graph_url)
+        graph_data_model = read_pickle(graph_path)
 
     all_results = ManifestGenerator.create_manifests(
         path_to_data_model=schema_url,
@@ -296,6 +318,7 @@ def get_manifest_route(
         strict=strict_validation,
         use_annotations=use_annotations,
         data_model_labels=data_model_labels,
+        graph_data_model=graph_data_model,
     )
 
     # return an excel file if output_format is set to "excel"

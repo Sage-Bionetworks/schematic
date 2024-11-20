@@ -759,6 +759,7 @@ class TestManifestGenerator:
                 output_format="google_sheet",
                 use_annotations=False,
                 data_model_labels="class_label",
+                data_model_graph_pickle=helpers.get_data_path("example.model.pickle"),
             )
             assert all_results == expected_result
 

@@ -5,6 +5,7 @@ import os
 import time
 import urllib.request
 from typing import Any
+import pickle
 
 
 def load_json(file_path: str) -> Any:
@@ -47,6 +48,17 @@ def load_schemaorg() -> Any:
 
     schema_org_path = LOADER.filename(data_path)
     return load_json(schema_org_path)
+
+
+def read_pickle(file_path: str) -> Any:
+    """Read pickle file and return error if file not a .pkl or .pickle file"""
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+    if not file_path.lower().endswith((".pkl", ".pickle")):
+        raise ValueError(f"File is not a pickle file: {file_path}")
+    with open(file_path, "rb") as fle:
+        data = pickle.load(fle)
+        return data
 
 
 def cleanup_temporary_storage(
