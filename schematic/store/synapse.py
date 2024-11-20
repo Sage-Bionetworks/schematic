@@ -3418,7 +3418,7 @@ class DatasetFileView:
             parent=self.parentId,
             scopes=self.datasetId,
             includeEntityTypes=[EntityViewType.FILE, EntityViewType.FOLDER],
-            addDefaultViewColumns=True,
+            addDefaultViewColumns=False,
             addAnnotationColumns=True,
         )
 
