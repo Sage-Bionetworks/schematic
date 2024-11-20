@@ -475,22 +475,14 @@ class TestSynapseStorage:
         ],
     )
     def test_getFilesInStorageDataset(self, synapse_store, full_path, expected):
-        mock_return = [
-            (
-                ("parent_folder", "syn123"),
-                [("test_folder", "syn124")],
-                [],
-            ),
-            (
-                (
-                    os.path.join("schematic - main", "parent_folder", "test_folder"),
-                    "syn124",
-                ),
-                [],
-                [],
-            ),
-        ]
-        mock_table_dataFrame = pd.DataFrame(
+        mock_table_dataFrame_initial = pd.DataFrame(
+            {
+                "id": ["syn_mock"],
+                "path": ["schematic - main/parent_folder"],
+            }
+        )
+
+        mock_table_dataFrame_return = pd.DataFrame(
             {
                 "id": ["syn126", "syn125"],
                 "path": [
@@ -499,13 +491,18 @@ class TestSynapseStorage:
                 ],
             }
         )
-        mock_table = build_table("Mock Table", "syn123", mock_table_dataFrame)
+        mock_table_return = build_table(
+            "Mock Table", "syn123", mock_table_dataFrame_return
+        )
 
-        with patch(
-            "synapseutils.walk_functions._help_walk", return_value=mock_return
-        ) as mock_walk_patch:
-            with patch.object(synapse_store, "syn") as mocked_synapse_client:
-                mocked_synapse_client.tableQuery.return_value = mock_table
+        with patch.object(synapse_store, "syn") as mocked_synapse_client:
+            with patch.object(
+                synapse_store, "storageFileviewTable"
+            ) as mocked_fileview_table:
+                mocked_fileview_table.storageFileviewTable.return_value = (
+                    mock_table_dataFrame_initial
+                )
+                mocked_synapse_client.tableQuery.return_value = mock_table_return
                 file_list = synapse_store.getFilesInStorageDataset(
                     datasetId="syn_mock", fileNames=None, fullpath=full_path
                 )
