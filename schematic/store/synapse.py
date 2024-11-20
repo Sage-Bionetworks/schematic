@@ -399,9 +399,11 @@ class SynapseStorage(BaseStorage):
         # Only perform the query if it is different from the previous query or we are forcing new results to be retrieved
         if self.new_query_different or force_requery:
             try:
+                na_values = [" ", "#N/A", "#N/A N/A", "#NA", "-1.#IND", "-1.#QNAN", "-NaN", "-nan", "1.#IND", "1.#QNAN", "<NA>",
+                             "N/A", "NA", "NULL", "NaN", "n/a", "nan", "null"]
                 self.storageFileviewTable = self.syn.tableQuery(
                     query=self.fileview_query,
-                ).asDataFrame()
+                ).asDataFrame(na_values=na_values, keep_default_na=False)
             except SynapseHTTPError as exc:
                 exception_text = str(exc)
                 if "Unknown column path" in exception_text:
