@@ -1119,6 +1119,13 @@ class SynapseStorage(BaseStorage):
                     "No manifest was passed in, a manifest is required when `only_new_files` is True."
                 )
 
+            if "entityId" not in manifest.columns:
+                raise ValueError(
+                    "The manifest in your dataset and/or top level folder must contain the 'entityId' column. "
+                    "Please generate an empty manifest without filling in the annotations, "
+                    "add files to your manifest and try again."
+                )
+
             # find new files (that are not in the current manifest) if any
             for file_id, file_name in dataset_files:
                 if not file_id in manifest["entityId"].values:
