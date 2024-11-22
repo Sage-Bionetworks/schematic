@@ -712,6 +712,7 @@ class SynapseStorage(BaseStorage):
         ][0]
         parent = child_path.split("/")[0]
         dataset_path = f"{parent}/%"
+        dataset_path = "'" + dataset_path + "'"
 
         # When querying, only include files to exclude entity files and subdirectories
         where_clauses = [f"path like {dataset_path}", "type='file'"]
