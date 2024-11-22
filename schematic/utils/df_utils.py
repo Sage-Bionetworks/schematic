@@ -12,7 +12,7 @@ import dateparser as dp
 import numpy as np
 import pandas as pd
 from pandarallel import pandarallel  # type: ignore
-from pandas._libs.parsers import STR_NA_VALUES
+from pandas._libs.parsers import STR_NA_VALUES  # type: ignore
 
 STR_NA_VALUES_FILTERED = deepcopy(STR_NA_VALUES)
 
@@ -25,7 +25,10 @@ logger = logging.getLogger(__name__)
 
 
 def read_csv(
-    path_or_buffer: str, keep_default_na=False, encoding="utf8", **load_args: Any
+    path_or_buffer: str,
+    keep_default_na: bool = False,
+    encoding: str = "utf8",
+    **load_args: Any,
 ) -> pd.DataFrame:
     na_values = load_args.pop(
         "na_values", STR_NA_VALUES_FILTERED if not keep_default_na else None
