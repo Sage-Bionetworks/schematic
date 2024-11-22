@@ -707,7 +707,11 @@ class SynapseStorage(BaseStorage):
         file_list = []
 
         # Get path to dataset folder from fileview to avoid building a new fileview and walking to determine folders and files within
-        dataset_path = f"'{self.storageFileviewTable.loc[self.storageFileviewTable['id']==datasetId,'path'][0]}/%'"
+        child_path = self.storageFileviewTable.loc[
+            self.storageFileviewTable["parentId"] == datasetId, "path"
+        ][0]
+        parent = child_path.split("/")[0]
+        dataset_path = f"{parent}/%"
 
         # When querying, only include files to exclude entity files and subdirectories
         where_clauses = [f"path like {dataset_path}", "type='file'"]
