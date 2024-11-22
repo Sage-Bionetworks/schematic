@@ -706,11 +706,21 @@ class SynapseStorage(BaseStorage):
         """
         file_list = []
 
-        # Get path to dataset folder from fileview to avoid building a new fileview and walking to determine folders and files within
+        # Get path to dataset folder by using childern to avoid cases where the dataset is the scope of the view
         child_path = self.storageFileviewTable.loc[
             self.storageFileviewTable["parentId"] == datasetId, "path"
-        ][0]
-        parent = child_path.split("/")[0]
+        ]
+        if child_path.empty:
+            raise LookupError(
+                f"Dataset {datasetId} could not be found in fileview {self.storageFileview}."
+            )
+        child_path = child_path.iloc[0]
+
+        # Get the dataset path by eliminating the child's portion of the path to account for nested datasets
+        parent = child_path.split("/")[:-1]
+        parent = "/".join(parent)
+
+        # Format dataset path to be used in table query
         dataset_path = f"'{parent}/%'"
 
         # When querying, only include files to exclude entity files and subdirectories
