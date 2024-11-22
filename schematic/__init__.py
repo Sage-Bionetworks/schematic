@@ -10,7 +10,12 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk.resources import DEPLOYMENT_ENVIRONMENT, SERVICE_NAME, Resource
+from opentelemetry.sdk.resources import (
+    DEPLOYMENT_ENVIRONMENT,
+    SERVICE_INSTANCE_ID,
+    SERVICE_NAME,
+    Resource,
+)
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, Span
 from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
@@ -91,10 +96,12 @@ def set_up_tracing(session: requests.Session) -> None:
         Synapse.enable_open_telemetry(True)
         tracing_service_name = os.environ.get("TRACING_SERVICE_NAME", "schematic-api")
         deployment_environment = os.environ.get("DEPLOYMENT_ENVIRONMENT", "")
+        service_instance_id = os.environ.get("SERVICE_INSTANCE_ID", "")
         trace.set_tracer_provider(
             TracerProvider(
                 resource=Resource(
                     attributes={
+                        SERVICE_INSTANCE_ID: service_instance_id,
                         SERVICE_NAME: tracing_service_name,
                         # TODO: Revisit this portion later on. As of 11/12/2024 when
                         # deploying this to ECS or running within a docker container,
@@ -122,9 +129,11 @@ def set_up_logging(session: requests.Session) -> None:
     logging_export = os.environ.get("LOGGING_EXPORT_FORMAT", None)
     logging_service_name = os.environ.get("LOGGING_SERVICE_NAME", "schematic-api")
     deployment_environment = os.environ.get("DEPLOYMENT_ENVIRONMENT", "")
+    service_instance_id = os.environ.get("SERVICE_INSTANCE_ID", "")
     if logging_export == "otlp":
         resource = Resource.create(
             {
+                SERVICE_INSTANCE_ID: service_instance_id,
                 SERVICE_NAME: logging_service_name,
                 DEPLOYMENT_ENVIRONMENT: deployment_environment,
             }
