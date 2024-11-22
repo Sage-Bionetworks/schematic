@@ -13,8 +13,8 @@ import numpy as np
 import pandas as pd
 from pandarallel import pandarallel  # type: ignore
 
-# type: ignore # pylint:disable=no-name-in-module
-from pandas._libs.parsers import STR_NA_VALUES
+# pylint:disable=no-name-in-module
+from pandas._libs.parsers import STR_NA_VALUES  # type: ignore
 
 STR_NA_VALUES_FILTERED = deepcopy(STR_NA_VALUES)
 
