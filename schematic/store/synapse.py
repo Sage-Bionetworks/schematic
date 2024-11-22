@@ -1122,8 +1122,8 @@ class SynapseStorage(BaseStorage):
             if "entityId" not in manifest.columns:
                 raise ValueError(
                     "The manifest in your dataset and/or top level folder must contain the 'entityId' column. "
-                    "Please generate an empty manifest without filling in the annotations, "
-                    "add files to your manifest and try again."
+                    "Please generate an empty manifest without annotations, manually add annotations to the "
+                    "appropriate files in the manifest, and then try again."
                 )
 
             # find new files (that are not in the current manifest) if any
