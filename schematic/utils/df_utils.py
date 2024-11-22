@@ -12,7 +12,9 @@ import dateparser as dp
 import numpy as np
 import pandas as pd
 from pandarallel import pandarallel  # type: ignore
-from pandas._libs.parsers import STR_NA_VALUES  # type: ignore
+
+# type: ignore # pylint:disable=no-name-in-module
+from pandas._libs.parsers import STR_NA_VALUES
 
 STR_NA_VALUES_FILTERED = deepcopy(STR_NA_VALUES)
 
@@ -30,6 +32,18 @@ def read_csv(
     encoding: str = "utf8",
     **load_args: Any,
 ) -> pd.DataFrame:
+    """
+    A wrapper around pd.read_csv that filters out "None" from the na_values list.
+
+    Args:
+        path_or_buffer: The path to the file or a buffer containing the file.
+        keep_default_na: Whether to keep the default na_values list.
+        encoding: The encoding of the file.
+        **load_args: Additional arguments to pass to pd.read_csv.
+
+    Returns:
+        pd.DataFrame: The dataframe created from the CSV file or buffer.
+    """
     na_values = load_args.pop(
         "na_values", STR_NA_VALUES_FILTERED if not keep_default_na else None
     )
