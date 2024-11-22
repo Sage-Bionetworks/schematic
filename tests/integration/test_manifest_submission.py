@@ -12,6 +12,7 @@ from synapseclient.client import Synapse
 
 from schematic.configuration.configuration import CONFIG
 from schematic.store.synapse import SynapseStorage
+from schematic.utils.df_utils import read_csv
 from tests.conftest import ConfigurationForTesting, Helpers
 from tests.utils import CleanupItem
 
@@ -73,7 +74,7 @@ class TestManifestSubmission:
         manifest_file_path = os.path.join(
             download_location, manifest_data["properties"]["name"]
         )
-        manifest_submitted_df = pd.read_csv(manifest_file_path)
+        manifest_submitted_df = read_csv(manifest_file_path)
         assert "entityId" in manifest_submitted_df.columns
         assert "Id" in manifest_submitted_df.columns
 

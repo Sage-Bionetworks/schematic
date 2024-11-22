@@ -4,16 +4,16 @@ import os
 import uuid
 from io import BytesIO
 
+import numpy as np
 import pytest
 import requests
-from openpyxl import load_workbook
 from click.testing import CliRunner
-import pandas as pd
-import numpy as np
+from openpyxl import load_workbook
 
-from schematic.configuration.configuration import Configuration, CONFIG
+from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.manifest.commands import manifest
 from schematic.models.commands import model
+from schematic.utils.df_utils import read_csv
 from tests.conftest import ConfigurationForTesting
 
 LIGHT_BLUE = "FFEAF7F9"  # Required cell
@@ -155,8 +155,8 @@ class TestManifestCommand:
             # command has no (python) errors, has exit code 0
             assert result.exit_code == 0
 
-            biospecimen_df = pd.read_csv("tests/data/example.Biospecimen.manifest.csv")
-            patient_df = pd.read_csv("tests/data/example.Patient.manifest.csv")
+            biospecimen_df = read_csv("tests/data/example.Biospecimen.manifest.csv")
+            patient_df = read_csv("tests/data/example.Patient.manifest.csv")
 
         # Remove created files:
         finally:

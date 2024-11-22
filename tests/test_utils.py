@@ -27,7 +27,7 @@ from schematic.schemas.data_model_jsonld import (
 )
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.utils import cli_utils, df_utils, general, io_utils, validate_utils
-from schematic.utils.df_utils import load_df
+from schematic.utils.df_utils import load_df, read_csv
 from schematic.utils.general import (
     calculate_datetime,
     check_synapse_cache_size,
@@ -473,7 +473,7 @@ class TestDfUtils:
         test_col = "Check NA"
         file_path = helpers.get_data_path("mock_manifests", "Invalid_Test_Manifest.csv")
 
-        unprocessed_df = pd.read_csv(file_path, encoding="utf8")
+        unprocessed_df = read_csv(file_path, encoding="utf8")
         df = df_utils.load_df(
             file_path, preserve_raw_input=preserve_raw_input, data_model=False
         )
@@ -1100,7 +1100,7 @@ class TestValidateUtils:
         manifest_path = helpers.get_data_path(manifest)
         model_path = helpers.get_data_path(model)
 
-        ## Gather parmeters needed to run validate_manifest_rules
+        # Gather parmeters needed to run validate_manifest_rules
         errors = []
         load_args = {
             "dtype": "string",

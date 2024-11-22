@@ -23,6 +23,7 @@ from synapseclient.core import utils
 from synapseclient.models import File, Folder
 
 from schematic.store.synapse import SynapseStorage
+from schematic.utils.df_utils import STR_NA_VALUES_FILTERED
 from schematic.utils.general import create_temp_folder
 from tests.conftest import Helpers, metadata_model
 from tests.utils import CleanupItem
@@ -531,7 +532,7 @@ class TestMetadataModel:
                 )
                 manifest_table = synapse_store.syn.tableQuery(
                     f"select * from {expected_table_id}", downloadLocation=download_dir
-                ).asDataFrame()
+                ).asDataFrame(na_values=STR_NA_VALUES_FILTERED, keep_default_na=False)
 
                 # AND the columns in the manifest table should reflect the ones in the file
                 table_columns = manifest_table.columns
