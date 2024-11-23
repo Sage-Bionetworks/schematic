@@ -11,7 +11,7 @@ import tempfile
 import uuid
 from contextlib import nullcontext as does_not_raise
 from typing import Any, Callable, Generator
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pandas as pd
 import pytest
@@ -464,20 +464,28 @@ class TestSynapseStorage:
             (
                 True,
                 [
-                    ("syn126", "schematic - main/parent_folder/test_file"),
+                    ("syn126", "syn_mock", "schematic - main/parent_folder/test_file"),
                     (
                         "syn125",
+                        "syn_mock",
                         "schematic - main/parent_folder/test_folder/test_file_2",
                     ),
                 ],
             ),
-            (False, [("syn126", "test_file"), ("syn125", "test_file_2")]),
+            (
+                False,
+                [
+                    ("syn126", "syn_mock", "test_file"),
+                    ("syn125", "syn_mock", "test_file_2"),
+                ],
+            ),
         ],
     )
     def test_getFilesInStorageDataset(self, synapse_store, full_path, expected):
         mock_table_dataFrame_initial = pd.DataFrame(
             {
                 "id": ["syn_mock"],
+                "parentId": ["syn_mock"],
                 "path": ["schematic - main/parent_folder"],
             }
         )
@@ -485,6 +493,7 @@ class TestSynapseStorage:
         mock_table_dataFrame_return = pd.DataFrame(
             {
                 "id": ["syn126", "syn125"],
+                "parentId": ["syn_mock", "syn_mock"],
                 "path": [
                     "schematic - main/parent_folder/test_file",
                     "schematic - main/parent_folder/test_folder/test_file_2",
@@ -494,19 +503,23 @@ class TestSynapseStorage:
         mock_table_return = build_table(
             "Mock Table", "syn123", mock_table_dataFrame_return
         )
+        mock_table_return = MagicMock()
+        mock_table_return.asDataFrame.return_value = mock_table_dataFrame_return
 
-        with patch.object(synapse_store, "syn") as mocked_synapse_client:
-            with patch.object(
-                synapse_store, "storageFileviewTable"
-            ) as mocked_fileview_table:
-                mocked_fileview_table.storageFileviewTable.return_value = (
-                    mock_table_dataFrame_initial
-                )
-                mocked_synapse_client.tableQuery.return_value = mock_table_return
-                file_list = synapse_store.getFilesInStorageDataset(
-                    datasetId="syn_mock", fileNames=None, fullpath=full_path
-                )
-        assert file_list == expected
+        # Patch the synapse_store dependencies
+        with patch.object(
+            synapse_store, "storageFileviewTable", mock_table_dataFrame_return
+        ), patch.object(synapse_store, "query_fileview") as mocked_query:
+            # query_fileview is the function called to get the fileview
+            mocked_query.return_value = mock_table_dataFrame_return
+
+            # Invoke the method under test
+            file_list = synapse_store.getFilesInStorageDataset(
+                datasetId="syn_mock", fileNames=None, fullpath=full_path
+            )
+
+            # Assert the returned file list matches the expected output
+            assert file_list == expected
 
     @pytest.mark.parametrize(
         "full_path",
