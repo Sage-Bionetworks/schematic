@@ -10,7 +10,12 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk.resources import DEPLOYMENT_ENVIRONMENT, SERVICE_NAME, Resource
+from opentelemetry.sdk.resources import (
+    DEPLOYMENT_ENVIRONMENT,
+    SERVICE_NAME,
+    SERVICE_VERSION,
+    Resource,
+)
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, Span
 from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
@@ -20,6 +25,7 @@ from werkzeug import Request
 
 from schematic.configuration.configuration import CONFIG
 from schematic.loader import LOADER
+from schematic.version import __version__
 from schematic_api.api.security_controller import info_from_bearer_auth
 
 Synapse.allow_client_caching(False)
@@ -96,11 +102,7 @@ def set_up_tracing(session: requests.Session) -> None:
                 resource=Resource(
                     attributes={
                         SERVICE_NAME: tracing_service_name,
-                        # TODO: Revisit this portion later on. As of 11/12/2024 when
-                        # deploying this to ECS or running within a docker container,
-                        # the package version errors out with the following error:
-                        # importlib.metadata.PackageNotFoundError: No package metadata was found for schematicpy
-                        # SERVICE_VERSION: package_version,
+                        SERVICE_VERSION: __version__,
                         DEPLOYMENT_ENVIRONMENT: deployment_environment,
                     }
                 )
@@ -127,6 +129,7 @@ def set_up_logging(session: requests.Session) -> None:
             {
                 SERVICE_NAME: logging_service_name,
                 DEPLOYMENT_ENVIRONMENT: deployment_environment,
+                SERVICE_VERSION: __version__,
             }
         )
 
