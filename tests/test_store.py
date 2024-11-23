@@ -498,19 +498,15 @@ class TestSynapseStorage:
         mock_table_return = MagicMock()
         mock_table_return.asDataFrame.return_value = mock_table_dataframe_return
 
-        # Patch the synapse_store dependencies
         with patch.object(
             synapse_store, "storageFileviewTable", mock_table_dataframe_return
         ), patch.object(synapse_store, "query_fileview") as mocked_query:
             # query_fileview is the function called to get the fileview
             mocked_query.return_value = mock_table_dataframe_return
 
-            # Invoke the method under test
             file_list = synapse_store.getFilesInStorageDataset(
                 datasetId="syn_mock", fileNames=None, fullpath=full_path
             )
-
-            # Assert the returned file list matches the expected output
             assert file_list == expected
 
     @pytest.mark.parametrize(
