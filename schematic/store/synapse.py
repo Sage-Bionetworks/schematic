@@ -19,12 +19,10 @@ from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 import numpy as np
 import pandas as pd
 import synapseclient
-import synapseutils
 from opentelemetry import trace
 from synapseclient import Annotations as OldAnnotations
 from synapseclient import (
     Column,
-    Entity,
     EntityViewSchema,
     EntityViewType,
     File,
