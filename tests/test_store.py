@@ -512,27 +512,25 @@ class TestSynapseStorage:
         ],
     )
     def test_get_files_in_storage_dataset_exception(self, synapse_store, full_path):
-        mock_table_dataFrame_initial = pd.DataFrame(
+        mock_table_dataframe_return = pd.DataFrame(
             {
                 "id": ["child_syn_mock"],
                 "path": ["schematic - main/parent_folder/child_entity"],
                 "parentId": ["wrong_syn_mock"],
             }
         )
+        with patch.object(
+            synapse_store, "storageFileviewTable", mock_table_dataframe_return
+        ), patch.object(synapse_store, "query_fileview") as mocked_query:
+            # query_fileview is the function called to get the fileview
+            mocked_query.return_value = mock_table_dataframe_return
 
-        with patch.object(synapse_store, "syn") as mocked_synapse_client:
-            with patch.object(
-                synapse_store, "storageFileviewTable"
-            ) as mocked_fileview_table:
-                mocked_fileview_table.storageFileviewTable.return_value = (
-                    mock_table_dataFrame_initial
+            with pytest.raises(
+                LookupError, match="Dataset syn_mock could not be found"
+            ):
+                synapse_store.getFilesInStorageDataset(
+                    datasetId="syn_mock", fileNames=None, fullpath=full_path
                 )
-                with pytest.raises(
-                    LookupError, match="Dataset syn_mock could not be found"
-                ):
-                    file_list = synapse_store.getFilesInStorageDataset(
-                        datasetId="syn_mock", fileNames=None, fullpath=full_path
-                    )
 
     @pytest.mark.parametrize("downloadFile", [True, False])
     def test_getDatasetManifest(self, synapse_store, downloadFile):
