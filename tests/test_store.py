@@ -482,15 +482,7 @@ class TestSynapseStorage:
         ],
     )
     def test_getFilesInStorageDataset(self, synapse_store, full_path, expected):
-        mock_table_dataFrame_initial = pd.DataFrame(
-            {
-                "id": ["syn_mock"],
-                "parentId": ["syn_mock"],
-                "path": ["schematic - main/parent_folder"],
-            }
-        )
-
-        mock_table_dataFrame_return = pd.DataFrame(
+        mock_table_dataframe_return = pd.DataFrame(
             {
                 "id": ["syn126", "syn125"],
                 "parentId": ["syn_mock", "syn_mock"],
@@ -501,17 +493,17 @@ class TestSynapseStorage:
             }
         )
         mock_table_return = build_table(
-            "Mock Table", "syn123", mock_table_dataFrame_return
+            "Mock Table", "syn123", mock_table_dataframe_return
         )
         mock_table_return = MagicMock()
-        mock_table_return.asDataFrame.return_value = mock_table_dataFrame_return
+        mock_table_return.asDataFrame.return_value = mock_table_dataframe_return
 
         # Patch the synapse_store dependencies
         with patch.object(
-            synapse_store, "storageFileviewTable", mock_table_dataFrame_return
+            synapse_store, "storageFileviewTable", mock_table_dataframe_return
         ), patch.object(synapse_store, "query_fileview") as mocked_query:
             # query_fileview is the function called to get the fileview
-            mocked_query.return_value = mock_table_dataFrame_return
+            mocked_query.return_value = mock_table_dataframe_return
 
             # Invoke the method under test
             file_list = synapse_store.getFilesInStorageDataset(
