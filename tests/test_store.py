@@ -492,11 +492,6 @@ class TestSynapseStorage:
                 ],
             }
         )
-        mock_table_return = build_table(
-            "Mock Table", "syn123", mock_table_dataframe_return
-        )
-        mock_table_return = MagicMock()
-        mock_table_return.asDataFrame.return_value = mock_table_dataframe_return
 
         with patch.object(
             synapse_store, "storageFileviewTable", mock_table_dataframe_return
