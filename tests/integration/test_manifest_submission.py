@@ -4,7 +4,6 @@ import tempfile
 import uuid
 from typing import Any, Callable, Dict
 
-import pandas as pd
 import pytest
 import requests
 from flask.testing import FlaskClient
@@ -1036,6 +1035,11 @@ class TestManifestSubmission:
         randomized_annotation_content = str(uuid.uuid4())
         df["RandomizedAnnotation"] = randomized_annotation_content
 
+        # AND a "None" string remains in the manifest
+        df["NoneString"] = "None"
+        df["NoneString1"] = "none"
+        df["NoneString2"] = "NoNe"
+
         with tempfile.NamedTemporaryFile(delete=True, suffix=".csv") as tmp_file:
             # Write the DF to a temporary file
             df.to_csv(tmp_file.name, index=False)
@@ -1071,6 +1075,9 @@ class TestManifestSubmission:
         modified_file = syn.get(df["entityId"][0], downloadFile=False)
         assert modified_file is not None
         assert modified_file["RandomizedAnnotation"][0] == randomized_annotation_content
+        assert modified_file["NoneString"][0] == "None"
+        assert modified_file["NoneString1"][0] == "none"
+        assert modified_file["NoneString2"][0] == "NoNe"
 
         # AND the blank annotations are not present
         assert "Genome Build" not in modified_file
