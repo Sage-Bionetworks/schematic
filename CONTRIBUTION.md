@@ -6,7 +6,7 @@ Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in
 
 ## How to report bugs or feature requests
 
-You can **create bug and feature requests** through [Sage Bionetwork's FAIR Data service desk](https://sagebionetworks.jira.com/servicedesk/customer/portal/5/group/8). Providing enough details to the developers to verify and troubleshoot your issue is paramount:
+You can **create bug and feature requests** through [Sage Bionetwork's DPE schematic support](https://sagebionetworks.jira.com/servicedesk/customer/portal/5/group/7/create/225). Providing enough details to the developers to verify and troubleshoot your issue is paramount:
 - **Provide a clear and descriptive title as well as a concise summary** of the issue to identify the problem.
 - **Describe the exact steps which reproduce the problem** in as many details as possible.
 - **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
@@ -25,7 +25,7 @@ For new features, bugs, enhancements:
 
 #### 1. Branch Setup
 * Pull the latest code from the develop branch in the upstream repository.
-* Checkout a new branch formatted like so: `develop-<feature/fix-name>` from the develop branch
+* Checkout a new branch formatted like so: `<JIRA-ID>-<feature/fix-name>` from the develop branch
 
 #### 2. Development Workflow
 * Develop on your new branch.
@@ -35,11 +35,11 @@ For new features, bugs, enhancements:
 * You can choose to create a draft PR if you prefer to develop this way
 
 #### 3. Branch Management
-* Push code to `develop-<feature/fix-name>` in upstream repo:
+* Push code to `<JIRA-ID>-<feature/fix-name>` in upstream repo:
   ```
-  git push <upstream> develop-<feature/fix-name>
+  git push <upstream> <JIRA-ID>-<feature/fix-name>
   ```
-* Branch off `develop-<feature/fix-name>` if you need to work on multiple features associated with the same code base
+* Branch off `<JIRA-ID>-<feature/fix-name>` if you need to work on multiple features associated with the same code base
 * After feature work is complete and before creating a PR to the develop branch in upstream
     a. ensure that code runs locally
     b. test for logical correctness locally
@@ -47,10 +47,10 @@ For new features, bugs, enhancements:
     c. wait for git workflow to complete (e.g. tests are run) on github
 
 #### 4. Pull Request and Review
-* Create a PR from `develop-<feature/fix-name>` into the develop branch of the upstream repo
+* Create a PR from `<JIRA-ID>-<feature/fix-name>` into the develop branch of the upstream repo
 * Request a code review on the PR
 * Once code is approved merge in the develop branch. The **"Squash and merge"** strategy should be used for a cleaner commit history on the `develop` branch. The description of the squash commit should include enough information to understand the context of the changes that were made.
-* Once the actions pass on the main branch, delete the `develop-<feature/fix-name>` branch
+* Once the actions pass on the main branch, delete the `<JIRA-ID>-<feature/fix-name>` branch
 
 ### Updating readthedocs documentation
 1. Navigate to the docs directory.
