@@ -5,7 +5,7 @@
 import logging
 import os
 import pstats
-import subprocess
+from pathlib import Path
 import tempfile
 from cProfile import Profile
 from datetime import datetime, timedelta
@@ -131,40 +131,19 @@ def calculate_datetime(
     return date_time_result
 
 
-def check_synapse_cache_size(
-    directory: str = "/root/.synapseCache",
-) -> float:
-    """use du --sh command to calculate size of .synapseCache.
+def check_synapse_cache_size(directory: str = "/root/.synapseCache") -> float:
+    """Calculate size of .synapseCache directory in bytes using pathlib.
 
     Args:
         directory (str, optional): .synapseCache directory. Defaults to '/root/.synapseCache'
 
     Returns:
-        float: returns size of .synapsecache directory in bytes
+        float: size of .synapsecache directory in bytes
     """
-    # Note: this command might fail on windows user.
-    # But since this command is primarily for running on AWS, it is fine.
-    command = ["du", "-sh", directory]
-    output = subprocess.run(command, capture_output=True, check=False).stdout.decode(
-        "utf-8"
+    total_size = sum(
+        f.stat().st_size for f in Path(directory).rglob("*") if f.is_file()
     )
-
-    # Parsing the output to extract the directory size
-    size = output.split("\t")[0]
-    if "K" in size:
-        size_in_kb = float(size.rstrip("K"))
-        byte_size = size_in_kb * 1000
-    elif "M" in size:
-        size_in_mb = float(size.rstrip("M"))
-        byte_size = size_in_mb * 1000000
-    elif "G" in size:
-        size_in_gb = float(size.rstrip("G"))
-        byte_size = size_in_gb * (1024**3)
-    elif "B" in size:
-        byte_size = float(size.rstrip("B"))
-    else:
-        logger.error("Cannot recognize the file size unit")
-    return byte_size
+    return total_size
 
 
 def clear_synapse_cache(synapse_cache: cache.Cache, minutes: int) -> int:
