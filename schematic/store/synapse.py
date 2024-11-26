@@ -1070,8 +1070,12 @@ class SynapseStorage(BaseStorage):
             synapse_id=manifest_id, syn=self.syn, download_file=True
         )
         manifest_filepath = manifest_entity.path
-
         manifest = load_df(manifest_filepath)
+
+        # If the manifest does not have an entityId column, trigger a new manifest to be generated
+        if "entityId" not in manifest.columns:
+            return None
+
         manifest_is_file_based = "Filename" in manifest.columns
 
         if manifest_is_file_based:
@@ -1079,7 +1083,6 @@ class SynapseStorage(BaseStorage):
             # note that if there is an existing manifest and there are files in the dataset
             # the columns Filename and entityId are assumed to be present in manifest schema
             # TODO: use idiomatic panda syntax
-
             dataset_files, manifest = self.fill_in_entity_id_filename(
                 datasetId, manifest
             )
