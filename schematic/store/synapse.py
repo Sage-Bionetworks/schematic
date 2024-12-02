@@ -706,7 +706,7 @@ class SynapseStorage(BaseStorage):
         """
         file_list = []
 
-        # Get path to dataset folder by using childern to avoid cases where the dataset is the scope of the view
+        # Get path to dataset folder by using children to avoid cases where the dataset is the scope of the view
         child_path = self.storageFileviewTable.loc[
             self.storageFileviewTable["parentId"] == datasetId, "path"
         ]
