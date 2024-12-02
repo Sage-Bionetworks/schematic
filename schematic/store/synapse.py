@@ -708,6 +708,11 @@ class SynapseStorage(BaseStorage):
         # This is a workaround to fileviews not always containing the latest information
         self.query_fileview(force_requery=True)
         # Get path to dataset folder by using childern to avoid cases where the dataset is the scope of the view
+        if self.storageFileviewTable.empty:
+            raise ValueError(
+                f"Fileview {self.storageFileview} is empty, please check the table and the provided synID and try again."
+            )
+
         child_path = self.storageFileviewTable.loc[
             self.storageFileviewTable["parentId"] == datasetId, "path"
         ]
