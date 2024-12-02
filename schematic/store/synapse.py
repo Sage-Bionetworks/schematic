@@ -706,6 +706,11 @@ class SynapseStorage(BaseStorage):
         """
         file_list = []
 
+        if self.storageFileviewTable.empty:
+            raise ValueError(
+                f"Fileview {self.storageFileview} is empty, please check the table and the provided synID and try again."
+            )
+
         # Get path to dataset folder by using children to avoid cases where the dataset is the scope of the view
         child_path = self.storageFileviewTable.loc[
             self.storageFileviewTable["parentId"] == datasetId, "path"
