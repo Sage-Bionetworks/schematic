@@ -1056,7 +1056,7 @@ class SynapseStorage(BaseStorage):
 
         Returns:
             Synapse ID of updated manifest and Pandas dataframe containing the updated manifest.
-            If there is no existing manifest return None
+            If there is no existing manifest or if the manifest does not have an entityId column, return None
         """
 
         # get existing manifest Synapse ID
