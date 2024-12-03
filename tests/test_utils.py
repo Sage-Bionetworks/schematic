@@ -943,13 +943,13 @@ class TestValidateUtils:
             **load_args,
         )
 
-        metadataModel = get_metadataModel(helpers, model)
+        get_metadataModel(helpers, model)
 
         # Instantiate Validate manifest, and run manifest validation
         # In this step the manifest is modified while running rule
         # validation so need to do this step to get the updated manfest.
         vm = ValidateManifest(errors, manifest, manifest_path, dmge, json_schema)
-        manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(
+        manifest, _, _ = vm.validate_manifest_rules(
             manifest,
             dmge,
             restrict_rules=False,
@@ -971,6 +971,11 @@ class TestValidateUtils:
 
             assert output["Check List"][2] == [""]
             assert output["Check List Like Enum"][2] == []
+
+            assert output["Cancer Type"][0] == "None"
+            assert output["Cancer Type"][1] == "None"
+            assert output["Cancer Type"][2] == "None"
+            assert output["Cancer Type"][3] == "None"
 
     def test_get_list_robustness(self, helpers):
         return
