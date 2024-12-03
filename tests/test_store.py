@@ -505,29 +505,52 @@ class TestSynapseStorage:
             assert file_list == expected
 
     @pytest.mark.parametrize(
-        "full_path",
+        "mock_table_dataframe, raised_exception, exception_message",
         [
-            (True),
-            (False),
+            (
+                pd.DataFrame(
+                    {
+                        "id": ["child_syn_mock"],
+                        "path": ["schematic - main/parent_folder/child_entity"],
+                        "parentId": ["wrong_syn_mock"],
+                    }
+                ),
+                LookupError,
+                "Dataset syn_mock could not be found",
+            ),
+            (
+                pd.DataFrame(
+                    {
+                        "id": [],
+                        "path": [],
+                        "parentId": [],
+                    }
+                ),
+                ValueError,
+                "Fileview mock_table_id is empty",
+            ),
         ],
+        ids=["missing_dataset", "empty_fileview"],
     )
-    def test_get_files_in_storage_dataset_exception(self, synapse_store, full_path):
-        mock_table_dataframe_return = pd.DataFrame(
-            {
-                "id": ["child_syn_mock"],
-                "path": ["schematic - main/parent_folder/child_entity"],
-                "parentId": ["wrong_syn_mock"],
-            }
-        )
+    def test_get_files_in_storage_dataset_exception(
+        self,
+        synapse_store,
+        mock_table_dataframe,
+        raised_exception,
+        exception_message,
+        full_path,
+    ):
         with patch.object(
-            synapse_store, "storageFileviewTable", mock_table_dataframe_return
-        ), patch.object(synapse_store, "query_fileview") as mocked_query:
+            synapse_store, "storageFileviewTable", mock_table_dataframe
+        ), patch.object(
+            synapse_store, "storageFileview", "mock_table_id"
+        ) as mock_table_id, patch.object(
+            synapse_store, "query_fileview"
+        ) as mocked_query:
             # query_fileview is the function called to get the fileview
-            mocked_query.return_value = mock_table_dataframe_return
+            mocked_query.return_value = mock_table_dataframe
 
-            with pytest.raises(
-                LookupError, match="Dataset syn_mock could not be found"
-            ):
+            with pytest.raises(raised_exception, match=exception_message):
                 synapse_store.getFilesInStorageDataset(
                     datasetId="syn_mock", fileNames=None, fullpath=full_path
                 )
