@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
+SYN_ID_REGEX = r"(syn\d+\,?)+"
+
 
 def find_duplicates(_list: list[T]) -> set[T]:
     """Find duplicate items in a list"""

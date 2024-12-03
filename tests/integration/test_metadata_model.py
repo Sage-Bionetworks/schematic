@@ -139,7 +139,6 @@ class TestMetadataModel:
             dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             df.to_csv(tmp_file.name, index=False)
-
             # WHEN the manifest is submitted (Assertions are handled in the helper method)
             self._submit_and_verify_manifest(
                 helpers=helpers,
@@ -229,7 +228,6 @@ class TestMetadataModel:
             dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             df.to_csv(tmp_file.name, index=False)
-
             # WHEN the manifest is submitted (Assertions are handled in the helper method)
             self._submit_and_verify_manifest(
                 helpers=helpers,
@@ -450,6 +448,11 @@ class TestMetadataModel:
             raise ValueError(
                 "expected_manifest_id or expected_manifest_name must be provided"
             )
+        # HACK: must requery the fileview to get new files, since SynapseStorage will query the last state
+        # of the fileview which may not contain any new folders in the fileview.
+        # This is a workaround to fileviews not always containing the latest information
+        # Since the tests don't always follow a similar process as testing resources are created and destroyed
+        synapse_store.query_fileview(force_requery=True)
 
         # Spies
         if already_spied:
