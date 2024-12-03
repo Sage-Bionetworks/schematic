@@ -4,10 +4,9 @@
 # pylint: disable=anomalous-backslash-in-string
 
 import logging
-
-from typing import Any, Mapping, Sequence, Union, Optional
-from functools import reduce
 import re
+from functools import reduce
+from typing import Any, Mapping, Optional, Sequence, Union
 
 logger = logging.getLogger(__name__)
 

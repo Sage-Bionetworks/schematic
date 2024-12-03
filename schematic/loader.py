@@ -1,15 +1,16 @@
 """Loader"""
-from typing import Any
 from collections.abc import Iterable
 from errno import ENOENT
 from os import pathsep
 from re import split
+from typing import Any
+
 from pkg_resources import (
     resource_exists,
     resource_filename,
+    resource_listdir,
     resource_stream,
     resource_string,
-    resource_listdir,
 )
 
 

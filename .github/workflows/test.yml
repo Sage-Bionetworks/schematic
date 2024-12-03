@@ -87,11 +87,7 @@ jobs:
       #----------------------------------------------
       #             check formatting
       #----------------------------------------------
-      - name: Code formatting with black
-        run: |
-          # ran only on certain files for now
-          # add here when checked
-          poetry run black schematic tests schematic_api --check
+      - uses: pre-commit/action@v3.0.1
 
       #----------------------------------------------
       #             type checking/enforcement
@@ -121,7 +117,7 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
-          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov 
+          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov
           --cov-report=xml:coverage.xml --cov=schematic/ --reruns 4 -n 8 tests/unit;
 
       #----------------------------------------------
@@ -151,7 +147,7 @@ jobs:
           LOGGING_EXPORT_FORMAT: ${{ vars.LOGGING_EXPORT_FORMAT }}
           TRACING_SERVICE_NAME: ${{ vars.TRACING_SERVICE_NAME }}
           LOGGING_SERVICE_NAME: ${{ vars.LOGGING_SERVICE_NAME }}
-          SERVICE_INSTANCE_ID: ${{ github.head_ref || github.ref_name }} 
+          SERVICE_INSTANCE_ID: ${{ github.head_ref || github.ref_name }}
         run: >
           poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
           -m "not (rule_benchmark or single_process_execution)" --reruns 4 -n 8 --ignore=tests/unit

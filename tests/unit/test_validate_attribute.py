@@ -3,10 +3,10 @@
 from typing import Generator
 from unittest.mock import Mock, patch
 
-from jsonschema import ValidationError
-from pandas import Series, DataFrame, concat
 import numpy as np
 import pytest
+from jsonschema import ValidationError
+from pandas import DataFrame, Series, concat
 
 import schematic.models.validate_attribute
 from schematic.models.validate_attribute import GenerateError, ValidateAttribute

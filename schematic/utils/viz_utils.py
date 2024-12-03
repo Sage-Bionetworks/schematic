@@ -1,6 +1,7 @@
 """viz utils"""
 
-from typing import Optional, Iterable, Sequence
+from typing import Iterable, Optional, Sequence
+
 import graphviz  # type: ignore
 
 

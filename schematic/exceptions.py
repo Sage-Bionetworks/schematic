@@ -1,5 +1,5 @@
 """Schematic Exceptions"""
-from typing import Optional, Any, Sequence
+from typing import Any, Optional, Sequence
 
 
 class MissingConfigValueError(Exception):

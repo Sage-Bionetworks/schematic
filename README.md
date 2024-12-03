@@ -58,7 +58,7 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 * Your installed python version must be 3.9.0 ≤ version < 3.11.0
 * You need to be a registered and certified user on [`synapse.org`](https://www.synapse.org/)
 
-> [!NOTE]  
+> [!NOTE]
 > To create Google Sheets files from Schematic, please follow our credential policy for Google credentials. You can find a detailed tutorial [here](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA).
 > If you're using config.yml, make sure to specify the path to `schematic_service_account_creds.json` (see the `google_sheets > service_account_creds` section for more information).
 
@@ -103,7 +103,7 @@ source .venv/bin/activate
    ```
 
 3. **Verify your `conda` setup**: Follow the prompts to complete your setup. Then verify your setup by running the `conda` command.
-   
+
 4. **Create your `schematic` environment**: Begin by creating a fresh `conda` environment for `schematic` like so:
 
    ```
@@ -146,25 +146,25 @@ Any function that interacts with a google sheet (such as `schematic manifest get
    * Depending on your institution's policies, your institutional Google account may or may not have the required permissions to complete this. A possible workaround is to use a personal or temporary Google account.
 
 > [!WARNING]
-> At the time of writing, Sage Bionetworks employees do not have the appropriate permissions to create projects with their Sage Bionetworks Google accounts. You would follow instructions using a personal Google account. 
+> At the time of writing, Sage Bionetworks employees do not have the appropriate permissions to create projects with their Sage Bionetworks Google accounts. You would follow instructions using a personal Google account.
 
 2. **Option 2**: Ask your DCC/development team if they have credentials previously set up with a service account.
 
 Once you have obtained credentials, be sure that the json file generated is named in the same way as the `service_acct_creds` parameter in your `config.yml` file. You will find more context on the `config.yml` in section [6. Set up configuration files](#6-set-up-configuration-files).
 
 > [!NOTE]
-> Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
+> Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA).
 schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
 Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
-token-based authentication and keep only service account authentication in the future. 
+token-based authentication and keep only service account authentication in the future.
 
 > [!NOTE]
 > Use the ``schematic_service_account_creds.json`` file for the service
 > account mode of authentication (*for Google services/APIs*). Service accounts
 > are special Google accounts that can be used by applications to access Google APIs
 > programmatically via OAuth2.0, with the advantage being that they do not require
-> human authorization. 
+> human authorization.
 
 ### 6. Set up configuration files
 
@@ -241,7 +241,7 @@ you would like to store your local fork before running the following command:
 git clone https://github.com/Sage-Bionetworks/schematic.git
 ```
 
-### 2. Install `poetry` 
+### 2. Install `poetry`
 
 Install `poetry` (version 1.3.0 or later) using either the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer) or `pip`. If you have an older installation of Poetry, we recommend uninstalling it first.
 
@@ -348,7 +348,7 @@ Any function that interacts with a google sheet (such as `schematic manifest get
    * Depending on your institution's policies, your institutional Google account may or may not have the required permissions to complete this. A possible workaround is to use a personal or temporary Google account.
 
 > [!WARNING]
-> At the time of writing, Sage Bionetworks employees do not have the appropriate permissions to create projects with their Sage Bionetworks Google accounts. You would follow instructions using a personal Google account. 
+> At the time of writing, Sage Bionetworks employees do not have the appropriate permissions to create projects with their Sage Bionetworks Google accounts. You would follow instructions using a personal Google account.
 
 2. **Option 2**: Ask your DCC/development team if they have credentials previously set up with a service account.
 
@@ -358,18 +358,18 @@ Once you have obtained credentials, be sure that the json file generated is name
 > For testing, make sure there is no environment variable `SCHEMATIC_SERVICE_ACCOUNT_CREDS`. Check the file `.env` to ensure this is not set. Also, check that config files used for testing, such as `config_example.yml` do not contain service_acct_creds_synapse_id.
 
 > [!NOTE]
-> Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
+> Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA).
 schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
 Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
-token-based authentication and keep only service account authentication in the future. 
+token-based authentication and keep only service account authentication in the future.
 
 > [!NOTE]
 > Use the ``schematic_service_account_creds.json`` file for the service
 > account mode of authentication (*for Google services/APIs*). Service accounts
 > are special Google accounts that can be used by applications to access Google APIs
 > programmatically via OAuth2.0, with the advantage being that they do not require
-> human authorization. 
+> human authorization.
 
 ### 7. Set up pre-commit hooks
 
@@ -397,7 +397,7 @@ After running the steps above, your setup is complete, and you can test it on a 
 schematic manifest -c /path/to/config.yml get -dt <your data type> -s
 ```
 
-2. Grab an existing manifest from synapse 
+2. Grab an existing manifest from synapse
 
 ```
 schematic manifest -c /path/to/config.yml get -dt <your data type> -d <your synapse dataset folder id> -s
@@ -415,7 +415,7 @@ schematic model -c /path/to/config.yml validate -dt <your data type> -mp <your c
 schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse dataset folder id> -vc <your data type> -mrt file_only
 ```
 
-Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/stable/cli_reference.html#) for more information. 
+Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/stable/cli_reference.html#) for more information.
 
 # Docker Usage
 
@@ -427,7 +427,7 @@ using how to use `schematic` based on your OS (macOS/Linux).
 Use the Docker image to run `schematic`s REST API. You can either use the file path for the `config.yml` created using the installation instructions,
 or set up authentication with environment variables.
 
-#### Example 1: Using the `config.yml` path 
+#### Example 1: Using the `config.yml` path
 ```
 docker run --rm -p 3001:3001 \
   -v $(pwd):/schematic -w /schematic --name schematic \
@@ -435,7 +435,7 @@ docker run --rm -p 3001:3001 \
   -e GE_HOME=/usr/src/app/great_expectations/ \
   sagebionetworks/schematic \
   python /usr/src/app/run_api.py
-``` 
+```
 
 #### Example 2: Use environment variables
 1. save content of `config.yml` as to environment variable `SCHEMATIC_CONFIG_CONTENT` by doing: `export SCHEMATIC_CONFIG_CONTENT=$(cat /path/to/config.yml)`
@@ -452,7 +452,7 @@ docker run --rm -p 3001:3001 \
   -e SERVICE_ACCOUNT_CREDS=$SERVICE_ACCOUNT_CREDS \
   sagebionetworks/schematic \
   python /usr/src/app/run_api.py
-``` 
+```
 ### Running `schematic` to Validate Manifests
 You can also use Docker to run `schematic` commands like validating manifests. Below are examples for different platforms.
 
@@ -476,7 +476,7 @@ docker run \
   -mp /schematic/tests/data/mock_manifests/Valid_Test_Manifest.csv \
   -dt MockComponent \
   -js /schematic/tests/data/example.model.jsonld
-``` 
+```
 
 #### Example for Windows
 
@@ -509,8 +509,8 @@ variables wherever the application is running. Those variables are:
 Authentication (Oauth2 client credential exchange):
 
 Used in cases where an intermediate opentelemetry collector is not, or can not be used.
-This option is not preferred over using an intermediate opentelemetry collector, but is 
-left in the code to show how we may export telemetry data with an authorization header 
+This option is not preferred over using an intermediate opentelemetry collector, but is
+left in the code to show how we may export telemetry data with an authorization header
 deried from an oauth2 client credential exchange flow.
 
 - `TELEMETRY_EXPORTER_CLIENT_ID`: The ID of the client to use when executing the OAuth2.0 "Client Credentials" flow.
@@ -548,7 +548,7 @@ curl --request POST \
 ```
 3) Set an environment variable in your `.env` file like: `OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer ey...`
 
-If you fail to create a new access token after 24 hours you will see HTTP 403 JWT 
+If you fail to create a new access token after 24 hours you will see HTTP 403 JWT
 Expired messages when the application attempts to export telemetry data.
 
 # Contributors

@@ -1,15 +1,13 @@
 """Configuration singleton for the Schematic Package"""
 
-from typing import Optional, Any
 import os
+from typing import Any, Optional
+
 import yaml
+
 from schematic.utils.general import normalize_path
-from .dataclasses import (
-    SynapseConfig,
-    ManifestConfig,
-    ModelConfig,
-    GoogleSheetsConfig,
-)
+
+from .dataclasses import GoogleSheetsConfig, ManifestConfig, ModelConfig, SynapseConfig
 
 
 class ConfigNonAllowedFieldError(Exception):

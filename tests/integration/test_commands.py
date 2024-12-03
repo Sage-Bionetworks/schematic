@@ -4,14 +4,14 @@ import os
 import uuid
 from io import BytesIO
 
+import numpy as np
+import pandas as pd
 import pytest
 import requests
-from openpyxl import load_workbook
 from click.testing import CliRunner
-import pandas as pd
-import numpy as np
+from openpyxl import load_workbook
 
-from schematic.configuration.configuration import Configuration, CONFIG
+from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.manifest.commands import manifest
 from schematic.models.commands import model
 from tests.conftest import ConfigurationForTesting

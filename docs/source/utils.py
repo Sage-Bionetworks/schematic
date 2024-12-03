@@ -1,7 +1,6 @@
 import re
-
-from typing import List, Dict
 from pathlib import Path
+from typing import Dict, List
 
 import pkg_resources
 import toml
@@ -22,7 +21,6 @@ def _extract_author_names(authors_list: List[str]) -> str:
     author_names = []
 
     for author in authors_list:
-
         # extract name of each author by removing
         # <email> portion from each list item
         name = re.sub(r" \<[^)]*\>", "", author)

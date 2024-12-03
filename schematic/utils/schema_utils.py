@@ -6,10 +6,9 @@ import json
 import logging
 import os
 import string
-from typing import Literal, Union, Optional
+from typing import Literal, Optional, Union
 
 import inflection
-
 
 logger = logging.getLogger(__name__)
 

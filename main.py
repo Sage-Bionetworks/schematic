@@ -1,8 +1,9 @@
 import os
+
 from schematic_api.api import app
 
 
-def main(): 
+def main():
     # Get app configuration
     host = os.environ.get("APP_HOST", "0.0.0.0")
     port = os.environ.get("APP_PORT", "3001")
@@ -11,6 +12,7 @@ def main():
     # Launch app
     # CORS(app, resources={r"*": {"origins": "*"}})
     app.run(host=host, port=port, debug=False)
+
 
 if __name__ == "__main__":
     main()
