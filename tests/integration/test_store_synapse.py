@@ -400,38 +400,31 @@ class TestStoreSynapse:
         with patch(
             "schematic.store.synapse.CONFIG", return_value=TEST_CONFIG
         ) as mock_config:
-            with patch.object(synapse_store, "syn") as mock_synapse_client:
-                # AND the appropriate asset view
-                mock_config.synapse_master_fileview_id = asset_view
-                # AND the appropriately filtered filenames
-                if filenames:
-                    files_to_remove = []
-                    for f in expected_files:
-                        retain = False
-                        for name in filenames:
-                            if name in f[1]:
-                                retain = True
-                        if not retain:
-                            files_to_remove.append(f)
+            # AND the appropriate asset view
+            mock_config.synapse_master_fileview_id = asset_view
+            # AND the appropriately filtered filenames
+            if filenames:
+                files_to_remove = []
+                for f in expected_files:
+                    retain = False
+                    for name in filenames:
+                        if name in f[1]:
+                            retain = True
+                    if not retain:
+                        files_to_remove.append(f)
 
-                    for file in files_to_remove:
-                        expected_files.remove(file)
+                for file in files_to_remove:
+                    expected_files.remove(file)
 
-                mock_table_dataFrame = pd.DataFrame(
-                    expected_files, columns=["id", "path"]
-                )
-                mock_table = build_table("Mock Table", "syn123", mock_table_dataFrame)
-                mock_synapse_client.tableQuery.return_value = mock_table
+            # WHEN getFilesInStorageDataset is called for the given dataset
+            dataset_files = synapse_store.getFilesInStorageDataset(
+                datasetId=dataset_id, fileNames=filenames
+            )
 
-                # WHEN getFilesInStorageDataset is called for the given dataset
-                dataset_files = synapse_store.getFilesInStorageDataset(
-                    datasetId=dataset_id, fileNames=filenames
-                )
-
-                # THEN the expected files are returned
-                # AND there are no unexpected files
-                assert dataset_files == expected_files
-                # AND the (synId, path) order is correct
-                synapse_id_regex = re_compile(SYN_ID_REGEX)
-                if dataset_files:
-                    assert synapse_id_regex.fullmatch(dataset_files[0][0])
+            # THEN the expected files are returned
+            # AND there are no unexpected files
+            assert dataset_files == expected_files
+            # AND the (synId, path) order is correct
+            synapse_id_regex = re_compile(SYN_ID_REGEX)
+            if dataset_files:
+                assert synapse_id_regex.fullmatch(dataset_files[0][0])

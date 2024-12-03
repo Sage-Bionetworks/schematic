@@ -19,12 +19,10 @@ from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 import numpy as np
 import pandas as pd
 import synapseclient
-import synapseutils
 from opentelemetry import trace
 from synapseclient import Annotations as OldAnnotations
 from synapseclient import (
     Column,
-    Entity,
     EntityViewSchema,
     EntityViewType,
     File,
@@ -705,13 +703,16 @@ class SynapseStorage(BaseStorage):
             ValueError: Dataset ID not found.
         """
         file_list = []
-
+        # HACK: must requery the fileview to get new files, since SynapseStorage will query the last state
+        # of the fileview which may not contain any new folders in the fileview.
+        # This is a workaround to fileviews not always containing the latest information
+        # self.query_fileview(force_requery=True)
+        # Get path to dataset folder by using childern to avoid cases where the dataset is the scope of the view
         if self.storageFileviewTable.empty:
             raise ValueError(
                 f"Fileview {self.storageFileview} is empty, please check the table and the provided synID and try again."
             )
 
-        # Get path to dataset folder by using children to avoid cases where the dataset is the scope of the view
         child_path = self.storageFileviewTable.loc[
             self.storageFileviewTable["parentId"] == datasetId, "path"
         ]
