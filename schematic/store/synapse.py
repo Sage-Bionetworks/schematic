@@ -703,10 +703,7 @@ class SynapseStorage(BaseStorage):
             ValueError: Dataset ID not found.
         """
         file_list = []
-        # HACK: must requery the fileview to get new files, since SynapseStorage will query the last state
-        # of the fileview which may not contain any new folders in the fileview.
-        # This is a workaround to fileviews not always containing the latest information
-        # self.query_fileview(force_requery=True)
+
         # Get path to dataset folder by using childern to avoid cases where the dataset is the scope of the view
         if self.storageFileviewTable.empty:
             raise ValueError(
