@@ -1056,7 +1056,7 @@ class SynapseStorage(BaseStorage):
 
         Returns:
             Synapse ID of updated manifest and Pandas dataframe containing the updated manifest.
-            If there is no existing manifest return None
+            If there is no existing manifest or if the manifest does not have an entityId column, return None
         """
 
         # get existing manifest Synapse ID
@@ -1070,8 +1070,12 @@ class SynapseStorage(BaseStorage):
             synapse_id=manifest_id, syn=self.syn, download_file=True
         )
         manifest_filepath = manifest_entity.path
-
         manifest = load_df(manifest_filepath)
+
+        # If the manifest does not have an entityId column, trigger a new manifest to be generated
+        if "entityId" not in manifest.columns:
+            return None
+
         manifest_is_file_based = "Filename" in manifest.columns
 
         if manifest_is_file_based:
@@ -1079,7 +1083,6 @@ class SynapseStorage(BaseStorage):
             # note that if there is an existing manifest and there are files in the dataset
             # the columns Filename and entityId are assumed to be present in manifest schema
             # TODO: use idiomatic panda syntax
-
             dataset_files, manifest = self.fill_in_entity_id_filename(
                 datasetId, manifest
             )
@@ -1117,6 +1120,13 @@ class SynapseStorage(BaseStorage):
             if manifest is None:
                 raise UnboundLocalError(
                     "No manifest was passed in, a manifest is required when `only_new_files` is True."
+                )
+
+            if "entityId" not in manifest.columns:
+                raise ValueError(
+                    "The manifest in your dataset and/or top level folder must contain the 'entityId' column. "
+                    "Please generate an empty manifest without annotations, manually add annotations to the "
+                    "appropriate files in the manifest, and then try again."
                 )
 
             # find new files (that are not in the current manifest) if any

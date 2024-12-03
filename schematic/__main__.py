@@ -11,7 +11,10 @@ from schematic.models.commands import model as model_cli  # submit manifest comm
 from schematic.schemas.commands import (
     schema as schema_cli,
 )  # schema conversion commands
-from schematic.visualization.commands import viz as viz_cli  # viz generation commands
+from schematic.visualization.commands import (
+    viz as viz_cli,
+)  # viz generation commands
+from schematic import __version__
 
 logger = logging.getLogger()
 click_log.basic_config(logger)
@@ -23,6 +26,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
 # invoke_without_command=True -> forces the application not to show aids before losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
 @click_log.simple_verbosity_option(logger)
+@click.version_option(version=__version__, prog_name="schematic")
 def main():
     """
     Command line interface to the `schematic` backend services.
