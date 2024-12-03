@@ -147,7 +147,7 @@ jobs:
           LOGGING_EXPORT_FORMAT: ${{ vars.LOGGING_EXPORT_FORMAT }}
           TRACING_SERVICE_NAME: ${{ vars.TRACING_SERVICE_NAME }}
           LOGGING_SERVICE_NAME: ${{ vars.LOGGING_SERVICE_NAME }}
-          SERVICE_INSTANCE_ID: ${{ github.head_ref || github.ref_name }} 
+          SERVICE_INSTANCE_ID: ${{ github.head_ref || github.ref_name }}
         run: >
           poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
           -m "not (rule_benchmark or single_process_execution)" --reruns 4 -n 8 --ignore=tests/unit
