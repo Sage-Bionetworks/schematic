@@ -532,6 +532,13 @@ class TestSynapseStorage:
         ],
         ids=["missing_dataset", "empty_fileview"],
     )
+    @pytest.mark.parametrize(
+        "full_path,",
+        [
+            (True),
+            (False),
+        ],
+    )
     def test_get_files_in_storage_dataset_exception(
         self,
         synapse_store,
