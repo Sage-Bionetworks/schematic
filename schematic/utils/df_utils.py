@@ -4,15 +4,56 @@
 
 import logging
 from copy import deepcopy
-from time import perf_counter
-from typing import Union, Any, Optional
 from datetime import datetime
+from time import perf_counter
+from typing import Any, Optional, Union
+
 import dateparser as dp
-import pandas as pd
 import numpy as np
+import pandas as pd
 from pandarallel import pandarallel  # type: ignore
 
+# pylint:disable=no-name-in-module
+from pandas._libs.parsers import STR_NA_VALUES  # type: ignore
+
+STR_NA_VALUES_FILTERED = deepcopy(STR_NA_VALUES)
+
+try:
+    STR_NA_VALUES_FILTERED.remove("None")
+except KeyError:
+    pass
+
 logger = logging.getLogger(__name__)
+
+
+def read_csv(
+    path_or_buffer: str,
+    keep_default_na: bool = False,
+    encoding: str = "utf8",
+    **load_args: Any,
+) -> pd.DataFrame:
+    """
+    A wrapper around pd.read_csv that filters out "None" from the na_values list.
+
+    Args:
+        path_or_buffer: The path to the file or a buffer containing the file.
+        keep_default_na: Whether to keep the default na_values list.
+        encoding: The encoding of the file.
+        **load_args: Additional arguments to pass to pd.read_csv.
+
+    Returns:
+        pd.DataFrame: The dataframe created from the CSV file or buffer.
+    """
+    na_values = load_args.pop(
+        "na_values", STR_NA_VALUES_FILTERED if not keep_default_na else None
+    )
+    return pd.read_csv(  # type: ignore
+        path_or_buffer,
+        na_values=na_values,
+        keep_default_na=keep_default_na,
+        encoding=encoding,
+        **load_args,
+    )
 
 
 def load_df(
@@ -45,9 +86,7 @@ def load_df(
     t_load_df = perf_counter()
 
     # Read CSV to df as type specified in kwargs
-    org_df = pd.read_csv(  # type: ignore
-        file_path, keep_default_na=True, encoding="utf8", **load_args
-    )
+    org_df = read_csv(file_path, encoding="utf8", **load_args)  # type: ignore
     if not isinstance(org_df, pd.DataFrame):
         raise ValueError(
             (
