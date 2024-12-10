@@ -248,7 +248,7 @@ class TestStoreSynapse:
         self, filenames, asset_view, dataset_id, expected_files, synapse_store
     ):
         # GIVEN a SynapseStorage object with the appropriate asset view
-        synapse_store.storageFileView = asset_view
+        synapse_store.storageFileview = asset_view
         # WHEN getFilesInStorageDataset is called for the given dataset
         dataset_files = synapse_store.getFilesInStorageDataset(
             datasetId=dataset_id, fileNames=filenames
