@@ -14,11 +14,11 @@ import pytest
 from flask.testing import FlaskClient
 from opentelemetry import trace
 
-from schematic.configuration.configuration import Configuration
+from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
+from schematic.utils.df_utils import read_csv
 from schematic.utils.general import create_temp_folder
-from schematic.configuration.configuration import CONFIG
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -838,7 +838,7 @@ class TestManifestOperation:
         response_google_sheet = json.loads(response.data)
 
         # open the google sheet
-        google_sheet_df = pd.read_csv(
+        google_sheet_df = read_csv(
             response_google_sheet[0] + "/export?gid=0&format=csv"
         )
 
@@ -894,7 +894,7 @@ class TestManifestOperation:
         response_google_sheet = json.loads(response.data)
 
         # open the google sheet
-        google_sheet_df = pd.read_csv(
+        google_sheet_df = read_csv(
             response_google_sheet[0] + "/export?gid=0&format=csv"
         )
 

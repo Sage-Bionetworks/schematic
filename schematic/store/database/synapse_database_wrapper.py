@@ -8,6 +8,7 @@ import synapseclient  # type: ignore
 from opentelemetry import trace
 
 from schematic.store.synapse_tracker import SynapseEntityTracker
+from schematic.utils.df_utils import read_csv
 
 
 class SynapseTableNameError(Exception):
@@ -108,7 +109,7 @@ class Synapse:  # pylint: disable=too-many-public-methods
             pandas.DataFrame: The queried table
         """
         result = self.execute_sql_statement(query, include_row_data)
-        table = pandas.read_csv(result.filepath)
+        table = read_csv(result.filepath)
         return table
 
     def execute_sql_statement(
