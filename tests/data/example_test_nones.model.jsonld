@@ -309,6 +309,9 @@
                 },
                 {
                     "@id": "bts:Skin"
+                },
+                {
+                    "@id": "bts:None"
                 }
             ],
             "sms:displayName": "Cancer Type",
@@ -465,6 +468,23 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Skin",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:None",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "None",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CancerType"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "None",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -878,10 +898,34 @@
                     "@id": "bts:Component"
                 },
                 {
+                    "@id": "bts:CancerType"
+                },
+                {
                     "@id": "bts:CheckList"
                 },
                 {
+                    "@id": "bts:CheckListEnum"
+                },
+                {
+                    "@id": "bts:CheckListLike"
+                },
+                {
+                    "@id": "bts:CheckListLikeEnum"
+                },
+                {
+                    "@id": "bts:CheckListStrict"
+                },
+                {
+                    "@id": "bts:CheckListEnumStrict"
+                },
+                {
                     "@id": "bts:CheckRegexList"
+                },
+                {
+                    "@id": "bts:CheckRegexListLike"
+                },
+                {
+                    "@id": "bts:CheckRegexListStrict"
                 },
                 {
                     "@id": "bts:CheckRegexSingle"
@@ -953,6 +997,25 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
+            "sms:displayName": "Check List",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "list"
+            ]
+        },
+        {
+            "@id": "bts:CheckListEnum",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckListEnum",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
             "schema:rangeIncludes": [
                 {
                     "@id": "bts:Ab"
@@ -967,7 +1030,111 @@
                     "@id": "bts:Gh"
                 }
             ],
-            "sms:displayName": "Check List",
+            "sms:displayName": "Check List Enum",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "list"
+            ]
+        },
+        {
+            "@id": "bts:CheckListLike",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckListLike",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check List Like",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "list like"
+            ]
+        },
+        {
+            "@id": "bts:CheckListLikeEnum",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckListLikeEnum",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Ab"
+                },
+                {
+                    "@id": "bts:Cd"
+                },
+                {
+                    "@id": "bts:Ef"
+                },
+                {
+                    "@id": "bts:Gh"
+                }
+            ],
+            "sms:displayName": "Check List Like Enum",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "list like"
+            ]
+        },
+        {
+            "@id": "bts:CheckListStrict",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckListStrict",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check List Strict",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "list strict"
+            ]
+        },
+        {
+            "@id": "bts:CheckListEnumStrict",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckListEnumStrict",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Ab"
+                },
+                {
+                    "@id": "bts:Cd"
+                },
+                {
+                    "@id": "bts:Ef"
+                },
+                {
+                    "@id": "bts:Gh"
+                }
+            ],
+            "sms:displayName": "Check List Enum Strict",
             "sms:required": "sms:false",
             "sms:validationRules": [
                 "list strict"
@@ -987,6 +1154,46 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Regex List",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "list",
+                "regex match [a-f]"
+            ]
+        },
+        {
+            "@id": "bts:CheckRegexListLike",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckRegexListLike",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Regex List Like",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "list like",
+                "regex match [a-f]"
+            ]
+        },
+        {
+            "@id": "bts:CheckRegexListStrict",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckRegexListStrict",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Regex List Strict",
             "sms:required": "sms:false",
             "sms:validationRules": [
                 "list strict",
@@ -1343,7 +1550,13 @@
             "rdfs:label": "Ab",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:CheckList"
+                    "@id": "bts:CheckListEnum"
+                },
+                {
+                    "@id": "bts:CheckListLikeEnum"
+                },
+                {
+                    "@id": "bts:CheckListEnumStrict"
                 }
             ],
             "schema:isPartOf": {
@@ -1360,7 +1573,13 @@
             "rdfs:label": "Cd",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:CheckList"
+                    "@id": "bts:CheckListEnum"
+                },
+                {
+                    "@id": "bts:CheckListLikeEnum"
+                },
+                {
+                    "@id": "bts:CheckListEnumStrict"
                 }
             ],
             "schema:isPartOf": {
@@ -1377,7 +1596,13 @@
             "rdfs:label": "Ef",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:CheckList"
+                    "@id": "bts:CheckListEnum"
+                },
+                {
+                    "@id": "bts:CheckListLikeEnum"
+                },
+                {
+                    "@id": "bts:CheckListEnumStrict"
                 }
             ],
             "schema:isPartOf": {
@@ -1394,7 +1619,13 @@
             "rdfs:label": "Gh",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:CheckList"
+                    "@id": "bts:CheckListEnum"
+                },
+                {
+                    "@id": "bts:CheckListLikeEnum"
+                },
+                {
+                    "@id": "bts:CheckListEnumStrict"
                 }
             ],
             "schema:isPartOf": {
