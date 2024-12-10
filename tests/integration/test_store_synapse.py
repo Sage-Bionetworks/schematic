@@ -276,6 +276,34 @@ class TestStoreSynapse:
             assert synapse_id_regex.fullmatch(dataset_files[0][0])
 
     @pytest.mark.parametrize(
+        "asset_view, dataset_id, exception, exception_message",
+        [
+            (
+                "syn23643253",
+                "syn64319379",
+                LookupError,
+                "Dataset syn64319379 could not be found",
+            ),
+            ("syn64367119", "syn61374924", ValueError, "Fileview syn64367119 is empty"),
+        ],
+        ids=[
+            "empty dataset",
+            "empty view",
+        ],
+    )
+    def test_get_files_in_storage_dataset_exception(
+        self, asset_view, dataset_id, exception, exception_message, synapse_store
+    ):
+        # GIVEN a SynapseStorage object with the appropriate asset view
+        synapse_store.storageFileview = asset_view
+        # AND the correct and up-to-date fileview
+        synapse_store.query_fileview(force_requery=True)
+        # WHEN getFilesInStorageDataset is called
+        # THEN the appropriate exception should be raised, with the appropriate message
+        with pytest.raises(exception, match=exception_message):
+            synapse_store.getFilesInStorageDataset(datasetId=dataset_id, fileNames=None)
+
+    @pytest.mark.parametrize(
         "asset_view, dataset_id, expected_files",
         [
             (
