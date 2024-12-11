@@ -13,7 +13,7 @@ import logging
 import tempfile
 import uuid
 from contextlib import nullcontext as does_not_raise
-from typing import Callable, Optional
+from typing import Callable, Optional, Any
 
 import pandas as pd
 import pytest
@@ -22,6 +22,7 @@ from synapseclient import Annotations
 from synapseclient.core import utils
 from synapseclient.models import File, Folder
 
+from schematic.models.metadata import MetadataModel
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import STR_NA_VALUES_FILTERED
 from schematic.utils.general import create_temp_folder
@@ -567,3 +568,14 @@ class TestMetadataModel:
                 spy_upload_file_as_table.call_count == 1
             spy_upload_file_as_csv.assert_not_called()
             spy_upload_file_combo.assert_not_called()
+
+    def test_validate_model_manifest(self, helpers: Any) -> None:
+        mdm = MetadataModel(
+            inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
+            data_model_labels="class_label",
+            inputMModelLocationType="local",
+        )
+        errors, warnings = mdm.validateModelManifest(
+            manifestPath=helpers.get_data_path("mock_manifests/Valid_Test_Manifest_with_nones.csv"),
+            rootNode="MockComponent"
+        )
