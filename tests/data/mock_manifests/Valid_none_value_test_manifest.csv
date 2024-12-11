@@ -1,0 +1,6 @@
+Sample ID,Patient ID,Tissue Status,Component
+1,1,Healthy,Biospecimen
+2,2,Malignant,Biospecimen
+3,3,None,Biospecimen
+4,4,None,Biospecimen
+5,5,None,Biospecimen
