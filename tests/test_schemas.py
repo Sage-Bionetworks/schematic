@@ -462,7 +462,7 @@ class TestDataModelGraph:
         )
 
         # Check Edge directions
-        assert 4 == (len(graph.out_edges("TissueStatus")))
+        assert 6 == (len(graph.out_edges("TissueStatus")))
         assert 2 == (len(graph.in_edges("TissueStatus")))
 
 

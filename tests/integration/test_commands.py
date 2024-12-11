@@ -339,7 +339,7 @@ class TestManifestCommand:
             assert False, f"Unexpected data validation found: {dv}"
         assert tissue_status_validation is not None
         assert tissue_status_validation.type == "list"
-        assert tissue_status_validation.formula1 == "Sheet2!$C$2:$C$3"
+        assert tissue_status_validation.formula1 == "Sheet2!$C$2:$C$4"
 
         # required fields are marked as “light blue”, while other non-required fields are marked as white.
         for col in ["Sample ID", "Patient ID", "Tissue Status", "Component"]:
