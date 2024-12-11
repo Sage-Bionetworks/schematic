@@ -309,9 +309,6 @@
                 },
                 {
                     "@id": "bts:Skin"
-                },
-                {
-                    "@id": "bts:None"
                 }
             ],
             "sms:displayName": "Cancer Type",
@@ -346,9 +343,6 @@
                 },
                 {
                     "@id": "bts:Skin"
-                },
-                {
-                    "@id": "bts:None"
                 }
             ],
             "sms:displayName": "Family History",
@@ -475,26 +469,6 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:None",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "None",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:CancerType"
-                },
-                {
-                    "@id": "bts:FamilyHistory"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "None",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
-        },
-        {
             "@id": "bts:Biospecimen",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
@@ -566,6 +540,9 @@
                 },
                 {
                     "@id": "bts:Malignant"
+                },
+                {
+                    "@id": "bts:None"
                 }
             ],
             "sms:displayName": "Tissue Status",
@@ -586,6 +563,23 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Malignant",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:None",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "None",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:TissueStatus"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "None",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
