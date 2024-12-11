@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pandas as pd
 import pytest
+from pandas.testing import assert_series_equal
 
 from schematic.configuration.configuration import Configuration
 from schematic.manifest.generator import ManifestGenerator
@@ -103,6 +104,9 @@ def mock_create_blank_google_sheet():
 
 @pytest.fixture(params=[True, False], ids=["sheet_url", "data_frame"])
 def manifest(dataset_id, manifest_generator, request):
+    """
+    Only seems to be used for TestManifestGenerator.test_get_manifest_first_time
+    """
     # Rename request param for readability
     sheet_url = request.param
 
@@ -763,13 +767,11 @@ class TestManifestGenerator:
             assert all_results == expected_result
 
     @pytest.mark.parametrize(
-        "component,datasetId,expected_file_based,expected_rows,expected_files",
+        "component, datasetId, expected_rows, expected_files, expected_annotations",
         [
-            ("Biospecimen", "syn61260107", False, 4, None),
             (
                 "BulkRNA-seqAssay",
                 "syn61374924",
-                True,
                 4,
                 pd.Series(
                     [
@@ -780,18 +782,50 @@ class TestManifestGenerator:
                     ],
                     name="Filename",
                 ),
+                {
+                    "File Format": pd.Series(
+                        ["BAM", "CRAM", "CSV/TSV", ""], name="File Format"
+                    ),
+                    "Genome Build": pd.Series(
+                        ["GRCh37", "GRCh38", "GRCm38", ""], name="Genome Build"
+                    ),
+                },
+            ),
+            (
+                "BulkRNA-seqAssay",
+                "syn25614635",
+                3,
+                pd.Series(
+                    [
+                        "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_A.txt",
+                        "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_B.txt",
+                        "schematic - main/TestDatasets/TestDataset-Annotations-v3/Sample_C.txt",
+                    ],
+                    name="Filename",
+                ),
+                {
+                    "File Format": pd.Series(
+                        ["txt", "csv", "fastq"], name="File Format"
+                    ),
+                    "Year of Birth": pd.Series(["1980", "", ""], name="Year of Birth"),
+                },
             ),
         ],
-        ids=["Record based", "File based"],
+        ids=[
+            "top level folder",
+            "nested dataset",
+        ],
     )
+    @pytest.mark.parametrize("use_annotations", [True, False])
     def test_get_manifest_with_files(
         self,
         helpers,
         component,
         datasetId,
-        expected_file_based,
         expected_rows,
         expected_files,
+        expected_annotations,
+        use_annotations,
     ):
         """
         Test to ensure that
@@ -813,16 +847,13 @@ class TestManifestGenerator:
             path_to_data_model=path_to_data_model,
             graph=graph_data_model,
             root=component,
-            use_annotations=True,
+            use_annotations=use_annotations,
         )
 
-        # WHEN a manifest is generated for the appropriate dataset as a dataframe
+        # WHEN a filebased manifest is generated for the appropriate dataset as a dataframe
         manifest = generator.get_manifest(
             dataset_id=datasetId, output_format="dataframe"
         )
-
-        # AND it is determined if the manifest is filebased
-        is_file_based = "Filename" in manifest.columns
 
         # AND the number of rows are checked
         n_rows = manifest.shape[0]
@@ -830,10 +861,23 @@ class TestManifestGenerator:
         # THEN the manifest should have the expected number of rows
         assert n_rows == expected_rows
 
-        # AND the manifest should be filebased or not as expected
-        assert is_file_based == expected_file_based
+        # AND the manifest should have the columns expected of filebased metadata
+        assert "Filename" in manifest.columns
+        assert "entityId" in manifest.columns
 
-        # AND if the manifest is file based
-        if expected_file_based:
-            # THEN the manifest should have the expected files
-            assert manifest["Filename"].equals(expected_files)
+        # AND the manifest should have the expected files from the dataset
+        assert_series_equal(
+            manifest["Filename"],
+            expected_files,
+            check_dtype=False,
+        )
+
+        # AND if annotations are used to generate the manifest
+        if use_annotations:
+            # THEN the annotations in the generated manifest should match the expected annotations
+            for attribute, annotations in expected_annotations.items():
+                assert_series_equal(
+                    manifest[attribute],
+                    annotations,
+                    check_dtype=False,
+                )

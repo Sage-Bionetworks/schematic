@@ -8,6 +8,8 @@ import re
 from functools import reduce
 from typing import Any, Mapping, Optional, Sequence, Union
 
+from schematic.utils.general import SYN_ID_REGEX
+
 logger = logging.getLogger(__name__)
 
 
@@ -68,7 +70,7 @@ def parse_syn_ids(
     if not syn_ids:
         return None
 
-    project_regex = re.compile("(syn\d+\,?)+")
+    project_regex = re.compile(SYN_ID_REGEX)
     valid = project_regex.fullmatch(syn_ids)
 
     if not valid:
