@@ -1,7 +1,7 @@
 ## Package-specific files:
 #### The files within `etc` folder are:
 
-`data_models`: 
+`data_models`:
 - `biothings.model.jsonld`: Base knowledge graph/vocabulary as specified by the [biolink model](https://biolink.github.io/biolink-model/).
 - `schema_org.model.jsonld`: Schema vocabulary as specified by [schema.org](https://schema.org/docs/gs.html#schemaorg_types).
 

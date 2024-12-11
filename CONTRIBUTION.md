@@ -109,7 +109,7 @@ poetry publish  # publish the package to PyPI
 
 > You'll need to [register](https://pypi.org/account/register/) for a PyPI account before uploading packages to the package index. Similarly for [Test PyPI](https://test.pypi.org/account/register/) as well.
 
-## Testing 
+## Testing
 
 * All new code must include tests.
 
@@ -128,4 +128,3 @@ pytest -vs tests/
 4. Open a PR as per the usual process (see above).
 5. Once the PR is merged, leave the original copies on Synapse to maintain support for feature branches that were forked from `develop` before your update.
    - If the old copies are problematic and need to be removed immediately (_e.g._ contain sensitive data), proceed with the deletion and alert the other contributors that they need to merge the latest `develop` branch into their feature branches for their tests to work.
-

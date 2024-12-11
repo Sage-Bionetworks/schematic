@@ -14,11 +14,10 @@ import pytest
 from flask.testing import FlaskClient
 from opentelemetry import trace
 
-from schematic.configuration.configuration import Configuration
+from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.utils.general import create_temp_folder
-from schematic.configuration.configuration import CONFIG
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

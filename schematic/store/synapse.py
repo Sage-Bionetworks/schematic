@@ -2009,7 +2009,7 @@ class SynapseStorage(BaseStorage):
             rather than the manifest path
 
         """
-        
+
         # Add uuid for table updates and fill.
         if not "Uuid" in manifest.columns:
             manifest["Uuid"] = ''
@@ -2039,12 +2039,12 @@ class SynapseStorage(BaseStorage):
         # Upload manifest as a table and get the SynID and manifest
         manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
                                                     dmge, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,)
-            
+
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
         for idx, row in manifest.iterrows():
             if not row["entityId"]:
-                # If not using entityIds, fill with manifest_table_id so 
+                # If not using entityIds, fill with manifest_table_id so
                 row["entityId"] = manifest_synapse_table_id
                 entityId = ''
             else:
@@ -2053,14 +2053,14 @@ class SynapseStorage(BaseStorage):
 
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest)
-        
+
         # Get annotations for the file manifest.
         manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_file_id)
-        
+
         self.syn.set_annotations(manifest_annotations)
 
         logger.info("Associated manifest file with dataset on Synapse.")
-        
+
         # Update manifest Synapse table with new entity id column.
         self.make_synapse_table(
             table_to_load = table_manifest,
@@ -2070,7 +2070,7 @@ class SynapseStorage(BaseStorage):
             update_col = 'Uuid',
             specify_schema = False,
             )
-        
+
         # Get annotations for the table manifest
         manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
         self.syn.set_annotations(manifest_annotations)

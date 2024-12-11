@@ -1,20 +1,19 @@
 """Data Model Jsonld"""
 
+import copy
 import json
 import logging
-import copy
+from dataclasses import dataclass, field
 from typing import Union
 
-from dataclasses import dataclass, field
-from dataclasses_json import config, dataclass_json
-
 import networkx as nx  # type: ignore
+from dataclasses_json import config, dataclass_json
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.schema_utils import (
-    get_label_from_display_name,
     convert_bool_to_str,
+    get_label_from_display_name,
 )
 
 logging.basicConfig()

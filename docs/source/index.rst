@@ -8,5 +8,5 @@ Welcome to Schematic's documentation!
 
 .. toctree::
    :maxdepth: 1
-   
+
    cli_reference

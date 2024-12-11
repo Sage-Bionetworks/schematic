@@ -5,7 +5,7 @@ info:
   description: >-
     This service exposes core functionalities from schematic as REST API
     endpoints
-    
+
 servers:
   - url: /v1
 
@@ -40,7 +40,7 @@ paths:
           schema:
             type: string
           description: >
-            Title of Manifest or Title Prefix, 
+            Title of Manifest or Title Prefix,
             if making multiple manifests
           example: Example
           required: false
@@ -49,13 +49,13 @@ paths:
           style: form
           schema:
             type: array
-            items: 
+            items:
               type: string
             nullable: true
           description: >
-            Data Model Component(s). 
+            Data Model Component(s).
             To make all manifests, enter "all manifests".
-          example: 
+          example:
             - Patient
             - Biospecimen
           required: true
@@ -71,7 +71,7 @@ paths:
           style: form
           schema:
             type: array
-            items: 
+            items:
               type: string
             nullable: true
           description: >
@@ -89,7 +89,7 @@ paths:
           schema:
             type: string
             enum: ["excel", "google_sheet", "dataframe (only if getting existing manifests)"]
-          description: If "excel" gets selected, this approach would avoid sending metadata to Google sheet APIs; if "google_sheet" gets selected, this would return a Google sheet URL. This parameter could potentially override sheet_url parameter. 
+          description: If "excel" gets selected, this approach would avoid sending metadata to Google sheet APIs; if "google_sheet" gets selected, this would return a Google sheet URL. This parameter could potentially override sheet_url parameter.
           required: false
         - in: query
           name: strict_validation
@@ -105,7 +105,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -162,11 +162,11 @@ paths:
               schema:
                 type: string
         "403":
-          description: You don't have access to the requested resources. 
+          description: You don't have access to the requested resources.
         "500":
           description: Please check schematic log
       tags:
-        - Manifest Operations            
+        - Manifest Operations
   /dataset/manifest/download:
     get:
       summary: Endpoint to download an existing manifest by using a dataset id
@@ -227,7 +227,7 @@ paths:
                 # file_name will be the field name in
                 # this multipart request
                 file_name:
-                  description: Upload a json or a csv file. 
+                  description: Upload a json or a csv file.
                   type: string
                   format: binary
       security:
@@ -257,7 +257,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -297,7 +297,7 @@ paths:
           name: project_scope
           schema:
             type: array
-            items: 
+            items:
               type: string
             nullable: false
           description: List, a subset of the projects contained within the asset view that are relevant for the current operation. Speeds up some operations that interact with Synapse. Relevant for validating manifests involving cross-manifest validation, but optional.
@@ -342,7 +342,7 @@ paths:
               type: object
               properties:
                 file_name:
-                  description: Upload a json or a csv file. 
+                  description: Upload a json or a csv file.
                   type: string
                   format: binary
       security:
@@ -363,7 +363,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -455,13 +455,13 @@ paths:
           schema:
             type: boolean
             default: true
-          description: if false, do not add annotations when submitting file-based manifests. 
+          description: if false, do not add annotations when submitting file-based manifests.
           required: false
         - in: query
           name: project_scope
           schema:
             type: array
-            items: 
+            items:
               type: string
             nullable: false
           description: List, a subset of the projects contained within the asset view that are relevant for the current operation. Speeds up some operations that interact with Synapse.
@@ -521,7 +521,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -539,8 +539,8 @@ paths:
         - Manifest Operations
   /manifest/populate:
     post:
-      summary: Create a Google sheet link based on an existing manifest. 
-      description: Create a Google sheet link based on an existing manifest.  
+      summary: Create a Google sheet link based on an existing manifest.
+      description: Create a Google sheet link based on an existing manifest.
       requestBody:
         content:
           multipart/form-data:
@@ -566,7 +566,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -633,7 +633,7 @@ paths:
         "200":
           description: A list of json
         "500":
-          description: Check schematic log. 
+          description: Check schematic log.
       tags:
         - Manifest Operations
   /storage/projects:
@@ -721,7 +721,7 @@ paths:
             items:
               type: string
             nullable: true
-          description: a list of files with particular names (i.e. Sample_A.txt). If you leave it empty, it will return all dataset files under the dataset ID. 
+          description: a list of files with particular names (i.e. Sample_A.txt). If you leave it empty, it will return all dataset files under the dataset ID.
           required: false
         - in: query
           name: full_path
@@ -765,7 +765,7 @@ paths:
         "200":
           description: csv file path or json
         "500":
-          description: Check schematic log. 
+          description: Check schematic log.
       tags:
         - Synapse Storage
   /storage/project/manifests:
@@ -794,7 +794,7 @@ paths:
           required: true
       responses:
         "200":
-          description: A list of tuples(json). 
+          description: A list of tuples(json).
           content:
             application/json:
               schema:
@@ -807,7 +807,7 @@ paths:
                         ]
                     ]
         "500":
-          description: Check schematic log. 
+          description: Check schematic log.
       tags:
         - Synapse Storage
   /storage/entity/type:
@@ -816,7 +816,7 @@ paths:
       description: Check type of an entity and return entity type
       operationId: schematic_api.api.routes.check_entity_type
       security:
-        - access_token: []      
+        - access_token: []
       parameters:
         - in: query
           name: entity_id
@@ -830,7 +830,7 @@ paths:
         "200":
           description: return type of a schematic entity
         "500":
-          description: Check schematic log. 
+          description: Check schematic log.
       tags:
         - Synapse Storage
 
@@ -840,7 +840,7 @@ paths:
       description: Check if a file or a folder is in a given asset view. Return "true" or "false"
       operationId: schematic_api.api.routes.check_if_files_in_assetview
       security:
-        - access_token: []      
+        - access_token: []
       parameters:
         - in: query
           name: asset_view
@@ -855,14 +855,14 @@ paths:
           schema:
             type: string
             nullable: false
-          description: ID of file or folder. For example, for Synapse this would be the Synapse ID. 
+          description: ID of file or folder. For example, for Synapse this would be the Synapse ID.
           example: syn30988314
           required: true
       responses:
         "200":
           description: return "true" or "false"
         "500":
-          description: Check schematic log. 
+          description: Check schematic log.
       tags:
         - Synapse Storage
   /schemas/get/schema:
@@ -886,7 +886,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -899,7 +899,7 @@ paths:
               schema:
                 type: string
         "500":
-          description: Check schematic log. 
+          description: Check schematic log.
       tags:
         - Schema Operation
 
@@ -932,16 +932,16 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
           required: false
       responses:
         "200":
-          description: A list of properties of a given class. 
+          description: A list of properties of a given class.
         "500":
-          description: Check schematic log. 
+          description: Check schematic log.
       tags:
         - Schema Operation
   /schemas/get/graph_by_edge_type:
@@ -973,7 +973,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -992,7 +992,7 @@ paths:
                         ]
                     ]
         "500":
-          description: Check schematic log. 
+          description: Check schematic log.
       tags:
         - Schema Operation
   /schemas/is_node_required:
@@ -1028,9 +1028,9 @@ paths:
           required: false
       responses:
         "200":
-          description: return a boolean 
+          description: return a boolean
         "500":
-          description: Check schematic log. 
+          description: Check schematic log.
       tags:
         - Schema Operation
 
@@ -1052,7 +1052,7 @@ paths:
           name: node_list
           schema:
             type: array
-            items: 
+            items:
               type: string
             nullable: false
           description: List of node labels.
@@ -1065,7 +1065,7 @@ paths:
             nullable: false
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -1074,7 +1074,7 @@ paths:
         "200":
           description: return List[str]
         "500":
-          description: Check schematic log. 
+          description: Check schematic log.
       tags:
         - Schema Operation
 
@@ -1108,7 +1108,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -1117,7 +1117,7 @@ paths:
         "200":
           description: return a list
         "500":
-          description: Check schematic log. 
+          description: Check schematic log.
       tags:
         - Schema Operation
 
@@ -1150,7 +1150,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -1178,7 +1178,7 @@ paths:
           description: Check schematic log.
       tags:
         - Schema Operation
-        
+
   /utils/get_property_label_from_display_name:
     get:
       summary: Converts a given display name string into a proper property label string
@@ -1204,10 +1204,10 @@ paths:
         "200":
           description: The property label of the display name.
         "500":
-          description: Check schematic log. 
+          description: Check schematic log.
       tags:
         - Schema Operation
-      
+
   /schemas/get_node_range:
     get:
       summary: Get all the valid values that are associated with a node label.
@@ -1237,7 +1237,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -1287,7 +1287,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -1339,7 +1339,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -1376,7 +1376,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -1428,7 +1428,7 @@ paths:
             nullable: true
             enum: ["display_label", "class_label"]
             default: 'class_label'
-          description: Choose how to set the label in the data model. 
+          description: Choose how to set the label in the data model.
                   display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
                   class_label, default, use standard class or property label.
                   Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
@@ -1443,18 +1443,18 @@ paths:
                 example: Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component
 
                           Component,Component,TBD,False,,,,Patient
-                          
+
                           Patient ID,PatientID,TBD,True,,,,Patient
-                          
+
                           Year of Birth,YearofBirth,TBD,False,,,,Patient
 
-                          Sex,Sex,TBD,True,,"['Female', 'Other', 'Male']",,Patient                      
+                          Sex,Sex,TBD,True,,"['Female', 'Other', 'Male']",,Patient
 
                           Diagnosis,Diagnosis,TBD,True,,"['Cancer', 'Healthy']",,Patient
 
                           Cancer Type,CancerType,TBD,False,True,"['Lung', 'Skin', 'Colorectal', 'Breast', 'Prostate', '']"," If Diagnosis is ""Cancer"" then ""Cancer Type"" is required",Patient
 
-                          Family History,FamilyHistory,TBD,False,True,," If Diagnosis is ""Cancer"" then ""Family History"" is required",Patient                  
+                          Family History,FamilyHistory,TBD,False,True,," If Diagnosis is ""Cancer"" then ""Family History"" is required",Patient
       tags:
         - Visualization Operations
 

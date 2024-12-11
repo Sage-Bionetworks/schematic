@@ -1,4 +1,4 @@
-"""Wrapper class for interacting with Synapse database objects. Eventually this will 
+"""Wrapper class for interacting with Synapse database objects. Eventually this will
 be replaced with a more database/table class that exists within the SYNPY project."""
 
 from typing import Optional

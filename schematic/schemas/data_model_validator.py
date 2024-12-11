@@ -1,12 +1,12 @@
 """Data Model Validator"""
 
-import time
-import logging
-from typing import Tuple, Any, Iterable
 import itertools
-from dataclasses import dataclass
-
+import logging
 import multiprocessing
+import time
+from dataclasses import dataclass
+from typing import Any, Iterable, Tuple
+
 import networkx as nx  # type: ignore
 
 from schematic.schemas.data_model_relationships import DataModelRelationships

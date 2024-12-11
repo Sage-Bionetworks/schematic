@@ -13,7 +13,7 @@ ENV PYTHONFAULTHANDLER=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=200 \
     POETRY_VERSION=1.7.1 \
-    APP_PARENT_DIR=/app \ 
+    APP_PARENT_DIR=/app \
     NGINX_CONFIG=/etc/nginx/conf.d \
     APP_DIR=/app/app \
     ROOT=/ \
@@ -24,16 +24,16 @@ ENV PYTHONFAULTHANDLER=1 \
 
 
 LABEL maintainer="Lingling Peng <lingling.peng@sagebase.org> Andrew Lamb <andrew.lamb@sagebase.org> Gianna Jordan <gianna.jordan@sagebase.org>"
-LABEL version=$TAG 
+LABEL version=$TAG
 
-                    
-# Note: 
+
+# Note:
 # The starting number of uWSGI processes is controlled by the variable UWSGI_CHEAPER, by default set to 2.
 # The maximum number of uWSGI processes is controlled by the variable UWSGI_PROCESSES, by default set to 16
 # By default, the image starts with 2 uWSGI processes running. When the server is experiencing a high load, it creates up to 16 uWSGI processes to handle it on demand.
 # NGINX_MAX_UPLOAD is set to 0 by default that allows unlimited upload file sizes
 # NGINX_WORKER_CONNECTIONS is set to 1024 by default that allows a maximum limit of 1024 connections per worker.
-# NGINX_WORKER_OPEN_FILES is set to 2048 by default that allows 2048 open files 
+# NGINX_WORKER_OPEN_FILES is set to 2048 by default that allows 2048 open files
 
 # run open ssl and generate certificate
 RUN apt update && \
@@ -74,11 +74,11 @@ RUN chown www-data:www-data ${APP_PARENT_DIR}
 RUN rm -rf ${APP_PARENT_DIR}/main.py
 RUN rm -rf ${APP_PARENT_DIR}/uwsgi.ini
 
-# copy to use custom uwsgi.ini 
+# copy to use custom uwsgi.ini
 COPY ./uwsgi.ini ./
 
 # create a separate folder called app
-RUN mkdir app 
+RUN mkdir app
 WORKDIR ${APP_DIR}
 
 # copy other files to app/app
@@ -101,13 +101,13 @@ COPY tests ./tests
 # change permission
 RUN chown -R www-data:www-data ${APP_DIR}
 
-# allow downloading to synapse cache 
+# allow downloading to synapse cache
 RUN chown -R www-data:www-data /root
 
 # copy schematic
 COPY schematic  ./schematic
 
-# change permission 
+# change permission
 WORKDIR /var/www/
 #The -R option: make the command recursive, so it will change the owner of all files and subdirectories within a given folder.
 RUN chown -R www-data:www-data /var/www/

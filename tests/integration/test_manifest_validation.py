@@ -10,8 +10,8 @@ import pytest
 import requests
 from flask.testing import FlaskClient
 
-from tests.conftest import ConfigurationForTesting, Helpers
 from schematic.configuration.configuration import CONFIG
+from tests.conftest import ConfigurationForTesting, Helpers
 
 EXAMPLE_SCHEMA_URL = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
 
