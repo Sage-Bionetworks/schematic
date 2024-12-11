@@ -6,8 +6,8 @@ Sex,,"Female, Male, Other",,,TRUE,DataProperty,,,
 Year of Birth,,,,,FALSE,DataProperty,,,
 Diagnosis,,"Healthy, Cancer",,,TRUE,DataProperty,,,
 Cancer,,,"Cancer Type, Family History",,FALSE,ValidValue,,,
-Cancer Type,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,
-Family History,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,list strict
+Cancer Type,,"Breast, Colorectal, Lung, Prostate, Skin, None",,,TRUE,DataProperty,,,
+Family History,,"Breast, Colorectal, Lung, Prostate, Skin, None",,,TRUE,DataProperty,,,list strict
 Biospecimen,,,"Sample ID, Patient ID, Tissue Status, Component",,FALSE,DataType,Patient,,
 Sample ID,,,,,TRUE,DataProperty,,,
 Tissue Status,,"Healthy, Malignant",,,TRUE,DataProperty,,,
@@ -24,8 +24,8 @@ Check List,,,,,TRUE,DataProperty,,,list
 Check List Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list
 Check List Like,,,,,TRUE,DataProperty,,,list like
 Check List Like Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list like
-Check List Strict,,,,,TRUE,DataProperty,,,list strict 
-Check List Enum Strict,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list strict 
+Check List Strict,,,,,TRUE,DataProperty,,,list strict
+Check List Enum Strict,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list strict
 Check Regex List,,,,,TRUE,DataProperty,,,list::regex match [a-f]
 Check Regex List Strict,,,,,TRUE,DataProperty,,,list strict::regex match [a-f]
 Check Regex List Like,,,,,TRUE,DataProperty,,,list like::regex match [a-f]
