@@ -64,7 +64,7 @@ class TestManifestValidation:
             "example_model",
             "example_with_no_entry_for_cond_required_columns",
             "example_with_nones_mock_component",
-            "example_with_nones_biospecimen"
+            "example_with_nones_biospecimen",
         ],
     )
     @pytest.mark.parametrize(
