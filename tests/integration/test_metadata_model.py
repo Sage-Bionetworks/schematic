@@ -572,13 +572,50 @@ class TestMetadataModel:
             spy_upload_file_as_csv.assert_not_called()
             spy_upload_file_combo.assert_not_called()
 
-    def test_validate_model_manifest(self, helpers: Any) -> None:
+
+    @pytest.mark.parametrize(
+        ("manifest", "model", "component"),
+        [
+            (
+                "tests/data/mock_manifests/Valid_none_value_test_manifest.csv",
+                "tests/data/example.model.csv",
+                "Biospecimen",
+            ),
+            (
+                "tests/data/mock_manifests/Invalid_none_value_test_manifest.csv",
+                "tests/data/example.model.csv",
+                "Biospecimen",
+            ),
+        ],
+    )
+    def test_validate_model_manifest(self, manifest: str, model: str, component: str) -> None:
+        """
+        Tests for MetadataModel.validateModelManifest
+
+        Args:
+            manifest (str): The path to the manifest
+            model (str): The path to the model
+            component (str): The component to be tested
+        """
         mdm = MetadataModel(
-            inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
+            inputMModelLocation=model,
             data_model_labels="class_label",
             inputMModelLocationType="local",
         )
         errors, warnings = mdm.validateModelManifest(
-            manifestPath=helpers.get_data_path("mock_manifests/Valid_Test_Manifest_with_nones.csv"),
-            rootNode="MockComponent"
+            manifestPath=manifest,
+            rootNode=component
         )
+
+        assert not warnings
+        if manifest == "tests/data/mock_manifests/Valid_none_value_test_manifest.csv":
+            assert not errors
+        # The order of the valid values in the error message are random, so the test must be
+        #  slightly complicated:
+        elif manifest == "tests/data/mock_manifests/Invalid_none_value_test_manifest.csv":
+            assert errors[0][0] == "6"
+            assert errors[0][1] == "Tissue Status"
+            assert errors[0][3] == "InvalidValue"
+            error_message = errors [0][2]
+            assert isinstance(error_message, str)
+            assert error_message.startswith("'InvalidValue' is not one of")
