@@ -50,6 +50,11 @@ class TestManifestValidation:
                 "Patient",
             ),
             (
+                "example_test_nones.model.csv",
+                "mock_manifests/Valid_Test_Manifest_with_nones.csv",
+                "MockComponent",
+            ),
+            (
                 "example.model.csv",
                 "mock_manifests/Valid_none_value_test_manifest.csv",
                 "Biospecimen",
@@ -58,7 +63,8 @@ class TestManifestValidation:
         ids=[
             "example_model",
             "example_with_no_entry_for_cond_required_columns",
-            "example_with_nones",
+            "example_with_nones_mock_component",
+            "example_with_nones_biospecimen"
         ],
     )
     @pytest.mark.parametrize(

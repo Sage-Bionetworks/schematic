@@ -912,6 +912,11 @@ class TestValidateUtils:
                 "example.model.csv",
                 "Biospecimen",
             ),
+            (
+                "mock_manifests/Valid_Test_Manifest_with_nones.csv",
+                "example_test_nones.model.csv",
+                "MockComponent",
+            ),
         ],
     )
     def test_convert_nan_entries_to_empty_strings(
@@ -968,6 +973,13 @@ class TestValidateUtils:
             assert output["Tissue Status"][2] == "None"
             assert output["Tissue Status"][3] == "None"
             assert output["Tissue Status"][4] == "None"
+        elif root_node == "MockComponent":
+            assert manifest["Check List"][2] == ["<NA>"]
+            assert manifest["Check List Like Enum"][2] == []
+            assert type(manifest["Check NA"][2]) == type(pd.NA)
+
+            assert output["Check List"][2] == [""]
+            assert output["Check List Like Enum"][2] == []
 
     def test_get_list_robustness(self, helpers):
         return
