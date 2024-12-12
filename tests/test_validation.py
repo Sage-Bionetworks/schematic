@@ -50,9 +50,9 @@ class TestManifestValidation:
                 "Patient",
             ),
             (
-                "example_test_nones.model.csv",
-                "mock_manifests/Valid_Test_Manifest_with_nones.csv",
-                "MockComponent",
+                "example.model.csv",
+                "mock_manifests/Valid_none_value_test_manifest.csv",
+                "Biospecimen",
             ),
         ],
         ids=[

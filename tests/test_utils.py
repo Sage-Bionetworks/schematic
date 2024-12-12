@@ -908,9 +908,9 @@ class TestValidateUtils:
                 "Patient",
             ),
             (
-                "mock_manifests/Valid_Test_Manifest_with_nones.csv",
-                "example_test_nones.model.csv",
-                "MockComponent",
+                "mock_manifests/Valid_none_value_test_manifest.csv",
+                "example.model.csv",
+                "Biospecimen",
             ),
         ],
     )
@@ -964,18 +964,10 @@ class TestValidateUtils:
         if root_node == "Patient":
             assert manifest["Family History"][0] == ["<NA>"]
             assert output["Family History"][0] == [""]
-        elif root_node == "MockComponent":
-            assert manifest["Check List"][2] == ["<NA>"]
-            assert manifest["Check List Like Enum"][2] == []
-            assert type(manifest["Check NA"][2]) == type(pd.NA)
-
-            assert output["Check List"][2] == [""]
-            assert output["Check List Like Enum"][2] == []
-
-            assert output["Cancer Type"][0] == "None"
-            assert output["Cancer Type"][1] == "None"
-            assert output["Cancer Type"][2] == "None"
-            assert output["Cancer Type"][3] == "None"
+        elif root_node == "Biospecimen":
+            assert output["Tissue Status"][2] == "None"
+            assert output["Tissue Status"][3] == "None"
+            assert output["Tissue Status"][4] == "None"
 
     def test_get_list_robustness(self, helpers):
         return
