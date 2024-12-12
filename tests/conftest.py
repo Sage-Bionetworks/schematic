@@ -13,6 +13,7 @@ import pytest
 from dotenv import load_dotenv
 from flask.testing import FlaskClient
 from opentelemetry import trace
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from synapseclient.client import Synapse
 
 from schematic.configuration.configuration import CONFIG, Configuration
@@ -41,6 +42,8 @@ logging.getLogger("google_auth_httplib2").setLevel(logging.INFO)
 
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(TESTS_DIR, "data")
+
+FlaskInstrumentor().uninstrument()
 
 
 @pytest.fixture(scope="session")

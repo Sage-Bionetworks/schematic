@@ -12,6 +12,7 @@ from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import (
     DEPLOYMENT_ENVIRONMENT,
+    SERVICE_INSTANCE_ID,
     SERVICE_NAME,
     SERVICE_VERSION,
     Resource,
@@ -97,10 +98,12 @@ def set_up_tracing(session: requests.Session) -> None:
         Synapse.enable_open_telemetry(True)
         tracing_service_name = os.environ.get("TRACING_SERVICE_NAME", "schematic-api")
         deployment_environment = os.environ.get("DEPLOYMENT_ENVIRONMENT", "")
+        service_instance_id = os.environ.get("SERVICE_INSTANCE_ID", "")
         trace.set_tracer_provider(
             TracerProvider(
                 resource=Resource(
                     attributes={
+                        SERVICE_INSTANCE_ID: service_instance_id,
                         SERVICE_NAME: tracing_service_name,
                         SERVICE_VERSION: __version__,
                         DEPLOYMENT_ENVIRONMENT: deployment_environment,
@@ -124,9 +127,11 @@ def set_up_logging(session: requests.Session) -> None:
     logging_export = os.environ.get("LOGGING_EXPORT_FORMAT", None)
     logging_service_name = os.environ.get("LOGGING_SERVICE_NAME", "schematic-api")
     deployment_environment = os.environ.get("DEPLOYMENT_ENVIRONMENT", "")
+    service_instance_id = os.environ.get("SERVICE_INSTANCE_ID", "")
     if logging_export == "otlp":
         resource = Resource.create(
             {
+                SERVICE_INSTANCE_ID: service_instance_id,
                 SERVICE_NAME: logging_service_name,
                 DEPLOYMENT_ENVIRONMENT: deployment_environment,
                 SERVICE_VERSION: __version__,

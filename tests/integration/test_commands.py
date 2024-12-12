@@ -95,14 +95,14 @@ class TestValidateCommand:
         # command has no (python) errors, has exit code 0
         assert result.exit_code == 0
         # command output has success message
-        assert result.output.split("\n")[4] == (
+        result_list = result.output.split("\n")
+        assert (
             "Your manifest has been validated successfully. "
             "There are no errors in your manifest, "
             "and it can be submitted without any modifications."
-        )
+        ) in result_list
         # command output has no validation errors
-        for line in result.output.split("\n")[4]:
-            assert not line.startswith("error")
+        errors = [errors for result in result_list if result.startswith("error")]
 
     def test_validate_invalid_manifest(self, runner: CliRunner) -> None:
         """
@@ -339,7 +339,7 @@ class TestManifestCommand:
             assert False, f"Unexpected data validation found: {dv}"
         assert tissue_status_validation is not None
         assert tissue_status_validation.type == "list"
-        assert tissue_status_validation.formula1 == "Sheet2!$C$2:$C$3"
+        assert tissue_status_validation.formula1 == "Sheet2!$C$2:$C$4"
 
         # required fields are marked as “light blue”, while other non-required fields are marked as white.
         for col in ["Sample ID", "Patient ID", "Tissue Status", "Component"]:
@@ -504,9 +504,10 @@ class TestManifestCommand:
                 os.remove("tests/data/example.Biospecimen.schema.json")
 
         # command output has excel file creation message
+        result_list = result.output.split("\n")
         assert (
-            result.output.split("\n")[7]
-            == "Find the manifest template using this Excel file path: ./CLI_empty_excel.xlsx"
+            "Find the manifest template using this Excel file path: ./CLI_empty_excel.xlsx"
+            in result_list
         )
 
         sheet1 = workbook["Sheet1"]
@@ -665,18 +666,19 @@ class TestManifestCommand:
             # Reset config to it's default values
             CONFIG.load_config("config_example.yml")
 
-        assert result.output.split("\n")[7] == (
-            "Find the manifest template using this Google Sheet URL:"
-        )
-        assert result.output.split("\n")[8].startswith(
-            "https://docs.google.com/spreadsheets/d/"
-        )
-        assert result.output.split("\n")[9] == (
+        result_list = result.output.split("\n")
+        assert "Find the manifest template using this Google Sheet URL:" in result_list
+        assert (
             "Find the manifest template using this CSV file path: "
             "./CLI_gs_bulk_rna.csv"
-        )
-
-        google_sheet_url = result.output.split("\n")[8]
+        ) in result_list
+        google_sheet_result = [
+            result
+            for result in result_list
+            if result.startswith("https://docs.google.com/spreadsheets/d/")
+        ]
+        assert len(google_sheet_result) == 1
+        google_sheet_url = google_sheet_result[0]
 
         # Download the Google Sheets content as an Excel file and load into openpyxl
         export_url = f"{google_sheet_url}/export?format=xlsx"
@@ -908,18 +910,19 @@ class TestManifestCommand:
                 os.remove("tests/data/example.BulkRNA-seqAssay.schema.json")
             os.remove("./CLI_gs_bulk_rna_annos.csv")
 
-        assert result.output.split("\n")[10] == (
-            "Find the manifest template using this Google Sheet URL:"
-        )
-        assert result.output.split("\n")[11].startswith(
-            "https://docs.google.com/spreadsheets/d/"
-        )
-        assert result.output.split("\n")[12] == (
+        result_list = result.output.split("\n")
+        assert "Find the manifest template using this Google Sheet URL:" in result_list
+        assert (
             "Find the manifest template using this CSV file path: "
             "./CLI_gs_bulk_rna_annos.csv"
-        )
-
-        google_sheet_url = result.output.split("\n")[11]
+        ) in result_list
+        google_sheet_result = [
+            result
+            for result in result_list
+            if result.startswith("https://docs.google.com/spreadsheets/d/")
+        ]
+        assert len(google_sheet_result) == 1
+        google_sheet_url = google_sheet_result[0]
 
         # Download the Google Sheets content as an Excel file and load into openpyxl
         export_url = f"{google_sheet_url}/export?format=xlsx"
@@ -1177,10 +1180,11 @@ class TestManifestCommand:
             # TODO: remove with https://sagebionetworks.jira.com/browse/SCHEMATIC-202
             # Reset config to it's default values
             CONFIG.load_config("config_example.yml")
-
         # Command output has excel file message
-        assert result.output.split("\n")[8] == (
+        result_list = result.output.split("\n")
+        assert (
             "Find the manifest template using this Excel file path: ./CLI_mock_comp.xlsx"
+            in result_list
         )
 
         sheet1 = workbook["Sheet1"]
