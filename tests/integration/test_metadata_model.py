@@ -572,7 +572,6 @@ class TestMetadataModel:
             spy_upload_file_as_csv.assert_not_called()
             spy_upload_file_combo.assert_not_called()
 
-
     @pytest.mark.parametrize(
         ("manifest", "model", "component"),
         [
@@ -588,7 +587,9 @@ class TestMetadataModel:
             ),
         ],
     )
-    def test_validate_model_manifest(self, manifest: str, model: str, component: str) -> None:
+    def test_validate_model_manifest(
+        self, manifest: str, model: str, component: str
+    ) -> None:
         """
         Tests for MetadataModel.validateModelManifest
 
@@ -603,8 +604,7 @@ class TestMetadataModel:
             inputMModelLocationType="local",
         )
         errors, warnings = mdm.validateModelManifest(
-            manifestPath=manifest,
-            rootNode=component
+            manifestPath=manifest, rootNode=component
         )
 
         assert not warnings
@@ -612,10 +612,12 @@ class TestMetadataModel:
             assert not errors
         # The order of the valid values in the error message are random, so the test must be
         #  slightly complicated:
-        elif manifest == "tests/data/mock_manifests/Invalid_none_value_test_manifest.csv":
+        elif (
+            manifest == "tests/data/mock_manifests/Invalid_none_value_test_manifest.csv"
+        ):
             assert errors[0][0] == "6"
             assert errors[0][1] == "Tissue Status"
             assert errors[0][3] == "InvalidValue"
-            error_message = errors [0][2]
+            error_message = errors[0][2]
             assert isinstance(error_message, str)
             assert error_message.startswith("'InvalidValue' is not one of")
