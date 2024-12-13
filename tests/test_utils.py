@@ -19,7 +19,7 @@ from schematic.schemas.data_model_jsonld import (
 )
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.utils import cli_utils, df_utils, io_utils, validate_utils
-from schematic.utils.df_utils import load_df
+from schematic.utils.df_utils import load_df, read_csv
 from schematic.utils.schema_utils import (
     check_for_duplicate_components,
     check_if_display_name_is_valid_label,
@@ -294,7 +294,7 @@ class TestDfUtils:
         test_col = "Check NA"
         file_path = helpers.get_data_path("mock_manifests", "Invalid_Test_Manifest.csv")
 
-        unprocessed_df = pd.read_csv(file_path, encoding="utf8")
+        unprocessed_df = read_csv(file_path, encoding="utf8")
         df = df_utils.load_df(
             file_path, preserve_raw_input=preserve_raw_input, data_model=False
         )
@@ -908,6 +908,11 @@ class TestValidateUtils:
                 "Patient",
             ),
             (
+                "mock_manifests/Valid_none_value_test_manifest.csv",
+                "example.model.csv",
+                "Biospecimen",
+            ),
+            (
                 "mock_manifests/Valid_Test_Manifest_with_nones.csv",
                 "example_test_nones.model.csv",
                 "MockComponent",
@@ -921,7 +926,7 @@ class TestValidateUtils:
         manifest_path = helpers.get_data_path(manifest)
         model_path = helpers.get_data_path(model)
 
-        ## Gather parmeters needed to run validate_manifest_rules
+        # Gather parmeters needed to run validate_manifest_rules
         errors = []
         load_args = {
             "dtype": "string",
@@ -943,13 +948,13 @@ class TestValidateUtils:
             **load_args,
         )
 
-        metadataModel = get_metadataModel(helpers, model)
+        get_metadataModel(helpers, model)
 
         # Instantiate Validate manifest, and run manifest validation
         # In this step the manifest is modified while running rule
         # validation so need to do this step to get the updated manfest.
         vm = ValidateManifest(errors, manifest, manifest_path, dmge, json_schema)
-        manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(
+        manifest, _, _ = vm.validate_manifest_rules(
             manifest,
             dmge,
             restrict_rules=False,
@@ -964,6 +969,10 @@ class TestValidateUtils:
         if root_node == "Patient":
             assert manifest["Family History"][0] == ["<NA>"]
             assert output["Family History"][0] == [""]
+        elif root_node == "Biospecimen":
+            assert output["Tissue Status"][2] == "None"
+            assert output["Tissue Status"][3] == "None"
+            assert output["Tissue Status"][4] == "None"
         elif root_node == "MockComponent":
             assert manifest["Check List"][2] == ["<NA>"]
             assert manifest["Check List Like Enum"][2] == []
