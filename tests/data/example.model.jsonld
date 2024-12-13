@@ -540,6 +540,9 @@
                 },
                 {
                     "@id": "bts:Malignant"
+                },
+                {
+                    "@id": "bts:None"
                 }
             ],
             "sms:displayName": "Tissue Status",
@@ -560,6 +563,23 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Malignant",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:None",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "None",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:TissueStatus"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "None",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },

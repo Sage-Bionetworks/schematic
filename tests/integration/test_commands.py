@@ -5,7 +5,6 @@ import uuid
 from io import BytesIO
 
 import numpy as np
-import pandas as pd
 import pytest
 import requests
 from click.testing import CliRunner
@@ -14,6 +13,7 @@ from openpyxl import load_workbook
 from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.manifest.commands import manifest
 from schematic.models.commands import model
+from schematic.utils.df_utils import read_csv
 from tests.conftest import ConfigurationForTesting
 
 LIGHT_BLUE = "FFEAF7F9"  # Required cell
@@ -155,8 +155,8 @@ class TestManifestCommand:
             # command has no (python) errors, has exit code 0
             assert result.exit_code == 0
 
-            biospecimen_df = pd.read_csv("tests/data/example.Biospecimen.manifest.csv")
-            patient_df = pd.read_csv("tests/data/example.Patient.manifest.csv")
+            biospecimen_df = read_csv("tests/data/example.Biospecimen.manifest.csv")
+            patient_df = read_csv("tests/data/example.Patient.manifest.csv")
 
         # Remove created files:
         finally:
@@ -339,7 +339,7 @@ class TestManifestCommand:
             assert False, f"Unexpected data validation found: {dv}"
         assert tissue_status_validation is not None
         assert tissue_status_validation.type == "list"
-        assert tissue_status_validation.formula1 == "Sheet2!$C$2:$C$3"
+        assert tissue_status_validation.formula1 == "Sheet2!$C$2:$C$4"
 
         # required fields are marked as “light blue”, while other non-required fields are marked as white.
         for col in ["Sample ID", "Patient ID", "Tissue Status", "Component"]:

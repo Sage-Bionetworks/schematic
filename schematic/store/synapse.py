@@ -56,7 +56,12 @@ from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.base import BaseStorage
 from schematic.store.database.synapse_database import SynapseDatabase
 from schematic.store.synapse_tracker import SynapseEntityTracker
-from schematic.utils.df_utils import col_in_dataframe, load_df, update_df
+from schematic.utils.df_utils import (
+    STR_NA_VALUES_FILTERED,
+    col_in_dataframe,
+    load_df,
+    update_df,
+)
 
 # entity_type_mapping, get_dir_size, create_temp_folder, check_synapse_cache_size, and clear_synapse_cache functions are used for AWS deployment
 # Please do not remove these import statements
@@ -399,7 +404,7 @@ class SynapseStorage(BaseStorage):
             try:
                 self.storageFileviewTable = self.syn.tableQuery(
                     query=self.fileview_query,
-                ).asDataFrame()
+                ).asDataFrame(na_values=STR_NA_VALUES_FILTERED, keep_default_na=False)
             except SynapseHTTPError as exc:
                 exception_text = str(exc)
                 if "Unknown column path" in exception_text:
@@ -1418,7 +1423,11 @@ class SynapseStorage(BaseStorage):
         """
 
         results = self.syn.tableQuery("SELECT * FROM {}".format(synapse_id))
-        df = results.asDataFrame(rowIdAndVersionInIndex=False)
+        df = results.asDataFrame(
+            rowIdAndVersionInIndex=False,
+            na_values=STR_NA_VALUES_FILTERED,
+            keep_default_na=False,
+        )
 
         return df, results
 
@@ -3470,7 +3479,11 @@ class DatasetFileView:
         if self.table is None or force:
             fileview_id = self.view_schema["id"]
             self.results = self.synapse.tableQuery(f"select * from {fileview_id}")
-            self.table = self.results.asDataFrame(rowIdAndVersionInIndex=False)
+            self.table = self.results.asDataFrame(
+                rowIdAndVersionInIndex=False,
+                na_values=STR_NA_VALUES_FILTERED,
+                keep_default_na=False,
+            )
         if tidy:
             self.tidy_table()
         return self.table

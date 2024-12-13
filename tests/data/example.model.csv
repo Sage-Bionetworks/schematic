@@ -10,7 +10,7 @@ Cancer Type,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,
 Family History,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,list strict
 Biospecimen,,,"Sample ID, Patient ID, Tissue Status, Component",,FALSE,DataType,Patient,,
 Sample ID,,,,,TRUE,DataProperty,,,
-Tissue Status,,"Healthy, Malignant",,,TRUE,DataProperty,,,
+Tissue Status,,"Healthy, Malignant, None",,,TRUE,DataProperty,,,
 Bulk RNA-seq Assay,,,"Filename, Sample ID, File Format, Component",,FALSE,DataType,Biospecimen,,
 Filename,,,,,TRUE,DataProperty,,,#MockFilename filenameExists^^
 File Format,,"FASTQ, BAM, CRAM, CSV/TSV",,,TRUE,DataProperty,,,

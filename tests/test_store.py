@@ -29,6 +29,7 @@ from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExp
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
+from schematic.utils.df_utils import STR_NA_VALUES_FILTERED
 from schematic.utils.general import check_synapse_cache_size, create_temp_folder
 from tests.conftest import Helpers
 from tests.utils import CleanupItem
@@ -1322,7 +1323,7 @@ class TestTableOperations:
         table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
         days_to_follow_up = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
-            .asDataFrame()
+            .asDataFrame(na_values=STR_NA_VALUES_FILTERED, keep_default_na=False)
             .squeeze()
         )
 
@@ -1359,7 +1360,7 @@ class TestTableOperations:
         table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
         days_to_follow_up = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
-            .asDataFrame()
+            .asDataFrame(na_values=STR_NA_VALUES_FILTERED, keep_default_na=False)
             .squeeze()
         )
 
@@ -1421,7 +1422,7 @@ class TestTableOperations:
         # Query table for DaystoFollowUp column
         table_query = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
-            .asDataFrame()
+            .asDataFrame(na_values=STR_NA_VALUES_FILTERED, keep_default_na=False)
             .squeeze()
         )
 
@@ -1462,7 +1463,7 @@ class TestTableOperations:
         table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
         table_query = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
-            .asDataFrame()
+            .asDataFrame(na_values=STR_NA_VALUES_FILTERED, keep_default_na=False)
             .squeeze()
         )
 

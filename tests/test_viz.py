@@ -1,11 +1,10 @@
 import json
 import logging
-import os
 from io import StringIO
 
-import pandas as pd
 import pytest
 
+from schematic.utils.df_utils import read_csv
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.visualization.tangled_tree import TangledTree
 
@@ -44,7 +43,7 @@ class TestVisualization:
     def test_ae(self, helpers, attributes_explorer):
         attributes_str = attributes_explorer.parse_attributes(save_file=False)
 
-        df = pd.read_csv(StringIO(attributes_str)).drop(columns=["Unnamed: 0"])
+        df = read_csv(StringIO(attributes_str)).drop(columns=["Unnamed: 0"])
 
         # For the attributes df define expected columns
         expect_col_names = [
@@ -76,7 +75,7 @@ class TestVisualization:
             component=component, save_file=False, include_index=False
         )
         # convert to dataframe
-        component_attributes = pd.read_csv(StringIO(component_attributes_str))
+        component_attributes = read_csv(StringIO(component_attributes_str))
 
         # For the attributes df define expected columns
         expect_col_names = [
@@ -103,7 +102,7 @@ class TestVisualization:
         # Get text for tangled tree.
         text_str = tangled_tree.get_text_for_tangled_tree(text_format, save_file=False)
 
-        df = pd.read_csv(StringIO(text_str)).drop(columns=["Unnamed: 0"])
+        df = read_csv(StringIO(text_str)).drop(columns=["Unnamed: 0"])
 
         # Define expected text associated with 'Patient' and 'Imaging' tree
         expected_patient_text = ["Biospecimen", "BulkRNA-seqAssay"]
