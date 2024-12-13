@@ -1,5 +1,5 @@
 """
-This script contains a test suite for verifying the submission and annotation of
+This script contains a test suite for verifying the validation, submission and annotation of
 file-based manifests using the `TestMetadataModel` class to communicate with Synapse
 and verify the expected behavior of uploading annotation manifest CSVs using the
 metadata model.
@@ -13,7 +13,7 @@ import logging
 import tempfile
 import uuid
 from contextlib import nullcontext as does_not_raise
-from typing import Callable, Optional, Any
+from typing import Any, Callable, Optional
 
 import pandas as pd
 import pytest
@@ -22,7 +22,7 @@ from synapseclient import Annotations
 from synapseclient.core import utils
 from synapseclient.models import File, Folder
 
-from schematic.models.metadata import MetadataModel
+# from schematic.models.metadata import MetadataModel
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import STR_NA_VALUES_FILTERED
 from schematic.utils.general import create_temp_folder
@@ -572,52 +572,45 @@ class TestMetadataModel:
             spy_upload_file_as_csv.assert_not_called()
             spy_upload_file_combo.assert_not_called()
 
-    @pytest.mark.parametrize(
-        ("manifest", "model", "component"),
-        [
-            (
-                "tests/data/mock_manifests/Valid_none_value_test_manifest.csv",
-                "tests/data/example.model.csv",
-                "Biospecimen",
-            ),
-            (
-                "tests/data/mock_manifests/Invalid_none_value_test_manifest.csv",
-                "tests/data/example.model.csv",
-                "Biospecimen",
-            ),
-        ],
-    )
-    def test_validate_model_manifest(
-        self, manifest: str, model: str, component: str
+    def test_validate_model_manifest_valid_with_none_string(
+        self, helpers: Helpers
     ) -> None:
         """
-        Tests for MetadataModel.validateModelManifest
+        Tests for validateModelManifest when the manifest is valid with 'None' values
 
         Args:
-            manifest (str): The path to the manifest
-            model (str): The path to the model
-            component (str): The component to be tested
+            helpers: Test helper functions
         """
-        mdm = MetadataModel(
-            inputMModelLocation=model,
-            data_model_labels="class_label",
-            inputMModelLocationType="local",
-        )
-        errors, warnings = mdm.validateModelManifest(
-            manifestPath=manifest, rootNode=component
-        )
+        meta_data_model = metadata_model(helpers, "class_label")
 
+        errors, warnings = meta_data_model.validateModelManifest(
+            manifestPath="tests/data/mock_manifests/Valid_none_value_test_manifest.csv",
+            rootNode="Biospecimen",
+        )
         assert not warnings
-        if manifest == "tests/data/mock_manifests/Valid_none_value_test_manifest.csv":
-            assert not errors
+        assert not errors
+
+    def test_validate_model_manifest_invalid(self, helpers: Helpers) -> None:
+        """
+        Tests for validateModelManifest when the manifest requires values to be from a set of values containing 'None'
+
+        Args:
+            helpers: Test helper functions
+        """
+        meta_data_model = metadata_model(helpers, "class_label")
+
+        errors, warnings = meta_data_model.validateModelManifest(
+            manifestPath="tests/data/mock_manifests/Invalid_none_value_test_manifest.csv",
+            rootNode="Biospecimen",
+        )
+        assert not warnings
+        assert errors[0][0] == "6"
+        assert errors[0][1] == "Tissue Status"
+        assert errors[0][3] == "InvalidValue"
         # The order of the valid values in the error message are random, so the test must be
-        #  slightly complicated:
-        elif (
-            manifest == "tests/data/mock_manifests/Invalid_none_value_test_manifest.csv"
-        ):
-            assert errors[0][0] == "6"
-            assert errors[0][1] == "Tissue Status"
-            assert errors[0][3] == "InvalidValue"
-            error_message = errors[0][2]
-            assert isinstance(error_message, str)
-            assert error_message.startswith("'InvalidValue' is not one of")
+        # slightly complicated:
+        # 'InvalidValue' is not one of ['Malignant', 'Healthy', 'None']
+        # 'InvalidValue' is not one of ['Healthy', 'Malignant', 'None']
+        error_message = errors[0][2]
+        assert isinstance(error_message, str)
+        assert error_message.startswith("'InvalidValue' is not one of")
