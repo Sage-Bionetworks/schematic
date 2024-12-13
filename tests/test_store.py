@@ -11,7 +11,7 @@ import tempfile
 import uuid
 from contextlib import nullcontext as does_not_raise
 from typing import Any, Callable, Generator
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pandas as pd
 import pytest
@@ -22,12 +22,14 @@ from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File, Project
 from synapseclient.models import Annotations
 from synapseclient.models import Folder as FolderModel
+from synapseclient.table import build_table
 
 from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
+from schematic.utils.df_utils import STR_NA_VALUES_FILTERED
 from schematic.utils.general import check_synapse_cache_size, create_temp_folder
 from tests.conftest import Helpers
 from tests.utils import CleanupItem
@@ -463,46 +465,103 @@ class TestSynapseStorage:
             (
                 True,
                 [
-                    ("syn126", "schematic - main/parent_folder/test_file"),
+                    ("syn126", "syn_mock", "schematic - main/parent_folder/test_file"),
                     (
                         "syn125",
+                        "syn_mock",
                         "schematic - main/parent_folder/test_folder/test_file_2",
                     ),
                 ],
             ),
-            (False, [("syn126", "test_file"), ("syn125", "test_file_2")]),
+            (
+                False,
+                [
+                    ("syn126", "syn_mock", "test_file"),
+                    ("syn125", "syn_mock", "test_file_2"),
+                ],
+            ),
         ],
     )
     def test_getFilesInStorageDataset(self, synapse_store, full_path, expected):
-        mock_return = [
-            (
-                ("parent_folder", "syn123"),
-                [("test_folder", "syn124")],
-                [("test_file", "syn126")],
-            ),
-            (
-                (
-                    os.path.join("schematic - main", "parent_folder", "test_folder"),
-                    "syn124",
-                ),
-                [],
-                [("test_file_2", "syn125")],
-            ),
-        ]
-        with patch(
-            "synapseutils.walk_functions._help_walk", return_value=mock_return
-        ) as mock_walk_patch, patch(
-            "schematic.store.synapse.SynapseStorage.getDatasetProject",
-            return_value="syn23643250",
-        ) as mock_project_id_patch, patch(
-            "synapseclient.entity.Entity.__getattr__", return_value="schematic - main"
-        ) as mock_project_name_patch, patch.object(
-            synapse_store.syn, "get", return_value=Project(name="schematic - main")
-        ):
+        mock_table_dataframe_return = pd.DataFrame(
+            {
+                "id": ["syn126", "syn125"],
+                "parentId": ["syn_mock", "syn_mock"],
+                "path": [
+                    "schematic - main/parent_folder/test_file",
+                    "schematic - main/parent_folder/test_folder/test_file_2",
+                ],
+            }
+        )
+
+        with patch.object(
+            synapse_store, "storageFileviewTable", mock_table_dataframe_return
+        ), patch.object(synapse_store, "query_fileview") as mocked_query:
+            # query_fileview is the function called to get the fileview
+            mocked_query.return_value = mock_table_dataframe_return
+
             file_list = synapse_store.getFilesInStorageDataset(
                 datasetId="syn_mock", fileNames=None, fullpath=full_path
             )
-        assert file_list == expected
+            assert file_list == expected
+
+    @pytest.mark.parametrize(
+        "mock_table_dataframe, raised_exception, exception_message",
+        [
+            (
+                pd.DataFrame(
+                    {
+                        "id": ["child_syn_mock"],
+                        "path": ["schematic - main/parent_folder/child_entity"],
+                        "parentId": ["wrong_syn_mock"],
+                    }
+                ),
+                LookupError,
+                "Dataset syn_mock could not be found",
+            ),
+            (
+                pd.DataFrame(
+                    {
+                        "id": [],
+                        "path": [],
+                        "parentId": [],
+                    }
+                ),
+                ValueError,
+                "Fileview mock_table_id is empty",
+            ),
+        ],
+        ids=["missing_dataset", "empty_fileview"],
+    )
+    @pytest.mark.parametrize(
+        "full_path,",
+        [
+            (True),
+            (False),
+        ],
+    )
+    def test_get_files_in_storage_dataset_exception(
+        self,
+        synapse_store,
+        mock_table_dataframe,
+        raised_exception,
+        exception_message,
+        full_path,
+    ):
+        with patch.object(
+            synapse_store, "storageFileviewTable", mock_table_dataframe
+        ), patch.object(
+            synapse_store, "storageFileview", "mock_table_id"
+        ) as mock_table_id, patch.object(
+            synapse_store, "query_fileview"
+        ) as mocked_query:
+            # query_fileview is the function called to get the fileview
+            mocked_query.return_value = mock_table_dataframe
+
+            with pytest.raises(raised_exception, match=exception_message):
+                synapse_store.getFilesInStorageDataset(
+                    datasetId="syn_mock", fileNames=None, fullpath=full_path
+                )
 
     @pytest.mark.parametrize("downloadFile", [True, False])
     def test_getDatasetManifest(self, synapse_store, downloadFile):
@@ -926,6 +985,26 @@ class TestSynapseStorage:
             await synapse_store._process_store_annos(new_tasks)
             mock_store_async.assert_not_called()
 
+    @pytest.mark.parametrize(
+        "dataset_id, dataset_folder_list, expected_clause",
+        [
+            ("syn12345678", None, "parentId='syn12345678'"),
+            (
+                "syn63927665",
+                ["syn63927665", "syn63927667"],
+                "parentId IN ('syn63927665', 'syn63927667')",
+            ),
+            (None, None, ""),
+        ],
+    )
+    def test_build_clause_from_dataset_id(
+        self, dataset_id, dataset_folder_list, expected_clause
+    ):
+        dataset_clause = SynapseStorage.build_clause_from_dataset_id(
+            dataset_id=dataset_id, dataset_folder_list=dataset_folder_list
+        )
+        assert dataset_clause == expected_clause
+
 
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
@@ -1244,7 +1323,7 @@ class TestTableOperations:
         table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
         days_to_follow_up = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
-            .asDataFrame()
+            .asDataFrame(na_values=STR_NA_VALUES_FILTERED, keep_default_na=False)
             .squeeze()
         )
 
@@ -1281,7 +1360,7 @@ class TestTableOperations:
         table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
         days_to_follow_up = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
-            .asDataFrame()
+            .asDataFrame(na_values=STR_NA_VALUES_FILTERED, keep_default_na=False)
             .squeeze()
         )
 
@@ -1343,7 +1422,7 @@ class TestTableOperations:
         # Query table for DaystoFollowUp column
         table_query = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
-            .asDataFrame()
+            .asDataFrame(na_values=STR_NA_VALUES_FILTERED, keep_default_na=False)
             .squeeze()
         )
 
@@ -1384,7 +1463,7 @@ class TestTableOperations:
         table_id = synapse_store.syn.findEntityId(name=table_name, parent=projectId)
         table_query = (
             synapse_store.syn.tableQuery(f"SELECT {column_of_interest} FROM {table_id}")
-            .asDataFrame()
+            .asDataFrame(na_values=STR_NA_VALUES_FILTERED, keep_default_na=False)
             .squeeze()
         )
 

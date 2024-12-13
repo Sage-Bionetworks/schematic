@@ -17,6 +17,7 @@ from synapseclient.core.exceptions import SynapseNoCredentialsError
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
+from schematic.utils.df_utils import read_csv
 from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import (
     comma_separated_list_regex,
@@ -868,7 +869,7 @@ class ValidateAttribute(object):
             entity: File = self.synStore.getDatasetManifest(
                 datasetId=dataset_id, downloadFile=True
             )
-            manifests.append(pd.read_csv(entity.path))
+            manifests.append(read_csv(entity.path))
         return dict(zip(manifest_ids, manifests))
 
     def get_target_manifests(
@@ -2119,7 +2120,9 @@ class ValidateAttribute(object):
 
         where_clauses = []
 
-        dataset_clause = f"parentId='{dataset_scope}'"
+        dataset_clause = SynapseStorage.build_clause_from_dataset_id(
+            dataset_id=dataset_scope
+        )
         where_clauses.append(dataset_clause)
 
         self._login(

@@ -1,5 +1,5 @@
 """
-This script contains a test suite for verifying the submission and annotation of
+This script contains a test suite for verifying the validation, submission and annotation of
 file-based manifests using the `TestMetadataModel` class to communicate with Synapse
 and verify the expected behavior of uploading annotation manifest CSVs using the
 metadata model.
@@ -13,7 +13,7 @@ import logging
 import tempfile
 import uuid
 from contextlib import nullcontext as does_not_raise
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 import pandas as pd
 import pytest
@@ -23,6 +23,7 @@ from synapseclient.core import utils
 from synapseclient.models import File, Folder
 
 from schematic.store.synapse import SynapseStorage
+from schematic.utils.df_utils import STR_NA_VALUES_FILTERED
 from schematic.utils.general import create_temp_folder
 from tests.conftest import Helpers, metadata_model
 from tests.utils import CleanupItem
@@ -139,7 +140,6 @@ class TestMetadataModel:
             dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             df.to_csv(tmp_file.name, index=False)
-
             # WHEN the manifest is submitted (Assertions are handled in the helper method)
             self._submit_and_verify_manifest(
                 helpers=helpers,
@@ -229,7 +229,6 @@ class TestMetadataModel:
             dir=create_temp_folder(path=tempfile.gettempdir()),
         ) as tmp_file:
             df.to_csv(tmp_file.name, index=False)
-
             # WHEN the manifest is submitted (Assertions are handled in the helper method)
             self._submit_and_verify_manifest(
                 helpers=helpers,
@@ -450,6 +449,11 @@ class TestMetadataModel:
             raise ValueError(
                 "expected_manifest_id or expected_manifest_name must be provided"
             )
+        # HACK: must requery the fileview to get new files, since SynapseStorage will query the last state
+        # of the fileview which may not contain any new folders in the fileview.
+        # This is a workaround to fileviews not always containing the latest information
+        # Since the tests don't always follow a similar process as testing resources are created and destroyed
+        synapse_store.query_fileview(force_requery=True)
 
         # Spies
         if already_spied:
@@ -531,7 +535,7 @@ class TestMetadataModel:
                 )
                 manifest_table = synapse_store.syn.tableQuery(
                     f"select * from {expected_table_id}", downloadLocation=download_dir
-                ).asDataFrame()
+                ).asDataFrame(na_values=STR_NA_VALUES_FILTERED, keep_default_na=False)
 
                 # AND the columns in the manifest table should reflect the ones in the file
                 table_columns = manifest_table.columns
@@ -566,3 +570,46 @@ class TestMetadataModel:
                 spy_upload_file_as_table.call_count == 1
             spy_upload_file_as_csv.assert_not_called()
             spy_upload_file_combo.assert_not_called()
+
+    def test_validate_model_manifest_valid_with_none_string(
+        self, helpers: Helpers
+    ) -> None:
+        """
+        Tests for validateModelManifest when the manifest is valid with 'None' values
+
+        Args:
+            helpers: Test helper functions
+        """
+        meta_data_model = metadata_model(helpers, "class_label")
+
+        errors, warnings = meta_data_model.validateModelManifest(
+            manifestPath="tests/data/mock_manifests/Valid_none_value_test_manifest.csv",
+            rootNode="Biospecimen",
+        )
+        assert not warnings
+        assert not errors
+
+    def test_validate_model_manifest_invalid(self, helpers: Helpers) -> None:
+        """
+        Tests for validateModelManifest when the manifest requires values to be from a set of values containing 'None'
+
+        Args:
+            helpers: Test helper functions
+        """
+        meta_data_model = metadata_model(helpers, "class_label")
+
+        errors, warnings = meta_data_model.validateModelManifest(
+            manifestPath="tests/data/mock_manifests/Invalid_none_value_test_manifest.csv",
+            rootNode="Biospecimen",
+        )
+        assert not warnings
+        assert errors[0][0] == "6"
+        assert errors[0][1] == "Tissue Status"
+        assert errors[0][3] == "InvalidValue"
+        # The order of the valid values in the error message are random, so the test must be
+        # slightly complicated:
+        # 'InvalidValue' is not one of ['Malignant', 'Healthy', 'None']
+        # 'InvalidValue' is not one of ['Healthy', 'Malignant', 'None']
+        error_message = errors[0][2]
+        assert isinstance(error_message, str)
+        assert error_message.startswith("'InvalidValue' is not one of")

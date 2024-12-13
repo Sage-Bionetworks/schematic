@@ -19,12 +19,10 @@ from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 import numpy as np
 import pandas as pd
 import synapseclient
-import synapseutils
 from opentelemetry import trace
 from synapseclient import Annotations as OldAnnotations
 from synapseclient import (
     Column,
-    Entity,
     EntityViewSchema,
     EntityViewType,
     File,
@@ -58,7 +56,12 @@ from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.base import BaseStorage
 from schematic.store.database.synapse_database import SynapseDatabase
 from schematic.store.synapse_tracker import SynapseEntityTracker
-from schematic.utils.df_utils import col_in_dataframe, load_df, update_df
+from schematic.utils.df_utils import (
+    STR_NA_VALUES_FILTERED,
+    col_in_dataframe,
+    load_df,
+    update_df,
+)
 
 # entity_type_mapping, get_dir_size, create_temp_folder, check_synapse_cache_size, and clear_synapse_cache functions are used for AWS deployment
 # Please do not remove these import statements
@@ -401,7 +404,7 @@ class SynapseStorage(BaseStorage):
             try:
                 self.storageFileviewTable = self.syn.tableQuery(
                     query=self.fileview_query,
-                ).asDataFrame()
+                ).asDataFrame(na_values=STR_NA_VALUES_FILTERED, keep_default_na=False)
             except SynapseHTTPError as exc:
                 exception_text = str(exc)
                 if "Unknown column path" in exception_text:
@@ -415,6 +418,30 @@ class SynapseStorage(BaseStorage):
                     )
                 else:
                     raise AccessCredentialsError(self.storageFileview)
+
+    @staticmethod
+    def build_clause_from_dataset_id(
+        dataset_id: Optional[str] = None, dataset_folder_list: Optional[list] = None
+    ) -> str:
+        """
+        Method to build a where clause for a Synapse FileView query based on a dataset ID that can be used before an object is initialized.
+        Args:
+            dataset_id: Synapse ID of a dataset that should be used to limit the query
+            dataset_folder_list: List of Synapse IDs of a dataset and all its subfolders that should be used to limit the query
+        Returns:
+            clause for the query or an empty string if no dataset ID is provided
+        """
+        # Calling this method without specifying synIDs will complete but will not scope the view
+        if (not dataset_id) and (not dataset_folder_list):
+            return ""
+
+        # This will be used to gather files under a dataset recursively with a fileview query instead of walking
+        if dataset_folder_list:
+            search_folders = ", ".join(f"'{synId}'" for synId in dataset_folder_list)
+            return f"parentId IN ({search_folders})"
+
+        # `dataset_id` should be provided when all files are stored directly under the dataset folder
+        return f"parentId='{dataset_id}'"
 
     def _build_query(
         self, columns: Optional[list] = None, where_clauses: Optional[list] = None
@@ -666,7 +693,7 @@ class SynapseStorage(BaseStorage):
     def getFilesInStorageDataset(
         self, datasetId: str, fileNames: List = None, fullpath: bool = True
     ) -> List[Tuple[str, str]]:
-        """Gets all files in a given dataset folder.
+        """Gets all files (excluding manifest files) in a given dataset folder.
 
         Args:
             datasetId: synapse ID of a storage dataset.
@@ -680,105 +707,58 @@ class SynapseStorage(BaseStorage):
         Raises:
             ValueError: Dataset ID not found.
         """
-        # select all files within a given storage dataset folder (top level folder in
-        # a Synapse storage project or folder marked with contentType = 'dataset')
-        walked_path = synapseutils.walk(
-            self.syn, datasetId, includeTypes=["folder", "file"]
-        )
-
-        current_entity_location = self.synapse_entity_tracker.get(
-            synapse_id=datasetId, syn=self.syn, download_file=False
-        )
-
-        def walk_back_to_project(
-            current_location: Entity, location_prefix: str, skip_entry: bool
-        ) -> str:
-            """
-            Recursively walk back up the project structure to get the paths of the
-            names of each of the directories where we started the walk function.
-
-            Args:
-                current_location (Entity): The current entity location in the project structure.
-                location_prefix (str): The prefix to prepend to the path.
-                skip_entry (bool): Whether to skip the current entry in the path. When
-                    this is True it means we are looking at our starting point. If our
-                    starting point is the project itself we can go ahead and return
-                    back the project as the prefix.
-
-            Returns:
-                str: The path of the names of each of the directories up to the project root.
-            """
-            if (
-                skip_entry
-                and "concreteType" in current_location
-                and current_location["concreteType"] == PROJECT_ENTITY
-            ):
-                return f"{current_location.name}/{location_prefix}"
-
-            updated_prefix = (
-                location_prefix
-                if skip_entry
-                else f"{current_location.name}/{location_prefix}"
-            )
-            if (
-                "concreteType" in current_location
-                and current_location["concreteType"] == PROJECT_ENTITY
-            ):
-                return updated_prefix
-            current_location = self.synapse_entity_tracker.get(
-                synapse_id=current_location["parentId"],
-                syn=self.syn,
-                download_file=False,
-            )
-            return walk_back_to_project(
-                current_location=current_location,
-                location_prefix=updated_prefix,
-                skip_entry=False,
-            )
-
-        prefix = walk_back_to_project(
-            current_location=current_entity_location,
-            location_prefix="",
-            skip_entry=True,
-        )
-
-        project_id = self.getDatasetProject(datasetId)
-        project = self.synapse_entity_tracker.get(
-            synapse_id=project_id, syn=self.syn, download_file=False
-        )
-        project_name = project.name
         file_list = []
 
-        # iterate over all results
-        for dirpath, _, path_filenames in walked_path:
-            # iterate over all files in a folder
-            for path_filename in path_filenames:
-                if ("manifest" not in path_filename[0] and not fileNames) or (
-                    fileNames and path_filename[0] in fileNames
-                ):
-                    # don't add manifest to list of files unless it is specified in the
-                    # list of specified fileNames; return all found files
-                    # except the manifest if no fileNames have been specified
-                    # TODO: refactor for clarity/maintainability
+        # Get path to dataset folder by using childern to avoid cases where the dataset is the scope of the view
+        if self.storageFileviewTable.empty:
+            raise ValueError(
+                f"Fileview {self.storageFileview} is empty, please check the table and the provided synID and try again."
+            )
 
-                    if fullpath:
-                        # append directory path to filename
-                        if dirpath[0].startswith(f"{project_name}/"):
-                            path_without_project_prefix = (
-                                dirpath[0] + "/"
-                            ).removeprefix(f"{project_name}/")
-                            path_filename = (
-                                prefix + path_without_project_prefix + path_filename[0],
-                                path_filename[1],
-                            )
-                        else:
-                            path_filename = (
-                                prefix + dirpath[0] + "/" + path_filename[0],
-                                path_filename[1],
-                            )
+        child_path = self.storageFileviewTable.loc[
+            self.storageFileviewTable["parentId"] == datasetId, "path"
+        ]
+        if child_path.empty:
+            raise LookupError(
+                f"Dataset {datasetId} could not be found in fileview {self.storageFileview}."
+            )
+        child_path = child_path.iloc[0]
 
-                    # add file name file id tuple, rearranged so that id is first and name follows
-                    file_list.append(path_filename[::-1])
+        # Get the dataset path by eliminating the child's portion of the path to account for nested datasets
+        parent = child_path.split("/")[:-1]
+        parent = "/".join(parent)
+
+        # Format dataset path to be used in table query
+        dataset_path = f"'{parent}/%'"
+
+        # When querying, only include files to exclude entity files and subdirectories
+        where_clauses = [f"path like {dataset_path}", "type='file'"]
+
+        # Requery the fileview to specifically get the files in the given dataset
+        self.query_fileview(columns=["id", "path"], where_clauses=where_clauses)
+
+        # Exclude manifest files
+        non_manifest_files = self.storageFileviewTable.loc[
+            ~self.storageFileviewTable["path"].str.contains("synapse_storage_manifest"),
+            :,
+        ]
+
+        # Remove all files that are not in the list of fileNames
+        if fileNames:
+            filename_regex = "|".join(fileNames)
+
+            matching_files = non_manifest_files["path"].str.contains(
+                filename_regex, case=False, regex=True
+            )
+
+            non_manifest_files = non_manifest_files.loc[matching_files, :]
+
+        # Truncate path if necessary
+        if not fullpath:
+            non_manifest_files.path = non_manifest_files.path.apply(os.path.basename)
+
+        # Return list of files as expected by other methods
+        file_list = list(non_manifest_files.itertuples(index=False, name=None))
 
         return file_list
 
@@ -1056,7 +1036,7 @@ class SynapseStorage(BaseStorage):
 
         Returns:
             Synapse ID of updated manifest and Pandas dataframe containing the updated manifest.
-            If there is no existing manifest return None
+            If there is no existing manifest or if the manifest does not have an entityId column, return None
         """
 
         # get existing manifest Synapse ID
@@ -1070,8 +1050,12 @@ class SynapseStorage(BaseStorage):
             synapse_id=manifest_id, syn=self.syn, download_file=True
         )
         manifest_filepath = manifest_entity.path
-
         manifest = load_df(manifest_filepath)
+
+        # If the manifest does not have an entityId column, trigger a new manifest to be generated
+        if "entityId" not in manifest.columns:
+            return None
+
         manifest_is_file_based = "Filename" in manifest.columns
 
         if manifest_is_file_based:
@@ -1079,7 +1063,6 @@ class SynapseStorage(BaseStorage):
             # note that if there is an existing manifest and there are files in the dataset
             # the columns Filename and entityId are assumed to be present in manifest schema
             # TODO: use idiomatic panda syntax
-
             dataset_files, manifest = self.fill_in_entity_id_filename(
                 datasetId, manifest
             )
@@ -1117,6 +1100,13 @@ class SynapseStorage(BaseStorage):
             if manifest is None:
                 raise UnboundLocalError(
                     "No manifest was passed in, a manifest is required when `only_new_files` is True."
+                )
+
+            if "entityId" not in manifest.columns:
+                raise ValueError(
+                    "The manifest in your dataset and/or top level folder must contain the 'entityId' column. "
+                    "Please generate an empty manifest without annotations, manually add annotations to the "
+                    "appropriate files in the manifest, and then try again."
                 )
 
             # find new files (that are not in the current manifest) if any
@@ -1433,7 +1423,11 @@ class SynapseStorage(BaseStorage):
         """
 
         results = self.syn.tableQuery("SELECT * FROM {}".format(synapse_id))
-        df = results.asDataFrame(rowIdAndVersionInIndex=False)
+        df = results.asDataFrame(
+            rowIdAndVersionInIndex=False,
+            na_values=STR_NA_VALUES_FILTERED,
+            keep_default_na=False,
+        )
 
         return df, results
 
@@ -3485,7 +3479,11 @@ class DatasetFileView:
         if self.table is None or force:
             fileview_id = self.view_schema["id"]
             self.results = self.synapse.tableQuery(f"select * from {fileview_id}")
-            self.table = self.results.asDataFrame(rowIdAndVersionInIndex=False)
+            self.table = self.results.asDataFrame(
+                rowIdAndVersionInIndex=False,
+                na_values=STR_NA_VALUES_FILTERED,
+                keep_default_na=False,
+            )
         if tidy:
             self.tidy_table()
         return self.table
