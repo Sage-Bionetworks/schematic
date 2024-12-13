@@ -31,24 +31,6 @@ Whether you are using DCA or schematic API or schematic library/CLI, the followi
                 -H 'accept: application/json' ...
 
 
-Manifest Generate: `KeyError: entityId`
----------------------------------------
-
-If there is currently a manifest in your "Top Level Folder" on Synapse with an incorrect Filename BUT entityId column.
-You will be able to run manifest generate to create a new manifest with the new Filenames. However, If this manifest on Synapse does
-NOT have the entityId column you will encounter that error. 
-
-To fix: You will want to first check if your "Top Level Folder" has a manifest without the entityId column.
-If so, you can either submit your manifest using schematic OR (the less preferred solution) manually add the entityId column to the manifest on Synapse.
-
-Manifest Generate: `ValueError: cannot insert eTag, already exists`
--------------------------------------------------------------------
-
-If you do NOT have a manifest in your "Top Level Folder" on Synapse and your File entities in this folder are annotated with 'eTag' key and you try to generate a manifest, it will fail.
-
-To fix: This should be fixed in schematic, but for now, remove the 'eTag' annotation from your file.
-
-
 Manifest Submit: `RuntimeError: failed with SynapseHTTPError('400 Client Error: nan is not a valid Synapse ID.')`
 -----------------------------------------------------------------------------------------------------------------
 
@@ -86,3 +68,25 @@ and the validation rule uses the "display" value of what's expected in the Compo
 but the actual Component name is "ImagingAssayTemplate".
 
 To fix: Check if your manifest has invalid Component values and fill it out correctly.  Using the above example, fill out your Component column with "ImagingAssayTemplate"
+
+
+Manifest Generate: `KeyError: entityId`
+---------------------------------------
+
+Fixed: v24.12.1
+
+If there is currently a manifest in your "Top Level Folder" on Synapse with an incorrect Filename BUT entityId column.
+You will be able to run manifest generate to create a new manifest with the new Filenames. However, If this manifest on Synapse does
+NOT have the entityId column you will encounter that error.
+
+To fix: You will want to first check if your "Top Level Folder" has a manifest without the entityId column.
+If so, you can either submit your manifest using schematic OR (the less preferred solution) manually add the entityId column to the manifest on Synapse.
+
+Manifest Generate: `ValueError: cannot insert eTag, already exists`
+-------------------------------------------------------------------
+
+Fixed: v24.11.2
+
+If you do NOT have a manifest in your "Top Level Folder" on Synapse and your File entities in this folder are annotated with 'eTag' key and you try to generate a manifest, it will fail.
+
+To fix: This should be fixed in schematic, but for now, remove the 'eTag' annotation from your file.
