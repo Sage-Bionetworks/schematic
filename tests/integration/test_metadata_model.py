@@ -22,7 +22,6 @@ from synapseclient import Annotations
 from synapseclient.core import utils
 from synapseclient.models import File, Folder
 
-# from schematic.models.metadata import MetadataModel
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import STR_NA_VALUES_FILTERED
 from schematic.utils.general import create_temp_folder
