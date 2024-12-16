@@ -20,6 +20,7 @@ from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.synapse import ManifestDownload, SynapseStorage
+from schematic.utils.df_utils import read_csv
 from schematic.utils.general import create_temp_folder, entity_type_mapping
 from schematic.utils.schema_utils import (
     DisplayLabelType,
@@ -178,7 +179,7 @@ def parse_bool(str_bool):
 
 
 def return_as_json(manifest_local_file_path):
-    manifest_csv = pd.read_csv(manifest_local_file_path)
+    manifest_csv = read_csv(manifest_local_file_path)
     manifest_json = manifest_csv.to_dict(orient="records")
     return manifest_json
 
