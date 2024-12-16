@@ -6,6 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: "3.10"
     outputs:
       sdist-package-name: ${{ steps.build-package.outputs.sdist-package-name }}
       bdist-package-name: ${{ steps.build-package.outputs.bdist-package-name }}
@@ -13,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: ${{ env.PYTHON_VERSION }}
       - id: build-package
         run: |        
           python3 -m pip install --upgrade pip
