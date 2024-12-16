@@ -24,13 +24,10 @@ jobs:
           python3 -m pip install build
           python3 -m pip install .
           python3 -m build
-
-          echo "Contents of dist directory:"
-          ls -la dist/
           
           VERSION=${{ github.event.release.tag_name }}
-          SDIST_PACKAGE_NAME="schematic-${VERSION}.tar.gz"
-          BDIST_PACKAGE_NAME="schematic-${VERSION}-py3-none-any.whl"
+          SDIST_PACKAGE_NAME="schematicpy-${VERSION}.tar.gz"
+          BDIST_PACKAGE_NAME="schematicpy-${VERSION}-py3-none-any.whl"
           RELEASE_URL_PREFIX="https://uploads.github.com/repos/${{ github.event.repository.full_name }}/releases/${{ github.event.release.id }}/assets?name="
 
           echo "sdist-package-name=$SDIST_PACKAGE_NAME" >> $GITHUB_OUTPUT
