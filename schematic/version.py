@@ -1,4 +1,3 @@
 """Sets the version of the package"""
-import importlib.metadata
-
-__version__ = importlib.metadata.version("schematic")
+# Version hardcoded see https://sagebionetworks.jira.com/browse/SCHEMATIC-229
+__version__ = "24.12.1"
