@@ -26,7 +26,7 @@ jobs:
           python3 -m build
 
           echo "Contents of dist directory:"
-          ls -la dist/
+          ls dist/
           
           VERSION=${{ github.event.release.tag_name }}
           SDIST_PACKAGE_NAME="schematicpy-${VERSION}.tar.gz"
