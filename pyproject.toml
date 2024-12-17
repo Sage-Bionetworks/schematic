@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "schematicpy"
-version = "24.11.2"
+version = "99.99.9"
 description = "Package for biomedical data model and metadata ingress management"
 authors = [
     "Milen Nikolov <milen.nikolov@sagebase.org>",
