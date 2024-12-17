@@ -59,19 +59,25 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - name: download-sdist
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.build.outputs.sdist-package-name }}
-          path: dist
+      - name: debug prerelease
+        run: |
+          echo "prerelease: ${{ github.event.release.prerelease }}"
+          echo "environment: ${{ env.environment }}"
+          echo "url: ${{ env.url }}"
 
-      - name: download-bdist
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.build.outputs.bdist-package-name }}
-          path: dist
+      # - name: download-sdist
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ${{ needs.build.outputs.sdist-package-name }}
+      #     path: dist
 
-      - name: deploy-to-test-pypi
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
+      # - name: download-bdist
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ${{ needs.build.outputs.bdist-package-name }}
+      #     path: dist
+
+      # - name: deploy-to-test-pypi
+      #   uses: pypa/gh-action-pypi-publish@release/v1
+      #   with:
+      #     repository-url: https://test.pypi.org/legacy/
