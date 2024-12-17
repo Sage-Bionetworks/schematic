@@ -73,3 +73,5 @@ jobs:
 
       - name: deploy-to-test-pypi
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
