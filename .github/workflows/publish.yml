@@ -54,16 +54,18 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.event.release.prerelease == 'true' && 'pypi' || 'testpypi' }}
-      url: ${{ github.event.release.prerelease == 'true' && 'https://pypi.org/p/schematicpy' || 'https://test.pypi.org/p/schematicpy' }}
+      name: ${{ github.event.release.prerelease == true && 'testpypi' || 'pypi' }}
+      url: ${{ github.event.release.prerelease == true && 'https://test.pypi.org/p/schematicpy' || 'https://pypi.org/p/schematicpy' }}
     permissions:
       id-token: write
     steps:
       - name: debug prerelease
         run: |
           echo "prerelease: ${{ github.event.release.prerelease }}"
-          echo "name: ${{ github.event.release.prerelease == 'true' && 'pypi' || 'testpypi' }}"
-          echo "url: ${{ github.event.release.prerelease == 'true' && 'https://pypi.org/p/schematicpy' || 'https://test.pypi.org/p/schematicpy' }}"
+          echo "env.name: ${{ env.name }}"
+          echo "name: ${{ github.event.release.prerelease == true && 'testpypi' || 'pypi' }}"
+          echo "env.url: ${{ env.url }}"
+          echo "url: ${{ github.event.release.prerelease == true && 'https://test.pypi.org/p/schematicpy' || 'https://pypi.org/p/schematicpy' }}"
 
       # - name: download-sdist
       #   uses: actions/download-artifact@v4
@@ -79,5 +81,3 @@ jobs:
 
       # - name: deploy-to-test-pypi
       #   uses: pypa/gh-action-pypi-publish@release/v1
-      #   with:
-      #     repository-url: https://test.pypi.org/legacy/
