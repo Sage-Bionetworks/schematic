@@ -1,13 +1,16 @@
 import toml
-import os 
+import sys
+
+if len(sys.argv) != 2:
+    print("Usage: python override_version.py VERSION")
+    sys.exit(1)
+
+RELEASE_VERSION = sys.argv[1]
 
 data = toml.load("pyproject.toml")
-#get release version 
-RELEASE_VERSION = os.getenv('RELEASE_VERSION')
 # Modify field
-data['tool']['poetry']['version']=RELEASE_VERSION
-print('the version number of this release is: ', RELEASE_VERSION)
-#override and save changes
-f = open("pyproject.toml",'w')
-toml.dump(data, f)
-f.close()
+data["tool"]["poetry"]["version"] = RELEASE_VERSION
+print("the version number of this release is: ", RELEASE_VERSION)
+# override and save changes
+with open("pyproject.toml", "w") as f:
+    toml.dump(data, f)

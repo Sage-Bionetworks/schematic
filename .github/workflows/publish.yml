@@ -25,7 +25,7 @@ jobs:
           python3 -m pip install .
           python3 -m build
 
-          python3 override_version.py
+          python3 override_version.py ${{ github.event.release.tag_name }}
 
           VERSION=${{ github.event.release.tag_name }}
           SDIST_PACKAGE_NAME="schematicpy-${VERSION}.tar.gz"
