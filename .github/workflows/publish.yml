@@ -3,6 +3,10 @@ on:
   release:
     types: [published]
 
+  push:
+    branches:
+      - SCHEMACTIC-210-dev
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -39,18 +43,11 @@ jobs:
           echo "sdist-release-url=${RELEASE_URL_PREFIX}${SDIST_PACKAGE_NAME}" >> $GITHUB_OUTPUT
           echo "bdist-release-url=${RELEASE_URL_PREFIX}${BDIST_PACKAGE_NAME}" >> $GITHUB_OUTPUT
         
-      - name: upload-build-sdist
+      - name: upload-distributions
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build-package.outputs.sdist-package-name }}
-          path: dist/${{ steps.build-package.outputs.sdist-package-name }}
-          if-no-files-found: error
-
-      - name: upload-build-bdist
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.build-package.outputs.bdist-package-name }}
-          path: dist/${{ steps.build-package.outputs.bdist-package-name }}
+          path: dist/
           if-no-files-found: error
 
   publish:
@@ -73,25 +70,8 @@ jobs:
         with:
           name: ${{ needs.build.outputs.bdist-package-name }}
           path: dist
+
       - name: deploy-to-test-pypi
-        if: 'github.event.release.prerelease'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
-      - name: deploy-to-prod-pypi
-        if: '!github.event.release.prerelease'
-        uses: pypa/gh-action-pypi-publish@release/v1
-
-  slack-notification:
-    needs: publish
-    runs-on: ubuntu-latest
-    steps:
-      - name: post-slack-notification
-        id: slack
-        uses: slackapi/slack-github-action@v1.23.0
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        with:
-          # Post to the `fair-data-tools` slack channel
-          channel-id: 'C01ANC02U59'
-          slack-message: "A new version of Schematic has been released. Check out the new version: ${{ github.ref_name }}"
