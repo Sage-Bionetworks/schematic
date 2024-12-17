@@ -62,8 +62,8 @@ jobs:
       - name: debug prerelease
         run: |
           echo "prerelease: ${{ github.event.release.prerelease }}"
-          echo "environment: ${{ env.environment }}"
-          echo "url: ${{ env.url }}"
+          echo "name: ${{ github.event.release.prerelease == 'true' && 'testpypi' || 'pypi' }}"
+          echo "url: ${{ github.event.release.prerelease == 'true' && 'https://test.pypi.org/p/schematicpy' || 'https://pypi.org/p/schematicpy' }}"
 
       # - name: download-sdist
       #   uses: actions/download-artifact@v4
