@@ -25,6 +25,8 @@ jobs:
           python3 -m pip install .
           python3 -m build
 
+          python3 override_version.py
+
           VERSION=${{ github.event.release.tag_name }}
           SDIST_PACKAGE_NAME="schematicpy-${VERSION}.tar.gz"
           BDIST_PACKAGE_NAME="schematicpy-${VERSION}-py3-none-any.whl"
@@ -74,4 +76,4 @@ jobs:
       - name: deploy-to-test-pypi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          repository-url: https://test.pypi.org/legacy/
+          repository-url: ${{ github.event.release.prerelease == true && 'https://test.pypi.org/legacy/' || '' }}
