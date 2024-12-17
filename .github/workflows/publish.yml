@@ -59,25 +59,17 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - name: debug prerelease
-        run: |
-          echo "prerelease: ${{ github.event.release.prerelease }}"
-          echo "env.name: ${{ env.name }}"
-          echo "name: ${{ github.event.release.prerelease == true && 'testpypi' || 'pypi' }}"
-          echo "env.url: ${{ env.url }}"
-          echo "url: ${{ github.event.release.prerelease == true && 'https://test.pypi.org/p/schematicpy' || 'https://pypi.org/p/schematicpy' }}"
+      - name: download-sdist
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.sdist-package-name }}
+          path: dist
 
-      # - name: download-sdist
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: ${{ needs.build.outputs.sdist-package-name }}
-      #     path: dist
+      - name: download-bdist
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.bdist-package-name }}
+          path: dist
 
-      # - name: download-bdist
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: ${{ needs.build.outputs.bdist-package-name }}
-      #     path: dist
-
-      # - name: deploy-to-test-pypi
-      #   uses: pypa/gh-action-pypi-publish@release/v1
+      - name: deploy-to-test-pypi
+        uses: pypa/gh-action-pypi-publish@release/v1
