@@ -1,107 +1,83 @@
 name: Publish to PyPI
 on:
-  push:
-    tags:
-      - 'v[1-9][0-9].[0-9]+.[0-9]+'
-    branches: [main]
+  release:
+    types: [published]
 
 jobs:
-  pypi_release:
-    runs-on: ubuntu-22.04
+  build:
+    runs-on: ubuntu-latest
     env:
-      POETRY_VERSION:  1.3.0
       PYTHON_VERSION: "3.10"
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
+    outputs:
+      sdist-package-name: ${{ steps.build-package.outputs.sdist-package-name }}
+      bdist-package-name: ${{ steps.build-package.outputs.bdist-package-name }}
     steps:
-      #----------------------------------------------
-      #       check-out repo and set-up python     
-      #----------------------------------------------
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      - id: build-package
+        run: |        
+          python3 -m pip install --upgrade pip
+          python3 -m pip install setuptools
+          python3 -m pip install wheel
+          python3 -m pip install build
+          python3 -m pip install .
+          python3 -m build
 
-      #----------------------------------------------
-      #          install & configure poetry
-      #----------------------------------------------
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org \
-            | python3 - --version ${{ env.POETRY_VERSION }};
-          poetry config virtualenvs.create true;
-          poetry config virtualenvs.in-project true;
+          VERSION=${{ github.event.release.tag_name }}
+          SDIST_PACKAGE_NAME="schematicpy-${VERSION}.tar.gz"
+          BDIST_PACKAGE_NAME="schematicpy-${VERSION}-py3-none-any.whl"
+          RELEASE_URL_PREFIX="https://uploads.github.com/repos/${{ github.event.repository.full_name }}/releases/${{ github.event.release.id }}/assets?name="
 
-      #----------------------------------------------
-      # install dependencies and root project
-      #----------------------------------------------
-      - name: Install dependencies and root project
-        run: poetry install --no-interaction --all-extras
+          echo "sdist-package-name=$SDIST_PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "bdist-package-name=$BDIST_PACKAGE_NAME" >> $GITHUB_OUTPUT
+
+          echo "sdist-release-url=${RELEASE_URL_PREFIX}${SDIST_PACKAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "bdist-release-url=${RELEASE_URL_PREFIX}${BDIST_PACKAGE_NAME}" >> $GITHUB_OUTPUT
         
-      #----------------------------------------------
-      #    get current pushed tag
-      #----------------------------------------------      
-      - name: Show GitHub ref
-        run: echo "$GITHUB_REF"
-
-      - name: Get current pushed tag
-        run:  |
-          echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-          echo "$RELEASE_VERSION"
-          
-      #----------------------------------------------
-      #    override version tag 
-      #----------------------------------------------      
-      - name: Override version tag
-        run: poetry run python3 override_version.py
-        shell: sh
-
-      #----------------------------------------------
-      #    publish to testpypi
-      #----------------------------------------------      
-      # - run: poetry config repositories.testpypi https://test.pypi.org/legacy/
-      # - run: poetry config pypi-token.testpypi ${{ secrets.TWINE_TEST_TOKEN }}
-      # - name: Publish package to test Pypi
-      #   run: poetry publish -vvvv --build -r testpypi
-
-      #----------------------------------------------
-      #    check tag
-      #----------------------------------------------      
-      - name: Check Tag
-        id: check-tag
-        run: |
-          if [[ ${{ github.event.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo ::set-output name=match::true
-          fi
-      #----------------------------------------------
-      #    publish to pypi
-      #----------------------------------------------  
-      - name: Publish package to Pypi
-        id: publish-to-pypi
-        if: steps.check-tag.outputs.match == 'true'
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-          PYPI_USERNAME: __token__
-        run: |
-          poetry publish --build --username $PYPI_USERNAME --password $PYPI_TOKEN
-
-      #----------------------------------------------
-      #    post a message to slack
-      #----------------------------------------------  
-
-      - name: Post to a Slack channel
-        if: steps.publish-to-pypi.outcome == 'success'
-        id: slack
-        uses: slackapi/slack-github-action@v1.23.0
+      - name: upload-sdist-artifact
+        uses: actions/upload-artifact@v4
         with:
-          # Slack channel id, channel name, or user id to post message.
-          # See also: https://api.slack.com/methods/chat.postMessage#channels
-          # You can pass in multiple channels to post to by providing a comma-delimited list of channel IDs.
-          # ibc-fair-data channel and data-curator-schematic channel
-          channel-id: 'C050YD75QRL,C01ANC02U59'
-          # For posting a simple plain text message
-          slack-message: "Schematic has just been released. Check out new version: ${{ github.ref_name }}"
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          name: ${{ steps.build-package.outputs.sdist-package-name }}
+          path: dist/
+          if-no-files-found: error
+
+      - name: upload-bdist-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build-package.outputs.bdist-package-name }}
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.release.prerelease == 'true' && 'testpypi' || 'pypi' }}
+      url: ${{ github.event.release.prerelease == 'true' && 'https://test.pypi.org/p/schematicpy' || 'https://pypi.org/p/schematicpy' }}
+    permissions:
+      id-token: write
+    steps:
+      - name: debug prerelease
+        run: |
+          echo "prerelease: ${{ github.event.release.prerelease }}"
+          echo "name: ${{ github.event.release.prerelease == 'true' && 'testpypi' || 'pypi' }}"
+          echo "url: ${{ github.event.release.prerelease == 'true' && 'https://test.pypi.org/p/schematicpy' || 'https://pypi.org/p/schematicpy' }}"
+
+      # - name: download-sdist
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ${{ needs.build.outputs.sdist-package-name }}
+      #     path: dist
+
+      # - name: download-bdist
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ${{ needs.build.outputs.bdist-package-name }}
+      #     path: dist
+
+      # - name: deploy-to-test-pypi
+      #   uses: pypa/gh-action-pypi-publish@release/v1
+      #   with:
+      #     repository-url: https://test.pypi.org/legacy/
