@@ -71,13 +71,14 @@ jobs:
           name: ${{ needs.build.outputs.bdist-package-name }}
           path: dist
 
-      - name: deploy-to-test-pypi
+      - name: deploy-to-pypi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: ${{ github.event.release.prerelease == true && 'https://test.pypi.org/legacy/' || '' }}
 
   slack-notification:
     needs: publish
+    if: ${{ github.event.release.prerelease != true }}
     runs-on: ubuntu-latest
     steps:
       - name: post-slack-notification
