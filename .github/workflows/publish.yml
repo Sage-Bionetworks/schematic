@@ -75,3 +75,18 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: ${{ github.event.release.prerelease == true && 'https://test.pypi.org/legacy/' || '' }}
+
+  slack-notification:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: post-slack-notification
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        with:
+          # Post to the `fair-data-tools` slack channel
+          channel-id: 'C01ANC02U59'
+          slack-message: "A new version of Schematic has been released. Check out the new version: ${{ github.ref_name }}"
+        
