@@ -35,8 +35,14 @@ Manifest Submit: `RuntimeError: failed with SynapseHTTPError('400 Client Error: 
 -----------------------------------------------------------------------------------------------------------------
 
 As for 24.10.2 version of Schematic, we require the `Filename` column to have the full paths to the file on Synapse including the project name.
-If you try and submit a manifest with invalid Filenames (not containing full path), you will encounter the `nan`.  This is because we join the `Filename`
-column together with what's in Synapse to append the `entityId` column if it's missing.
+You will encounter this issue if you try an submit a manifest with wrong filenames.  For example, if your file in your project has this full path
+`my_project/my_folder/my_file.txt`, you will get this error by:
+
+* not containing full path (e.g. `my_file.txt`)
+* Wrong filename (e.g. `my_project/my_folder/wrong_file_name.txt`)
+* Wrong filepath (e.g. `my_project/wrong_folder/my_file.txt`)
+
+This is because we join the `Filename` column together with what's in Synapse to append the `entityId` column if it's missing.
 
 To fix: You will want to first check if your "Top Level Folder" has a manifest with invalid Filename values in the column.
 If so, please generate a manifest with schematic which should fix the Filenames OR (the less preferred solution) manually update the Filenames to include the full path to the file and manually upload.

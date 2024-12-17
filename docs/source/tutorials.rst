@@ -23,6 +23,7 @@ we will cover generating, validating, and submitting your manifest in a structur
 
 Prerequisites
 ~~~~~~~~~~~~~
+
 1. **Install and configure Schematic**: Ensure that you have installed `schematic` and set up its dependencies. See "Installation Guide For: Users" for more information.
 2. **Important Concepts**: Make sure you know the important concepts outlined on the home page of the doc site.
 3. **Configuration**: Read more here about each of the attributes in the configuration file.
@@ -46,7 +47,9 @@ The `schematic manifest get` command that creates a manifest template based on a
 .. note::
 
     This step is crucial for ensuring that your manifest includes all the necessary columns and headers. As of v24.10.2, you will
-    want to generate the manifest to ensure the right Filenames are populated in your manifest.
+    want to generate the manifest to ensure the right Filenames are populated in your manifest. If you just uploaded your folder
+    with data or files to a folder, you may see that this files are missing or get a `LookUp` error.  This is an artifact of Synapse
+    fileviews, please run this command again.
 
 .. code-block:: bash
 
