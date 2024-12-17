@@ -3,10 +3,6 @@ on:
   release:
     types: [published]
 
-  push:
-    branches:
-      - SCHEMACTIC-210-dev
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,9 +25,6 @@ jobs:
           python3 -m pip install .
           python3 -m build
 
-          echo "Contents of dist directory:"
-          ls -la dist/
-          
           VERSION=${{ github.event.release.tag_name }}
           SDIST_PACKAGE_NAME="schematicpy-${VERSION}.tar.gz"
           BDIST_PACKAGE_NAME="schematicpy-${VERSION}-py3-none-any.whl"
@@ -43,10 +36,17 @@ jobs:
           echo "sdist-release-url=${RELEASE_URL_PREFIX}${SDIST_PACKAGE_NAME}" >> $GITHUB_OUTPUT
           echo "bdist-release-url=${RELEASE_URL_PREFIX}${BDIST_PACKAGE_NAME}" >> $GITHUB_OUTPUT
         
-      - name: upload-distributions
+      - name: upload-sdist-artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build-package.outputs.sdist-package-name }}
+          path: dist/
+          if-no-files-found: error
+
+      - name: upload-bdist-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build-package.outputs.bdist-package-name }}
           path: dist/
           if-no-files-found: error
 
