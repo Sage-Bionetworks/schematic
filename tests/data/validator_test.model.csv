@@ -19,7 +19,7 @@ CSV/TSV,,,Genome Build,,FALSE,ValidValue,,,
 Genome Build,,"GRCh37, GRCh38, GRCm38, GRCm39",,,TRUE,DataProperty,,,
 Genome FASTA,,,,,TRUE,DataProperty,,,
 MockComponent,,,"Component, Check List, Check Regex List, Check Regex Single, Check Regex Format, Check Regex Integer, Check Num, Check Float, Check Int, Check String, Check URL,Check Match at Least, Check Match at Least values, Check Match Exactly, Check Match Exactly values, Check Recommended, Check Ages, Check Unique, Check Range, Check Date, Check NA",,FALSE,DataType,,,
-Check List,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list strict 
+Check List,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list strict
 Check Regex List,,,,,TRUE,DataProperty,,,list strict::regex match [a-f]
 Check Regex Single,,,,,TRUE,DataProperty,,,regex search [a-f]
 Check Regex Format,,,,,TRUE,DataProperty,,,regex match [a-f]

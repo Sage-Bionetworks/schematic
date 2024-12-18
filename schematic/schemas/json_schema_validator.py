@@ -5,12 +5,12 @@ from typing import Any
 
 from jsonschema import validate
 
-from schematic.utils.io_utils import load_schemaorg, load_json
-from schematic.utils.general import str2list, dict2list, find_duplicates
 from schematic.utils.curie_utils import (
     expand_curies_in_schema,
     extract_name_from_uri_or_curie,
 )
+from schematic.utils.general import dict2list, find_duplicates, str2list
+from schematic.utils.io_utils import load_json, load_schemaorg
 
 
 class SchemaValidator:

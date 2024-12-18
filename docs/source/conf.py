@@ -15,10 +15,11 @@ import sys
 
 import sphinx_rtd_theme
 
-file_dir = os.path.dirname(__file__) 
+file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
-from utils import _parse_toml
 import pathlib
+
+from utils import _parse_toml
 
 sys.path.insert(0, os.path.abspath(".."))
 
@@ -34,7 +35,6 @@ author = toml_metadata["authors"]
 
 # The full version, including alpha/beta/rc tags
 release = toml_metadata["version"]
-
 
 
 # -- General configuration ---------------------------------------------------
@@ -75,5 +75,5 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 
 html_theme_options = {
-    'collapse_navigation': False,
+    "collapse_navigation": False,
 }

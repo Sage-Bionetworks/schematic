@@ -1,5 +1,5 @@
 The python scripts stored here are sourced from <https://github.com/Sage-Bionetworks/schematic_db>.
-This logic was extracted out of `schematic_db` as there were a new of required 
+This logic was extracted out of `schematic_db` as there were a new of required
 dependency updates that prevented using the updated `schematic_db` code. Those
 dependency updates included:
 
