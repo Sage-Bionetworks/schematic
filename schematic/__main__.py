@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import logging
+
 import click
 import click_log
 

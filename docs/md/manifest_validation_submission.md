@@ -29,4 +29,3 @@ As of March 29, 2022, the hybrid validation rules are as follows:
     protectAges
     unique
     inRange
-

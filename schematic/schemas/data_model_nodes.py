@@ -1,20 +1,19 @@
 """Data model Nodes"""
 
-from typing import Optional, Callable, Any
-
 from inspect import isfunction
+from typing import Any, Callable, Optional
+
 import networkx as nx  # type: ignore
 from rdflib import Namespace
 
 from schematic.schemas.data_model_relationships import DataModelRelationships
-
 from schematic.utils.schema_utils import (
-    get_label_from_display_name,
-    get_attribute_display_name_from_label,
-    convert_bool_to_str,
-    parse_validation_rules,
     DisplayLabelType,
     EntryType,
+    convert_bool_to_str,
+    get_attribute_display_name_from_label,
+    get_label_from_display_name,
+    parse_validation_rules,
 )
 
 

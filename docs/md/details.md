@@ -15,4 +15,4 @@ Steps involved in the `OAuth2` [authorization flow](https://github.com/Sage-Bion
 - The Google OAuth 2.0 system supports server-to-server interactions such as those between a web application and a Google service. For this scenario you need a service account, which is an account that belongs to your application instead of to an individual end user. Your application calls Google APIs on behalf of the service account, so users aren't directly involved.
 - Typically, an application uses a service account when the application uses Google APIs to work with its own data rather than a user's data.
 - The `service_account_creds.json` file is a key file that schematic will need access to in order to use the service account mode of authentication.
-- 
+-

@@ -13,8 +13,8 @@ import requests
 from flask.testing import FlaskClient
 from openpyxl import load_workbook
 
-from tests.conftest import ConfigurationForTesting
 from schematic.configuration.configuration import CONFIG
+from tests.conftest import ConfigurationForTesting
 
 LIGHT_BLUE = "FFEAF7F9"  # Required cell
 GRAY = "FFE0E0E0"  # Header cell

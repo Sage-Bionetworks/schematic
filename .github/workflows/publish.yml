@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - id: build-package
-        run: |        
+        run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install setuptools
           python3 -m pip install wheel
@@ -35,7 +35,7 @@ jobs:
 
           echo "sdist-release-url=${RELEASE_URL_PREFIX}${SDIST_PACKAGE_NAME}" >> $GITHUB_OUTPUT
           echo "bdist-release-url=${RELEASE_URL_PREFIX}${BDIST_PACKAGE_NAME}" >> $GITHUB_OUTPUT
-        
+
       - name: upload-sdist-artifact
         uses: actions/upload-artifact@v4
         with:
@@ -90,4 +90,3 @@ jobs:
           # Post to the `fair-data-tools` slack channel
           channel-id: 'C01ANC02U59'
           slack-message: "A new version of Schematic has been released. Check out the new version: ${{ github.ref_name }}"
-        
