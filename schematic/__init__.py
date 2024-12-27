@@ -20,7 +20,6 @@ from opentelemetry.sdk.resources import (
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, Span
 from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
-from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
 from synapseclient import Synapse
 from werkzeug import Request
 
@@ -57,32 +56,9 @@ def create_telemetry_session() -> requests.Session:
         )
         return session
 
-    client_id = os.environ.get("TELEMETRY_EXPORTER_CLIENT_ID", None)
-    client_secret = os.environ.get("TELEMETRY_EXPORTER_CLIENT_SECRET", None)
-    client_token_endpoint = os.environ.get(
-        "TELEMETRY_EXPORTER_CLIENT_TOKEN_ENDPOINT", None
+    logger.warning(
+        "No environment variable `OTEL_EXPORTER_OTLP_HEADERS` provided for telemetry exporter. Telemetry data will be sent without any headers."
     )
-    client_audience = os.environ.get("TELEMETRY_EXPORTER_CLIENT_AUDIENCE", None)
-    if (
-        not client_id
-        or not client_secret
-        or not client_token_endpoint
-        or not client_audience
-    ):
-        logger.warning(
-            "No client_id, client_secret, client_audience, or token_endpoint provided for telemetry exporter. Telemetry data will be sent without authentication."
-        )
-        return session
-
-    oauth2client = OAuth2Client(
-        token_endpoint=client_token_endpoint,
-        client_id=client_id,
-        client_secret=client_secret,
-    )
-
-    auth = OAuth2ClientCredentialsAuth(client=oauth2client, audience=client_audience)
-    session.auth = auth
-
     return session
 
 

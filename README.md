@@ -33,7 +33,7 @@
     - [3. Start the virtual environment](#3-start-the-virtual-environment)
     - [4. Install `schematic` dependencies](#4-install-schematic-dependencies)
     - [5. Set up configuration files](#5-set-up-configuration-files)
-    - [6. Obtain Google credential files](#6-obtain-google-credential-files-1)
+    - [6. Obtain Google credential files](#6-obtain-google-credential-files)
     - [7. Set up pre-commit hooks](#7-set-up-pre-commit-hooks)
     - [8. Verify your setup](#8-verify-your-setup)
 - [Command Line Usage](#command-line-usage)
@@ -45,8 +45,7 @@
       - [Example for macOS/Linux](#example-for-macoslinux)
       - [Example for Windows](#example-for-windows)
 - [Exporting OpenTelemetry data from schematic](#exporting-opentelemetry-data-from-schematic)
-  - [Exporting OpenTelemetry data for SageBionetworks employees](#exporting-opentelemetry-data-for-sagebionetworks-employees)
-    - [Exporting data locally](#exporting-data-locally)
+  - [Exporting data to SigNoz cloud](#exporting-data-to-signoz-cloud)
 - [Contributors](#contributors)
 
 
@@ -505,51 +504,18 @@ variables wherever the application is running. Those variables are:
 - `LOGGING_SERVICE_NAME`: The name of the service to attach for all exported logs.
 - `DEPLOYMENT_ENVIRONMENT`: The name of the environment to attach for all exported telemetry data.
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: The endpoint to export telemetry data to.
+- `OTEL_EXPORTER_OTLP_HEADERS`: Headers to add to all outgoing trace data sent over HTTP
 
-Authentication (Oauth2 client credential exchange):
+## Exporting data to SigNoz cloud
+SigNoz cloud is a SaaS offering of SigNoz that is used to hold onto Trace, Log, and Metrics
+from Schematic. In order for data to be ingested into SigNoz cloud the following
+environment variable should be set:
 
-Used in cases where an intermediate opentelemetry collector is not, or can not be used.
-This option is not preferred over using an intermediate opentelemetry collector, but is
-left in the code to show how we may export telemetry data with an authorization header
-deried from an oauth2 client credential exchange flow.
+- `OTEL_EXPORTER_OTLP_HEADERS=signoz-ingestion-key=<key>`
+- `OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.us.signoz.cloud`
 
-- `TELEMETRY_EXPORTER_CLIENT_ID`: The ID of the client to use when executing the OAuth2.0 "Client Credentials" flow.
-- `TELEMETRY_EXPORTER_CLIENT_SECRET`: The Secret of the client to use when executing the OAuth2.0 "Client Credentials" flow.
-- `TELEMETRY_EXPORTER_CLIENT_TOKEN_ENDPOINT`: The Token endpoint to use when executing the OAuth2.0 "Client Credentials" flow.
-- `TELEMETRY_EXPORTER_CLIENT_AUDIENCE`: The ID of the API server to use when executing the OAuth2.0 "Client Credentials" flow.
+If a key is required please reach out to DPE and a unique ingestion key will be provided.
 
-Authentication (Static Bearer token)
-
-- `OTEL_EXPORTER_OTLP_HEADERS`: Used for developers to set a static Bearer token to be used when exporting telemetry data.
-
-The above configuration will work when the application is running locally, in a
-container, running in AWS, or running via CLI. The important part is that the
-environment variables are set before the code executes, as the configuration is setup
-when the code runs.
-
-## Exporting OpenTelemetry data for SageBionetworks employees
-The DPE (Data Processing & Engineering) team is responsible for maintaining and giving
-out the above sensitive information. Please reach out to the DPE team if a new ID/Secret
-is needed in order to export telemetry data in a new environment, or locally during
-development.
-
-### Exporting data locally
-In order to conserve the number of monthly token requests that can be made the following
-process should be followed instead of setting the `TELEMETRY_EXPORTER_CLIENT_*`
-environment variables above.
-
-1) Request access to a unique client ID/Secret that identifies you from DPE.
-2) Retrieve a token that must be refreshed every 24 hours via cURL. The specific values will be given when the token is requested. Example:
-```
-curl --request POST \
-  --url https://TOKEN_URL.us.auth0.com/oauth/token \
-  --header 'content-type: application/json' \
-  --data '{"client_id":"...","client_secret":"...","audience":"...","grant_type":"client_credentials"}'
-```
-3) Set an environment variable in your `.env` file like: `OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer ey...`
-
-If you fail to create a new access token after 24 hours you will see HTTP 403 JWT
-Expired messages when the application attempts to export telemetry data.
 
 # Contributors
 
