@@ -514,8 +514,9 @@ environment variable should be set:
 - `OTEL_EXPORTER_OTLP_HEADERS=signoz-ingestion-key=<key>`
 - `OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.us.signoz.cloud`
 
-If a key is required please reach out to DPE and a unique ingestion key will be provided.
+If you do not have access to SigNoz Cloud and require a key, please contact DPE to request a unique ingestion key.
 
+For internal developers with access to SigNoz Cloud, you can obtain an ingestion key by following the step [here](https://signoz.io/docs/ingestion/signoz-cloud/keys/).
 
 # Contributors
 
