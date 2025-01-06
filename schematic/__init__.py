@@ -27,9 +27,13 @@ from schematic.configuration.configuration import CONFIG
 from schematic.loader import LOADER
 from schematic.version import __version__
 from schematic_api.api.security_controller import info_from_bearer_auth
+from dotenv import load_dotenv
 
 Synapse.allow_client_caching(False)
 logger = logging.getLogger(__name__)
+
+# Ensure environment variables are loaded
+load_dotenv()
 
 
 def create_telemetry_session() -> requests.Session:
