@@ -390,6 +390,56 @@ After running this step, your setup is complete, and you can test it on a python
 After running the steps above, your setup is complete, and you can test it on a `python` instance or by running a command based on the examples in the [Command Line Usage](#command-line-usage) section.
 
 # Command Line Usage
+
+## Provide environment variables
+To configure environment variables for using the CLI, follow these steps:
+
+### Option 1: Export Environment Variables Temporarily
+This method sets environment variables for the current terminal session only.
+
+1. Open your terminal.
+2. Run the following command to export the environment variable:
+
+```
+export YOUR_VARIABLE_NAME="your_value"
+```
+### Option 2: Persist Environment Variables in ~/.bash_profile
+This method makes the variables available in every terminal session.
+
+1. Open or create the ~/.bash_profile file using a text editor
+2. Add the environment variables to the file:
+
+```
+export YOUR_VARIABLE_NAME1="your_value"
+export YOUR_VARIABLE_NAME2="another_value"
+```
+
+3. Reload the bash profile by running:
+
+```
+source ~/.bash_profile
+```
+
+### Option 3: Use a .env File
+1. Make a copy of the `.env.example` file and rename it to `.env`.
+
+2. Uncomment the environment variables you need or add new ones as required in `.env`.
+
+3. There are several ways to load the environment variables specified in the `.env` file into your current shell environment. One method is to run the following command in your terminal:
+
+```
+set -o allexport && source .env && set +o allexport
+```
+
+4. Choose an environment variable from the .env file and ensure it is properly loaded by running:
+
+```
+echo $YOUR_VARIABLE_NAME
+```
+
+
+
+## Common commands
 1. Generate a new manifest as a google sheet
 
 ```
