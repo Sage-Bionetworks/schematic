@@ -203,7 +203,7 @@ jobs:
         if: steps.check_coverage_xml.outputs.files_exists == 'true'
         run: sed -i "s/<source>\/home\/runner\/work\/schematic\/schematic\/schematic<\/source>/<source>\/github\/workspace\/schematic<\/source>/g" coverage.xml
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v4
         if: ${{ always() }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
