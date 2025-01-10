@@ -165,10 +165,6 @@ jobs:
         uses: andstor/file-existence-action@v3
         with:
           files: "coverage.xml"
-        # This is a workaround described in https://community.sonarsource.com/t/sonar-on-github-actions-with-python-coverage-source-issue/36057
-      - name: Override Coverage Source Path for Sonar
-        if: steps.check_coverage_xml.outputs.files_exists == 'true'
-        run: sed -i "s/<source>\/home\/runner\/work\/schematic\/schematic\/schematic<\/source>/<source>\/github\/workspace\/schematic<\/source>/g" coverage.xml
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v4.1.0
         if: ${{ always() }}
