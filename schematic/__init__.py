@@ -17,7 +17,8 @@ from opentelemetry.sdk.resources import (
     SERVICE_VERSION,
     Resource,
 )
-from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace import TracerProvider, SpanProcessor
+from opentelemetry.trace import Span, SpanContext, get_current_span
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, Span
 from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
 from synapseclient import Synapse
@@ -34,6 +35,42 @@ logger = logging.getLogger(__name__)
 
 # Ensure environment variables are loaded
 load_dotenv()
+
+
+class AttributePropagatingSpanProcessor(SpanProcessor):
+    def __init__(self, attributes_to_propagate) -> None:
+        self.attributes_to_propagate = attributes_to_propagate
+
+    def on_start(self, span: Span, parent_context: SpanContext) -> None:
+        """Propagates attributes from the parent span to the child span.
+
+        Arguments:
+            span: The child span to which the attributes should be propagated.
+            parent_context: The context of the parent span.
+
+        Returns:
+            None
+        """
+        parent_span = get_current_span()
+        if parent_span is not None and parent_span.is_recording():
+            for attribute in self.attributes_to_propagate:
+                # Check if the attribute exists in the parent span's attributes
+                value = parent_span.attributes.get(attribute)
+                if value:
+                    # Propagate the attribute to the current span
+                    span.set_attribute(attribute, value)
+
+    def on_end(self, span: Span) -> None:
+        """No-op method that does nothing when the span ends."""
+        pass
+
+    def shutdown(self) -> None:
+        """No-op method that does nothing when the span processor is shut down."""
+        pass
+
+    def force_flush(self, timeout_millis: int = 30000) -> None:
+        """No-op method that does nothing when the span processor is forced to flush."""
+        pass
 
 
 def create_telemetry_session() -> requests.Session:
@@ -98,6 +135,12 @@ def set_up_tracing(session: requests.Session) -> None:
     if tracing_export == "otlp":
         exporter = OTLPSpanExporter(session=session)
         trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(exporter))
+        # Add the custom AttributePropagatingSpanProcessor to propagate attributes
+        attributes_to_propagate = ["user.id"]
+        attribute_propagator = AttributePropagatingSpanProcessor(
+            attributes_to_propagate
+        )
+        trace.get_tracer_provider().add_span_processor(attribute_propagator)
     else:
         trace.set_tracer_provider(TracerProvider(sampler=ALWAYS_OFF))
 
@@ -140,13 +183,20 @@ def request_hook(span: Span, environ: Dict) -> None:
     if not span or not span.is_recording():
         return
     try:
-        if auth_header := environ.get("HTTP_AUTHORIZATION", None):
-            split_headers = auth_header.split(" ")
-            if len(split_headers) > 1:
-                token = auth_header.split(" ")[1]
-                user_info = info_from_bearer_auth(token)
-                if user_info:
-                    span.set_attribute("user.id", user_info.get("sub"))
+        auth_header = environ.get("HTTP_AUTHORIZATION", None)
+        access_token = os.getenv("SYNAPSE_ACCESS_TOKEN", None)
+
+        if auth_header and len(auth_header.split(" ")) > 1:
+            token = auth_header.split(" ")[1]
+        else:
+            token = access_token
+
+        if token:
+            user_info = info_from_bearer_auth(token)
+
+        if user_info:
+            span.set_attribute("user.id", user_info.get("sub"))
+
     except Exception:
         logger.exception("Failed to set user info in span")
 

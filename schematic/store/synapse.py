@@ -321,9 +321,6 @@ class SynapseStorage(BaseStorage):
             Consider necessity of adding "columns" and "where_clauses" params to the constructor. Currently with how `query_fileview` is implemented, these params are not needed at this step but could be useful in the future if the need for more scoped querys expands.
         """
         self.syn = self.login(synapse_cache_path, access_token)
-        current_span = trace.get_current_span()
-        if current_span.is_recording():
-            current_span.set_attribute("user.id", self.syn.credentials.owner_id)
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
@@ -514,8 +511,6 @@ class SynapseStorage(BaseStorage):
                 )
                 syn.login(authToken=access_token, silent=True)
                 current_span = trace.get_current_span()
-                if current_span.is_recording():
-                    current_span.set_attribute("user.id", syn.credentials.owner_id)
             except SynapseHTTPError as exc:
                 raise ValueError(
                     "No access to resources. Please make sure that your token is correct"
@@ -533,6 +528,7 @@ class SynapseStorage(BaseStorage):
             current_span = trace.get_current_span()
             if current_span.is_recording():
                 current_span.set_attribute("user.id", syn.credentials.owner_id)
+
         return syn
 
     def missing_entity_handler(method):
