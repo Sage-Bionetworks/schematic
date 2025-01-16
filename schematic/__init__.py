@@ -52,14 +52,21 @@ class AttributePropagatingSpanProcessor(SpanProcessor):
         if parent_span is not None and parent_span.is_recording():
             for attribute in self.attributes_to_propagate:
                 # Check if the attribute exists in the parent span's attributes
-                value = parent_span.attributes.get(attribute)
-                if value:
+                attribute_val = parent_span.attributes.get(attribute)
+                if attribute_val:
                     # Propagate the attribute to the current span
-                    span.set_attribute(attribute, value)
+                    span.set_attribute(attribute, attribute_val)
 
     def on_end(self, span: Span) -> None:
-        """No-op method that does nothing when the span ends."""
-        pass
+        """Propagates attributes from the child span back to the parent span"""
+        parent_span = get_current_span()
+        if parent_span is not None and parent_span.is_recording():
+            for attribute in self.attributes_to_propagate:
+                child_val = span.attributes.get(attribute)
+                parent_val = parent_span.attributes.get(attribute)
+                if child_val and not parent_val:
+                    # Propagate the attribute back to parent span
+                    parent_span.set_attribute(attribute, child_val)
 
     def shutdown(self) -> None:
         """No-op method that does nothing when the span processor is shut down."""
