@@ -15,7 +15,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      x-bearerInfoFunc: schematic.utils.security_controller.info_from_bearer_auth
+      x-bearerInfoFunc: schematic_api.security_controller.info_from_bearer_auth
 
 # TO DO: refactor query parameters and remove access_token
 paths:
