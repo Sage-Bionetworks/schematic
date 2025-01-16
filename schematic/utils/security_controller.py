@@ -3,7 +3,7 @@ from typing import Dict, Union
 
 from jwt import PyJWKClient, decode
 from jwt.exceptions import PyJWTError
-from synapseclient import Synapse
+from synapseclient import Synapse  # type: ignore
 
 from schematic.configuration.configuration import CONFIG
 
@@ -19,7 +19,7 @@ jwks_client = PyJWKClient(
 )
 
 
-def info_from_bearer_auth(token: str) -> Dict[str, Union[str, int]]:
+def info_from_bearer_auth(token: str) -> Union[Dict[str, Union[str, int]], None]:
     """
     Authenticate user using bearer token. The token claims are decoded and returned.
 
