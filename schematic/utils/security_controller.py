@@ -1,3 +1,5 @@
+"security controller"
+# pylint: disable=line-too-long
 import logging
 from typing import Dict, Union
 
@@ -15,7 +17,8 @@ syn = Synapse(
     skip_checks=True,
 )
 jwks_client = PyJWKClient(
-    uri=syn.authEndpoint + "/oauth2/jwks", headers=syn._generate_headers()
+    uri=syn.authEndpoint + "/oauth2/jwks",
+    headers=syn._generate_headers(),  # pylint: disable=W0212
 )
 
 
