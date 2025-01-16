@@ -75,6 +75,7 @@ from schematic.utils.general import (
 from schematic.utils.io_utils import cleanup_temporary_storage
 from schematic.utils.schema_utils import get_class_label_from_display_name
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
+from schematic_api.api.security_controller import info_from_bearer_auth
 
 logger = logging.getLogger("Synapse storage")
 
@@ -321,6 +322,13 @@ class SynapseStorage(BaseStorage):
             Consider necessity of adding "columns" and "where_clauses" params to the constructor. Currently with how `query_fileview` is implemented, these params are not needed at this step but could be useful in the future if the need for more scoped querys expands.
         """
         self.syn = self.login(synapse_cache_path, access_token)
+
+        current_span = trace.get_current_span()
+        if current_span.is_recording() and access_token:
+            user_info = info_from_bearer_auth(access_token)
+            if user_info:
+                current_span.set_attribute("user.id", user_info.get("sub"))
+
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
@@ -496,13 +504,17 @@ class SynapseStorage(BaseStorage):
         Returns:
             synapseclient.Synapse: A Synapse object that is logged in
         """
-        # If no token is provided, try retrieving access token from environment
         if not access_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
         # login using a token
         if access_token:
             try:
+                current_span = trace.get_current_span()
+                if current_span.is_recording() and access_token:
+                    user_info = info_from_bearer_auth(access_token)
+                    if user_info:
+                        current_span.set_attribute("user.id", user_info.get("sub"))
                 syn = synapseclient.Synapse(
                     cache_root_dir=synapse_cache_path,
                     debug=False,
@@ -510,7 +522,6 @@ class SynapseStorage(BaseStorage):
                     cache_client=False,
                 )
                 syn.login(authToken=access_token, silent=True)
-                current_span = trace.get_current_span()
             except SynapseHTTPError as exc:
                 raise ValueError(
                     "No access to resources. Please make sure that your token is correct"
@@ -528,7 +539,6 @@ class SynapseStorage(BaseStorage):
             current_span = trace.get_current_span()
             if current_span.is_recording():
                 current_span.set_attribute("user.id", syn.credentials.owner_id)
-
         return syn
 
     def missing_entity_handler(method):

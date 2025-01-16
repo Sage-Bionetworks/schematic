@@ -27,7 +27,6 @@ from werkzeug import Request
 from schematic.configuration.configuration import CONFIG
 from schematic.loader import LOADER
 from schematic.version import __version__
-from schematic_api.api.security_controller import info_from_bearer_auth
 from dotenv import load_dotenv
 
 Synapse.allow_client_caching(False)
@@ -43,11 +42,9 @@ class AttributePropagatingSpanProcessor(SpanProcessor):
 
     def on_start(self, span: Span, parent_context: SpanContext) -> None:
         """Propagates attributes from the parent span to the child span.
-
         Arguments:
             span: The child span to which the attributes should be propagated.
             parent_context: The context of the parent span.
-
         Returns:
             None
         """
@@ -136,10 +133,7 @@ def set_up_tracing(session: requests.Session) -> None:
         exporter = OTLPSpanExporter(session=session)
         trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(exporter))
         # Add the custom AttributePropagatingSpanProcessor to propagate attributes
-        attributes_to_propagate = ["user.id"]
-        attribute_propagator = AttributePropagatingSpanProcessor(
-            attributes_to_propagate
-        )
+        attribute_propagator = AttributePropagatingSpanProcessor(["user.id"])
         trace.get_tracer_provider().add_span_processor(attribute_propagator)
     else:
         trace.set_tracer_provider(TracerProvider(sampler=ALWAYS_OFF))
@@ -182,32 +176,6 @@ def request_hook(span: Span, environ: Dict) -> None:
     """
     if not span or not span.is_recording():
         return
-    try:
-        auth_header = environ.get("HTTP_AUTHORIZATION", None)
-        access_token = os.getenv("SYNAPSE_ACCESS_TOKEN", None)
-
-        if auth_header and len(auth_header.split(" ")) > 1:
-            token = auth_header.split(" ")[1]
-        else:
-            token = access_token
-
-        if token:
-            user_info = info_from_bearer_auth(token)
-
-        if user_info:
-            span.set_attribute("user.id", user_info.get("sub"))
-
-    except Exception:
-        logger.exception("Failed to set user info in span")
-
-    try:
-        if (request := environ.get("werkzeug.request", None)) and isinstance(
-            request, Request
-        ):
-            for arg in request.args:
-                span.set_attribute(key=f"schematic.{arg}", value=request.args[arg])
-    except Exception:
-        logger.exception("Failed to set request info in span")
 
 
 def response_hook(span: Span, status: str, response_headers: List) -> None:
