@@ -75,7 +75,9 @@ from schematic.utils.general import (
 from schematic.utils.io_utils import cleanup_temporary_storage
 from schematic.utils.schema_utils import get_class_label_from_display_name
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
-from schematic_api.api.security_controller import info_from_bearer_auth
+
+from schematic.utils.security_controller import info_from_bearer_auth
+
 
 logger = logging.getLogger("Synapse storage")
 
