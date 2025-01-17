@@ -37,7 +37,15 @@ load_dotenv()
 
 
 class AttributePropagatingSpanProcessor(SpanProcessor):
-    def __init__(self, attributes_to_propagate) -> None:
+    """A custom span processor that propagates specific attributes from the parent span
+    to the child span when the child span is started.
+    It also propagates the attributes to the parent span when the child span ends.
+
+    Args:
+        SpanProcessor (opentelemetry.sdk.trace.SpanProcessor): The base class that provides hooks for processing spans during their lifecycle
+    """
+
+    def __init__(self, attributes_to_propagate: List[str]) -> None:
         self.attributes_to_propagate = attributes_to_propagate
 
     def on_start(self, span: Span, parent_context: SpanContext) -> None:
