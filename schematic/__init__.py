@@ -183,6 +183,14 @@ def request_hook(span: Span, environ: Dict) -> None:
     """
     if not span or not span.is_recording():
         return
+    try:
+        if (request := environ.get("werkzeug.request", None)) and isinstance(
+            request, Request
+        ):
+            for arg in request.args:
+                span.set_attribute(key=f"schematic.{arg}", value=request.args[arg])
+    except Exception:
+        logger.exception("Failed to set request info in span")
 
 
 def response_hook(span: Span, status: str, response_headers: List) -> None:
