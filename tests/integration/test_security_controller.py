@@ -3,7 +3,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
 from pytest import LogCaptureFixture
 
-from schematic.schematic_api.security_controller import info_from_bearer_auth
+from schematic_api.security_controller import info_from_bearer_auth
 
 
 class TestSecurityController:
