@@ -137,11 +137,11 @@ def set_up_tracing(session: requests.Session) -> None:
         )
 
     if tracing_export == "otlp":
-        exporter = OTLPSpanExporter(session=session)
-        trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(exporter))
         # Add the custom AttributePropagatingSpanProcessor to propagate attributes
         attribute_propagator = AttributePropagatingSpanProcessor(["user.id"])
         trace.get_tracer_provider().add_span_processor(attribute_propagator)
+        exporter = OTLPSpanExporter(session=session)
+        trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(exporter))
     else:
         trace.set_tracer_provider(TracerProvider(sampler=ALWAYS_OFF))
 
