@@ -4,6 +4,8 @@ import logging
 import click
 import click_log
 
+from synapseclient import USER_AGENT
+
 from schematic.manifest.commands import (
     manifest as manifest_cli,
 )  # get manifest commands
@@ -14,7 +16,9 @@ from schematic.schemas.commands import (
 from schematic.visualization.commands import (
     viz as viz_cli,
 )  # viz generation commands
-from schematic import __version__
+from schematic import __version__, USER_AGENT_COMMAND_LINE
+
+USER_AGENT |= USER_AGENT_COMMAND_LINE
 
 logger = logging.getLogger()
 click_log.basic_config(logger)
