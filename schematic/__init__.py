@@ -21,7 +21,7 @@ from opentelemetry.sdk.trace import TracerProvider, SpanProcessor
 from opentelemetry.trace import Span, SpanContext, get_current_span
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, Span
 from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
-from synapseclient import Synapse
+from synapseclient import Synapse, USER_AGENT
 from werkzeug import Request
 
 from schematic.configuration.configuration import CONFIG
@@ -34,6 +34,16 @@ logger = logging.getLogger(__name__)
 
 # Ensure environment variables are loaded
 load_dotenv()
+
+USER_AGENT_LIBRARY = {
+    "User-Agent": USER_AGENT["User-Agent"] + f" schematic/{__version__}"
+}
+
+USER_AGENT_COMMAND_LINE = {
+    "User-Agent": USER_AGENT["User-Agent"] + f" schematiccommandline/{__version__}"
+}
+
+USER_AGENT |= USER_AGENT_LIBRARY
 
 
 class AttributePropagatingSpanProcessor(SpanProcessor):
