@@ -4,8 +4,6 @@ import logging
 import click
 import click_log
 
-from synapseclient import USER_AGENT
-
 from schematic.manifest.commands import (
     manifest as manifest_cli,
 )  # get manifest commands
@@ -18,7 +16,6 @@ from schematic.visualization.commands import (
 )  # viz generation commands
 from schematic import __version__, USER_AGENT_COMMAND_LINE
 
-USER_AGENT |= USER_AGENT_COMMAND_LINE
 
 logger = logging.getLogger()
 click_log.basic_config(logger)
@@ -35,6 +32,10 @@ def main():
     """
     Command line interface to the `schematic` backend services.
     """
+    from synapseclient import USER_AGENT
+
+    USER_AGENT |= USER_AGENT_COMMAND_LINE
+
     logger.info("Starting schematic...")
     logger.debug("Existing sub-commands need to be used with schematic.")
 
