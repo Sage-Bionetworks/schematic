@@ -1370,7 +1370,6 @@ class ManifestGenerator(object):
         Returns:
             ps.Spreadsheet: A Google Sheet object.
         """
-        logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
         # print('set data frame by url is being called', flush=True)
         # authorize pygsheets to read from the given URL
         gc = ps.authorize(custom_credentials=self.creds)
@@ -1382,13 +1381,9 @@ class ManifestGenerator(object):
         try:
             wb.set_dataframe(manifest_df, (1, 1), fit=True)
         except HttpError as ex:
-            span = get_current_span()
             pattern = r"https://sheets\.googleapis\.com/v4/spreadsheets/[\w-]+"
             sanitized_message = re.sub(pattern, "REDACTED", str(ex))
             sanitized_message_b = sanitized_message.encode(encoding="utf-8")
-            span.set_status(
-                Status(status_code=StatusCode.ERROR, description=sanitized_message)
-            )
             raise HttpError(ex.resp, sanitized_message_b)
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
