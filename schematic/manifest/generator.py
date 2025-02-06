@@ -1,10 +1,10 @@
 import json
 import logging
 import os
+import re
 from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Tuple, Union
-
 import networkx as nx
 import pandas as pd
 import pygsheets as ps
@@ -33,6 +33,9 @@ from schematic.utils.schema_utils import (
     extract_component_validation_rules,
 )
 from schematic.utils.validate_utils import rule_in_rule_list
+from googleapiclient.errors import HttpError
+from opentelemetry.trace import Status, StatusCode
+from opentelemetry.trace import get_current_span
 
 logger = logging.getLogger(__name__)
 tracer = trace.get_tracer("Schematic")
@@ -1367,7 +1370,8 @@ class ManifestGenerator(object):
         Returns:
             ps.Spreadsheet: A Google Sheet object.
         """
-
+        logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+        # print('set data frame by url is being called', flush=True)
         # authorize pygsheets to read from the given URL
         gc = ps.authorize(custom_credentials=self.creds)
 
@@ -1375,8 +1379,17 @@ class ManifestGenerator(object):
         # This sheet already contains headers.
         sh = gc.open_by_url(manifest_url)
         wb = sh[0]
-
-        wb.set_dataframe(manifest_df, (1, 1), fit=True)
+        try:
+            wb.set_dataframe(manifest_df, (1, 1), fit=True)
+        except HttpError as ex:
+            span = get_current_span()
+            pattern = r"https://sheets\.googleapis\.com/v4/spreadsheets/[\w-]+"
+            sanitized_message = re.sub(pattern, "REDACTED", str(ex))
+            sanitized_message_b = sanitized_message.encode(encoding="utf-8")
+            span.set_status(
+                Status(status_code=StatusCode.ERROR, description=sanitized_message)
+            )
+            raise HttpError(ex.resp, sanitized_message_b)
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
         # TODO: similarly clear formatting for out of schema columns, if any
