@@ -34,8 +34,6 @@ from schematic.utils.schema_utils import (
 )
 from schematic.utils.validate_utils import rule_in_rule_list
 from googleapiclient.errors import HttpError
-from opentelemetry.trace import Status, StatusCode
-from opentelemetry.trace import get_current_span
 
 logger = logging.getLogger(__name__)
 tracer = trace.get_tracer("Schematic")
