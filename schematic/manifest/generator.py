@@ -1370,7 +1370,6 @@ class ManifestGenerator(object):
         Returns:
             ps.Spreadsheet: A Google Sheet object.
         """
-        # print('set data frame by url is being called', flush=True)
         # authorize pygsheets to read from the given URL
         gc = ps.authorize(custom_credentials=self.creds)
 
