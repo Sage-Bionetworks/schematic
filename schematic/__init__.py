@@ -1,4 +1,5 @@
 import logging
+import re
 import os
 from typing import Dict, List
 
@@ -8,7 +9,12 @@ from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
-from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs import (
+    LoggerProvider,
+    LoggingHandler,
+    LogRecordProcessor,
+    LogRecord,
+)
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import (
     DEPLOYMENT_ENVIRONMENT,
@@ -93,6 +99,37 @@ class AttributePropagatingSpanProcessor(SpanProcessor):
     def force_flush(self, timeout_millis: int = 30000) -> None:
         """No-op method that does nothing when the span processor is forced to flush."""
         pass
+
+
+class CustomFilter(LogRecordProcessor):
+    """A custom log record processor that redacts sensitive data from log messages before they are exported."""
+
+    def __init__(self, exporter):
+        self._exporter = exporter
+        self._shutdown = False
+
+    def redact_google_sheet(self, message: str) -> str:
+        """Redacts sensitive patterns from google."""
+        pattern = re.compile(r"https://sheets\.googleapis\.com/v4/spreadsheets/[\w-]+")
+        sanitized_message = re.sub(pattern, "REDACTED", message)
+        return sanitized_message
+
+    def emit(self, log_record: LogRecord) -> None:
+        """Modify log traces before they are exported."""
+        # Redact sensitive data in the log message (body)
+        if log_record.log_record.body and "googleapis" in log_record.log_record.body:
+            log_record.log_record.body = self.redact_google_sheet(
+                log_record.log_record.body
+            )
+
+    def force_flush(self, timeout_millis=30000) -> bool:
+        """Flush any pending log records (if needed)."""
+        return self._exporter.force_flush(timeout_millis)
+
+    def shutdown(self) -> None:
+        """Clean up resources."""
+        self._shutdown = True
+        self._exporter.shutdown()
 
 
 def create_telemetry_session() -> requests.Session:
@@ -184,6 +221,7 @@ def set_up_logging(session: requests.Session) -> None:
         set_logger_provider(logger_provider=logger_provider)
 
         exporter = OTLPLogExporter(session=session)
+        logger_provider.add_log_record_processor(CustomFilter(exporter))
         logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
         handler = LoggingHandler(level=logging.NOTSET, logger_provider=logger_provider)
         logging.getLogger().addHandler(handler)
