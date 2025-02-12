@@ -96,7 +96,6 @@ class FilterSensitiveDataProcessor(SpanProcessor):
         Returns:
             dict: a dictionary of exception attributes with sensitive data redacted
         """
-
         redacted_exception_attributes = {}
         for key, value in exception_attributes.items():
             # remove sensitive information from exception message and stacktrace
@@ -147,11 +146,11 @@ class FilterSensitiveDataProcessor(SpanProcessor):
 
     def shutdown(self):
         """Shuts down the processor and exporter."""
-        self._exporter.shutdown()
+        self.export.shutdown()
 
     def force_flush(self, timeout_millis: int = 30000):
         """Forces flush of pending spans."""
-        self._exporter.force_flush(timeout_millis)
+        self.export.force_flush(timeout_millis)
 
 
 class AttributePropagatingSpanProcessor(SpanProcessor):
