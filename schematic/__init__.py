@@ -304,7 +304,7 @@ def set_up_tracing(session: requests.Session) -> None:
         exporter = OTLPSpanExporter(session=session)
         # filter_sensitive_data_processor = FilterSensitiveDataProcessor(exporter)
         # trace.get_tracer_provider().add_span_processor(filter_sensitive_data_processor)
-        SpanSdk._readable_span = mocked_readable_span_function
+        SpanSdk._readable_span = replaced_readable_span_function
         trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(exporter))
     else:
         trace.set_tracer_provider(TracerProvider(sampler=ALWAYS_OFF))
@@ -313,7 +313,7 @@ def set_up_tracing(session: requests.Session) -> None:
 original_function_readable_span = SpanSdk._readable_span
 
 
-def mocked_readable_span_function(self: SpanSdk) -> ReadableSpan:
+def replaced_readable_span_function(self: SpanSdk) -> ReadableSpan:
     print(f"I hit this span call: {self._name}")
     # Append 'A' to each span:
     self._name = f"{self._name}_A"
