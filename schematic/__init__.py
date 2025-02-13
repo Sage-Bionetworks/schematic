@@ -40,6 +40,10 @@ from schematic.configuration.configuration import CONFIG
 from schematic.loader import LOADER
 from schematic.version import __version__
 from dotenv import load_dotenv
+from schematic.utils.remove_sensitive_data_utils import (
+    redact_string,
+    redacted_sensitive_data_in_exception,
+)
 
 Synapse.allow_client_caching(False)
 logger = logging.getLogger(__name__)
@@ -56,59 +60,6 @@ USER_AGENT_COMMAND_LINE = {
 }
 
 USER_AGENT |= USER_AGENT_LIBRARY
-
-
-class FilterSensitiveData:
-    """A custom span processor that filters out sensitive data from the spans.
-    It filters out the data from the attributes and events of the spans.
-
-    Args:
-        SpanProcessor (opentelemetry.sdk.trace.SpanProcessor): The base class that provides hooks for processing spans during their lifecycle
-    """
-
-    def __init__(self) -> None:
-        self.sensitive_patterns = {
-            "google_sheets": r"https://sheets\.googleapis\.com/v4/spreadsheets/[\w-]+"
-        }
-
-        self._compiled_patterns = {
-            name: re.compile(pattern)
-            for name, pattern in self.sensitive_patterns.items()
-        }
-
-    def _redact_string(self, value: str) -> str:
-        """remove sensitive data from a string
-
-        Args:
-            value (str): a string that may contain sensitive data
-
-        Returns:
-            str: remove sensitive data from string
-        """
-        redacted = value
-        for pattern_name, pattern in self._compiled_patterns.items():
-            redacted = pattern.sub(f"[REDACTED_{pattern_name.upper()}]", redacted)
-        return redacted
-
-    def redacted_sensitive_data_in_exception(
-        self, exception_attributes: Dict[str, str]
-    ) -> Dict[str, str]:
-        """remove sensitive data in exception
-
-        Args:
-            exception_attributes (dict):a dictionary of exception attributes
-
-        Returns:
-            dict: a dictionary of exception attributes with sensitive data redacted
-        """
-        redacted_exception_attributes = {}
-        for key, value in exception_attributes.items():
-            # remove sensitive information from exception message and stacktrace
-            if key == "exception.message" or key == "exception.stacktrace":
-                redacted_exception_attributes[key] = self._redact_string(value)
-            else:
-                redacted_exception_attributes[key] = value
-        return redacted_exception_attributes
 
 
 class AttributePropagatingSpanProcessor(SpanProcessor):
@@ -277,11 +228,9 @@ def _readable_span_alternate(self: SpanSdk) -> ReadableSpan:
     redacted_events = []
     for event in self._events:
         attributes = event.attributes
-        redacted_event_attributes = (
-            FilterSensitiveData().redacted_sensitive_data_in_exception(attributes)
-        )
+        redacted_event_attributes = redacted_sensitive_data_in_exception(attributes)
         redacted_event = Event(
-            name=FilterSensitiveData()._redact_string(event.name),
+            name=redact_string(event.name),
             attributes=redacted_event_attributes,
             timestamp=event.timestamp,
         )
