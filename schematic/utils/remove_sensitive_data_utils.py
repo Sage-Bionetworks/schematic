@@ -1,3 +1,4 @@
+"""remove sensitive data from a string utils"""
 from typing import Dict
 import re
 
@@ -37,7 +38,7 @@ def redacted_sensitive_data_in_exception(
     redacted_exception_attributes = {}
     for key, value in exception_attributes.items():
         # remove sensitive information from exception message and stacktrace
-        if key == "exception.message" or key == "exception.stacktrace":
+        if key in ("exception.message", "exception.stacktrace"):
             redacted_exception_attributes[key] = redact_string(value)
         else:
             redacted_exception_attributes[key] = value
