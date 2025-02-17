@@ -1366,6 +1366,7 @@ class ManifestGenerator(object):
         Returns:
             ps.Spreadsheet: A Google Sheet object.
         """
+
         # authorize pygsheets to read from the given URL
         gc = ps.authorize(custom_credentials=self.creds)
 
@@ -1373,6 +1374,7 @@ class ManifestGenerator(object):
         # This sheet already contains headers.
         sh = gc.open_by_url(manifest_url)
         wb = sh[0]
+
         wb.set_dataframe(manifest_df, (1, 1), fit=True)
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
