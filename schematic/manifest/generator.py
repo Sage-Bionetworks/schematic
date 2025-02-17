@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import re
 from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Tuple, Union
@@ -33,7 +32,6 @@ from schematic.utils.schema_utils import (
     extract_component_validation_rules,
 )
 from schematic.utils.validate_utils import rule_in_rule_list
-from googleapiclient.errors import HttpError
 
 logger = logging.getLogger(__name__)
 tracer = trace.get_tracer("Schematic")
