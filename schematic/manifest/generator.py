@@ -1375,14 +1375,7 @@ class ManifestGenerator(object):
         # This sheet already contains headers.
         sh = gc.open_by_url(manifest_url)
         wb = sh[0]
-        try:
-            wb.set_dataframe(manifest_df, (1, 1), fit=True)
-        except HttpError as ex:
-            # remove google sheet links in exception message
-            pattern = r"https://sheets\.googleapis\.com/v4/spreadsheets/[\w-]+"
-            sanitized_message = re.sub(pattern, "REDACTED", str(ex))
-            sanitized_message_b = sanitized_message.encode(encoding="utf-8")
-            raise HttpError(ex.resp, sanitized_message_b)
+        wb.set_dataframe(manifest_df, (1, 1), fit=True)
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
         # TODO: similarly clear formatting for out of schema columns, if any
