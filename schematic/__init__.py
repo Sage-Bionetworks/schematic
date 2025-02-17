@@ -5,6 +5,7 @@ from typing import Dict, List
 
 import requests
 from opentelemetry import trace
+from opentelemetry.trace.status import Status
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -226,6 +227,14 @@ def _readable_span_alternate(self: SpanSdk) -> ReadableSpan:
         ReadableSpan: a new readable span that redacts sensitive data
     """
     redacted_events = []
+    # remove sensitive information in span status description
+    # this avoid statusMessage on signoz contains sensitive information
+    if self._status.status_code == trace.StatusCode.ERROR:
+        status_description_redacted = redact_string(str(self._status.description))
+        self._status = Status(self.status.status_code, status_description_redacted)
+
+    # remove sensitive information in attributes
+    # this avoid exception trace and messages contain sensitive information
     for event in self._events:
         attributes = event.attributes
         redacted_event_attributes = redacted_sensitive_data_in_exception(attributes)
@@ -234,7 +243,7 @@ def _readable_span_alternate(self: SpanSdk) -> ReadableSpan:
             attributes=redacted_event_attributes,
             timestamp=event.timestamp,
         )
-        self._attributes = self.redacted_event_attributes
+        self._attributes = redacted_event_attributes
         redacted_events.append(redacted_event)
     self._events = redacted_events
     return original_function_readable_span(self)
