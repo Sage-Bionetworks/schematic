@@ -226,26 +226,19 @@ def _readable_span_alternate(self: SpanSdk) -> ReadableSpan:
     Returns:
         ReadableSpan: a new readable span that redacts sensitive data
     """
-    redacted_events = []
     # remove sensitive information in span status description
     # this avoid statusMessage on signoz contains sensitive information
     if self._status.status_code == trace.StatusCode.ERROR:
         status_description_redacted = redact_string(str(self._status.description))
-        self._status = Status(self.status.status_code, status_description_redacted)
+        self._status._description = status_description_redacted
 
     # remove sensitive information in attributes
     # this avoid exception trace and messages contain sensitive information
     for event in self._events:
         attributes = event.attributes
         redacted_event_attributes = redacted_sensitive_data_in_exception(attributes)
-        redacted_event = Event(
-            name=redact_string(event.name),
-            attributes=redacted_event_attributes,
-            timestamp=event.timestamp,
-        )
-        self._attributes = redacted_event_attributes
-        redacted_events.append(redacted_event)
-    self._events = redacted_events
+        event._name = redact_string(event.name)
+        event._attributes = redacted_event_attributes
     return original_function_readable_span(self)
 
 
