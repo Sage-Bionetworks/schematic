@@ -5,7 +5,6 @@ from typing import Dict, List
 
 import requests
 from opentelemetry import trace
-from opentelemetry.trace.status import Status
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -29,7 +28,6 @@ from opentelemetry.sdk.trace import (
     SpanProcessor,
     ReadableSpan,
     Span as SpanSdk,
-    Event,
 )
 from opentelemetry.trace import Span, SpanContext, get_current_span
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
