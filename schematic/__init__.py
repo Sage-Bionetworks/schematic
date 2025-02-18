@@ -117,19 +117,11 @@ class CustomFilter(LogRecordProcessor):
         self._exporter = exporter
         self._shutdown = False
 
-    def redact_google_sheet(self, message: str) -> str:
-        """Redacts sensitive patterns from google."""
-        pattern = re.compile(r"https://sheets\.googleapis\.com/v4/spreadsheets/[\w-]+")
-        sanitized_message = re.sub(pattern, "REDACTED", message)
-        return sanitized_message
-
     def emit(self, log_record: LogRecord) -> None:
         """Modify log traces before they are exported."""
         # Redact sensitive data in the log message (body)
         if log_record.log_record.body and "googleapis" in log_record.log_record.body:
-            log_record.log_record.body = self.redact_google_sheet(
-                log_record.log_record.body
-            )
+            log_record.log_record.body = redact_string(log_record.log_record.body)
 
     def force_flush(self, timeout_millis=30000) -> bool:
         """Flush any pending log records (if needed)."""
