@@ -67,7 +67,7 @@ dataclasses-json = "^0.6.1"
 pydantic = "^1.10.4"
 connexion = {extras = ["flask", "swagger-ui"], version = "^3.0.0"}
 Flask = "2.2.5"
-Flask-Cors = ">=4.0.2"
+Flask-Cors = "^4.0.2"
 uWSGI = {version = "^2.0.21", optional = true}
 Jinja2 = {version = ">2.11.3", optional = true}
 asyncio = "^3.4.3"
