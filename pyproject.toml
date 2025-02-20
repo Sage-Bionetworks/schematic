@@ -65,7 +65,7 @@ pandarallel = "^1.6.4"
 pyopenssl = {version = "^23.0.0", optional = true}
 dataclasses-json = "^0.6.1"
 pydantic = "^1.10.4"
-connexion = {extras = ["swagger-ui"], version = "^3.0.0"}
+connexion = {extras = ["flask", "swagger-ui"], version = "^3.0.0"}
 Flask = "2.2.5"
 Flask-Cors = ">=4.0.2"
 uWSGI = {version = "^2.0.21", optional = true}
