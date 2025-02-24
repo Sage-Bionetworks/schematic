@@ -1,3 +1,4 @@
+import pytest
 from schematic.utils.remove_sensitive_data_utils import (
     redact_string,
     redacted_sensitive_data_in_exception,
@@ -5,10 +6,17 @@ from schematic.utils.remove_sensitive_data_utils import (
 
 
 class TestFilterSensitiveData:
-    def test_redact_string(self) -> None:
+    @pytest.mark.parametrize(
+        "test_google_sheet",
+        [
+            "googleapiclient.errors.HttpError: <HttpError 400 when requesting https://sheets.googleapis.com/v4/spreadsheets/11234budyhf:batchUpdate?fields=%2A&alt=json returned abc>",
+            "googleapiclient.errors.HttpError: <HttpError 400 when requesting https://sheets.googleapis.com/v3/spreadsheets/11234budyhf:batchUpdate?fields=%2A&alt=json returned abc>",
+            "googleapiclient.errors.HttpError: <HttpError 400 when requesting https://sheets.googleapis.com/v10/spreadsheets/11234budyhf:batchUpdate?fields=%2A&alt=json returned abc>",
+        ],
+    )
+    def test_redact_string(self, test_google_sheet) -> None:
         # given a string with sensitive data, make sure that they are redacted
-        sensitive_data = "googleapiclient.errors.HttpError: <HttpError 400 when requesting https://sheets.googleapis.com/v4/spreadsheets/11234budyhf:batchUpdate?fields=%2A&alt=json returned abc>"
-        redacted_data = redact_string(sensitive_data)
+        redacted_data = redact_string(test_google_sheet)
         assert (
             redacted_data
             == "googleapiclient.errors.HttpError: <HttpError 400 when requesting [REDACTED_GOOGLE_SHEETS]:batchUpdate?fields=%2A&alt=json returned abc>"

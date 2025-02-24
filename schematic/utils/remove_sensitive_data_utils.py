@@ -13,7 +13,7 @@ def redact_string(value: str) -> str:
         str: remove sensitive data from string
     """
     sensitive_patterns = {
-        "google_sheets": r"https://sheets\.googleapis\.com/v4/spreadsheets/[\w-]+"
+        "google_sheets": r"https://sheets\.googleapis\.com/v\d+/spreadsheets/[\w-]+"
     }
     _compiled_patterns = {
         name: re.compile(pattern) for name, pattern in sensitive_patterns.items()
