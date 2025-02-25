@@ -33,7 +33,7 @@
     - [3. Start the virtual environment](#3-start-the-virtual-environment)
     - [4. Install `schematic` dependencies](#4-install-schematic-dependencies)
     - [5. Set up configuration files](#5-set-up-configuration-files)
-    - [6. Obtain Google credential files](#6-obtain-google-credential-files-1)
+    - [6. Obtain Google credential files](#6-obtain-google-credential-files)
     - [7. Set up pre-commit hooks](#7-set-up-pre-commit-hooks)
     - [8. Verify your setup](#8-verify-your-setup)
 - [Command Line Usage](#command-line-usage)
@@ -45,8 +45,7 @@
       - [Example for macOS/Linux](#example-for-macoslinux)
       - [Example for Windows](#example-for-windows)
 - [Exporting OpenTelemetry data from schematic](#exporting-opentelemetry-data-from-schematic)
-  - [Exporting OpenTelemetry data for SageBionetworks employees](#exporting-opentelemetry-data-for-sagebionetworks-employees)
-    - [Exporting data locally](#exporting-data-locally)
+  - [Exporting data to SigNoz cloud](#exporting-data-to-signoz-cloud)
 - [Contributors](#contributors)
 
 
@@ -58,7 +57,7 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 * Your installed python version must be 3.9.0 ≤ version < 3.11.0
 * You need to be a registered and certified user on [`synapse.org`](https://www.synapse.org/)
 
-> [!NOTE]  
+> [!NOTE]
 > To create Google Sheets files from Schematic, please follow our credential policy for Google credentials. You can find a detailed tutorial [here](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA).
 > If you're using config.yml, make sure to specify the path to `schematic_service_account_creds.json` (see the `google_sheets > service_account_creds` section for more information).
 
@@ -103,7 +102,7 @@ source .venv/bin/activate
    ```
 
 3. **Verify your `conda` setup**: Follow the prompts to complete your setup. Then verify your setup by running the `conda` command.
-   
+
 4. **Create your `schematic` environment**: Begin by creating a fresh `conda` environment for `schematic` like so:
 
    ```
@@ -146,25 +145,25 @@ Any function that interacts with a google sheet (such as `schematic manifest get
    * Depending on your institution's policies, your institutional Google account may or may not have the required permissions to complete this. A possible workaround is to use a personal or temporary Google account.
 
 > [!WARNING]
-> At the time of writing, Sage Bionetworks employees do not have the appropriate permissions to create projects with their Sage Bionetworks Google accounts. You would follow instructions using a personal Google account. 
+> At the time of writing, Sage Bionetworks employees do not have the appropriate permissions to create projects with their Sage Bionetworks Google accounts. You would follow instructions using a personal Google account.
 
 2. **Option 2**: Ask your DCC/development team if they have credentials previously set up with a service account.
 
 Once you have obtained credentials, be sure that the json file generated is named in the same way as the `service_acct_creds` parameter in your `config.yml` file. You will find more context on the `config.yml` in section [6. Set up configuration files](#6-set-up-configuration-files).
 
 > [!NOTE]
-> Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
+> Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA).
 schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
 Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
-token-based authentication and keep only service account authentication in the future. 
+token-based authentication and keep only service account authentication in the future.
 
 > [!NOTE]
 > Use the ``schematic_service_account_creds.json`` file for the service
 > account mode of authentication (*for Google services/APIs*). Service accounts
 > are special Google accounts that can be used by applications to access Google APIs
 > programmatically via OAuth2.0, with the advantage being that they do not require
-> human authorization. 
+> human authorization.
 
 ### 6. Set up configuration files
 
@@ -241,7 +240,7 @@ you would like to store your local fork before running the following command:
 git clone https://github.com/Sage-Bionetworks/schematic.git
 ```
 
-### 2. Install `poetry` 
+### 2. Install `poetry`
 
 Install `poetry` (version 1.3.0 or later) using either the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer) or `pip`. If you have an older installation of Poetry, we recommend uninstalling it first.
 
@@ -348,7 +347,7 @@ Any function that interacts with a google sheet (such as `schematic manifest get
    * Depending on your institution's policies, your institutional Google account may or may not have the required permissions to complete this. A possible workaround is to use a personal or temporary Google account.
 
 > [!WARNING]
-> At the time of writing, Sage Bionetworks employees do not have the appropriate permissions to create projects with their Sage Bionetworks Google accounts. You would follow instructions using a personal Google account. 
+> At the time of writing, Sage Bionetworks employees do not have the appropriate permissions to create projects with their Sage Bionetworks Google accounts. You would follow instructions using a personal Google account.
 
 2. **Option 2**: Ask your DCC/development team if they have credentials previously set up with a service account.
 
@@ -358,18 +357,18 @@ Once you have obtained credentials, be sure that the json file generated is name
 > For testing, make sure there is no environment variable `SCHEMATIC_SERVICE_ACCOUNT_CREDS`. Check the file `.env` to ensure this is not set. Also, check that config files used for testing, such as `config_example.yml` do not contain service_acct_creds_synapse_id.
 
 > [!NOTE]
-> Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
+> Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA).
 schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
 Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
-token-based authentication and keep only service account authentication in the future. 
+token-based authentication and keep only service account authentication in the future.
 
 > [!NOTE]
 > Use the ``schematic_service_account_creds.json`` file for the service
 > account mode of authentication (*for Google services/APIs*). Service accounts
 > are special Google accounts that can be used by applications to access Google APIs
 > programmatically via OAuth2.0, with the advantage being that they do not require
-> human authorization. 
+> human authorization.
 
 ### 7. Set up pre-commit hooks
 
@@ -391,13 +390,63 @@ After running this step, your setup is complete, and you can test it on a python
 After running the steps above, your setup is complete, and you can test it on a `python` instance or by running a command based on the examples in the [Command Line Usage](#command-line-usage) section.
 
 # Command Line Usage
+
+## Provide environment variables
+To configure environment variables for using the CLI, follow these steps:
+
+### Option 1: Export Environment Variables Temporarily
+This method sets environment variables for the current terminal session only.
+
+1. Open your terminal.
+2. Run the following command to export the environment variable:
+
+```
+export YOUR_VARIABLE_NAME="your_value"
+```
+### Option 2: Persist Environment Variables in ~/.bash_profile
+This method makes the variables available in every terminal session.
+
+1. Open or create the ~/.bash_profile file using a text editor
+2. Add the environment variables to the file:
+
+```
+export YOUR_VARIABLE_NAME1="your_value"
+export YOUR_VARIABLE_NAME2="another_value"
+```
+
+3. Reload the bash profile by running:
+
+```
+source ~/.bash_profile
+```
+
+### Option 3: Use a .env File
+1. Make a copy of the `.env.example` file and rename it to `.env`.
+
+2. Uncomment the environment variables you need or add new ones as required in `.env`.
+
+3. There are several ways to load the environment variables specified in the `.env` file into your current shell environment. One method is to run the following command in your terminal:
+
+```
+set -o allexport && source .env && set +o allexport
+```
+
+4. Choose an environment variable from the .env file and ensure it is properly loaded by running:
+
+```
+echo $YOUR_VARIABLE_NAME
+```
+
+
+
+## Common commands
 1. Generate a new manifest as a google sheet
 
 ```
 schematic manifest -c /path/to/config.yml get -dt <your data type> -s
 ```
 
-2. Grab an existing manifest from synapse 
+2. Grab an existing manifest from synapse
 
 ```
 schematic manifest -c /path/to/config.yml get -dt <your data type> -d <your synapse dataset folder id> -s
@@ -415,7 +464,7 @@ schematic model -c /path/to/config.yml validate -dt <your data type> -mp <your c
 schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse dataset folder id> -vc <your data type> -mrt file_only
 ```
 
-Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/stable/cli_reference.html#) for more information. 
+Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/stable/cli_reference.html#) for more information.
 
 # Docker Usage
 
@@ -427,7 +476,7 @@ using how to use `schematic` based on your OS (macOS/Linux).
 Use the Docker image to run `schematic`s REST API. You can either use the file path for the `config.yml` created using the installation instructions,
 or set up authentication with environment variables.
 
-#### Example 1: Using the `config.yml` path 
+#### Example 1: Using the `config.yml` path
 ```
 docker run --rm -p 3001:3001 \
   -v $(pwd):/schematic -w /schematic --name schematic \
@@ -435,7 +484,7 @@ docker run --rm -p 3001:3001 \
   -e GE_HOME=/usr/src/app/great_expectations/ \
   sagebionetworks/schematic \
   python /usr/src/app/run_api.py
-``` 
+```
 
 #### Example 2: Use environment variables
 1. save content of `config.yml` as to environment variable `SCHEMATIC_CONFIG_CONTENT` by doing: `export SCHEMATIC_CONFIG_CONTENT=$(cat /path/to/config.yml)`
@@ -452,7 +501,7 @@ docker run --rm -p 3001:3001 \
   -e SERVICE_ACCOUNT_CREDS=$SERVICE_ACCOUNT_CREDS \
   sagebionetworks/schematic \
   python /usr/src/app/run_api.py
-``` 
+```
 ### Running `schematic` to Validate Manifests
 You can also use Docker to run `schematic` commands like validating manifests. Below are examples for different platforms.
 
@@ -476,7 +525,7 @@ docker run \
   -mp /schematic/tests/data/mock_manifests/Valid_Test_Manifest.csv \
   -dt MockComponent \
   -js /schematic/tests/data/example.model.jsonld
-``` 
+```
 
 #### Example for Windows
 
@@ -505,51 +554,19 @@ variables wherever the application is running. Those variables are:
 - `LOGGING_SERVICE_NAME`: The name of the service to attach for all exported logs.
 - `DEPLOYMENT_ENVIRONMENT`: The name of the environment to attach for all exported telemetry data.
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: The endpoint to export telemetry data to.
+- `OTEL_EXPORTER_OTLP_HEADERS`: Headers to add to all outgoing trace data sent over HTTP
 
-Authentication (Oauth2 client credential exchange):
+## Exporting data to SigNoz cloud
+SigNoz cloud is a SaaS offering of SigNoz that is used to hold onto Trace, Log, and Metrics
+from Schematic. In order for data to be ingested into SigNoz cloud the following
+environment variable should be set:
 
-Used in cases where an intermediate opentelemetry collector is not, or can not be used.
-This option is not preferred over using an intermediate opentelemetry collector, but is 
-left in the code to show how we may export telemetry data with an authorization header 
-deried from an oauth2 client credential exchange flow.
+- `OTEL_EXPORTER_OTLP_HEADERS=signoz-ingestion-key=<key>`
+- `OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.us.signoz.cloud`
 
-- `TELEMETRY_EXPORTER_CLIENT_ID`: The ID of the client to use when executing the OAuth2.0 "Client Credentials" flow.
-- `TELEMETRY_EXPORTER_CLIENT_SECRET`: The Secret of the client to use when executing the OAuth2.0 "Client Credentials" flow.
-- `TELEMETRY_EXPORTER_CLIENT_TOKEN_ENDPOINT`: The Token endpoint to use when executing the OAuth2.0 "Client Credentials" flow.
-- `TELEMETRY_EXPORTER_CLIENT_AUDIENCE`: The ID of the API server to use when executing the OAuth2.0 "Client Credentials" flow.
+If you do not have access to SigNoz Cloud and require a key, please contact DPE to request a unique ingestion key.
 
-Authentication (Static Bearer token)
-
-- `OTEL_EXPORTER_OTLP_HEADERS`: Used for developers to set a static Bearer token to be used when exporting telemetry data.
-
-The above configuration will work when the application is running locally, in a
-container, running in AWS, or running via CLI. The important part is that the
-environment variables are set before the code executes, as the configuration is setup
-when the code runs.
-
-## Exporting OpenTelemetry data for SageBionetworks employees
-The DPE (Data Processing & Engineering) team is responsible for maintaining and giving
-out the above sensitive information. Please reach out to the DPE team if a new ID/Secret
-is needed in order to export telemetry data in a new environment, or locally during
-development.
-
-### Exporting data locally
-In order to conserve the number of monthly token requests that can be made the following
-process should be followed instead of setting the `TELEMETRY_EXPORTER_CLIENT_*`
-environment variables above.
-
-1) Request access to a unique client ID/Secret that identifies you from DPE.
-2) Retrieve a token that must be refreshed every 24 hours via cURL. The specific values will be given when the token is requested. Example:
-```
-curl --request POST \
-  --url https://TOKEN_URL.us.auth0.com/oauth/token \
-  --header 'content-type: application/json' \
-  --data '{"client_id":"...","client_secret":"...","audience":"...","grant_type":"client_credentials"}'
-```
-3) Set an environment variable in your `.env` file like: `OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer ey...`
-
-If you fail to create a new access token after 24 hours you will see HTTP 403 JWT 
-Expired messages when the application attempts to export telemetry data.
+For internal developers with access to SigNoz Cloud, you can obtain an ingestion key by following the step [here](https://signoz.io/docs/ingestion/signoz-cloud/keys/).
 
 # Contributors
 

@@ -1,9 +1,9 @@
 """Data Model Relationships"""
 
 from schematic.utils.schema_utils import (
-    get_label_from_display_name,
-    get_attribute_display_name_from_label,
     convert_bool_to_str,
+    get_attribute_display_name_from_label,
+    get_label_from_display_name,
     parse_validation_rules,
 )
 

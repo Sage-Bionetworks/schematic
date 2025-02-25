@@ -1,9 +1,11 @@
+"security controller"
+# pylint: disable=line-too-long
 import logging
 from typing import Dict, Union
 
 from jwt import PyJWKClient, decode
 from jwt.exceptions import PyJWTError
-from synapseclient import Synapse
+from synapseclient import Synapse  # type: ignore
 
 from schematic.configuration.configuration import CONFIG
 
@@ -15,11 +17,12 @@ syn = Synapse(
     skip_checks=True,
 )
 jwks_client = PyJWKClient(
-    uri=syn.authEndpoint + "/oauth2/jwks", headers=syn._generate_headers()
+    uri=syn.authEndpoint + "/oauth2/jwks",
+    headers=syn._generate_headers(),  # pylint: disable=W0212
 )
 
 
-def info_from_bearer_auth(token: str) -> Dict[str, Union[str, int]]:
+def info_from_bearer_auth(token: str) -> Union[Dict[str, Union[str, int]], None]:
     """
     Authenticate user using bearer token. The token claims are decoded and returned.
 

@@ -87,11 +87,7 @@ jobs:
       #----------------------------------------------
       #             check formatting
       #----------------------------------------------
-      - name: Code formatting with black
-        run: |
-          # ran only on certain files for now
-          # add here when checked
-          poetry run black schematic tests schematic_api --check
+      - uses: pre-commit/action@v3.0.1
 
       #----------------------------------------------
       #             type checking/enforcement
@@ -121,37 +117,26 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
-          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov 
+          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov
           --cov-report=xml:coverage.xml --cov=schematic/ --reruns 4 -n 8 tests/unit;
 
       #----------------------------------------------
       #              run integration test suite
       #----------------------------------------------
 
-      - name: Retrieve telemetry access token from IDP
-        if: ${{ contains(fromJSON('["3.10"]'), matrix.python-version) }}
-        id: retrieve-telemetry-access-token
-        run: |
-          response=$(curl --request POST \
-            --url ${{ vars.TELEMETRY_AUTH_CLIENT_URL }} \
-            --header 'content-type: application/json' \
-            --data '{"client_id":"${{ vars.TELEMETRY_AUTH_CLIENT_ID }}","client_secret":"${{ secrets.TELEMETRY_AUTH_CLIENT_SECRET }}","audience":"${{ vars.TELEMETRY_AUTH_AUDIENCE }}","grant_type":"client_credentials"}')
-          access_token=$(echo $response | jq -r .access_token)
-          echo "::add-mask::$access_token"
-          echo "TELEMETRY_ACCESS_TOKEN=$access_token" >> "$GITHUB_OUTPUT"
       - name: Run integration tests
         if: ${{ contains(fromJSON('["3.10"]'), matrix.python-version) }}
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
-          OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Bearer ${{ steps.retrieve-telemetry-access-token.outputs.TELEMETRY_ACCESS_TOKEN }}"
+          OTEL_EXPORTER_OTLP_HEADERS: "signoz-ingestion-key=${{ secrets.TELEMETRY_API_TOKEN }}"
           DEPLOYMENT_ENVIRONMENT: ${{ vars.DEPLOYMENT_ENVIRONMENT }}
           OTEL_EXPORTER_OTLP_ENDPOINT: ${{ vars.OTEL_EXPORTER_OTLP_ENDPOINT }}
           TRACING_EXPORT_FORMAT: ${{ vars.TRACING_EXPORT_FORMAT }}
           LOGGING_EXPORT_FORMAT: ${{ vars.LOGGING_EXPORT_FORMAT }}
           TRACING_SERVICE_NAME: ${{ vars.TRACING_SERVICE_NAME }}
           LOGGING_SERVICE_NAME: ${{ vars.LOGGING_SERVICE_NAME }}
-          SERVICE_INSTANCE_ID: ${{ github.head_ref || github.ref_name }} 
+          SERVICE_INSTANCE_ID: ${{ github.head_ref || github.ref_name }}
         run: >
           poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
           -m "not (rule_benchmark or single_process_execution)" --reruns 4 -n 8 --ignore=tests/unit
@@ -213,12 +198,8 @@ jobs:
         uses: andstor/file-existence-action@v3
         with:
           files: "coverage.xml"
-        # This is a workaround described in https://community.sonarsource.com/t/sonar-on-github-actions-with-python-coverage-source-issue/36057
-      - name: Override Coverage Source Path for Sonar
-        if: steps.check_coverage_xml.outputs.files_exists == 'true'
-        run: sed -i "s/<source>\/home\/runner\/work\/schematic\/schematic\/schematic<\/source>/<source>\/github\/workspace\/schematic<\/source>/g" coverage.xml
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v4.1.0
         if: ${{ always() }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

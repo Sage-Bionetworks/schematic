@@ -76,6 +76,7 @@ from schematic.utils.io_utils import cleanup_temporary_storage
 from schematic.utils.schema_utils import get_class_label_from_display_name
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 
+
 logger = logging.getLogger("Synapse storage")
 
 tracer = trace.get_tracer("Schematic")
@@ -321,9 +322,6 @@ class SynapseStorage(BaseStorage):
             Consider necessity of adding "columns" and "where_clauses" params to the constructor. Currently with how `query_fileview` is implemented, these params are not needed at this step but could be useful in the future if the need for more scoped querys expands.
         """
         self.syn = self.login(synapse_cache_path, access_token)
-        current_span = trace.get_current_span()
-        if current_span.is_recording():
-            current_span.set_attribute("user.id", self.syn.credentials.owner_id)
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
@@ -499,7 +497,6 @@ class SynapseStorage(BaseStorage):
         Returns:
             synapseclient.Synapse: A Synapse object that is logged in
         """
-        # If no token is provided, try retrieving access token from environment
         if not access_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
@@ -513,9 +510,6 @@ class SynapseStorage(BaseStorage):
                     cache_client=False,
                 )
                 syn.login(authToken=access_token, silent=True)
-                current_span = trace.get_current_span()
-                if current_span.is_recording():
-                    current_span.set_attribute("user.id", syn.credentials.owner_id)
             except SynapseHTTPError as exc:
                 raise ValueError(
                     "No access to resources. Please make sure that your token is correct"
@@ -530,9 +524,12 @@ class SynapseStorage(BaseStorage):
                 cache_client=False,
             )
             syn.login(silent=True)
-            current_span = trace.get_current_span()
-            if current_span.is_recording():
-                current_span.set_attribute("user.id", syn.credentials.owner_id)
+
+        # set user id attribute
+        current_span = trace.get_current_span()
+        if current_span.is_recording():
+            current_span.set_attribute("user.id", syn.credentials.owner_id)
+
         return syn
 
     def missing_entity_handler(method):
@@ -2018,7 +2015,7 @@ class SynapseStorage(BaseStorage):
             rather than the manifest path
 
         """
-        
+
         # Add uuid for table updates and fill.
         if not "Uuid" in manifest.columns:
             manifest["Uuid"] = ''
@@ -2048,12 +2045,12 @@ class SynapseStorage(BaseStorage):
         # Upload manifest as a table and get the SynID and manifest
         manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
                                                     dmge, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,)
-            
+
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
         for idx, row in manifest.iterrows():
             if not row["entityId"]:
-                # If not using entityIds, fill with manifest_table_id so 
+                # If not using entityIds, fill with manifest_table_id so
                 row["entityId"] = manifest_synapse_table_id
                 entityId = ''
             else:
@@ -2062,14 +2059,14 @@ class SynapseStorage(BaseStorage):
 
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest)
-        
+
         # Get annotations for the file manifest.
         manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_file_id)
-        
+
         self.syn.set_annotations(manifest_annotations)
 
         logger.info("Associated manifest file with dataset on Synapse.")
-        
+
         # Update manifest Synapse table with new entity id column.
         self.make_synapse_table(
             table_to_load = table_manifest,
@@ -2079,7 +2076,7 @@ class SynapseStorage(BaseStorage):
             update_col = 'Uuid',
             specify_schema = False,
             )
-        
+
         # Get annotations for the table manifest
         manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
         self.syn.set_annotations(manifest_annotations)

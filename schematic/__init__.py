@@ -17,20 +17,82 @@ from opentelemetry.sdk.resources import (
     SERVICE_VERSION,
     Resource,
 )
-from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace import TracerProvider, SpanProcessor
+from opentelemetry.trace import Span, SpanContext, get_current_span
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, Span
 from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
-from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
-from synapseclient import Synapse
+from synapseclient import Synapse, USER_AGENT
 from werkzeug import Request
 
 from schematic.configuration.configuration import CONFIG
 from schematic.loader import LOADER
 from schematic.version import __version__
-from schematic_api.api.security_controller import info_from_bearer_auth
+from dotenv import load_dotenv
 
 Synapse.allow_client_caching(False)
 logger = logging.getLogger(__name__)
+
+# Ensure environment variables are loaded
+load_dotenv()
+
+USER_AGENT_LIBRARY = {
+    "User-Agent": USER_AGENT["User-Agent"] + f" schematic/{__version__}"
+}
+
+USER_AGENT_COMMAND_LINE = {
+    "User-Agent": USER_AGENT["User-Agent"] + f" schematiccommandline/{__version__}"
+}
+
+USER_AGENT |= USER_AGENT_LIBRARY
+
+
+class AttributePropagatingSpanProcessor(SpanProcessor):
+    """A custom span processor that propagates specific attributes from the parent span
+    to the child span when the child span is started.
+    It also propagates the attributes to the parent span when the child span ends.
+
+    Args:
+        SpanProcessor (opentelemetry.sdk.trace.SpanProcessor): The base class that provides hooks for processing spans during their lifecycle
+    """
+
+    def __init__(self, attributes_to_propagate: List[str]) -> None:
+        self.attributes_to_propagate = attributes_to_propagate
+
+    def on_start(self, span: Span, parent_context: SpanContext) -> None:
+        """Propagates attributes from the parent span to the child span.
+        Arguments:
+            span: The child span to which the attributes should be propagated.
+            parent_context: The context of the parent span.
+        Returns:
+            None
+        """
+        parent_span = get_current_span()
+        if parent_span is not None and parent_span.is_recording():
+            for attribute in self.attributes_to_propagate:
+                # Check if the attribute exists in the parent span's attributes
+                attribute_val = parent_span.attributes.get(attribute)
+                if attribute_val:
+                    # Propagate the attribute to the current span
+                    span.set_attribute(attribute, attribute_val)
+
+    def on_end(self, span: Span) -> None:
+        """Propagates attributes from the child span back to the parent span"""
+        parent_span = get_current_span()
+        if parent_span is not None and parent_span.is_recording():
+            for attribute in self.attributes_to_propagate:
+                child_val = span.attributes.get(attribute)
+                parent_val = parent_span.attributes.get(attribute)
+                if child_val and not parent_val:
+                    # Propagate the attribute back to parent span
+                    parent_span.set_attribute(attribute, child_val)
+
+    def shutdown(self) -> None:
+        """No-op method that does nothing when the span processor is shut down."""
+        pass
+
+    def force_flush(self, timeout_millis: int = 30000) -> None:
+        """No-op method that does nothing when the span processor is forced to flush."""
+        pass
 
 
 def create_telemetry_session() -> requests.Session:
@@ -57,32 +119,9 @@ def create_telemetry_session() -> requests.Session:
         )
         return session
 
-    client_id = os.environ.get("TELEMETRY_EXPORTER_CLIENT_ID", None)
-    client_secret = os.environ.get("TELEMETRY_EXPORTER_CLIENT_SECRET", None)
-    client_token_endpoint = os.environ.get(
-        "TELEMETRY_EXPORTER_CLIENT_TOKEN_ENDPOINT", None
+    logger.warning(
+        "No environment variable `OTEL_EXPORTER_OTLP_HEADERS` provided for telemetry exporter. Telemetry data will be sent without any headers."
     )
-    client_audience = os.environ.get("TELEMETRY_EXPORTER_CLIENT_AUDIENCE", None)
-    if (
-        not client_id
-        or not client_secret
-        or not client_token_endpoint
-        or not client_audience
-    ):
-        logger.warning(
-            "No client_id, client_secret, client_audience, or token_endpoint provided for telemetry exporter. Telemetry data will be sent without authentication."
-        )
-        return session
-
-    oauth2client = OAuth2Client(
-        token_endpoint=client_token_endpoint,
-        client_id=client_id,
-        client_secret=client_secret,
-    )
-
-    auth = OAuth2ClientCredentialsAuth(client=oauth2client, audience=client_audience)
-    session.auth = auth
-
     return session
 
 
@@ -116,6 +155,9 @@ def set_up_tracing(session: requests.Session) -> None:
         )
 
     if tracing_export == "otlp":
+        # Add the custom AttributePropagatingSpanProcessor to propagate attributes
+        attribute_propagator = AttributePropagatingSpanProcessor(["user.id"])
+        trace.get_tracer_provider().add_span_processor(attribute_propagator)
         exporter = OTLPSpanExporter(session=session)
         trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(exporter))
     else:
@@ -159,17 +201,6 @@ def request_hook(span: Span, environ: Dict) -> None:
     """
     if not span or not span.is_recording():
         return
-    try:
-        if auth_header := environ.get("HTTP_AUTHORIZATION", None):
-            split_headers = auth_header.split(" ")
-            if len(split_headers) > 1:
-                token = auth_header.split(" ")[1]
-                user_info = info_from_bearer_auth(token)
-                if user_info:
-                    span.set_attribute("user.id", user_info.get("sub"))
-    except Exception:
-        logger.exception("Failed to set user info in span")
-
     try:
         if (request := environ.get("werkzeug.request", None)) and isinstance(
             request, Request

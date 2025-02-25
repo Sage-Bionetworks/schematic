@@ -19,17 +19,17 @@ services:
       GE_HOME: /usr/src/app/great_expectations/
   # run schematic APIs in a docker container with uWSGI and nginx
   schematic-aws:
-    build: 
+    build:
       context: ../schematic
       dockerfile: schematic_api/Dockerfile
     container_name: schematic-api-aws
     image: sagebionetworks/schematic-aws-api:latest
     restart: always
-    env_file: 
+    env_file:
       - .env
     networks:
       - schematic
-    ports: 
+    ports:
       - "${USE_LISTEN_PORT}:80"
       - "443:443"
 networks:
