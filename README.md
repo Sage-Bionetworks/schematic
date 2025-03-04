@@ -570,12 +570,23 @@ For internal developers with access to SigNoz Cloud, you can obtain an ingestion
 
 # Contributors
 
-Main contributors and developers:
 
+Sage main contributors and developers:
+
+- [Gianna Jordan](https://github.com/giajordan)
+- [Lingling Peng](https://github.com/linglp)
+- [Bryan Fauble](https://github.com/BryanFauble)
+- [Andrew Lamb](https://github.com/andrewelamb)
+- [Brad Macdonald](https://github.com/BWMac)
 - [Milen Nikolov](https://github.com/milen-sage)
+
+## Alumni
 - [Mialy DeFelice](https://github.com/mialy-defelice)
 - [Sujay Patil](https://github.com/sujaypatil96)
 - [Bruno Grande](https://github.com/BrunoGrandePhD)
-- [Robert Allaway](https://github.com/allaway)
-- [Gianna Jordan](https://github.com/giajordan)
-- [Lingling Peng](https://github.com/linglp)
+- [Jason Hwee](https://github.com/hweej)
+- [Xengie Doan](https://github.com/xdoan)
+- [James Eddy](https://github.com/jaeddy)
+- [Yooree Chae](https://github.com/ychae)
+
+See all [contributors](https://github.com/Sage-Bionetworks/schematic/graphs/contributors)
