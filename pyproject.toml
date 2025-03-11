@@ -78,7 +78,6 @@ opentelemetry-exporter-otlp-proto-http = {version="^1.0.0", optional = true}
 opentelemetry-instrumentation-flask = ">=0.48b0"
 python-dotenv = "^0.21.0"
 cryptography = ">=42.0.4"
-urllib3 = ">=1.26.18,<2"
 
 [tool.poetry.extras]
 api = ["Jinja2", "pyopenssl", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-exporter-otlp-proto-http"]
@@ -96,6 +95,19 @@ mypy = "^1.4.1"
 pylint = "^2.16.1"
 pytest-xdist = "^3.5.0"
 pre-commit = "^3.6.2"
+# types-requests = "^2.31.0"
+# pandas-stubs = "2.2.2.240807"
+# types-Deprecated = "1.2.15.20241117"
+# types-PyYAML = "6.0.12.20241230"
+# types-cachetools = "5.5.0.20240820"
+# types-colorama = "0.4.15.20240311"
+# types-dateparser = "1.2.0.20250208"
+# types-jsonschema = "4.23.0.20241208"
+# types-protobuf = "5.29.1.20250208"
+# types-psutil = "7.0.0.20250218"
+# types-pycurl = "7.45.4.20241216"
+# types-pytz = "2025.1.0.20250204"
+# types-setuptools = "75.8.0.20250225"
 
 [tool.poetry.group.doc.dependencies]
 pdoc = "^14.0.0"
