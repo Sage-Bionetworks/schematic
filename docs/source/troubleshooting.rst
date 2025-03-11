@@ -52,7 +52,7 @@ Manifest Submit: `TypeError: boolean value of NA is ambiguous`
 --------------------------------------------------------------
 
 You may encounter this error if your manifest has a Component column but it is empty.  This may occur if the manifest in your "Top Level Folder"
-does not contain this column.  During manifest generate, it will create an empty column for you.  
+does not contain this column.  During manifest generate, it will create an empty column for you.
 
 To fix: Check if your manifest has an empty Component column.  Please fill out this column with the correct Component values and submit the manifest again.
 

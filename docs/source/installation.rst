@@ -8,7 +8,7 @@ Installation Requirements
 - You need to be a registered and certified user on `synapse.org <https://www.synapse.org/>`_
 
 .. note::
-   To create Google Sheets files from Schematic, please follow our credential policy for Google credentials. You can find a detailed tutorial `Google Credentials Guide <https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA>`_.  
+   To create Google Sheets files from Schematic, please follow our credential policy for Google credentials. You can find a detailed tutorial `Google Credentials Guide <https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA>`_.
    If you're using ``config.yml``, make sure to specify the path to ``schematic_service_account_creds.json`` (see the ``google_sheets > service_account_creds`` section for more information).
 
 Installation Guide For: Users
