@@ -1,7 +1,7 @@
 """DataModel Graph"""
 
 import logging
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, AbstractSet
 
 import graphviz  # type: ignore
 import networkx as nx  # type: ignore
@@ -178,7 +178,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         properties_set = set(properties_list)
         return properties_set
 
-    def find_classes(self) -> set[str]:
+    def find_classes(self) -> AbstractSet[str]:
         """
         Identify all classes, as defined but all nodes, minus all properties
         (which are explicitly defined)
