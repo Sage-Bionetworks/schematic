@@ -106,6 +106,7 @@ class DataModelGraph:  # pylint: disable=too-few-public-methods
         )
 
         # Instantiate NetworkX MultiDigraph
+        graph: nx.DiGraph
         graph = nx.MultiDiGraph()
 
         all_node_dict = {}
@@ -424,6 +425,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             if key == relationship:
                 rel_edges.append((node_1, node_2))
 
+        relationship_subgraph: nx.DiGraph
         relationship_subgraph = nx.DiGraph()
         relationship_subgraph.add_edges_from(rel_edges)
 
@@ -468,6 +470,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
                   in relationship class
         Returns:
         """
+        digraph: nx.DiGraph
         digraph = nx.DiGraph()
         for node_1, node_2, key, _ in self.graph.edges(data=True, keys=True):
             if key == edge_type:
@@ -819,6 +822,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             if key == relationship:
                 rel_edges.append((node_1, node_2))
 
+        relationship_subgraph: nx.DiGraph
         relationship_subgraph = nx.DiGraph()
         relationship_subgraph.add_edges_from(rel_edges)
 
