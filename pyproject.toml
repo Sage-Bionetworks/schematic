@@ -131,3 +131,8 @@ testpaths = [
 filterwarnings = [
     "ignore::DeprecationWarning"
 ]
+
+
+[[tool.mypy.overrides]]
+module = ["foobar.*"]
+ignore_missing_imports = true
