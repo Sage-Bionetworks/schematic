@@ -285,11 +285,17 @@ class TestStoreSynapse:
         """
         result_list1 = synapse_store.getFilesInStorageDataset("syn65467561")
         assert result_list1 == [
-            ("syn65467565", "schematic - main/TestGetDatasetFiles/TestUnderscore_/test_file.txt")
+            (
+                "syn65467565",
+                "schematic - main/TestGetDatasetFiles/TestUnderscore_/test_file.txt",
+            )
         ]
         result_list2 = synapse_store.getFilesInStorageDataset("syn65467559")
         assert result_list2 == [
-            ("syn65467564", "schematic - main/TestGetDatasetFiles/TestSingleQuote'/test_file.txt")
+            (
+                "syn65467564",
+                "schematic - main/TestGetDatasetFiles/TestSingleQuote'/test_file.txt",
+            )
         ]
 
     @pytest.mark.parametrize(
@@ -473,5 +479,3 @@ class TestStoreSynapse:
             synapse_id_regex = re_compile(SYN_ID_REGEX)
             if dataset_files:
                 assert synapse_id_regex.fullmatch(dataset_files[0][0])
-
-

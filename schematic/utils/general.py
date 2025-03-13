@@ -316,6 +316,7 @@ def normalize_path(path: str, parent_folder: str) -> str:
         path = os.path.join(parent_folder, path)
     return os.path.normpath(path)
 
+
 def create_like_statement(synapse_path: str) -> str:
     """
     Creates a sql like statement for a Synapse table query
@@ -377,5 +378,5 @@ def escape_synapse_path(synapse_path: str) -> str:
     """
     pattern = re.sub("'", "''", synapse_path)
     for char in LIKE_PATTERN_SPECIAL_CHARS:
-        pattern = re.sub(char, f"|{char}" , pattern)
+        pattern = re.sub(char, f"|{char}", pattern)
     return pattern

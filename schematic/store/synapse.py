@@ -71,7 +71,7 @@ from schematic.utils.general import (
     create_temp_folder,
     entity_type_mapping,
     get_dir_size,
-    create_like_statement
+    create_like_statement,
 )
 from schematic.utils.io_utils import cleanup_temporary_storage
 from schematic.utils.schema_utils import get_class_label_from_display_name

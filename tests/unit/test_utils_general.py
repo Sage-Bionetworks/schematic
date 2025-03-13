@@ -19,7 +19,7 @@ from schematic.utils.general import (
     clear_synapse_cache,
     entity_type_mapping,
     create_like_statement,
-    escape_synapse_path
+    escape_synapse_path,
 )
 
 TEST_DISK_STORAGE = [
@@ -243,10 +243,10 @@ class TestGeneral:
             ("synapse/path", "path like 'synapse/path/%'"),
             ("synapse/path's", "path like 'synapse/path''s/%'"),
             ("synapse/path_", "path like 'synapse/path|_/%' escape '|'"),
-            ("synapse/path%", "path like 'synapse/path|%/%' escape '|'")
-        ]
+            ("synapse/path%", "path like 'synapse/path|%/%' escape '|'"),
+        ],
     )
-    def test_create_like_statement(self, input_string:str, expected:str) -> None:
+    def test_create_like_statement(self, input_string: str, expected: str) -> None:
         """These tests should create like statements with escaped characters
 
         Args:
@@ -256,9 +256,10 @@ class TestGeneral:
         assert create_like_statement(input_string) == expected
 
     @pytest.mark.parametrize(
-        "input_string", ["|", "xxx|", "'|", "|%", "|_"],
+        "input_string",
+        ["|", "xxx|", "'|", "|%", "|_"],
     )
-    def test_create_like_statement_exceptions(self, input_string:str) -> None:
+    def test_create_like_statement_exceptions(self, input_string: str) -> None:
         """These tests should cause ValueErrors
 
         Args:
@@ -283,7 +284,7 @@ class TestGeneral:
             ("%xxx%", "|%xxx|%"),
         ],
     )
-    def test_escape_synapse_path(self, input_string:str, expected:str) -> None:
+    def test_escape_synapse_path(self, input_string: str, expected: str) -> None:
         """This test should have an expected pattern that has escaped characters
 
         Args:
