@@ -51,6 +51,8 @@ The `schematic manifest get` command that creates a manifest template based on a
     with data or files to a folder, you may see that this files are missing or get a `LookUp` error.  This is an artifact of Synapse
     fileviews, please run this command again.
 
+create an empty manifest
+
 .. code-block:: bash
 
     schematic manifest -c /path/to/config.yml get -dt <your data type> -s
