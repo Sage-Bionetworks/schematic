@@ -49,9 +49,9 @@ The `schematic manifest get` command that creates a manifest template based on a
 
 Rename config_example.yml to config.yml, then update it to point to the location of your data model:
 
-.. code-block:: yaml
-model:
-  location: "/your data model location"
+.. code-block:: text
+    model:
+        location: "/your data model location"
 
 Your data model can be in either JSON-LD or CSV format.
 

@@ -1,6 +1,5 @@
 Tutorials
 =========
-cli_tutorial
 This section provides tutorials for using **Schematic** in different ways.
 
 .. toctree::
