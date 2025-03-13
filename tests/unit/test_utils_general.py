@@ -18,6 +18,8 @@ from schematic.utils.general import (
     check_synapse_cache_size,
     clear_synapse_cache,
     entity_type_mapping,
+    create_like_statement,
+    escape_synapse_path
 )
 
 TEST_DISK_STORAGE = [
@@ -234,3 +236,58 @@ class TestGeneral:
         with tempfile.TemporaryDirectory() as tmpdir:
             path_dir = general.create_temp_folder(tmpdir)
             assert os.path.exists(path_dir)
+
+    @pytest.mark.parametrize(
+        "input_string, expected",
+        [
+            ("synapse/path", "path like 'synapse/path/%'"),
+            ("synapse/path's", "path like 'synapse/path''s/%'"),
+            ("synapse/path_", "path like 'synapse/path|_/%' escape '|'"),
+            ("synapse/path%", "path like 'synapse/path|%/%' escape '|'")
+        ]
+    )
+    def test_create_like_statement(self, input_string:str, expected:str) -> None:
+        """These tests should create like statements with escaped characters
+
+        Args:
+            input_string (str): The input synapse path
+            expected (str): The expected like statement
+        """
+        assert create_like_statement(input_string) == expected
+
+    @pytest.mark.parametrize(
+        "input_string", ["|", "xxx|", "'|", "|%", "|_"],
+    )
+    def test_create_like_statement_exceptions(self, input_string:str) -> None:
+        """These tests should cause ValueErrors
+
+        Args:
+            input_string (str): The input synapse path
+        """
+        with pytest.raises(ValueError, match="Pattern can not contain '|' character."):
+            create_like_statement(input_string)
+
+    @pytest.mark.parametrize(
+        "input_string, expected",
+        [
+            ("", ""),
+            ("xxx", "xxx"),
+            ("xxx'", "xxx''"),
+            ("'xxx'", "''xxx''"),
+            ("%", "|%"),
+            ("%%", "|%|%"),
+            ("_", "|_"),
+            ("__", "|_|_"),
+            ("_%", "|_|%"),
+            ("_xxx_", "|_xxx|_"),
+            ("%xxx%", "|%xxx|%"),
+        ],
+    )
+    def test_escape_synapse_path(self, input_string:str, expected:str) -> None:
+        """This test should have an expected pattern that has escaped characters
+
+        Args:
+            input_string (str): The input string pattern
+            expected (str): The expected result pattern
+        """
+        assert escape_synapse_path(input_string) == expected
