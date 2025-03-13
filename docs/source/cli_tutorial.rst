@@ -48,6 +48,7 @@ The `schematic manifest get` command that creates a manifest template based on a
     fileviews, please run this command again.
 
 Rename config_example.yml to config.yml, then update it to point to the location of your data model:
+
 .. code-block:: text
 
     model:
@@ -56,6 +57,7 @@ Rename config_example.yml to config.yml, then update it to point to the location
 Your data model can be in either JSON-LD or CSV format.
 
 Then, run the following command to generate a manifest as a google sheet.
+
 .. code-block:: bash
 
     schematic manifest -c /path/to/config.yml get -dt <your data type> -s
@@ -64,11 +66,13 @@ Then, run the following command to generate a manifest as a google sheet.
 This command will create a google sheet with the necessary columns and headers, which you can then fill with your metadata.
 
 If you want to generate a manifest as an excel spreadsheet, you could do:
+
 .. code-block:: bash
 
     schematic manifest -c /path/to/config.yml get -dt <your data type> --output-xlsx <your-output-manifest-path.xlsx>
 
 And if you want to generate a manifest as a csv file, you could do:
+
 .. code-block:: bash
 
     schematic manifest -c /path/to/config.yml get -dt <your data type> --output-csv <your-output-manifest-path.csv>
