@@ -360,7 +360,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
     def get_component_requirements_graph(
         self,
         source_component: str,
-    ) -> nx.DiGraph:
+    ) -> nx.Graph:
         """
         Get all components that are associated with a given source component and are required by it;
           return the components as a dependency graph (i.e. a DAG).
