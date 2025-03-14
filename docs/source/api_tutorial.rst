@@ -1,5 +1,13 @@
-Steps to Contribute a Manifest
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Contributing your manifest with the APIs
+---------------------------------------
+
+Prerequisites
+~~~~~~~~~~~~~
+
+1. **Prepare a data model**: Ensure you have a data model ready. If you don’t have one, you can use the following example models:
+   * CSV data model [https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/main/tests/data/example.model.csv]
+   * JSON-LD data model [https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/main/tests/data/example.model.jsonld]
+
 
 The contribution process includes three main commands.
 For information about the parameters of each of these commands, please refer to the CLI Reference section.

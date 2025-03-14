@@ -23,6 +23,7 @@ Prerequisites
 1. **Install and configure Schematic**: Ensure that you have installed `schematic` and set up its dependencies. See "Installation Guide For: Users" for more information.
 2. **Important Concepts**: Make sure you know the important concepts outlined on the home page of the doc site.
 3. **Configuration**: Read more here about each of the attributes in the configuration file.
+4. **Prepare a data model**: Ensure you have a data model ready. If not, please use the data model in `schematic/tests/data/example.model.csv` or `/Users/lpeng/Documents/schematic-git2/schematic/tests/data/example.model.jsonld`
 
 Steps to Contribute a Manifest
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
