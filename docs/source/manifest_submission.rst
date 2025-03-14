@@ -50,31 +50,31 @@ This command will upload your manifest to Synapse and automatically validate it.
 
     schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -vc <your data type> -mrt file_only
 
-   - **`-c /path/to/config.yml`**: Specifies the configuration file containing the data model location and asset view (`master_fileview_id`).
-   - **`-mp **: Your manifest file path.
-   - **`-mrt **: The format of manifest submission. The options are: "table_and_file", "file_only", "file_and_entities", "table_file_and_entities". "file_only" option would submit the manifest as a file.
-   - **`-vc <your_data_type>`**: Defines the data type/schema model for the manifest (e.g., `"Patient"`, `"Biospecimen"`).
-   - **`-d <your_dataset_id>`**: Retrieves the existing manifest associated with a specific dataset on Synpase.
+   - **-c /path/to/config.yml**: Specifies the configuration file containing the data model location and asset view (`master_fileview_id`).
+   - **-mp**: Your manifest file path.
+   - **-mrt**: The format of manifest submission. The options are: "table_and_file", "file_only", "file_and_entities", "table_file_and_entities". "file_only" option would submit the manifest as a file.
+   - **-vc <your_data_type>**: Defines the data type/schema model for the manifest (e.g., `"Patient"`, `"Biospecimen"`).
+   - **-d <your_dataset_id>**: Retrieves the existing manifest associated with a specific dataset on Synpase.
 
 
 Option 2: Use the API
 ~~~~~~~~~~~~~~~~~~~~~~
 
-1. Locate the **`model/submit`** endpoint in the **Swagger UI**.
+1. Locate the **model/submit** endpoint in the **Swagger UI**.
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
-   - **`schema_url`**: The URL of your data model.
+   - **schema_url**: The URL of your data model.
      - If your data model is hosted on **GitHub**, the URL should follow this format:
        - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
-   - **`data_type`**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
+   - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
 
-   - **`dataset_id`**: The **top-level Synapse dataset ID**.
+   - **dataset_id**: The **top-level Synapse dataset ID**.
      - This can be a **Synapse Project ID** or a **Folder ID**.
 
-   - **`asset_view`**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
+   - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
    - remove default inputs in dataset_scope and project_scope
 
