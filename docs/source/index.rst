@@ -145,6 +145,7 @@ For the entire Python API reference documentation, you can visit the docs here: 
    installation
    asset_store
    configuration
+   manifest_generation
    tutorials
    troubleshooting
    cli_reference
