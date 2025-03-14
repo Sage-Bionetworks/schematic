@@ -2,7 +2,6 @@
 
 # pylint: disable=logging-fstring-interpolation
 
-import re
 import logging
 import os
 import pstats
@@ -376,7 +375,7 @@ def escape_synapse_path(synapse_path: str) -> str:
     Returns:
         str: The like pattern with problematic characters escaped
     """
-    pattern = re.sub("'", "''", synapse_path)
+    pattern = synapse_path.replace("'", "''")
     for char in LIKE_PATTERN_SPECIAL_CHARS:
-        pattern = re.sub(char, f"|{char}", pattern)
+        pattern = pattern.replace(char, f"|{char}")
     return pattern
