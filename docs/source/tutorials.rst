@@ -1,6 +1,6 @@
 Tutorials
 =========
-This section provides tutorials for using **Schematic** in different ways.
+This section provides tutorials for contributing a manifest in different ways.
 
 .. toctree::
    :maxdepth: 2

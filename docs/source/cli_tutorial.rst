@@ -47,7 +47,7 @@ The `schematic manifest get` command that creates a manifest template based on a
     with data or files to a folder, you may see that this files are missing or get a `LookUp` error.  This is an artifact of Synapse
     fileviews, please run this command again.
 
-Rename config_example.yml to config.yml, then update it to point to the location of your data model:
+Rename config_example.yml to config.yml, and update it to specify the location of your data model:
 
 .. code-block:: text
 
@@ -63,7 +63,9 @@ Then, run the following command to generate a manifest as a google sheet.
     schematic manifest -c /path/to/config.yml get -dt <your data type> -s
 
 - **Data Type**: The data type or schema model for your manifest (e.g., "Patient", "Biospecimen")..
+
 This command will create a google sheet with the necessary columns and headers, which you can then fill with your metadata.
+
 
 If you want to generate a manifest as an excel spreadsheet, you could do:
 
