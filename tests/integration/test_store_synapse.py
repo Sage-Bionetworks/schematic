@@ -275,22 +275,18 @@ class TestStoreSynapse:
         if dataset_files:
             assert synapse_id_regex.fullmatch(dataset_files[0][0])
 
-    def test_get_files_in_storage_dataset_with_escaped_chars(
-        self, synapse_store: SynapseStorage
-    ) -> None:
-        """Test for datasets with characters that need to be escaped
-
-        Args:
-            synapse_store (SynapseStorage): SynapseStorage with default parameters
-        """
-        result_list1 = synapse_store.getFilesInStorageDataset("syn65467561")
+    def test_get_files_in_storage_dataset_with_escaped_chars(self) -> None:
+        """Test for datasets with characters that need to be escaped"""
+        store1 = SynapseStorage()
+        result_list1 = store1.getFilesInStorageDataset("syn65467561")
         assert result_list1 == [
             (
                 "syn65467565",
                 "schematic - main/TestGetDatasetFiles/TestUnderscore_/test_file.txt",
             )
         ]
-        result_list2 = synapse_store.getFilesInStorageDataset("syn65467559")
+        store2 = SynapseStorage()
+        result_list2 = store2.getFilesInStorageDataset("syn65467559")
         assert result_list2 == [
             (
                 "syn65467564",
