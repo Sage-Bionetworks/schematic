@@ -285,12 +285,13 @@ class TestStoreSynapse:
                 "schematic - main/TestGetDatasetFiles/TestUnderscore_/test_file.txt",
             )
         ]
-        store2 = SynapseStorage()
-        result_list2 = store2.getFilesInStorageDataset("syn65467559")
-        assert result_list2 == [
+        store3 = SynapseStorage()
+        result_list3 = store3.getFilesInStorageDataset("syn65472752")
+        print(result_list3)
+        assert result_list3 == [
             (
-                "syn65467564",
-                "schematic - main/TestGetDatasetFiles/TestSingleQuote'/test_file.txt",
+                "syn65472753",
+                "schematic - main/TestGetDatasetFiles/TestChars -().+/test_file.txt",
             )
         ]
 
