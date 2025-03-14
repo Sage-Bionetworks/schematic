@@ -5,7 +5,8 @@ A **manifest** is a structured file containing metadata that adheres to a specif
 Prerequisites
 ~~~~~~~~~~~~~
 
-## Before Using the Schematic CLI
+Before Using the Schematic CLI
+------------------------------
 
 - **Install and Configure Schematic**:
   Ensure you have installed `schematic` and set up its dependencies.
@@ -29,7 +30,9 @@ This will open the **Swagger UI**, where you can explore all available API endpo
 
 Generate an empty manifest
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Generate a manifest using the CLI
+
+Generate a manifest using the CLI
+---------------------------------
 
    You can generate a manifest by running the following command:
 
@@ -74,7 +77,9 @@ This will generate a manifest directly from the API.
 
 Generate a manifest using a dataset on synapse
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Generate a manifest using the CLI
+
+Generate a manifest using the CLI
+---------------------------------
 
 .. note::
 
