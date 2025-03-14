@@ -2,10 +2,36 @@ Generate a manifest
 ---------------------------------------
 A **manifest** is a structured file containing metadata that adheres to a specific data model. This page covers different ways to generate a manifest.
 
-Generate a manifest using the CLI
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Prerequisites
+~~~~~~~~~~~~~
 
-   You can generate a manifest using the **Schematic CLI** by running the following command:
+## 1. Before Using the Schematic CLI
+
+- **Install and Configure Schematic**:
+  Ensure you have installed `schematic` and set up its dependencies.
+  Refer to the **"Installation Guide for Users"** for detailed instructions.
+
+- **Understand Important Concepts**:
+  Familiarize yourself with key concepts outlined on the **home page** of the documentation.
+
+- **Configuration File**:
+  Learn more about each attribute in the configuration file by referring to the relevant documentation.
+
+---
+
+## 2. Using the Schematic API in Production
+
+Visit the **Schematic API (Production Environment)**:
+`<https://schematic.api.sagebionetworks.org/v1/ui/#/>`_
+
+This will open the **Swagger UI**, where you can explore all available API endpoints.
+
+
+Generate an empty manifest
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## 1. Generate a manifest using the CLI
+
+   You can generate a manifest by running the following command:
 
    .. code-block:: bash
 
@@ -27,21 +53,64 @@ And if you want to generate a manifest as a csv file, you could do:
 
     schematic manifest -c /path/to/config.yml get -dt <your data type> --output-csv <your-output-manifest-path.csv>
 
-
-Generate a manifest using the API
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Visit the Schematic API in the production environment: https://schematic.api.sagebionetworks.org/v1/ui/#/.
-
-This will open the Swagger UI, where you can explore all available endpoints for the Schematic API.
-
-To generate a manifest:
-
+## 2. Generate a manifest using the API
 1. Locate the `manifest/generate` endpoint.
 2. Click "Try it out" to enable input fields.
 3. Enter the following parameters and execute the request:
-    - **Schema_url**: The url of your data model. If you data model is hosted in Github, the url should look like: `https://raw.githubusercontent.com/path-of-your-data-model.jsonld` or `https://raw.githubusercontent.com/path-of-your-data-model.csv`.
-    - **data_type**: The data type or schema model for your manifest (e.g., "Patient", "Biospecimen"). Feel free to enter multiple data types or "all manifests" to get manifests for all data types.
-    - **output_format**: The format in which you want to generate the manifest (e.g."excel", "google_sheet").
+
+   - **`schema_url`**: The URL of your data model.
+     - If your data model is hosted on **GitHub**, the URL should follow this format:
+       - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
+       - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
+
+   - **`data_type`**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`).
+     - You can specify multiple data types or enter `"all manifests"` to generate manifests for all available data types.
+
+   - **`output_format`**: The desired format for the generated manifest.
+     - Options include `"excel"` or `"google_sheet"`.
 
 This will generate a manifest directly from the API.
+
+
+Generate a manifest using a dataset on synapse
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## 1. Generate a manifest using the CLI
+.. note::
+
+    Ensure your **Synapse credentials** are configured before running the command.
+    You can obtain a **personal access token** from Synapse by following the instructions here:
+    `<https://python-docs.synapse.org/tutorials/authentication/#prerequisites>`_
+
+    The **top-level dataset** can be either an empty folder or a folder containing files.
+
+   .. code-block:: bash
+
+       schematic manifest -c /path/to/config.yml get -dt <your_data_type> -s -d <synapse_dataset_id>
+
+   - **`-c /path/to/config.yml`**: Specifies the configuration file containing the data model location.
+   - **`-dt <your_data_type>`**: Defines the data type/schema model for the manifest (e.g., `"Patient"`, `"Biospecimen"`).
+   - **`-d <your_dataset_id>`**: Retrieves the existing manifest associated with a specific dataset on Synpase.
+
+## 2. Generate a Manifest Using the API
+
+To generate a manifest using the **Schematic API**, follow these steps:
+
+1. Locate the **`manifest/generate`** endpoint in the **Swagger UI**.
+2. Click **"Try it out"** to enable input fields.
+3. Enter the required parameters and execute the request:
+
+   - **`schema_url`**: The URL of your data model.
+     - If your data model is hosted on **GitHub**, the URL should follow this format:
+       - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
+       - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
+
+   - **`data_type`**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`).
+     - You can specify multiple data types or enter `"all manifests"` to generate manifests for all available data types.
+
+   - **`output_format`**: The desired format for the generated manifest.
+     - Options include `"excel"` or `"google_sheet"`.
+
+   - **`dataset_id`**: The **top-level Synapse dataset ID**.
+     - This can be a **Synapse Project ID** or a **Folder ID**.
+
+   - **`asset_view`**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
