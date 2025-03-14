@@ -5,7 +5,7 @@ A **manifest** is a structured file containing metadata that adheres to a specif
 Prerequisites
 ~~~~~~~~~~~~~
 
-## 1. Before Using the Schematic CLI
+## Before Using the Schematic CLI
 
 - **Install and Configure Schematic**:
   Ensure you have installed `schematic` and set up its dependencies.
@@ -19,7 +19,7 @@ Prerequisites
 
 ---
 
-## 2. Using the Schematic API in Production
+## Using the Schematic API in Production
 
 Visit the **Schematic API (Production Environment)**:
 `<https://schematic.api.sagebionetworks.org/v1/ui/#/>`_
@@ -29,7 +29,7 @@ This will open the **Swagger UI**, where you can explore all available API endpo
 
 Generate an empty manifest
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## 1. Generate a manifest using the CLI
+## Generate a manifest using the CLI
 
    You can generate a manifest by running the following command:
 
@@ -53,7 +53,7 @@ And if you want to generate a manifest as a csv file, you could do:
 
     schematic manifest -c /path/to/config.yml get -dt <your data type> --output-csv <your-output-manifest-path.csv>
 
-## 2. Generate a manifest using the API
+## Generate a manifest using the API
 1. Locate the `manifest/generate` endpoint.
 2. Click "Try it out" to enable input fields.
 3. Enter the following parameters and execute the request:
@@ -74,14 +74,16 @@ This will generate a manifest directly from the API.
 
 Generate a manifest using a dataset on synapse
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## 1. Generate a manifest using the CLI
+## Generate a manifest using the CLI
+
 .. note::
 
     Ensure your **Synapse credentials** are configured before running the command.
     You can obtain a **personal access token** from Synapse by following the instructions here:
     `<https://python-docs.synapse.org/tutorials/authentication/#prerequisites>`_
 
-    The **top-level dataset** can be either an empty folder or a folder containing files.
+
+The **top-level dataset** can be either an empty folder or a folder containing files.
 
    .. code-block:: bash
 
@@ -91,7 +93,7 @@ Generate a manifest using a dataset on synapse
    - **`-dt <your_data_type>`**: Defines the data type/schema model for the manifest (e.g., `"Patient"`, `"Biospecimen"`).
    - **`-d <your_dataset_id>`**: Retrieves the existing manifest associated with a specific dataset on Synpase.
 
-## 2. Generate a Manifest Using the API
+## Generate a Manifest Using the API
 
 To generate a manifest using the **Schematic API**, follow these steps:
 
