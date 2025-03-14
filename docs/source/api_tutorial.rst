@@ -4,9 +4,15 @@ Contributing your manifest with the APIs
 Prerequisites
 ~~~~~~~~~~~~~
 
-1. **Prepare a data model**: Ensure you have a data model ready. If you don’t have one, you can use the following example models:
-   * CSV data model [https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/main/tests/data/example.model.csv]
-   * JSON-LD data model [https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/main/tests/data/example.model.jsonld]
+1. **Prepare a Data Model**
+
+   Ensure you have a data model ready. If you don’t have one, you can use the following example models:
+
+   - **CSV Data Model**: `example.model.csv`
+     `<https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/main/tests/data/example.model.csv>`_
+
+   - **JSON-LD Data Model**: `example.model.jsonld`
+     `<https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/main/tests/data/example.model.jsonld>`_
 
 
 The contribution process includes three main commands.
@@ -26,11 +32,11 @@ This will open the Swagger UI, where you can explore all available endpoints for
 
 To generate a manifest:
 
-1. Locate the manifest/generate endpoint.
+1. Locate the `manifest/generate` endpoint.
 2. Click "Try it out" to enable input fields.
 3. Enter the following parameters and execute the request:
-    - **Schema_url**: The url of your data model. If you data model is hosted in Github, the url should looks like: `https://raw.githubusercontent.com/path-of-your-data-model.jsonld` or `https://raw.githubusercontent.com/path-of-your-data-model.csv`.
-    - **data_type**: The data type or schema model for your manifest (e.g., "Patient", "Biospecimen"). Feel free to enter all data types or "all manifests" to get manifests for all data types.
+    - **Schema_url**: The url of your data model. If you data model is hosted in Github, the url should look like: `https://raw.githubusercontent.com/path-of-your-data-model.jsonld` or `https://raw.githubusercontent.com/path-of-your-data-model.csv`.
+    - **data_type**: The data type or schema model for your manifest (e.g., "Patient", "Biospecimen"). Feel free to enter multiple data types or "all manifests" to get manifests for all data types.
     - **output_format**: The format in which you want to generate the manifest (e.g."excel", "google_sheet").
 
 This will generate a manifest directly from the API.
