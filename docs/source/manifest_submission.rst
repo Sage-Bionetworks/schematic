@@ -168,9 +168,30 @@ Option 2: Use the API
 
 
 
-Use project_scope parameter to expedite submission process
+Expedite submission process (Optional)
 -----------------------------------------------------------
 
 If your asset view contains multiple projects, it might take some time for the submission to finish.
 
 You could expedite the submission process by specifying the project_scope parameter. This parameter allows you to specify the project(s) that you want to submit the manifest to.
+
+To utilize this parameter, make sure that the projects listed there are part of the asset view.
+
+
+Option 1: Use the CLI
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -vc <your data type> -mrt file_only -no-fa -tcn "class_label" -ps "project_id1, project_id2"
+
+- **-ps**: Specifies the project scope as a comma separated list of project IDs.
+
+
+Option 2: Use the API
+~~~~~~~~~~~~~~~~~~~~~~
+
+1. Locate the **model/submit** endpoint in the **Swagger UI**.
+2. Click **"Try it out"** to enable input fields.
+3. Follow instructions to Submit a Manifest file
+3. Locate "project_scope" parameter and click on **Add string items** to add project IDs.
