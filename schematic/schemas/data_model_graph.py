@@ -106,7 +106,7 @@ class DataModelGraph:  # pylint: disable=too-few-public-methods
         )
 
         # Instantiate NetworkX MultiDigraph
-        graph: nx.DiGraph = nx.MultiDiGraph()
+        graph: nx.MultiDiGraph = nx.MultiDiGraph()
 
         all_node_dict = {}
 
