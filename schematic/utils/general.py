@@ -361,7 +361,7 @@ def escape_synapse_path(synapse_path: str) -> str:
     Like patterns in appear in select statements such as:
       select * from syn123 where foo like 'bar%'
     The like pattern is in single quotes
-    Single quoters must be escaped by using 2x single quotes:
+    Single quotes must be escaped by using 2x single quotes:
       select * from syn123 where foo like 'Children''s Hospital'
 
     Certain special characters can also be used in like statements and these need to escaped with

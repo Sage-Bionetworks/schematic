@@ -282,6 +282,8 @@ class TestGeneral:
             ("_%", "|_|%"),
             ("_xxx_", "|_xxx|_"),
             ("%xxx%", "|%xxx|%"),
+            ("_'", "|_''"),
+            ("%'", "|%''")
         ],
     )
     def test_escape_synapse_path(self, input_string: str, expected: str) -> None:
