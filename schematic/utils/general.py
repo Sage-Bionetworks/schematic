@@ -345,8 +345,10 @@ def create_like_statement(synapse_path: str) -> str:
     if "|" in synapse_path:
         raise ValueError("Pattern can not contain '|' character.")
     like_pattern = escape_synapse_path(synapse_path)
+    # Adding the % wildcard makes this find any file in the input path
     like_pattern = f"'{like_pattern}/%'"
     statement = f"path like {like_pattern}"
+    # If there are any like special characters, the escape char needs to be indicated
     if any((char in synapse_path for char in LIKE_PATTERN_SPECIAL_CHARS)):
         statement = f"{statement} escape '|'"
     return statement
