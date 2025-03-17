@@ -169,7 +169,7 @@ Option 2: Use the API
 
 
 Expedite submission process (Optional)
------------------------------------------------------------
+---------------------------------------
 
 If your asset view contains multiple projects, it might take some time for the submission to finish.
 
@@ -193,5 +193,82 @@ Option 2: Use the API
 
 1. Locate the **model/submit** endpoint in the **Swagger UI**.
 2. Click **"Try it out"** to enable input fields.
-3. Follow instructions to Submit a Manifest file
-3. Locate "project_scope" parameter and click on **Add string items** to add project IDs.
+3. Enter the required parameters and execute the request:
+
+   - **schema_url**: The URL of your data model.
+     - If your data model is hosted on **GitHub**, the URL should follow this format:
+       - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
+       - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
+
+   - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
+
+   - **dataset_id**: The **top-level Synapse dataset ID**.
+     - This can be a **Synapse Project ID** or a **Folder ID**.
+
+   - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
+
+   - remove default inputs in **dataset_scope**
+
+   - locate "project_scope" parameter and remove the default inputs. Then click on **Add string items** to add project IDs.
+
+   - set file_annotations_upload to `True`
+
+   - table_manipulation is "replace" by default. You could keep it that way.
+
+   - set **manifest_record_type** to "file_only" or you could change it based on your project requirements
+
+   - table_column_names: This is optional, and the available options are "class_label", "display_label", and "display_name". The default is "class_label".
+
+
+Enable upsert for manifest submission
+-------------------------------------
+
+By default, the CLI/API will replace the existing manifest and table with the new one. If you want to update the existing manifest and table, you could use the upsert option.
+
+
+Pre-requisite
+~~~~~~~~~~~~~~
+
+1. Ensure that all your manifests, including both the initial manifests and those containing rows to be upserted, include a primary key: <YourComponentName_id>. For example, if your component name is "Patient", the primary key should be "Patient_id".
+2. If you plan to use upsert in the future, select the upsert option during the initial table uploads.
+3. Currently it is required to use -dl/--use_display_label with table upserts.
+
+
+Option 1: Use the CLI
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -vc <your data type> -mrt table_and_file -no-fa -tcn "display_label" -tm "upsert"
+
+- **-tm**: The default option is "replace". Change it to "upsert" for enabling upsert.
+- **-tcn**: Use display label for upsert.
+
+Option 2: Use the API
+~~~~~~~~~~~~~~~~~~~~~~
+
+1. Locate the **model/submit** endpoint in the **Swagger UI**.
+2. Click **"Try it out"** to enable input fields.
+3. Enter the required parameters and execute the request:
+
+   - **schema_url**: The URL of your data model.
+     - If your data model is hosted on **GitHub**, the URL should follow this format:
+       - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
+       - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
+
+   - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
+
+   - **dataset_id**: The **top-level Synapse dataset ID**.
+     - This can be a **Synapse Project ID** or a **Folder ID**.
+
+   - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
+
+   - remove default inputs in **dataset_scope** and **"project_scope"
+
+   - set file_annotations_upload to `False` if you do not want annotations to be uploaded.
+
+   - table_manipulation is "replace" by default. Update it to **upsert**.
+
+   - set **manifest_record_type** to "table_and_file".
+
+   - **table_column_names**: Choose display_label for upsert.
