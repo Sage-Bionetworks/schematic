@@ -35,6 +35,15 @@ This will open the **Swagger UI**, where you can explore all available API endpo
 Submit a Manifest File to Synapse
 ---------------------------------
 
+.. note::
+
+  You can configure the format of the manifest being submitted by using the `-mrt flag` in the CLI or the `manifest_record_type` in the API.
+
+  For table column names, here's a brief explanation of all the options:
+   - display_name: use raw display name defined in the data model as the column name, no modifications to the name will be made.
+   - display_label: use the display name formatting as the column name. Will strip blacklisted characters (including spaces) when present.
+   - class_label: default, use standard class label and strip any blacklisted characters (including spaces) when present. A schematic class label is UpperCamelCase.
+
 Option 1: Use the CLI
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -48,17 +57,24 @@ This command will upload your manifest to Synapse and automatically validate it.
 
 .. code-block:: bash
 
-    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -vc <your data type> -mrt file_only
+    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -vc <your data type> -mrt file_only -no-fa -tcn "class_label"
 
    - **-c /path/to/config.yml**: Specifies the configuration file containing the data model location and asset view (`master_fileview_id`).
    - **-mp**: Your manifest file path.
    - **-mrt**: The format of manifest submission. The options are: "table_and_file", "file_only", "file_and_entities", "table_file_and_entities". "file_only" option would submit the manifest as a file.
    - **-vc <your_data_type>**: Defines the data type/schema model for the manifest (e.g., `"Patient"`, `"Biospecimen"`).
    - **-d <your_dataset_id>**: Retrieves the existing manifest associated with a specific dataset on Synpase.
+   - **-no-fa**: Skips the file annotations upload.
+   - **-tcn**: Table Column Names: This is optional, and the available options are "class_label", "display_label", and "display_name". The default is "class_label", but you can change it based on your requirements.
 
 
 Option 2: Use the API
 ~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+    During submission, validation is optional. If you have finished validation in previous step, you could skip validation by removing the default inputs.
+
 
 1. Locate the **model/submit** endpoint in the **Swagger UI**.
 2. Click **"Try it out"** to enable input fields.
@@ -82,11 +98,16 @@ Option 2: Use the API
 
    - table_manipulation is "replace" by default. You could keep it that way.
 
-   - set **`manifest_record_type`**` to "file_only"
+   - set **manifest_record_type** to "file_only" or you could change it based on your project requirements
+
+   - table_column_names: This is optional, and the available options are "class_label", "display_label", and "display_name". The default is "class_label".
 
 
-Submit a Manifest file and a Table to Synapse
----------------------------------------------
 
 Submit a Manifest file and Add Annotations
 -------------------------------------------
+
+
+
+Use dataset_scope or project_scope parameter to expedite submission process
+---------------------------------------------------------------------------
