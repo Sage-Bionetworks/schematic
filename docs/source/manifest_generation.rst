@@ -1,5 +1,5 @@
 Generate a manifest
----------------------------------------
+===================
 A **manifest** is a structured file containing metadata that adheres to a specific data model. This page covers different ways to generate a manifest.
 
 Prerequisites
