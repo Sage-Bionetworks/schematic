@@ -17,30 +17,6 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: set-release-env
-        shell: bash
-        run: |
-            RELEASE_TAG="${{ github.event.release.tag_name }}"
-            if [[ $RELEASE_TAG =~ ^v?([[:digit:]\.]+)(-rc)? ]]; then
-              VERSION="${BASH_REMATCH[1]}"
-              if [[ ${{ github.event.release.prerelease == true }} ]]; then
-                if [[ -z "${BASH_REMATCH[2]}" ]]; then
-                  echo "A test release tag should end with \"-rc\""
-                  exit 1
-                fi
-
-                # for pre-release we append the build number so we have
-                # distinct version numbers between prod and test pypi.
-                VERSION="$VERSION.$GITHUB_RUN_NUMBER"
-              fi
-
-            else
-              echo "Unable to parse deployment version from $RELEASE_TAG"
-              exit 1
-            fi
-
-            echo "VERSION=$VERSION" >> $GITHUB_ENV
-
       - id: build-package
         run: |
           python3 -m pip install --upgrade pip
