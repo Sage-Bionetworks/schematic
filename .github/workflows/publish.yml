@@ -41,16 +41,6 @@ jobs:
 
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-          # ensure that the version file in the package will have the correct version
-          # matching the name of the tag
-          - name: update-version
-            shell: bash
-            run: |
-              if [[ -n "$VERSION" ]]; then
-                sed "s|\"latestVersion\":.*$|\"latestVersion\":\"$VERSION\",|g" synapseclient/synapsePythonClient > temp
-                rm synapseclient/synapsePythonClient
-                mv temp synapseclient/synapsePythonClient
-              fi
       - id: update-version-number-in-toml
         run: |
           sed -i "s/version = \".*\"/version = \"$VERSION\"/g" pyproject.toml
