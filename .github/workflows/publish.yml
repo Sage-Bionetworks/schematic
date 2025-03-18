@@ -26,11 +26,13 @@ jobs:
           python3 -m pip install .
           python3 -m build
 
-          if [[ "${{ github.event.release.prerelease}}" == "true" ]]; then
+          if [[ ${{ github.event.release.prerelease == true }} ]]; then
               VERSION="${{ github.event.release.tag_name }}.$GITHUB_RUN_NUMBER"
           else
               VERSION=${{ github.event.release.tag_name }}
           fi
+
+          echo "VERSION=$VERSION"  # Prints VERSION to the logs
 
           SDIST_PACKAGE_NAME="schematicpy-${VERSION}.tar.gz"
           BDIST_PACKAGE_NAME="schematicpy-${VERSION}-py3-none-any.whl"
