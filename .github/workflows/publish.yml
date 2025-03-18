@@ -45,6 +45,10 @@ jobs:
         run: |
           sed -i "s/version = \".*\"/version = \"$VERSION\"/g" pyproject.toml
 
+      - id: update-lock-file
+        run: |
+          poetry lock --no-update
+
       - id: build-package
         run: |
           python3 -m pip install --upgrade pip
