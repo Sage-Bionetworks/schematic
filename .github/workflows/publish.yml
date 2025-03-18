@@ -44,13 +44,7 @@ jobs:
 
       - id: update-version-number-in-toml
         run: |
-          sed -i "s/version = \".*\"/version = \"$VERSION\"/g" pyproject.toml
-
-      - id: update-lock-file
-        run: |
-          curl -sSL https://install.python-poetry.org \
-            | python3 - --version ${{ env.POETRY_VERSION }};
-          poetry lock --no-update
+          sed -i '/^\[tool.poetry\]/,/^\[/{s/version = ".*"/version = "'"$VERSION"'"/}' pyproject.toml
 
       - id: build-package
         run: |
