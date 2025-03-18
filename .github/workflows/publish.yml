@@ -48,14 +48,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build-package.outputs.sdist-package-name }}
-          path: dist/
+          path: dist/${{ steps.build-package.outputs.sdist-package-name }}
           if-no-files-found: error
 
       - name: upload-bdist-artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build-package.outputs.bdist-package-name }}
-          path: dist/
+          path: dist/${{ steps.build-package.outputs.bdist-package-name }}
           if-no-files-found: error
 
   publish:
