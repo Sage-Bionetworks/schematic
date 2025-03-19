@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 SYN_ID_REGEX = r"(syn\d+\,?)+"
+LIKE_PATTERN_SPECIAL_CHARS = ["%", "_"]
 
 
 def find_duplicates(_list: list[T]) -> set[T]:
@@ -313,3 +314,70 @@ def normalize_path(path: str, parent_folder: str) -> str:
     if not os.path.isabs(path):
         path = os.path.join(parent_folder, path)
     return os.path.normpath(path)
+
+
+def create_like_statement(synapse_path: str) -> str:
+    """
+    Creates a sql like statement for a Synapse table query
+    See:
+      https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/web/controller/TableExamples.html
+
+    The statement is used to find all files in the folder, should be something like:
+      path like '<synapse_path>/%'
+
+    Certain special characters can also be used in like statements and these need to escaped with
+      a special character of the users choice. This function will use the '|' character like the
+      documentation shows. These need to have the "escape '|'" string added at the end, and
+      it will look like:
+
+      path like '<synapse_path>/%' escape '|'
+
+
+    Args:
+        synapse_path (str): The input synapse path to be made into a like statement
+
+    Raises:
+        ValueError: If the input path contains a '|' character
+
+    Returns:
+        str: A SQL like statement
+    """
+    if "|" in synapse_path:
+        raise ValueError("Pattern can not contain '|' character.")
+    like_pattern = escape_synapse_path(synapse_path)
+    # Adding the % wildcard makes this find any file in the input path
+    like_pattern = f"'{like_pattern}/%'"
+    statement = f"path like {like_pattern}"
+    # If there are any like special characters, the escape char needs to be indicated
+    if any((char in synapse_path for char in LIKE_PATTERN_SPECIAL_CHARS)):
+        statement = f"{statement} escape '|'"
+    return statement
+
+
+def escape_synapse_path(synapse_path: str) -> str:
+    """
+    Escapes certain characters in a synapse_path for a Synapse Table Query like statement
+    See:
+      https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/web/controller/TableExamples.html
+
+    Like patterns in appear in select statements such as:
+      select * from syn123 where foo like 'bar%'
+    The like pattern is in single quotes
+    Single quotes must be escaped by using 2x single quotes:
+      select * from syn123 where foo like 'Children''s Hospital'
+
+    Certain special characters can also be used in like statements and these need to escaped with
+      a special character of the users choice. This function will use the '|' character like the
+      documentation shows.
+
+
+    Args:
+        synapse_path (str): The synapse_path that needs to be escaped
+
+    Returns:
+        str: The like pattern with problematic characters escaped
+    """
+    pattern = synapse_path.replace("'", "''")
+    for char in LIKE_PATTERN_SPECIAL_CHARS:
+        pattern = pattern.replace(char, f"|{char}")
+    return pattern
