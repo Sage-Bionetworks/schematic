@@ -42,6 +42,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - id: update-version-number-in-toml
+        if: ${{ github.event.release.prerelease == true }}
         run: |
           sed -i '/^\[tool.poetry\]/,/^\[/{s/version = ".*"/version = "'"$VERSION"'"/}' pyproject.toml
 
