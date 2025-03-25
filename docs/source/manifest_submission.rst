@@ -263,7 +263,7 @@ Option 2: Use the API
 
    - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
-   - remove default inputs in **dataset_scope** and **"project_scope"
+   - remove default inputs in **dataset_scope** and **"project_scope"**
 
    - set file_annotations_upload to `False` if you do not want annotations to be uploaded.
 
