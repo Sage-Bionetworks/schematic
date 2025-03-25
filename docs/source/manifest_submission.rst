@@ -15,7 +15,7 @@ Ensure you have a Synapse account and have obtained your Synapse credential by f
   Refer to the **"Installation Guide for Users"** for detailed instructions.
 
 - **Understand Important Concepts**:
-  Familiarize yourself with key concepts outlined on the **home page** of the documentation.
+  Familiarize yourself with key concepts outlined on the :doc:`index.rst` page.
 
 - **Configuration File**:
   Learn more about each attribute in the configuration file by referring to the relevant documentation.
