@@ -231,7 +231,7 @@ Pre-requisite
 
 1. Ensure that all your manifests, including both the initial manifests and those containing rows to be upserted, include a primary key: <YourComponentName_id>. For example, if your component name is "Patient", the primary key should be "Patient_id".
 2. If you plan to use upsert in the future, select the upsert option during the initial table uploads.
-3. Currently it is required to use -dl/--use_display_label with table upserts.
+3. Currently it is required to use -tcn "display_label" with table upserts.
 
 
 Option 1: Use the CLI
