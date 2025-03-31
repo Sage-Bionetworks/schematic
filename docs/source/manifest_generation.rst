@@ -67,7 +67,7 @@ Option 2: Use the API
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
    - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`).
-     - You can specify multiple data types or enter `"all manifests"` to generate manifests for all available data types.
+       - You can specify multiple data types or enter `"all manifests"` to generate manifests for all available data types.
 
    - **output_format**: The desired format for the generated manifest.
      - Options include `"excel"` or `"google_sheet"`.
