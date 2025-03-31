@@ -78,26 +78,26 @@ Option 2: Use the API
 3. Enter the required parameters and execute the request:
 
    - **schema_url**: The URL of your data model.
-     - If your data model is hosted on **GitHub**, the URL should follow this format:
+     - If your data model is hosted on **GitHub**, use the following formats:
        - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
-   - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
+   - **data_type**: Specify the data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
 
-   - **dataset_id**: The **top-level Synapse dataset ID**.
-     - This can be a **Synapse Project ID** or a **Folder ID**.
+   - **dataset_id**: Provide the **top-level Synapse dataset ID**.
+     - This can be either a **Synapse Project ID** or a **Folder ID**.
 
-   - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
+   - **asset_view**: Enter the **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
-   - remove default inputs in **dataset_scope** and **project_scope**
+   - **dataset_scope** and **project_scope**: Remove the default inputs.
 
-   - set file_annotations_upload to false
+   - **file_annotations_upload**: Set this to `false`.
 
-   - table_manipulation is "replace" by default. You could keep it that way.
+   - **table_manipulation**: The default is "replace". You can keep it as is.
 
-   - set **manifest_record_type** to "file_only" or you could change it based on your project requirements
+   - **manifest_record_type**: Set this to "file_only" or adjust it based on your project requirements.
 
-   - table_column_names: This is optional, and the available options are "class_label", "display_label", and "display_name". The default is "class_label".
+   - **table_column_names**: This is optional. Available options are "class_label", "display_label", and "display_name". The default is "class_label".
 
 
 
@@ -156,15 +156,15 @@ Option 2: Use the API
 
    - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
-   - remove default inputs in **dataset_scope** and **project_scope**
+   - **dataset_scope** and **project_scope**: Remove any default inputs provided in these fields.
 
-   - set file_annotations_upload to `True`
+   - **file_annotations_upload**: Set this to `True`.
 
-   - table_manipulation is "replace" by default. You could keep it that way.
+   - **table_manipulation**: The default is "replace". You can keep it as is or modify it if needed.
 
-   - set **manifest_record_type** to "file_only" or you could change it based on your project requirements
+   - **manifest_record_type**: Set this to "file_only" or adjust it based on your project requirements.
 
-   - table_column_names: This is optional, and the available options are "class_label", "display_label", and "display_name". The default is "class_label".
+   - **table_column_names**: This is optional. Available options are "class_label", "display_label", and "display_name". The default is "class_label".
 
 
 
@@ -200,24 +200,24 @@ Option 2: Use the API
        - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
-   - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
+   - **data_type**: Specify the data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
 
-   - **dataset_id**: The **top-level Synapse dataset ID**.
-     - This can be a **Synapse Project ID** or a **Folder ID**.
+   - **dataset_id**: Provide the **top-level Synapse dataset ID**.
+     - This can be either a **Synapse Project ID** or a **Folder ID**.
 
-   - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
+   - **asset_view**: Enter the **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
-   - remove default inputs in **dataset_scope**
+   - **dataset_scope**: Remove any default inputs provided in this field.
 
-   - locate "project_scope" parameter and remove the default inputs. Then click on **Add string items** to add project IDs.
+   - **project_scope**: Locate this parameter, remove the default inputs, and click on **Add string items** to add project IDs.
 
-   - set file_annotations_upload to `True`
+   - **file_annotations_upload**: Set this to `True`.
 
-   - table_manipulation is "replace" by default. You could keep it that way.
+   - **table_manipulation**: The default is "replace". You can keep it as is.
 
-   - set **manifest_record_type** to "file_only" or you could change it based on your project requirements
+   - **manifest_record_type**: Set this to "file_only" or adjust it based on your project requirements.
 
-   - table_column_names: This is optional, and the available options are "class_label", "display_label", and "display_name". The default is "class_label".
+   - **table_column_names**: This is optional. Available options are "class_label", "display_label", and "display_name". The default is "class_label".
 
 
 Enable upsert for manifest submission
@@ -253,8 +253,8 @@ Option 2: Use the API
 
    - **schema_url**: The URL of your data model.
      - If your data model is hosted on **GitHub**, the URL should follow this format:
-       - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
-       - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
+       - **JSON-LD**: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
+       - **CSV**: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
    - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
 
@@ -263,12 +263,12 @@ Option 2: Use the API
 
    - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
-   - remove default inputs in **dataset_scope** and **"project_scope"**
+   - **dataset_scope** and **project_scope**: Remove any default inputs provided in these fields.
 
-   - set file_annotations_upload to `False` if you do not want annotations to be uploaded.
+   - **file_annotations_upload**: Set this to `False` if you do not want annotations to be uploaded.
 
-   - table_manipulation is "replace" by default. Update it to **upsert**.
+   - **table_manipulation**: The default is **"replace"**. Update it to **"upsert"**.
 
-   - set **manifest_record_type** to "table_and_file".
+   - **manifest_record_type**: Set this to **"table_and_file"**.
 
-   - **table_column_names**: Choose display_label for upsert.
+   - **table_column_names**: Choose **"display_label"** for upsert.
