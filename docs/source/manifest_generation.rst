@@ -12,7 +12,7 @@ Prerequisites
   Refer to the :doc:`Installation Guide for Users <installation>` for detailed instructions.
 
 - **Understand Important Concepts**:
-  Familiarize yourself with key concepts outlined on the :doc:`home page <index>`_ of the documentation.
+  Familiarize yourself with key concepts outlined on the :ref:`home page` of the documentation.
 
 - **Configuration File**:
   Learn more about each attribute in the configuration file by referring to the relevant documentation.
