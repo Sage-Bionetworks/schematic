@@ -196,29 +196,30 @@ Option 2: Use the API
 3. Enter the required parameters and execute the request:
 
    - **schema_url**: The URL of your data model.
-     - If your data model is hosted on **GitHub**, the URL should follow this format:
+     - If your data model is hosted on **GitHub**, use the following formats:
        - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
    - **data_type**: Specify the data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
 
    - **dataset_id**: Provide the **top-level Synapse dataset ID**.
-     - This can be either a **Synapse Project ID** or a **Folder ID**.
+       - This can be either a **Synapse Project ID** or a **Folder ID**.
 
    - **asset_view**: Enter the **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
-   - **dataset_scope**: Remove any default inputs provided in this field.
+   - **project_scope**: Remove the default inputs. Add project IDs as string items.
 
-   - **project_scope**: Locate this parameter, remove the default inputs, and click on **Add string items** to add project IDs.
+   - **dataset_scope**: Remove default inputs.
 
-   - **file_annotations_upload**: Set this to `True`.
+   - **project_scope**: Remove default inputs and add project IDs as string items.
+
+   - **file_annotations_upload**: Set this to `false`.
 
    - **table_manipulation**: The default is "replace". You can keep it as is.
 
    - **manifest_record_type**: Set this to "file_only" or adjust it based on your project requirements.
 
-   - **table_column_names**: This is optional. Available options are "class_label", "display_label", and "display_name". The default is "class_label".
-
+   - **table_column_names**: This is optional. Available options are "class_label", "display_label", and "display_name". The default is "class_label". You can keep it as is.
 
 Enable upsert for manifest submission
 -------------------------------------
