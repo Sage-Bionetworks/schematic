@@ -9,10 +9,10 @@ Prerequisites
 
 - **Install and Configure Schematic**:
   Ensure you have installed `schematic` and set up its dependencies.
-  Refer to the `Installation Guide for Users <installation>`_ for detailed instructions.
+  Refer to the :doc:`Installation Guide for Users <installation>` for detailed instructions.
 
 - **Understand Important Concepts**:
-  Familiarize yourself with key concepts outlined on the `home page <index>`_ of the documentation.
+  Familiarize yourself with key concepts outlined on the :doc:`home page <index>`_ of the documentation.
 
 - **Configuration File**:
   Learn more about each attribute in the configuration file by referring to the relevant documentation.
