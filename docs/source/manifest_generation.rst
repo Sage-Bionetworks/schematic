@@ -12,7 +12,7 @@ Prerequisites
   See the :ref:`installation` section for more details.
 
 - **Understand Important Concepts**:
-  See the :ref:`home` section for an overview of key concepts.
+  Understand Important Concepts: Familiarize yourself with key concepts outlined on the :ref:`index` of the documentation.
 
 - **Configuration File**:
   Learn more about each attribute in the configuration file by referring to the relevant documentation.
