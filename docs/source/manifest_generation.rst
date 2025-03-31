@@ -9,10 +9,10 @@ Prerequisites
 
 - **Install and Configure Schematic**:
   Ensure you have installed `schematic` and set up its dependencies.
-  Refer to the `Installation Guide for Users <./installation.rst>`_ for detailed instructions.
+  Refer to the `Installation Guide for Users <./installation.html>`_ for detailed instructions.
 
 - **Understand Important Concepts**:
-  Familiarize yourself with key concepts outlined on the `home page <./index.rst>` of the documentation.
+  Familiarize yourself with key concepts outlined on the `home page <./index.html>`_ of the documentation.
 
 - **Configuration File**:
   Learn more about each attribute in the configuration file by referring to the relevant documentation.
@@ -61,16 +61,16 @@ Option 2: Use the API
 2. Click "Try it out" to enable input fields.
 3. Enter the following parameters and execute the request:
 
-  - **schema_url**: The URL of your data model.
-    - If your data model is hosted on **GitHub**, the URL should follow this format:
-      - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
-      - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
+   - **schema_url**: The URL of your data model.
+     - If your data model is hosted on **GitHub**, the URL should follow this format:
+       - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
+       - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
-  - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`).
-    - You can specify multiple data types or enter `"all manifests"` to generate manifests for all available data types.
+   - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`).
+     - You can specify multiple data types or enter `"all manifests"` to generate manifests for all available data types.
 
-  - **output_format**: The desired format for the generated manifest.
-    - Options include `"excel"` or `"google_sheet"`.
+   - **output_format**: The desired format for the generated manifest.
+     - Options include `"excel"` or `"google_sheet"`.
 
 This will generate a manifest directly from the API.
 
