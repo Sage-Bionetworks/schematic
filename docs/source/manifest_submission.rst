@@ -12,10 +12,10 @@ Ensure you have a Synapse account and have obtained your Synapse credential by f
 
 - **Install and Configure Schematic**:
   Ensure you have installed `schematic` and set up its dependencies.
-  Refer to the **"Installation Guide for Users"** for detailed instructions.
+  See the :ref:`installation` section for more details.
 
 - **Understand Important Concepts**:
-  Familiarize yourself with key concepts outlined on the :doc:`index.rst` page.
+  Understand Important Concepts: Familiarize yourself with key concepts outlined on the :ref:`index` of the documentation.
 
 - **Configuration File**:
   Learn more about each attribute in the configuration file by referring to the relevant documentation.
