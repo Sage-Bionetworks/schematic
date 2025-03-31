@@ -61,16 +61,16 @@ Option 2: Use the API
 2. Click "Try it out" to enable input fields.
 3. Enter the following parameters and execute the request:
 
-   - **schema_url**: The URL of your data model.
-     - If your data model is hosted on **GitHub**, the URL should follow this format:
-       - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
-       - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
+  - **schema_url**: The URL of your data model.
+    - If your data model is hosted on **GitHub**, the URL should follow this format:
+      - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
+      - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
-   - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`).
-     - You can specify multiple data types or enter `"all manifests"` to generate manifests for all available data types.
+  - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`).
+    - You can specify multiple data types or enter `"all manifests"` to generate manifests for all available data types.
 
-   - **output_format**: The desired format for the generated manifest.
-     - Options include `"excel"` or `"google_sheet"`.
+  - **output_format**: The desired format for the generated manifest.
+    - Options include `"excel"` or `"google_sheet"`.
 
 This will generate a manifest directly from the API.
 
@@ -108,18 +108,18 @@ To generate a manifest using the **Schematic API**, follow these steps:
 3. Enter the required parameters and execute the request:
 
    - **schema_url**: The URL of your data model.
-     - If your data model is hosted on **GitHub**, the URL should follow this format:
-       - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
-       - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
+       - If your data model is hosted on **GitHub**, the URL should follow this format:
+           - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
+           - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
    - **output_format**: The desired format for the generated manifest.
-     - Options include `"excel"` or `"google_sheet"`.
+       - Options include `"excel"` or `"google_sheet"`.
 
    - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`).
-     - You can specify multiple data types or enter `"all manifests"` to generate manifests for all available data types.
+       - You can specify multiple data types or enter `"all manifests"` to generate manifests for all available data types.
 
    - **dataset_id**: The **top-level Synapse dataset ID**.
-     - This can be a **Synapse Project ID** or a **Folder ID**.
+       - This can be a **Synapse Project ID** or a **Folder ID**.
 
    - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
