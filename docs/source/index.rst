@@ -148,6 +148,6 @@ For the entire Python API reference documentation, you can visit the docs here: 
    asset_store
    configuration
    tutorials
+   manifest_submission
    troubleshooting
    cli_reference
-   manifest_submission

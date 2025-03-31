@@ -85,7 +85,7 @@ Option 2: Use the API
    - **data_type**: Specify the data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
 
    - **dataset_id**: Provide the **top-level Synapse dataset ID**.
-     - This can be either a **Synapse Project ID** or a **Folder ID**.
+       - This can be either a **Synapse Project ID** or a **Folder ID**.
 
    - **asset_view**: Enter the **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
@@ -151,8 +151,8 @@ Option 2: Use the API
 
    - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
 
-   - **dataset_id**: The **top-level Synapse dataset ID**.
-     - This can be a **Synapse Project ID** or a **Folder ID**.
+  - **dataset_id**: The **top-level Synapse dataset ID**.
+    - This can be a **Synapse Project ID** or a **Folder ID**.
 
    - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
