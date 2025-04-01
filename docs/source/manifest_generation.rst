@@ -147,6 +147,34 @@ To generate a manifest using the **Schematic API**, follow these steps:
 Generate a manifest using a dataset on synapse and pull annotations
 --------------------------------------------------------------------
 
+.. note::
+    When you pull annotations from Synapse, the existing metadata (annotations) associated with files or folders in a Synapse dataset is automatically retrieved and pre-filled into the generated manifest.
+    This saves time and ensures consistency between the Synapse dataset and the manifest.
+
+    See below as an example:
+
+    .. code-block:: text
+
+        syn12345678/
+        ├── file1.txt
+        ├── file2.txt
+        └── file3.txt
+
+    The corresponding annotations might look like this:
+
+    +---------------+---------------------+----------------------+
+    | **File Name** | **Annotation Key**  | **Annotation Value** |
+    +===============+=====================+======================+
+    | file1.txt     | species             | test1               |
+    +---------------+---------------------+----------------------+
+    | file2.txt     | species             | test2               |
+    +---------------+---------------------+----------------------+
+    | file3.txt     | species             | test3               |
+    +---------------+---------------------+----------------------+
+
+    The generated manifest will include the above annotations pulled from Synapse.
+
+
 Option 1: Use the CLI
 ~~~~~~~~~~~~~~~~~~~~~~
 
