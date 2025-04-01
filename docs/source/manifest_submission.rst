@@ -210,8 +210,6 @@ Option 2: Use the API
 
    - **dataset_scope**: Remove default inputs.
 
-   - **project_scope**: Remove default inputs and add project IDs as string items.
-
    - **file_annotations_upload**: Set this to `false`.
 
    - **table_manipulation**: The default is "replace". You can keep it as is.
