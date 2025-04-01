@@ -252,29 +252,23 @@ Option 2: Use the API
 3. Enter the required parameters and execute the request:
 
    - **schema_url**: The URL of your data model.
-     - If your data model is hosted on **GitHub**, the URL should follow this format:
-       - **JSON-LD**: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
-       - **CSV**: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
+     - If your data model is hosted on **GitHub**, use the following formats:
+       - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
+       - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
-   - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`).
-     - To skip validation, remove the default inputs.
+   - **data_type**: Specify the data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
 
-   - **dataset_id**: The **top-level Synapse dataset ID**.
-     - This can be a **Synapse Project ID** or a **Folder ID**.
+   - **dataset_id**: Provide the **top-level Synapse dataset ID**.
+       - This can be either a **Synapse Project ID** or a **Folder ID**.
 
-   - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
+   - **asset_view**: Enter the **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
-   - **dataset_scope** and **project_scope**:
-     - Remove any default inputs provided in these fields.
+   - **dataset_scope** and **project_scope**: Remove the default inputs.
 
-   - **file_annotations_upload**:
-     - Set this to `False` if you do not want annotations to be uploaded.
+   - **file_annotations_upload**: Set this to `False` if you do not want annotations to be uploaded.
 
-   - **table_manipulation**:
-     - The default is **"replace"**. Update it to **"upsert"**.
+   - **table_manipulation**: Update it to "upsert".
 
-   - **manifest_record_type**:
-     - Set this to **"table_and_file"**.
+   - **manifest_record_type**: Set this to **"table_and_file"**
 
-   - **table_column_names**:
-     - Choose **"display_label"** for upsert.
+   - **table_column_names**:  Choose **"display_label"** for upsert.
