@@ -96,7 +96,7 @@ Option 2: Use the API
     During submission, validation is optional. If you have finished validation in previous step, you could skip validation by removing the default inputs.
 
 
-1. Locate the **model/submit** endpoint in the **Swagger UI**.
+1. Locate the **model/submit** endpoint `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>` in the **Swagger UI**.
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
@@ -163,7 +163,7 @@ Option 2: Use the API
     During submission, validation is optional. If you have finished validation in previous step, you could skip validation by removing the default inputs.
 
 
-1. Locate the **model/submit** endpoint in the **Swagger UI**.
+1. Locate the **model/submit** endpoint `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>` in the **Swagger UI**.
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
@@ -214,7 +214,7 @@ Option 1: Use the CLI
 Option 2: Use the API
 ~~~~~~~~~~~~~~~~~~~~~~
 
-1. Locate the **model/submit** endpoint in the **Swagger UI**.
+1. Locate the **model/submit** endpoint `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>` in the **Swagger UI**.
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
@@ -270,7 +270,7 @@ Option 1: Use the CLI
 Option 2: Use the API
 ~~~~~~~~~~~~~~~~~~~~~~
 
-1. Locate the **model/submit** endpoint in the **Swagger UI**.
+1. Locate the **model/submit** endpoint `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>` in the **Swagger UI**.
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
