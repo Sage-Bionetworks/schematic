@@ -43,6 +43,30 @@ Submit a Manifest File to Synapse
    - display_label: use the display name formatting as the column name. Will strip blacklisted characters (including spaces) when present.
    - class_label: default, use standard class label and strip any blacklisted characters (including spaces) when present. A schematic class label is UpperCamelCase.
 
+.. note::
+
+  Manifests should be submitted to the top-level dataset folder. Below are some examples demonstrating where the manifest file should go:
+
+  .. code-block:: text
+
+     syn12345678/
+     ├── file1.csv
+     ├── file2.csv
+
+  Here is the top-level folder ID: syn12345678
+
+  Here's an example using subfolders:
+
+  .. code-block:: text
+
+     syn12345678/
+     ├── subfolder/
+     │   └── file1
+     ├── file2
+
+  Here is the top-level folder ID: syn12345678
+
+
 Option 1: Use the CLI
 ~~~~~~~~~~~~~~~~~~~~~~
 
