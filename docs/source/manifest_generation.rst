@@ -83,9 +83,7 @@ Option 1: Use the CLI
 
 .. note::
 
-    Ensure your **Synapse credentials** are configured before running the command.
-    You can obtain a **personal access token** from Synapse by following the instructions here:
-    `<https://python-docs.synapse.org/tutorials/authentication/#prerequisites>`_
+    See the :ref:`installation` section for more details to obtain synapse credentials and set up synapse configuration file.
 
 
 The **top-level dataset** can be either an empty folder or a folder containing files.
@@ -162,17 +160,17 @@ Generate a manifest using a dataset on synapse and pull annotations
 
     The corresponding annotations might look like this:
 
-    +---------------+---------------------+----------------------+
-    | **File Name** | **Annotation Key**  | **Annotation Value** |
-    +===============+=====================+======================+
-    | file1.txt     | species             | test1               |
-    +---------------+---------------------+----------------------+
-    | file2.txt     | species             | test2               |
-    +---------------+---------------------+----------------------+
-    | file3.txt     | species             | test3               |
-    +---------------+---------------------+----------------------+
+    +---------------+---------------------+-----------------------+
+    | **File Name** | **Annotation Key** | **Annotation Value**  |
+    +===============+=====================+=======================+
+    | file1.txt     | species             | test1                 |
+    +---------------+---------------------+-----------------------+
+    | file2.txt     | species             | test2                 |
+    +---------------+---------------------+-----------------------+
+    | file3.txt     | species             | test3                 |
+    +---------------+---------------------+-----------------------+
 
-    The generated manifest will include the above annotations pulled from Synapse.
+    The generated manifest will include the above annotations pulled from Synapse when enabled.
 
 
 Option 1: Use the CLI
