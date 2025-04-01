@@ -5,8 +5,7 @@ Prerequisites
 -------------
 
 **Obtain Synapse Credentials**:
-Ensure you have a Synapse account and have obtained your Synapse credential by following the instructions here:
-    `<https://python-docs.synapse.org/tutorials/authentication/#prerequisites>`_
+Ensure you have a Synapse account and have obtained your Synapse credential by following the instructions `here <https://python-docs.synapse.org/tutorials/authentication/#prerequisites>`_
 
 **Before Using the Schematic CLI**
 
@@ -151,8 +150,8 @@ Option 2: Use the API
 
    - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
 
-  - **dataset_id**: The **top-level Synapse dataset ID**.
-    - This can be a **Synapse Project ID** or a **Folder ID**.
+   - **dataset_id**: The **top-level Synapse dataset ID**.
+     - This can be a **Synapse Project ID** or a **Folder ID**.
 
    - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
@@ -257,19 +256,25 @@ Option 2: Use the API
        - **JSON-LD**: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - **CSV**: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
-   - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
+   - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`).
+     - To skip validation, remove the default inputs.
 
    - **dataset_id**: The **top-level Synapse dataset ID**.
      - This can be a **Synapse Project ID** or a **Folder ID**.
 
    - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
-   - **dataset_scope** and **project_scope**: Remove any default inputs provided in these fields.
+   - **dataset_scope** and **project_scope**:
+     - Remove any default inputs provided in these fields.
 
-   - **file_annotations_upload**: Set this to `False` if you do not want annotations to be uploaded.
+   - **file_annotations_upload**:
+     - Set this to `False` if you do not want annotations to be uploaded.
 
-   - **table_manipulation**: The default is **"replace"**. Update it to **"upsert"**.
+   - **table_manipulation**:
+     - The default is **"replace"**. Update it to **"upsert"**.
 
-   - **manifest_record_type**: Set this to **"table_and_file"**.
+   - **manifest_record_type**:
+     - Set this to **"table_and_file"**.
 
-   - **table_column_names**: Choose **"display_label"** for upsert.
+   - **table_column_names**:
+     - Choose **"display_label"** for upsert.
