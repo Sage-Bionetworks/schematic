@@ -57,7 +57,7 @@ And if you want to generate a manifest as a csv file, you could do:
 Option 2: Use the API
 ~~~~~~~~~~~~~~~~~~~~~
 
-1. Locate the `manifest/generate` endpoint.
+1. Visit the `manifest/generate endpoint <https://schematic.api.sagebionetworks.org/v1/ui/#/Manifest%20Operations/schematic_api.api.routes.get_manifest_route>`_.
 2. Click "Try it out" to enable input fields.
 3. Enter the following parameters and execute the request:
 
@@ -90,6 +90,27 @@ Option 1: Use the CLI
 
 The **top-level dataset** can be either an empty folder or a folder containing files.
 
+See below as an example of a top-level dataset:
+
+.. code-block:: text
+
+    syn12345678/
+    ├── sample1.fastq
+    ├── sample2.fastq
+    └── sample3.fastq
+
+
+See another example of a top-level dataset with subfolders:
+
+.. code-block:: text
+
+    syn12345678/
+    └── subfolder/
+        ├── sample4.fastq
+        └── sample5.fastq
+
+.. note::
+
    .. code-block:: bash
 
        schematic manifest -c /path/to/config.yml get -dt <your_data_type> -s -d <synapse_dataset_id>
@@ -103,7 +124,7 @@ Option 2: Use the API
 
 To generate a manifest using the **Schematic API**, follow these steps:
 
-1. Locate the **`manifest/generate`** endpoint in the **Swagger UI**.
+1. Visit the `manifest/generate endpoint <https://schematic.api.sagebionetworks.org/v1/ui/#/Manifest%20Operations/schematic_api.api.routes.get_manifest_route>`_.
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
@@ -153,7 +174,7 @@ Option 2: Use the API
 
 To generate a manifest using the **Schematic API**, follow these steps:
 
-1. Locate the **manifest/generate** endpoint in the **Swagger UI**.
+1. Visit the `manifest/generate endpoint <https://schematic.api.sagebionetworks.org/v1/ui/#/Manifest%20Operations/schematic_api.api.routes.get_manifest_route>`_.
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
