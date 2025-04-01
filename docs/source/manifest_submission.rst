@@ -53,13 +53,13 @@ Option 1: Use the CLI
 
 .. code-block:: bash
 
-    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -vc <your data type> -mrt file_only -no-fa -tcn "class_label"
+    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -vc <your data type> -mrt table_and_file -no-fa -tcn "class_label"
 
 - **-c /path/to/config.yml**: Specifies the configuration file containing the data model location and asset view (`master_fileview_id`).
 - **-mp**: Your manifest file path.
 - **-mrt**: The format of manifest submission. The options are: "table_and_file", "file_only", "file_and_entities", "table_file_and_entities". "file_only" option would submit the manifest as a file.
-- **-vc <your_data_type>**: Defines the data type/schema model for the manifest (e.g., `"Patient"`, `"Biospecimen"`).
-- **-d <your_dataset_id>**: Retrieves the existing manifest associated with a specific dataset on Synpase.
+- **-vc <your_data_type>**: Defines the data type/schema model for the manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove this flag.
+- **-d <your_dataset_id>**: the top level dataset id that you want to submit the manifest to.
 - **-no-fa**: Skips the file annotations upload.
 - **-tcn**: Table Column Names: This is optional, and the available options are "class_label", "display_label", and "display_name". The default is "class_label", but you can change it based on your requirements.
 
@@ -90,11 +90,11 @@ Option 2: Use the API
 
    - **dataset_scope** and **project_scope**: Remove the default inputs.
 
-   - **file_annotations_upload**: Set this to `false`.
+   - **file_annotations_upload**: Set this to `False`.
 
    - **table_manipulation**: The default is "replace". You can keep it as is.
 
-   - **manifest_record_type**: Set this to "file_only" or adjust it based on your project requirements.
+   - **manifest_record_type**: Set this to "table_and_file" or adjust it based on your project requirements.
 
    - **table_column_names**: This is optional. Available options are "class_label", "display_label", and "display_name". The default is "class_label".
 
@@ -120,13 +120,13 @@ Option 1: Use the CLI
 
 .. code-block:: bash
 
-    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -vc <your data type> -mrt file_only -no-fa -tcn "class_label"
+    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -vc <your data type> -mrt table_and_file -fa -tcn "class_label"
 
 - **-c /path/to/config.yml**: Specifies the configuration file containing the data model location and asset view (`master_fileview_id`).
 - **-mp**: Your manifest file path.
 - **-mrt**: The format of manifest submission. The options are: "table_and_file", "file_only", "file_and_entities", "table_file_and_entities". "file_only" option would submit the manifest as a file.
-- **-vc <your_data_type>**: Defines the data type/schema model for the manifest (e.g., `"Patient"`, `"Biospecimen"`).
-- **-d <your_dataset_id>**: Retrieves the existing manifest associated with a specific dataset on Synpase.
+- **-vc <your_data_type>**: Defines the data type/schema model for the manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove this flag.
+- **-d <your_dataset_id>**: the top level dataset id that you want to submit the manifest to.
 - **-fa**: Enable file annotations upload.
 - **-tcn**: Table Column Names: This is optional, and the available options are "class_label", "display_label", and "display_name". The default is "class_label", but you can change it based on your requirements.
 
@@ -161,7 +161,7 @@ Option 2: Use the API
 
    - **table_manipulation**: The default is "replace". You can keep it as is or modify it if needed.
 
-   - **manifest_record_type**: Set this to "file_only" or adjust it based on your project requirements.
+   - **manifest_record_type**: Set this to "table_and_file" or adjust it based on your project requirements.
 
    - **table_column_names**: This is optional. Available options are "class_label", "display_label", and "display_name". The default is "class_label".
 
@@ -182,7 +182,7 @@ Option 1: Use the CLI
 
 .. code-block:: bash
 
-    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -vc <your data type> -mrt file_only -no-fa -tcn "class_label" -ps "project_id1, project_id2"
+    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -vc <your data type> -no-fa -ps "project_id1, project_id2"
 
 - **-ps**: Specifies the project scope as a comma separated list of project IDs.
 
@@ -218,7 +218,8 @@ Option 2: Use the API
 
    - **manifest_record_type**: Set this to "file_only" or adjust it based on your project requirements.
 
-   - **table_column_names**: This is optional. Available options are "class_label", "display_label", and "display_name". The default is "class_label". You can keep it as is.
+   - **table_column_names**: This parameter is not applicable when uploading a manifest as a file. You can keep it as is and it will be ignored.
+
 
 Enable upsert for manifest submission
 -------------------------------------
@@ -239,7 +240,7 @@ Option 1: Use the CLI
 
 .. code-block:: bash
 
-    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -vc <your data type> -mrt table_and_file -no-fa -tcn "display_label" -tm "upsert"
+    schematic model -c /path/to/config.yml submit -mp <your csv manifest path> -d <your synapse top level folder id> -mrt table_and_file -no-fa -tcn "display_label" -tm "upsert"
 
 - **-tm**: The default option is "replace". Change it to "upsert" for enabling upsert.
 - **-tcn**: Use display label for upsert.
