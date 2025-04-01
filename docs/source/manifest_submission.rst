@@ -5,7 +5,7 @@ Prerequisites
 -------------
 
 **Obtain Synapse Credentials**:
-Ensure you have a Synapse account and have obtained your Synapse credential by following the instructions `here <https://python-docs.synapse.org/tutorials/authentication/#prerequisites>`_
+Ensure you have a Synapse account and set up Synapse configuration file correctly. See the :ref:`installation` section for more details.
 
 **Before Using the Schematic CLI**
 
