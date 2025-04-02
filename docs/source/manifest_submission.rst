@@ -31,6 +31,22 @@ Visit the **Schematic API (Production Environment)**:
 This will open the **Swagger UI**, where you can explore all available API endpoints.
 
 
+Run help command
+----------------
+
+You could run the following commands to learn about subcommands with manifest submission:
+
+.. code-block:: bash
+
+    schematic model -h
+
+You could also run the following commands to learn about all the options with manifest submission:
+
+.. code-block:: bash
+
+    schematic model --config path/to/config.yml submit -h
+
+
 Submit a Manifest File to Synapse
 ---------------------------------
 
