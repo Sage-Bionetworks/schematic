@@ -25,6 +25,19 @@ Visit the **Schematic API (Production Environment)**:
 
 This will open the **Swagger UI**, where you can explore all available API endpoints.
 
+.. note::
+
+   You could run the following commands to learn about subcommands with manifest generation:
+
+    .. code-block:: bash
+
+         schematic manifest -h
+
+   You could also run the following commands to learn about all the options with manifest generation:
+
+    .. code-block:: bash
+
+         schematic manifest --config path/to/config.yml get -h
 
 Generate an empty manifest
 ---------------------------------
@@ -32,7 +45,7 @@ Generate an empty manifest
 Option 1: Use the CLI
 ~~~~~~~~~~~~~~~~~~~~~
 
-   You can generate a manifest by running the following command:
+You can generate a manifest by running the following command:
 
    .. code-block:: bash
 
@@ -97,15 +110,21 @@ See below as an example of a top-level dataset:
     ├── sample2.fastq
     └── sample3.fastq
 
+Here you should use syn12345678 to generate a manifest
 
 See another example of a top-level dataset with subfolders:
 
 .. code-block:: text
 
     syn12345678/
-    └── subfolder/
-        ├── sample4.fastq
-        └── sample5.fastq
+    └── subfolder1/
+        ├── sample1.fastq
+        └── sample2.fastq
+    └── subfolder2/
+        ├── sample3.fastq
+        └── sample4.fastq
+
+Here you should use syn12345678 to generate a manifest
 
 .. note::
 
