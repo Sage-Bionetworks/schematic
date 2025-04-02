@@ -105,8 +105,7 @@ Option 2: Use the API
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
-   - **schema_url**: The raw URL of your data model.
-     - If your data model is hosted on **GitHub**, use the following formats:
+   - **schema_url**: The raw URL of your data model. If your data model is hosted on **GitHub**, use the following formats:
        - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
@@ -172,8 +171,7 @@ Option 2: Use the API
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
-   - **schema_url**: The raw URL of your data model.
-     - If your data model is hosted on **GitHub**, the URL should follow this format:
+   - **schema_url**: The raw URL of your data model. If your data model is hosted on **GitHub**, the URL should follow this format:
        - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
@@ -223,8 +221,7 @@ Option 2: Use the API
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
-   - **schema_url**: The raw URL of your data model.
-     - If your data model is hosted on **GitHub**, use the following formats:
+   - **schema_url**: The raw URL of your data model. If your data model is hosted on **GitHub**, use the following formats:
        - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
@@ -279,8 +276,7 @@ Option 2: Use the API
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
-   - **schema_url**: The raw URL of your data model.
-     - If your data model is hosted on **GitHub**, use the following formats:
+   - **schema_url**: The raw URL of your data model. If your data model is hosted on **GitHub**, use the following formats:
        - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
