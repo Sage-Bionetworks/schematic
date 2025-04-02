@@ -41,7 +41,7 @@ Submit a Manifest File to Synapse
   For table column names, here's a brief explanation of all the options:
    - display_name: use raw display name defined in the data model as the column name, no modifications to the name will be made.
    - display_label: use the display name formatting as the column name. Will strip blacklisted characters (including spaces) when present.
-     The blacklisted characters are: ``"(", ")", ".", " ", "-" ``
+     The blacklisted characters are: "(", ")", ".", " ", "-"
    - class_label: default, use standard class label and strip any blacklisted characters (including spaces) when present. A schematic class label is UpperCamelCase.
 
 .. note::
