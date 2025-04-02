@@ -14,10 +14,10 @@ Ensure you have a Synapse account and set up Synapse configuration file correctl
   See the :ref:`installation` section for more details.
 
 - **Understand Important Concepts**:
-  Understand Important Concepts: Familiarize yourself with key concepts outlined on the :ref:`index` of the documentation.
+  Familiarize yourself with key concepts outlined on the :ref:`index` of the documentation.
 
 - **Configuration File**:
-  Learn more about each attribute in the configuration file by referring to the relevant documentation.
+  For more details on configuring Schematic, refer to the :ref:`configure schematic` section.
 
 - **Obtain a manifest**:
   Please obtain a manifest by following the documentation of generating a manifest.
@@ -41,6 +41,7 @@ Submit a Manifest File to Synapse
   For table column names, here's a brief explanation of all the options:
    - display_name: use raw display name defined in the data model as the column name, no modifications to the name will be made.
    - display_label: use the display name formatting as the column name. Will strip blacklisted characters (including spaces) when present.
+     The blacklisted characters are: ``"(", ")", ".", " ", "-" ``
    - class_label: default, use standard class label and strip any blacklisted characters (including spaces) when present. A schematic class label is UpperCamelCase.
 
 .. note::
@@ -52,6 +53,7 @@ Submit a Manifest File to Synapse
      syn12345678/
      ├── file1.csv
      ├── file2.csv
+     ├── manifest.csv
 
   Here is the top-level folder ID: syn12345678
 
@@ -60,9 +62,12 @@ Submit a Manifest File to Synapse
   .. code-block:: text
 
      syn12345678/
-     ├── subfolder/
+     ├── subfolder1/
      │   └── file1
-     ├── file2
+     ├── subfolder2/
+     │   └── file2
+     ├── file3
+     ├── manifest.csv
 
   Here is the top-level folder ID: syn12345678
 
@@ -93,19 +98,19 @@ Option 2: Use the API
 
 .. note::
 
-    During submission, validation is optional. If you have finished validation in previous step, you could skip validation by removing the default inputs.
+    During submission, validation is optional. If you have finished validation in previous step, you could skip validation by excluding the `data_type` and `dataset_scope` parameter values.
 
 
-1. Visit **model/submit** endpoint `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`.
+1. Visit **model/submit** endpoint: `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
-   - **schema_url**: The URL of your data model.
+   - **schema_url**: The raw URL of your data model.
      - If your data model is hosted on **GitHub**, use the following formats:
        - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
-   - **data_type**: Specify the data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
+   - **data_type**: Specify the data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, exclude this parameter by removing the default inputs.
 
    - **dataset_id**: Provide the **top-level Synapse dataset ID**.
        - This can be either a **Synapse Project ID** or a **Folder ID**.
@@ -160,19 +165,19 @@ Option 2: Use the API
 
 .. note::
 
-    During submission, validation is optional. If you have finished validation in previous step, you could skip validation by removing the default inputs.
+    During submission, validation is optional. If you have finished validation in previous step, you could skip validation by excluding the `data_type` and `dataset_scope` parameter values.
 
 
-1. Visit **model/submit** endpoint `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`.
+1. Visit **model/submit** endpoint: `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
-   - **schema_url**: The URL of your data model.
+   - **schema_url**: The raw URL of your data model.
      - If your data model is hosted on **GitHub**, the URL should follow this format:
        - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
-   - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
+   - **data_type**: Specify the data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, exclude this parameter by removing the default inputs.
 
    - **dataset_id**: The **top-level Synapse dataset ID**.
      - This can be a **Synapse Project ID** or a **Folder ID**.
@@ -214,16 +219,16 @@ Option 1: Use the CLI
 Option 2: Use the API
 ~~~~~~~~~~~~~~~~~~~~~~
 
-1. Visit **model/submit** endpoint `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`.
+1. Visit **model/submit** endpoint `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_.
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
-   - **schema_url**: The URL of your data model.
+   - **schema_url**: The raw URL of your data model.
      - If your data model is hosted on **GitHub**, use the following formats:
        - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
-   - **data_type**: Specify the data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
+   - **data_type**: Specify the data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, exclude this parameter by removing the default inputs.
 
    - **dataset_id**: Provide the **top-level Synapse dataset ID**.
        - This can be either a **Synapse Project ID** or a **Folder ID**.
@@ -270,16 +275,16 @@ Option 1: Use the CLI
 Option 2: Use the API
 ~~~~~~~~~~~~~~~~~~~~~~
 
-1. Visit **model/submit** endpoint `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`.
+1. Visit **model/submit** endpoint `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_.
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
-   - **schema_url**: The URL of your data model.
+   - **schema_url**: The raw URL of your data model.
      - If your data model is hosted on **GitHub**, use the following formats:
        - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
-   - **data_type**: Specify the data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, remove the default inputs.
+   - **data_type**: Specify the data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`). To skip validation, exclude this parameter by removing the default inputs.
 
    - **dataset_id**: Provide the **top-level Synapse dataset ID**.
        - This can be either a **Synapse Project ID** or a **Folder ID**.

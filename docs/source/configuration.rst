@@ -1,3 +1,5 @@
+.. _configure schematic:
+
 Configure Schematic
 ===================
 
