@@ -46,30 +46,30 @@ Submit a Manifest File to Synapse
 
 .. note::
 
-  Manifests should be submitted to the top-level dataset folder. Below are some examples demonstrating where the manifest file should go:
+   Manifests should be submitted to the top-level dataset folder. Below are some examples demonstrating where the manifest file should go:
 
-  .. code-block:: text
+   .. code-block:: text
 
-     syn12345678/
-     ├── file1.csv
-     ├── file2.csv
-     ├── manifest.csv
+      syn12345678/
+      ├── file1.csv
+      ├── file2.csv
+      ├── manifest.csv
 
-  Here is the top-level folder ID: syn12345678
+   Here is the top-level folder ID: syn12345678
 
-  Here's an example using subfolders:
+   Here's an example using subfolders:
 
-  .. code-block:: text
+   .. code-block:: text
 
-     syn12345678/
-     ├── subfolder1/
-     │   └── file1
-     ├── subfolder2/
-     │   └── file2
-     ├── file3
-     ├── manifest.csv
+      syn12345678/
+      ├── subfolder1/
+      │   └── file1
+      ├── subfolder2/
+      │   └── file2
+      ├── file3
+      ├── manifest.csv
 
-  Here is the top-level folder ID: syn12345678
+   Here is the top-level folder ID: syn12345678
 
 
 Option 1: Use the CLI
@@ -101,7 +101,7 @@ Option 2: Use the API
     During submission, validation is optional. If you have finished validation in previous step, you could skip validation by excluding the `data_type` and `dataset_scope` parameter values.
 
 
-1. Visit **model/submit** endpoint: `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_
+1. Visit the `**model/submit** endpoint <https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
@@ -168,7 +168,7 @@ Option 2: Use the API
     During submission, validation is optional. If you have finished validation in previous step, you could skip validation by excluding the `data_type` and `dataset_scope` parameter values.
 
 
-1. Visit **model/submit** endpoint: `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_
+1. Visit the `**model/submit** endpoint <https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
@@ -219,7 +219,7 @@ Option 1: Use the CLI
 Option 2: Use the API
 ~~~~~~~~~~~~~~~~~~~~~~
 
-1. Visit **model/submit** endpoint `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_.
+1. Visit the `**model/submit** endpoint <https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
@@ -275,7 +275,7 @@ Option 1: Use the CLI
 Option 2: Use the API
 ~~~~~~~~~~~~~~~~~~~~~~
 
-1. Visit **model/submit** endpoint `<https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_.
+1. Visit the `**model/submit** endpoint <https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_
 2. Click **"Try it out"** to enable input fields.
 3. Enter the required parameters and execute the request:
 
