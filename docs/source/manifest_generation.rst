@@ -25,22 +25,24 @@ Visit the **Schematic API (Production Environment)**:
 
 This will open the **Swagger UI**, where you can explore all available API endpoints.
 
-.. note::
+Run help command
+----------------
 
-   You could run the following commands to learn about subcommands with manifest generation:
+You could run the following commands to learn about subcommands with manifest generation:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-         schematic manifest -h
+    schematic manifest -h
 
-   You could also run the following commands to learn about all the options with manifest generation:
+You could also run the following commands to learn about all the options with manifest generation:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-         schematic manifest --config path/to/config.yml get -h
+    schematic manifest --config path/to/config.yml get -h
+
 
 Generate an empty manifest
----------------------------------
+---------------------------
 
 Option 1: Use the CLI
 ~~~~~~~~~~~~~~~~~~~~~
@@ -82,8 +84,7 @@ Option 2: Use the API
    - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`).
        - You can specify multiple data types or enter `"all manifests"` to generate manifests for all available data types.
 
-   - **output_format**: The desired format for the generated manifest.
-     - Options include `"excel"` or `"google_sheet"`.
+   - **output_format**: The desired format for the generated manifest. Options include `"excel"` or `"google_sheet"`.
 
 This will generate a manifest directly from the API.
 
@@ -126,15 +127,15 @@ See another example of a top-level dataset with subfolders:
 
 Here you should use syn12345678 to generate a manifest
 
-.. note::
 
-   .. code-block:: bash
+.. code-block:: bash
 
-       schematic manifest -c /path/to/config.yml get -dt <your_data_type> -s -d <synapse_dataset_id>
+    schematic manifest -c /path/to/config.yml get -dt <your_data_type> -s -d <synapse_dataset_id>
 
-   - **-c /path/to/config.yml**: Specifies the configuration file containing the data model location and asset view (`master_fileview_id`).
-   - **-dt <your_data_type>**: Defines the data type/schema model for the manifest (e.g., `"Patient"`, `"Biospecimen"`).
-   - **-d <your_dataset_id>**: Retrieves the existing manifest associated with a specific dataset on Synpase.
+- **-c /path/to/config.yml**: Specifies the configuration file containing the data model location and asset view (`master_fileview_id`).
+- **-dt <your_data_type>**: Defines the data type/schema model for the manifest (e.g., `"Patient"`, `"Biospecimen"`).
+- **-d <your_dataset_id>**: Retrieves the existing manifest associated with a specific dataset on Synpase.
+
 
 Option 2: Use the API
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -179,15 +180,23 @@ Generate a manifest using a dataset on synapse and pull annotations
 
     The corresponding annotations might look like this:
 
-    +---------------+---------------------+-----------------------+
-    | **File Name** | **Annotation Key** | **Annotation Value**  |
-    +===============+=====================+=======================+
-    | file1.txt     | species             | test1                 |
-    +---------------+---------------------+-----------------------+
-    | file2.txt     | species             | test2                 |
-    +---------------+---------------------+-----------------------+
-    | file3.txt     | species             | test3                 |
-    +---------------+---------------------+-----------------------+
+    .. list-table:: File Annotations
+
+        :header-rows: 1
+        :widths: 20 30 30
+
+        * - **File Name**
+          - **Annotation Key**
+          - **Annotation Value**
+        * - file1.txt
+          - species
+          - test1
+        * - file2.txt
+          - species
+          - test2
+        * - file3.txt
+          - species
+          - test3
 
     The generated manifest will include the above annotations pulled from Synapse when enabled.
 
