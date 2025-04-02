@@ -180,23 +180,17 @@ Generate a manifest using a dataset on synapse and pull annotations
 
     The corresponding annotations might look like this:
 
-    .. list-table:: File Annotations
+    - **file1.txt**
+      - Annotation Key: `species`
+      - Annotation Value: `test1`
 
-        :header-rows: 1
-        :widths: 20 30 30
+    - **file2.txt**
+      - Annotation Key: `species`
+      - Annotation Value: `test2`
 
-        * - **File Name**
-          - **Annotation Key**
-          - **Annotation Value**
-        * - file1.txt
-          - species
-          - test1
-        * - file2.txt
-          - species
-          - test2
-        * - file3.txt
-          - species
-          - test3
+    - **file3.txt**
+      - Annotation Key: `species`
+      - Annotation Value: `test3`
 
     The generated manifest will include the above annotations pulled from Synapse when enabled.
 
