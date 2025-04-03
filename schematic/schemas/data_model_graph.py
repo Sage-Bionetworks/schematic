@@ -1,7 +1,7 @@
 """DataModel Graph"""
 
 import logging
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, AbstractSet
 
 import graphviz  # type: ignore
 import networkx as nx  # type: ignore
@@ -106,7 +106,7 @@ class DataModelGraph:  # pylint: disable=too-few-public-methods
         )
 
         # Instantiate NetworkX MultiDigraph
-        graph = nx.MultiDiGraph()
+        graph: nx.MultiDiGraph = nx.MultiDiGraph()
 
         all_node_dict = {}
 
@@ -177,7 +177,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         properties_set = set(properties_list)
         return properties_set
 
-    def find_classes(self) -> set[str]:
+    def find_classes(self) -> AbstractSet[str]:
         """
         Identify all classes, as defined but all nodes, minus all properties
         (which are explicitly defined)
@@ -359,7 +359,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
     def get_component_requirements_graph(
         self,
         source_component: str,
-    ) -> nx.DiGraph:
+    ) -> nx.Graph:
         """
         Get all components that are associated with a given source component and are required by it;
           return the components as a dependency graph (i.e. a DAG).
@@ -424,7 +424,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             if key == relationship:
                 rel_edges.append((node_1, node_2))
 
-        relationship_subgraph = nx.DiGraph()
+        relationship_subgraph: nx.DiGraph = nx.DiGraph()
         relationship_subgraph.add_edges_from(rel_edges)
 
         descendants = relationship_subgraph.nodes()
@@ -468,7 +468,8 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
                   in relationship class
         Returns:
         """
-        digraph = nx.DiGraph()
+
+        digraph: nx.DiGraph = nx.DiGraph()
         for node_1, node_2, key, _ in self.graph.edges(data=True, keys=True):
             if key == edge_type:
                 digraph.add_edge(node_1, node_2)
@@ -819,7 +820,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             if key == relationship:
                 rel_edges.append((node_1, node_2))
 
-        relationship_subgraph = nx.DiGraph()
+        relationship_subgraph: nx.DiGraph = nx.DiGraph()
         relationship_subgraph.add_edges_from(rel_edges)
 
         return relationship_subgraph

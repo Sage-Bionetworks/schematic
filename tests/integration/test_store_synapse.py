@@ -276,6 +276,51 @@ class TestStoreSynapse:
             assert synapse_id_regex.fullmatch(dataset_files[0][0])
 
     @pytest.mark.parametrize(
+        "dataset_id,expected_list",
+        [
+            (
+                "syn65467561",
+                [
+                    (
+                        "syn65467565",
+                        "schematic - main/TestGetDatasetFiles/TestUnderscore_/test_file.txt",
+                    )
+                ],
+            ),
+            (
+                "syn65467559",
+                [
+                    (
+                        "syn65467564",
+                        "schematic - main/TestGetDatasetFiles/TestSingleQuote'/test_file.txt",
+                    )
+                ],
+            ),
+            (
+                "syn65472752",
+                [
+                    (
+                        "syn65472753",
+                        "schematic - main/TestGetDatasetFiles/TestChars -().+/test_file.txt",
+                    )
+                ],
+            ),
+        ],
+    )
+    def test_get_files_in_storage_dataset_with_escaped_chars(
+        self, dataset_id: str, expected_list: list[tuple[str, str]]
+    ) -> None:
+        """Test for datasets with characters that need to be escaped
+
+        Args:
+            dataset_id (str): The synapse id of the dataset to be tested
+            expected_list (list[tuple[str, str]]): The expected result of the
+              SynapseStorage.getFilesInStorageDataset method
+        """
+        store = SynapseStorage()
+        assert store.getFilesInStorageDataset(dataset_id) == expected_list
+
+    @pytest.mark.parametrize(
         "asset_view, dataset_id, exception, exception_message",
         [
             (
