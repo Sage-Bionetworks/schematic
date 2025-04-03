@@ -11,7 +11,7 @@ Links
 =====
 LinkML `documentation <https://linkml.io/linkml/>`_
 
-DPE performed a `comparison <https://sagebionetworks.jira.com/wiki/spaces/DPE/pages/3856367618/SCHEMATIC-225+Exploration+of+LinkML+features+compared+to+Schematic+JSONLD>`_ between Schematics current functionality and what LinkML could provide via the CLI.
+DPE performed a `comparison <https://sagebionetworks.jira.com/wiki/spaces/DPE/pages/3856367618/SCHEMATIC-225+Exploration+of+LinkML+features+compared+to+Schematic+JSONLD>`_ between Schematics current functionality and what LinkML could provide via the CLI. This is currently restricted to Sage Bionetworks staff.
 
 The `HTAN2 model <https://github.com/ncihtan/htan-linkml/blob/get-gen-excel-working/HTAN2Model.yaml>`_ in LinkML
 
