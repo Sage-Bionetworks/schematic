@@ -59,25 +59,25 @@ list
 
 - Format:
 
-  - `list <conformity level> <raised message level>_`
+  - ``list <conformity level> <raised message level>``
 
-    - `list strict`
+    - ``list strict``
 
       - Validates that entries are comma separated lists, and parses into list
 
       - Requires all attribute entries to be comma-delimited, even lists with only one element
 
-    - `list like`
+    - ``list like``
 
-      - Assume entries are either lists or `list like` but do not verify that entries are comma separated lists, and attempt to parse into a list
+      - Assume entries are either lists or ``list like`` but do not verify that entries are comma separated lists, and attempt to parse into a list
 
       - Single values, or lists of length one, can be entered without a comma delimiter
 
-- Can use `list` rule in conjunction with `regex` rule to validate that the items in a list follow a specific pattern.
+- Can use ``list`` rule in conjunction with ``regex`` rule to validate that the items in a list follow a specific pattern.
 
   - All the values in the list need to follow the same pattern. This is ideal for when users need to provide a list of IDs.
 
-- Default behavior: raises `error`
+- Default behavior: raises ``error``
 
 Regex Validation Type
 ---------------------
@@ -85,23 +85,23 @@ Regex Validation Type
 regex
 ~~~~~
 
-- Use the `regex` validation rule when you want to require that a user input values in a specific format, i.e. an ID that follows a particular format.
+- Use the ``regex`` validation rule when you want to require that a user input values in a specific format, i.e. an ID that follows a particular format.
 
 - Format:
 
-  - `regex <module> <regular_expression> <raised message level>_`
+  - ``regex <module> <regular_expression> <raised message level>``
 
-  - Module: is the Python `re` module that you want to use. A common one would be search. Refer to Python `re` source material to find the most appropriate module to use.
+  - Module: is the Python ``re`` module that you want to use. A common one would be search. Refer to Python ``re`` source material to find the most appropriate module to use.
 
   - Single spaces separate the three strings.
 
 - Example:
 
-  - `regex search [0-9]{4}\/[0-9]*`
+  - ``regex search [0-9]{4}\/[0-9]*``
 
   - The regular expression defined above allows comparison to an expected format of a histological morphology code.
 
-- Default behavior: raises `error`
+- Default behavior: raises ``error``
 
 - Notes/tips/warnings
 
@@ -109,20 +109,20 @@ regex
 
   - If the module specified is match for a given attribute's validation rule, regex match validation will be preformed in Google Sheets (but not Excel) real-time during metadata entry.
 
-  - The `strict_validation parameter` (in the config.yml file for CLI or in manifest generation REST API calls) sets whether to stop the user from entering incorrect information in a Google Sheets cell (`strict_validation = true`) or simply throws a warning (`strict_validation = false`). Default: `true`.
+  - The ``strict_validation parameter`` (in the config.yml file for CLI or in manifest generation REST API calls) sets whether to stop the user from entering incorrect information in a Google Sheets cell (``strict_validation = true``) or simply throws a warning (``strict_validation = false``). Default: ``true``.
 
-  - `regex` validation in Google Sheets is different than standard regex validation (for example, it does not support validation of digits). See `this documentation <https://github.com/google/re2/wiki/Syntax>_` for details on Google regex syntax. It is up to the user/modeler to validate that `regex match` is working in their manifests, as intended. This is especially important if the `strict_validation` parameter is set to `True` as users will be blocked from entering incorrect data. If you are using Google Sheets and do not want to use real-time validation use `regex search` instead of `regex match`.
+  - ``regex`` validation in Google Sheets is different than standard regex validation (for example, it does not support validation of digits). See `this documentation <https://github.com/google/re2/wiki/Syntax>_` for details on Google regex syntax. It is up to the user/modeler to validate that ``regex match`` is working in their manifests, as intended. This is especially important if the ``strict_validation`` parameter is set to ``True`` as users will be blocked from entering incorrect data. If you are using Google Sheets and do not want to use real-time validation use ``regex search`` instead of ``regex match``.
 
 Type Validation Type
 --------------------
 
 - There are two parameters
 
-  - The first parameter is type and must be one of [ `float`, `int`, `num`, `str`]
+  - The first parameter is type and must be one of [ ``float``, ``int``, ```num```, ``str``]
 
-  - The second optional parameter is the msg level and must be one of [ `error`, `warning` ], defaults to `error`.
+  - The second optional parameter is the msg level and must be one of [ ``error``, ``warning`` ], defaults to ``error``.
 
-- Examples: [ `str`, `str error`, `str warning`]
+- Examples: [ ``str``, ``str error``, ``str warning``]
 
 float
 ~~~~~
@@ -150,23 +150,23 @@ URL Validation Type
 url
 ~~~
 
-- Using the `url` rule implies the user should add a URL to a free text box as a string. This function will check that the user has provided a usable URL. It will check for any standard URL error and throw an error if one is found. Further additions to this rule can allow for checking that a specific type of URL is added. For example, if the user needs to add a <http://protocols.io> URL, <http://protocols.io> can be added after url to perform this check. If the provided url does not contain this specific string, an error will be raised.
+- Using the ``url`` rule implies the user should add a URL to a free text box as a string. This function will check that the user has provided a usable URL. It will check for any standard URL error and throw an error if one is found. Further additions to this rule can allow for checking that a specific type of URL is added. For example, if the user needs to add a <http://protocols.io> URL, <http://protocols.io> can be added after url to perform this check. If the provided url does not contain this specific string, an error will be raised.
 
 - Format:
 
-  - `url <optional strings> <raised message level>_`
+  - ``url <optional strings> <raised message level>``
 
-    - `url` must be specified first then an arbitrary number of strings can be added after (separated by spaces) to add additional levels of specificity.
+    - ``url`` must be specified first then an arbitrary number of strings can be added after (separated by spaces) to add additional levels of specificity.
 
-  - Alternatively, its valid to pass only `url`` to simply check if the input is a url.
+  - Alternatively, its valid to pass only ``url`` to simply check if the input is a url.
 
 - Examples:
 
-  - `url http://protocols.io`_ Will check that any input is a valid URL, and will also check to see that the URL contains the string `http://protocols.io` If not, an error will be raised.
+  - ``url http://protocols.io`` Will check that any input is a valid URL, and will also check to see that the URL contains the string ``http://protocols.io`` If not, an error will be raised.
 
-  - `url dx.doi http://protocols.io`_ Will check that any input is a valid URL, and will also check to see that the URL contains the strings `dx.doi` and `http://protocols.io`. If not, an error will be raised.
+  - ``url dx.doi http://protocols.io`` Will check that any input is a valid URL, and will also check to see that the URL contains the strings ``dx.doi`` and ``http://protocols.io``. If not, an error will be raised.
 
-- Default behavior: raises `error`
+- Default behavior: raises ``error``
 
 Required Validation Type
 ------------------------
@@ -176,47 +176,47 @@ required
 
 ass validation.
 
-An attribute's requirement is typically set using the required column (csv) or field (JSONLD) in the data model. A `True` value means a users must supply a value, `False` means they are allowed to skip providing a value.
+An attribute's requirement is typically set using the required column (csv) or field (JSONLD) in the data model. A ``True`` value means a users must supply a value, ``False`` means they are allowed to skip providing a value.
 
 Some users may want to use the same attribute across several manifests, but have different requirements based on the manifest/component. For example, say the data model contains an attribute called PatientID, and this attribute is used in manifests Biospecimen, Patient and Demographics. Say the modeler wants to require that PatientID be required in the Patient manifest but not Biospecimen or Demographics. In the standard Data Model format, there is only one requirement option per Attribute, so one would not be able to set requirements per component. But with the advent of component based rule settings, this can now be achieved.
 
-Requirements can be specified per component by setting the required field in the data model to `False`, and using component based rule setting along with the required "rule".
+Requirements can be specified per component by setting the required field in the data model to ``False``, and using component based rule setting along with the required "rule".
 
 Note: this new required validation rule is not a traditional validation rule, but rather impacts the JSON validation schema. This means requirements propagate automatically to manifests as well.
 
 Notes:
 
-- When using `required` in validation rules, the `Required` **column/field must be set to** `False` or this will cause the rule to not work as expected (i.e. components were the attribute is expected to not be required due to the validation rules, will still be required).
+- When using ``required`` in validation rules, the ``Required`` **column/field must be set to** ``False`` or this will cause the rule to not work as expected (i.e. components were the attribute is expected to not be required due to the validation rules, will still be required).
 
   - Note: a warning will be raised for discrepancies in requirements settings are found when running validation.
 
-- `required` can be used in conjunction with other rules, without restriction.
+- ``required`` can be used in conjunction with other rules, without restriction.
 
-- The messaging level, like all JSON validation checks, is always set at `error`, and not modifiable.
+- The messaging level, like all JSON validation checks, is always set at ``error``, and not modifiable.
 
-- `required` does not work with other rule modifiers, such as `warning`, `error` etc…
+- ``required`` does not work with other rule modifiers, such as ``warning``, ``error`` etc…
 
   - Though it will not throw an error if rule modifiers are added, it will not work as intended, and a warning will appear
 
-    - For example, if the rule `^^#Biospecimen required warning`, is added to the data model a warning will be raised letting the user know that the rule modifier cannot be applied to required.
+    - For example, if the rule ``^^#Biospecimen required warning``, is added to the data model a warning will be raised letting the user know that the rule modifier cannot be applied to required.
 
-- Adding `required` sets `Required` to `True` for the specified component. There is no way to set `Required` to `False` using the validation rules column, that would come from the `Required` field in the data model.
+- Adding ``required`` sets ``Required`` to ``True`` for the specified component. There is no way to set ``Required`` to ``False`` using the validation rules column, that would come from the ``Required`` field in the data model.
 
-- Controlling `required` through the validation rule will also impact Manifest formatting (in terms of required column highlighting).
+- Controlling ``required`` through the validation rule will also impact Manifest formatting (in terms of required column highlighting).
 
-  - To check that `required` rules are working as expected, one could generate all impacted manifests and check the formatting is as expected.
+  - To check that ``required`` rules are working as expected, one could generate all impacted manifests and check the formatting is as expected.
 
 Examples:
 
-- `#BiospecimenManifest unique required warning^^unique error`
+- ``#BiospecimenManifest unique required warning^^unique error``
 
   - For`BiospecimenManifest` manifests, the values supplied must be unique. If they aren't a warning will be raised. If values are missing, an error will be raised.
 
   - For all other manifests, the filling out values is optional. But, if the values supplied are not unique, an error will be raised.
 
-- `#Demographics required^^#BiospecimenManifest required^^`
+- ``#Demographics required^^#BiospecimenManifest required^^``
 
-  - For `Demographics` and `BiospecimenManifest` manifests, values are required to be supplied, if they are not supplied an error will be raised.
+  - For ``Demographics`` and ``BiospecimenManifest`` manifests, values are required to be supplied, if they are not supplied an error will be raised.
 
   - For all other manifests this attribute is not required.
 
@@ -225,11 +225,11 @@ Cross-manifest Validation Type
 
 Use cross-manifest validation rules when you want to check the values of an attribute in the manifest being validated against an attribute in the manifest(s) of a different component. For example, if a sample manifest has a patient id attribute and you want to check it against the id attribute of patient manifests.
 
-The format for cross-validation is: `<rule> <targetComponent>.<targetAttribute> <scope> <raised message level>`
+The format for cross-validation is: ``<rule> <targetComponent>.<targetAttribute> <scope> <raised message level>``
 
-There are three rules that do cross-manifest validation: [`matchAtLeastOne`, `matchExactlyOne`, `matchNone`]
+There are three rules that do cross-manifest validation: [``matchAtLeastOne``, ``matchExactlyOne``, ``matchNone``]
 
-There are two scopes to choose from: [ `value`, `set`]
+There are two scopes to choose from: [ ``value``, ``set``]
 
 Value Scope
 ~~~~~~~~~~~
@@ -464,17 +464,17 @@ Rules can be used to validate the contents of entries for an attribute.
 recommended
 ~~~~~~~~~~~
 
-- Use to raise a warning when a manifest column is not required but empty. If an attribute is always necessary then `required`` should be set to `TRUE` instead of using the `recommended` validation rule.
+- Use to raise a warning when a manifest column is not required but empty. If an attribute is always necessary then ``required`` should be set to ``TRUE`` instead of using the ``recommended`` validation rule.
 
 - Format:
 
-  - `recommended <raised message level>`
+  - ``recommended <raised message level>``
 
 - Examples:
 
-  - `recommended`
+  - ``recommended``
 
-- Default behavior: raises `warning`
+- Default behavior: raises ``warning``
 
 protectAges
 ~~~~~~~~~~~
@@ -483,13 +483,13 @@ protectAges
 
 - Format:
 
-  - `protectAges <raised message level>`
+  - ``protectAges <raised message level>``
 
 - Examples:
 
-  - `protectAges warning`
+  - ``protectAges warning``
 
-- Default behavior: raises `warning`
+- Default behavior: raises ``warning``
 
 unique
 ~~~~~~
@@ -498,13 +498,13 @@ unique
 
 - Format:
 
-  - `unique <raised message level>`
+  - ``unique <raised message level>``
 
 - Examples:
 
-  - `unique error`
+  - ``unique error``
 
-- Default behavior: raises `error`
+- Default behavior: raises ``error``
 
 inRange
 ~~~~~~~
@@ -513,20 +513,20 @@ inRange
 
 - Format:
 
-  - `inRange <lower range bound> <upper range bound> <raised message level>`
+  - ``inRange <lower range bound> <upper range bound> <raised message level>``
 
 - Examples:
 
-  - `inRange 50 100 error`
+  - ``inRange 50 100 error``
 
-- Default behavior: raises `error`
+- Default behavior: raises ``error``
 
 date
 ~~~~
 
 - Use to ensure the value parses as a date
 
-- Uses `dateutils` to parse the value
+- Uses ``dateutils`` to parse the value
 
   - Can parse many formats
 
@@ -534,12 +534,12 @@ date
 
   - Every value must be read as a string so no formats such as YYYYDDMM which would be read in as an int
 
-- Default behavior: raises `error`
+- Default behavior: raises ``error``
 
 Filename Validation
 -------------------
 
-This requires paths to be enabled for the synapse master file view in use. Can be enabled by navigating to an existing view and selecting `show view schema` > `edit schema` > `add default view columns` > `save`. Paths are enabled on new views by default.
+This requires paths to be enabled for the synapse master file view in use. Can be enabled by navigating to an existing view and selecting ``show view schema`` > ``edit schema`` > ``add default view columns`` > ``save``. Paths are enabled on new views by default.
 
 This should be used only with the Filename attribute in a data model and specified with `Component Based Rule Setting <https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/edit-v2/2645262364#Component-Based-Rule-Setting>`_
 
@@ -550,48 +550,47 @@ filenameExists
 
   - Conditions in which an error is raised:
 
-    - `missing entityId`: The entityId field for a manifest row is null or an empty string
+    - ``missing entityId``: The entityId field for a manifest row is null or an empty string
 
-    - `entityId does not exist`: The entityId provided for a manifest row does not exist within the specified dataset's file view
+    - ``entityId does not exist``: The entityId provided for a manifest row does not exist within the specified dataset's file view
 
-    - `path does not exist`: The Filename in the manifest row does not exist within the specified dataset's file view
+    - ``path does not exist``: The Filename in the manifest row does not exist within the specified dataset's file view
 
-    - `mismatched entityId`: The entityId and Filename do not match the expected values from the specified dataset's file view
+    - ``mismatched entityId``: The entityId and Filename do not match the expected values from the specified dataset's file view
 
 - Format
 
-  - `filenameExists <dataset scope> <raised message level>`
+  - ``filenameExists <dataset scope> <raised message level>``
 
 - Example
 
   - This sets the rule for the MockFilename component ONLY with the specified dataset scope syn61682648
 
-  - `#MockFilename filenameExists syn61682648^^`
+  - ``#MockFilename filenameExists syn61682648^^``
 
-- Default behavior: raises `error`
+- Default behavior: raises ``error``
 
-Given this File View:
+Given this File View::
 
-```python
-id,path
-syn61682653,schematic - main/MockFilenameComponent/txt1.txt
-syn61682659,schematic - main/MockFilenameComponent/txt4.txt
-syn61682660,schematic - main/MockFilenameComponent/txt2.txt
-syn61682662,schematic - main/MockFilenameComponent/txt3.txt
-syn63141243,schematic - main/MockFilenameComponent/txt6.txt
-```
+  id,path
+  syn61682653,schematic - main/MockFilenameComponent/txt1.txt
+  syn61682659,schematic - main/MockFilenameComponent/txt4.txt
+  syn61682660,schematic - main/MockFilenameComponent/txt2.txt
+  syn61682662,schematic - main/MockFilenameComponent/txt3.txt
+  syn63141243,schematic - main/MockFilenameComponent/txt6.txt
 
-We get the following results for this Manifest:
 
-```python
-Component,Filename,entityId
-MockFilename,schematic - main/MockFilenameComponent/txt1.txt,syn61682653 # Pass
-MockFilename,schematic - main/MockFilenameComponent/txt2.txt,syn61682660 # Pass
-MockFilename,schematic - main/MockFilenameComponent/txt3.txt,syn61682653 # mismatched entityId
-MockFilename,schematic - main/MockFilenameComponent/this_file_does_not_exist.txt,syn61682653 # path does not exist
-MockFilename,schematic - main/MockFilenameComponent/txt4.txt,syn6168265 # entityId does not exist
-MockFilename,schematic - main/MockFilenameComponent/txt6.txt,  # missing entityId
-```
+We get the following results for this Manifest::
+
+
+  Component,Filename,entityId
+  MockFilename,schematic - main/MockFilenameComponent/txt1.txt,syn61682653 # Pass
+  MockFilename,schematic - main/MockFilenameComponent/txt2.txt,syn61682660 # Pass
+  MockFilename,schematic - main/MockFilenameComponent/txt3.txt,syn61682653 # mismatched entityId
+  MockFilename,schematic - main/MockFilenameComponent/this_file_does_not_exist.txt,syn61682653 # path does not exist
+  MockFilename,schematic - main/MockFilenameComponent/txt4.txt,syn6168265 # entityId does not exist
+  MockFilename,schematic - main/MockFilenameComponent/txt6.txt,  # missing entityId
+
 
 Rule Combinations
 -----------------
@@ -600,17 +599,17 @@ Schematic allows certain combinations of existing validation rules to be used on
 
 Note:  isNa and required can be combined with all rules and rule combos.
 
-Rule combinations: [`list::regex`, `int::inRange`, `float::inRange`, `num::inRange`, `protectAges::inRange`]
+Rule combinations: [``list::regex``, ``int::inRange``, ``float::inRange``, ``num::inRange``, ``protectAges::inRange``]
 
 - Format:
 
-  - `<rule 1> <applicable rule 1 arguments>::<rule 2> <applicable rule 2 arguments>`
+  - ``<rule 1> <applicable rule 1 arguments>::<rule 2> <applicable rule 2 arguments>``
 
-  - `::` delimiter used to separate each rule
+  - ``::`` delimiter used to separate each rule
 
 - Example:
 
-  - `list :: regex search [HTAN][0-9]{1}_[0-9]{4}_[0-9]*`
+  - ``list :: regex search [HTAN][0-9]{1}_[0-9]{4}_[0-9]*``
 
 Component-Based Rule Setting
 ----------------------------
@@ -651,56 +650,56 @@ Note: As always try the rule combos with mock data to ensure they are working as
 
   - Apply rule to all manifests *except* the specified set.
 
-    - `validation_rule^^#ComponentA`
+    - ``validation_rule^^#ComponentA``
 
-    - `validation_rule^^#ComponentA^^#ComponentB`
+    - ``validation_rule^^#ComponentA^^#ComponentB``
 
   - Apply a unique rule to each manifest.
 
-    - `#ComponentA validation_rule_1^^#ComponentB validation_rule_2^^#ComponentC validation_rule_3`
+    - ``#ComponentA validation_rule_1^^#ComponentB validation_rule_2^^#ComponentC validation_rule_3``
 
   - For the specified manifest, apply the given validation rule, but for all others, run a different rule
 
-    - `#ComponentA validation_rule_1^^validation_rule_2`
+    - ``#ComponentA validation_rule_1^^validation_rule_2``
 
-    - `validation_rule_2^^#ComponentA validation_rule_1`
+    - ``validation_rule_2^^#ComponentA validation_rule_1``
 
   - Apply the validation rule to only one manifest
 
-    - `#ComponentA validation_rule_1^^`
+    - ``#ComponentA validation_rule_1^^``
 
 - Example Rules:
 
-  - Test by adding these rules to the `Patient ID` attribute in the `example.model.csv` model, then run validation with new rules against the example manifests.
+  - Test by adding these rules to the ``Patient ID`` attribute in the ``example.model.csv`` model, then run validation with new rules against the example manifests.
 
   - `Example Biospecimen Manifest <https://docs.google.com/spreadsheets/d/19_axG2Zj7URk4CT5qYjH0HfpMIOQ1dYEPvyaazSVNZE/edit#gid=0>`_
 
   - `Example Patient Manifest <https://docs.google.com/spreadsheets/d/1IO0TkzwBX-lsu3rJDjWfgWYR6VlepingN9zuhkrgVUE/edit#gid=0>`_
 
-    - **Rule**: `#Patient int::inRange 100 900 error^^#Biospecimen int::inRange 100 900 warning`
+    - **Rule**: ``#Patient int::inRange 100 900 error^^#Biospecimen int::inRange 100 900 warning``
 
-      - For the `Patient` manifest, apply the combo `rule int::inRange 100 900` at the `error` level.
+      - For the ``Patient`` manifest, apply the combo ``rule int::inRange 100 900`` at the ``error`` level.
 
         - The value provided must be an integer in the range of 100-900; if it does not fall in the range, throw an error
 
-      - For the `Biospecimen` manifest, apply the combo rule `int::inRange 100 900` at the `warning` level
+      - For the ``Biospecimen`` manifest, apply the combo rule ``int::inRange 100 900`` at the ``warning`` level
 
         - The value provided must be an integer in the range of 100-900; if it does not fall in the range, throw a warning
 
-    - **Rule**: `#Patient int::inRange 100 900 error^^int::inRange 100 900 warning`
+    - **Rule**: ``#Patient int::inRange 100 900 error^^int::inRange 100 900 warning``
 
-      - For the `Patient` manifest, apply rule `int::inRange 100 900` at an `error` level
+      - For the ``Patient`` manifest, apply rule ``int::inRange 100 900`` at an ``error`` level
 
-      - For all other manifests, apply the `rule int::inRange 100 900` at a warning level
+      - For all other manifests, apply the ``rule int::inRange 100 900`` at a warning level
 
-    - **Rule**: `#Patient^^int::inRange 100 900 warning`
+    - **Rule**: ``#Patient^^int::inRange 100 900 warning``
 
-      - For all manifests except `Patient` apply the rule `int::inRange 100 900` at the `warning` level
+      - For all manifests except ``Patient`` apply the rule ``int::inRange 100 900`` at the ``warning`` level
 
-    - **Rule**: `int::inRange 100 900 error^^#Biospecimen`
+    - **Rule**: ``int::inRange 100 900 error^^#Biospecimen``
 
-      - Apply the rule `int::inRange 100 900 error`, to all manifests except `Biospecimen`
+      - Apply the rule ``int::inRange 100 900 error``, to all manifests except ``Biospecimen``
 
-    - **Rule**: `#Patient unique error^^`
+    - **Rule**: ``#Patient unique error^^``
 
-      - To the `PatientManifest` only, apply the `unique` validation rule at the `error` level
+      - To the ``PatientManifest`` only, apply the ``unique`` validation rule at the ``error`` level
