@@ -151,4 +151,5 @@ For the entire Python API reference documentation, you can visit the docs here: 
    tutorials
    cli_reference
    manifest_validation
+   manifest_submission
    troubleshooting
