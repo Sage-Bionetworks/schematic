@@ -9,6 +9,8 @@ When Schematic validates a manifest, it uses a data model. The data model contai
 
 Rules that change the validation behavior which must be taken from the following pre-specified list, formatted in the indicated ways, and added to the data model to apply. An `example data model <https://github.com/Sage-Bionetworks/schematic/blob/develop/tests/data/example.model.csv>`_ using each rule is available for reference.
 
+The column the rule refers to must be in the manifest for validation to happen.
+
 Rules can optionally be configured to raise  errors  and prevent manifest submission in the case of invalid entries, or warnings and allow submission when invalid entries are found within the attribute the rule is set for. Validators will be notified of the invalid values in both cases. Default message levels for each rule can be found below under each rule.
 
 Attributes that are not required will raise warnings when invalid entries are identified. For attributes that are not required, if a user does not submit a response, a warning or error will no longer be logged. If you desire raising an error for non-entries, set Required to True in the data model.
@@ -28,22 +30,23 @@ Rule Implementation
 ================ ======== ======================= ======================
 Rule             In-House Great Expectations (GX) JSON Schema Validation
 ================ ======== ======================= ======================
-list             yes
-regex module     yes
-float            yes      yes
-int              yes      yes
-num              yes      yes
-string           yes      yes
-url              yes
-matchAtLeastOne  yes
-matchExactlyOne  yes
-matchNone        yes
-recommended               yes
-protectAges               yes
-unique                    yes
-inRange                   yes
-date                      yes
-required                                          yes
+list             +
+regex module     +
+float            +        +
+int              +        +
+num              +        +
+string           +        +
+url              +
+matchAtLeastOne  +
+matchExactlyOne  +
+matchNone        +
+recommended               +
+protectAges               +
+unique                    +
+inRange                   +
+date                      +
+required                                              +
+valid values                                          +
 ================ ======== ======================= ======================
 
 Rule Types and Details
@@ -65,11 +68,11 @@ list
 
       - Validates that entries are comma separated lists, and parses into list
 
-      - Requires all attribute entries to be comma-delimited, even lists with only one element
+      - Requires all attribute entries to be comma-delimited, even lists with only one element (lists with a trailing comma)
 
     - ``list like``
 
-      - Assume entries are either lists or ``list like`` but do not verify that entries are comma separated lists, and attempt to parse into a list
+      - Assume entries are either lists or like a list but do not verify that entries are comma separated lists, and attempt to parse into a list
 
       - Single values, or lists of length one, can be entered without a comma delimiter
 
@@ -478,7 +481,7 @@ recommended
 protectAges
 ~~~~~~~~~~~
 
-- Use to ensure that patient ages under 18 and over 89 years of age are censored when uploading for sharing. If necessary, a censored version of the manifest will be created and uploaded along with the uncensored version. Uncensored versions will be uploaded as restricted and Terms of Use will need to be set.
+- Use to ensure that patient ages under 18 and over 89 years of age are censored when uploading for sharing. If necessary, a censored version of the manifest will be created and uploaded along with the uncensored version. Uncensored versions will be uploaded as restricted and Terms of Use will need to be set. Please follow up with governance after upload to set the terms of use
 
 - Format:
 
@@ -594,7 +597,7 @@ We get the following results for this Manifest::
 Rule Combinations
 -----------------
 
-Schematic allows certain combinations of existing validation rules to be used on a single attribute, where appropriate. Combinations currently allowed are enumerated in the table below, under 'Rule Combinations in Production'.
+Schematic allows certain combinations of existing validation rules to be used on a single attribute, where appropriate.
 
 Note:  isNa and required can be combined with all rules and rule combos.
 
