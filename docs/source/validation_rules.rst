@@ -1,10 +1,13 @@
-# Validation Rules
+================
+Validation Rules
+================
 
-## Overview
+Overview
+========
 
 When Schematic validates a manifest, it uses a data model. The data model contains a list of validation rules for each component(data-type). This document describes all allowed validation rules currently implemented by Schematic.
 
-Rules that change the validation behavior which must be taken from the following pre-specified list, formatted in the indicated ways, and added to the data model to apply. An [example data model](https://github.com/Sage-Bionetworks/schematic/blob/develop/tests/data/example.model.csv) using each rule is available for reference.
+Rules that change the validation behavior which must be taken from the following pre-specified list, formatted in the indicated ways, and added to the data model to apply. An `example data model <https://github.com/Sage-Bionetworks/schematic/blob/develop/tests/data/example.model.csv>`_ using each rule is available for reference.
 
 Rules can optionally be configured to raise  errors  and prevent manifest submission in the case of invalid entries, or warnings and allow submission when invalid entries are found within the attribute the rule is set for. Validators will be notified of the invalid values in both cases. Default message levels for each rule can be found below under each rule.
 
@@ -12,56 +15,63 @@ Attributes that are not required will raise warnings when invalid entries are id
 
 Metadata validation is an explicit step in the submission pipeline and must be run either before or during manifest submission.
 
-## Validation Types
+Validation Types
+================
 
 Validation rules are just one type of validation run by Schematic to ensure that submitted manifests conform to the expectations set by the data model.
 
-This page details how to use Validation Rules, but please refer to [this documentation](https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/3302785036) to learn about the other types of validation.
+This page details how to use Validation Rules, but please refer to `this documentation <https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/3302785036>`_ to learn about the other types of validation.
 
-## Rule Implementation
+Rule Implementation
+===================
 
-| Rule | In-House | Great Expectations (GX) | JSON Schema Validation |
-| ---- | -------- | ----------------------- | ---------------------- |
-| list | yes | | |
-| regex module | yes | | |
-| float | yes | yes |  |
-| int | yes | yes | |
-| num | yes | yes | |
-| string | yes | yes | |
-| url | yes | | |
-| matchAtLeastOne | yes | | |
-| matchExactlyOne | yes | | |
-| matchNone | yes | | |
-| recommended | | yes | |
-| protectAges | | yes | |
-| unique | | yes | |
-| inRange | | yes | |
-| date | | yes | |
-| required | | | yes |
+================ ======== ======================= ======================
+Rule             In-House Great Expectations (GX) JSON Schema Validation
+================ ======== ======================= ======================
+list             yes
+regex module     yes
+float            yes      yes
+int              yes      yes
+num              yes      yes
+string           yes      yes
+url              yes
+matchAtLeastOne  yes
+matchExactlyOne  yes
+matchNone        yes
+recommended               yes
+protectAges               yes
+unique                    yes
+inRange                   yes
+date                      yes
+required                                          yes
+================ ======== ======================= ======================
 
-## Rule Types and Details
+Rule Types and Details
+======================
 
-### List Validation Type
+List Validation Type
+--------------------
 
-#### list
+list
+~~~~
 
 - Use to parse the imported value to a list of values and (optionally) to verify that the user provided value was a comma separated list, depending on how strictly entries must conform to the list structure. Values can come from Valid Values.
 
 - Format:
 
-  - `list <conformity level> <raised message level>`
+  - `list <conformity level> <raised message level>_`
 
     - `list strict`
 
       - Validates that entries are comma separated lists, and parses into list
 
-      - Requires all attribute entries to be comma-delimited, even ‘lists’ with only one element
+      - Requires all attribute entries to be comma-delimited, even lists with only one element
 
     - `list like`
 
       - Assume entries are either lists or `list like` but do not verify that entries are comma separated lists, and attempt to parse into a list
 
-      - Single values, or ‘lists’ of length one, can be entered without a comma delimiter
+      - Single values, or lists of length one, can be entered without a comma delimiter
 
 - Can use `list` rule in conjunction with `regex` rule to validate that the items in a list follow a specific pattern.
 
@@ -69,15 +79,17 @@ This page details how to use Validation Rules, but please refer to [this documen
 
 - Default behavior: raises `error`
 
-### Regex Validation Type
+Regex Validation Type
+---------------------
 
-#### regex
+regex
+~~~~~
 
 - Use the `regex` validation rule when you want to require that a user input values in a specific format, i.e. an ID that follows a particular format.
 
 - Format:
 
-  - `regex <module> <regular_expression> <raised message level>`
+  - `regex <module> <regular_expression> <raised message level>_`
 
   - Module: is the Python `re` module that you want to use. A common one would be search. Refer to Python `re` source material to find the most appropriate module to use.
 
@@ -93,15 +105,16 @@ This page details how to use Validation Rules, but please refer to [this documen
 
 - Notes/tips/warnings
 
-  - [regex101.com](https://regex101.com/) is a tool that can be used to build and validate the behavior of your regular expression
+  - `regex101.com <https://regex101.com/>_` is a tool that can be used to build and validate the behavior of your regular expression
 
-  - If the module specified is match for a given attribute’s validation rule, regex match validation will be preformed in Google Sheets (but not Excel) real-time during metadata entry.
+  - If the module specified is match for a given attribute's validation rule, regex match validation will be preformed in Google Sheets (but not Excel) real-time during metadata entry.
 
   - The `strict_validation parameter` (in the config.yml file for CLI or in manifest generation REST API calls) sets whether to stop the user from entering incorrect information in a Google Sheets cell (`strict_validation = true`) or simply throws a warning (`strict_validation = false`). Default: `true`.
 
-  - `regex` validation in Google Sheets is different than standard regex validation (for example, it does not support validation of digits). See [this documentation](https://github.com/google/re2/wiki/Syntax) for details on Google regex syntax. It is up to the user/modeler to validate that `regex match` is working in their manifests, as intended. This is especially important if the `strict_validation` parameter is set to `True` as users will be blocked from entering incorrect data. If you are using Google Sheets and do not want to use real-time validation use `regex search` instead of `regex match`.
+  - `regex` validation in Google Sheets is different than standard regex validation (for example, it does not support validation of digits). See `this documentation <https://github.com/google/re2/wiki/Syntax>_` for details on Google regex syntax. It is up to the user/modeler to validate that `regex match` is working in their manifests, as intended. This is especially important if the `strict_validation` parameter is set to `True` as users will be blocked from entering incorrect data. If you are using Google Sheets and do not want to use real-time validation use `regex search` instead of `regex match`.
 
-### Type Validation Type
+Type Validation Type
+--------------------
 
 - There are two parameters
 
@@ -111,47 +124,55 @@ This page details how to use Validation Rules, but please refer to [this documen
 
 - Examples: [ `str`, `str error`, `str warning`]
 
-#### float
+float
+~~~~~
 
 - Checks that the value is a float.
 
-#### int
+int
+~~~
 
 - Checks that the value is an integer.
 
-#### num
+num
+~~~
 
 - Checks that the value is either an integer or float.
 
-#### str
+str
+~~~
 
 - Checks that the value is a string (not a number).
 
-### URL Validation Type
+URL Validation Type
+-------------------
 
-#### url
+url
+~~~
 
 - Using the `url` rule implies the user should add a URL to a free text box as a string. This function will check that the user has provided a usable URL. It will check for any standard URL error and throw an error if one is found. Further additions to this rule can allow for checking that a specific type of URL is added. For example, if the user needs to add a <http://protocols.io> URL, <http://protocols.io> can be added after url to perform this check. If the provided url does not contain this specific string, an error will be raised.
 
 - Format:
 
-  - `url <optional strings> <raised message level>`
+  - `url <optional strings> <raised message level>_`
 
     - `url` must be specified first then an arbitrary number of strings can be added after (separated by spaces) to add additional levels of specificity.
 
-  - Alternatively, its valid to pass only ‘url’ to simply check if the input is a url.
+  - Alternatively, its valid to pass only `url`` to simply check if the input is a url.
 
 - Examples:
 
-  - `url http://protocols.io` Will check that any input is a valid URL, and will also check to see that the URL contains the string `http://protocols.io` If not, an error will be raised.
+  - `url http://protocols.io`_ Will check that any input is a valid URL, and will also check to see that the URL contains the string `http://protocols.io` If not, an error will be raised.
 
-  - `url dx.doi http://protocols.io` Will check that any input is a valid URL, and will also check to see that the URL contains the strings `dx.doi` and `http://protocols.io`. If not, an error will be raised.
+  - `url dx.doi http://protocols.io`_ Will check that any input is a valid URL, and will also check to see that the URL contains the strings `dx.doi` and `http://protocols.io`. If not, an error will be raised.
 
 - Default behavior: raises `error`
 
-### Required Validation Type
+Required Validation Type
+------------------------
 
-#### required
+required
+~~~~~~~~
 
 ass validation.
 
@@ -189,7 +210,7 @@ Examples:
 
 - `#BiospecimenManifest unique required warning^^unique error`
 
-  - For`BiospecimenManifest` manifests, the values supplied must be unique. If they aren’t a warning will be raised. If values are missing, an error will be raised.
+  - For`BiospecimenManifest` manifests, the values supplied must be unique. If they aren't a warning will be raised. If values are missing, an error will be raised.
 
   - For all other manifests, the filling out values is optional. But, if the values supplied are not unique, an error will be raised.
 
@@ -199,7 +220,8 @@ Examples:
 
   - For all other manifests this attribute is not required.
 
-### Cross-manifest Validation Type
+Cross-manifest Validation Type
+------------------------------
 
 Use cross-manifest validation rules when you want to check the values of an attribute in the manifest being validated against an attribute in the manifest(s) of a different component. For example, if a sample manifest has a patient id attribute and you want to check it against the id attribute of patient manifests.
 
@@ -209,25 +231,28 @@ There are three rules that do cross-manifest validation: [`matchAtLeastOne`, `ma
 
 There are two scopes to choose from: [ `value`, `set`]
 
-#### Value Scope
+Value Scope
+~~~~~~~~~~~
 
 When the value scope is used all values from the target attribute in all target manifests are combined. The values from the manifest being validated are compared to this combined list. In other words, there is no distinction between what values came from what target manifest.
 
-##### matchAtleastOne Value Scope
+matchAtleastOne Value Scope
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The manifest is validated if each value in the target attribute exists at least once in the combined values of the target attribute of the target manifests.
 
-##### matchExactlyOne Value Scope
+matchExactlyOne Value Scope
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The manifest is validated if each value in the target attribute exists once, and only once, in the combined values of the target attribute of the target manifests.
 
-##### matchNone Value Scope
+matchNone Value Scope
+^^^^^^^^^^^^^^^^^^^^^
 
 The manifest is validated if each value in the target attribute does not exist in the combined values of the target attribute of the target manifests.
 
-##### Examples Value Scope
-
-###### #1 Value Scope
+Example 1
+^^^^^^^^^
 
 Tested manifest: ["A"]
 
@@ -241,7 +266,8 @@ Target manifests: ["A", "B"]
 
   - because "A" is in the target manifest
 
-###### #2 Value Scope
+Example 2
+^^^^^^^^^
 
 Tested manifest: ["A", "C"]
 
@@ -259,7 +285,8 @@ Target manifests: ["A", "B"]
 
   - because "A" is in the target manifest
 
-###### #3 Value Scope
+Example 3
+^^^^^^^^^
 
 Tested manifest: ["C"]
 
@@ -275,7 +302,8 @@ Target manifests: ["A", "B"]
 
 - matchNone: passes
 
-###### #4 Value Scope
+Example 4
+^^^^^^^^^
 
 Tested manifest: ["A", "A"]
 
@@ -289,7 +317,8 @@ Target manifests: ["A", "B"]
 
   - because "A" is in the target manifest
 
-###### #5 Value Scope
+Example 5
+^^^^^^^^^
 
 Tested manifest: ["A"]
 
@@ -305,7 +334,8 @@ Target manifests: ["A", "A"]
 
   - because "A" is in the target manifest
 
-###### #6 Value Scope
+Example 6
+^^^^^^^^^
 
 Tested manifest: ["A"]
 
@@ -321,7 +351,8 @@ matchNone: fails
 
 because "A" is in the target manifest
 
-###### #7 Value Scope
+Example 7
+^^^^^^^^^
 
 Tested manifest: ["A"]
 
@@ -337,7 +368,8 @@ Target manifests: ["A", "B"],  ["A", "B"]
 
   - because "A" is in the target manifest
 
-#### Set scope
+Set scope
+~~~~~~~~~
 
 When the set scope is used the values from the tested manifest are compared **one at a time** against each target manifest, and the number of matches are counted. The test to determine if the tested manifest matches the target manifest is to see if the tested manifest values are a subset of the target manifest values. Imagine a target manifest who's values are ["A", "B" "C"]:
 
@@ -345,21 +377,23 @@ When the set scope is used the values from the tested manifest are compared **on
 
 - [1], ["D"], ["D", "D"], ["D", "E"] are not subsets of the example target manifest.
 
-##### matchAtleastOne Set scope
+matchAtleastOne Set scope
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The manifest is validated if there is atleast one set match between the tested manifest and the target manifests
 
-##### matchExactlyOne Set scope
+matchExactlyOne Set scope
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The manifest is validated if there is one and only one set match between the tested manifest and the target manifests
 
-##### matchNone Set scope
+matchNone Set scope
+^^^^^^^^^^^^^^^^^^^
 
 The manifest is validated if there are no set match between the tested manifest and the target manifests
 
-##### Examples Set scope
-
-###### #1 Set scope
+Example 1
+^^^^^^^^^
 
 Tested manifest: ["A"]
 
@@ -373,7 +407,8 @@ matchNone: fails
 
 because "A" is in the target manifest
 
-###### #2 Set scope
+Example 2
+^^^^^^^^^
 
 Tested manifest: ["A"]
 
@@ -387,7 +422,8 @@ Target manifests: ["A", "B"], ["C", "D"]
 
   - because "A" is in atleast one of the target manifest
 
-###### #3 Set scope
+Example 3
+^^^^^^^^^
 
 Tested manifest: ["A"]
 
@@ -403,7 +439,8 @@ Target manifests: ["A", "B"], ["A", "B"]
 
   - because "A" is in atleast one of the target manifests
 
-###### #4 Set scope
+Example 4
+^^^^^^^^^
 
 Tested manifest: ["C"]
 
@@ -419,13 +456,15 @@ Target manifests: ["A", "B"]
 
 - matchNone: passes
 
-### Content Validation Type
+Content Validation Type
+-----------------------
 
 Rules can be used to validate the contents of entries for an attribute.
 
-#### recommended
+recommended
+~~~~~~~~~~~
 
-- Use to raise a warning when a manifest column is not required but empty. If an attribute is always necessary then ‘required' should be set to `TRUE` instead of using the `recommended` validation rule.
+- Use to raise a warning when a manifest column is not required but empty. If an attribute is always necessary then `required`` should be set to `TRUE` instead of using the `recommended` validation rule.
 
 - Format:
 
@@ -437,7 +476,8 @@ Rules can be used to validate the contents of entries for an attribute.
 
 - Default behavior: raises `warning`
 
-#### protectAges
+protectAges
+~~~~~~~~~~~
 
 - Use to ensure that patient ages under 18 and over 89 years of age are censored when uploading for sharing. If necessary, a censored version of the manifest will be created and uploaded along with the uncensored version. Uncensored versions will be uploaded as restricted and Terms of Use will need to be set.
 
@@ -451,7 +491,8 @@ Rules can be used to validate the contents of entries for an attribute.
 
 - Default behavior: raises `warning`
 
-#### unique
+unique
+~~~~~~
 
 - Use to ensure that attribute values are not duplicated within a column.
 
@@ -465,7 +506,8 @@ Rules can be used to validate the contents of entries for an attribute.
 
 - Default behavior: raises `error`
 
-#### inRange
+inRange
+~~~~~~~
 
 - Use to ensure that numerical data is within a specified range
 
@@ -479,7 +521,8 @@ Rules can be used to validate the contents of entries for an attribute.
 
 - Default behavior: raises `error`
 
-#### date
+date
+~~~~
 
 - Use to ensure the value parses as a date
 
@@ -493,13 +536,15 @@ Rules can be used to validate the contents of entries for an attribute.
 
 - Default behavior: raises `error`
 
-### Filename Validation
+Filename Validation
+-------------------
 
 This requires paths to be enabled for the synapse master file view in use. Can be enabled by navigating to an existing view and selecting `show view schema` > `edit schema` > `add default view columns` > `save`. Paths are enabled on new views by default.
 
-This should be used only with the Filename attribute in a data model and specified with [Component Based Rule Setting](https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/edit-v2/2645262364#Component-Based-Rule-Setting)
+This should be used only with the Filename attribute in a data model and specified with `Component Based Rule Setting <https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/edit-v2/2645262364#Component-Based-Rule-Setting>`_
 
-#### filenameExists
+filenameExists
+~~~~~~~~~~~~~~
 
 - Used to validate that the filenames and paths as they exist in the metadata manifest match the paths that are in the Synapse master File View for the specified dataset
 
@@ -507,11 +552,11 @@ This should be used only with the Filename attribute in a data model and specifi
 
     - `missing entityId`: The entityId field for a manifest row is null or an empty string
 
-    - `entityId does not exist`: The entityId provided for a manifest row does not exist within the specified dataset’s file view
+    - `entityId does not exist`: The entityId provided for a manifest row does not exist within the specified dataset's file view
 
-    - `path does not exist`: The Filename in the manifest row does not exist within the specified dataset’s file view
+    - `path does not exist`: The Filename in the manifest row does not exist within the specified dataset's file view
 
-    - `mismatched entityId`: The entityId and Filename do not match the expected values from the specified dataset’s file view
+    - `mismatched entityId`: The entityId and Filename do not match the expected values from the specified dataset's file view
 
 - Format
 
@@ -548,7 +593,8 @@ MockFilename,schematic - main/MockFilenameComponent/txt4.txt,syn6168265 # entity
 MockFilename,schematic - main/MockFilenameComponent/txt6.txt,  # missing entityId
 ```
 
-### Rule Combinations
+Rule Combinations
+-----------------
 
 Schematic allows certain combinations of existing validation rules to be used on a single attribute, where appropriate. Combinations currently allowed are enumerated in the table below, under 'Rule Combinations in Production'.
 
@@ -560,13 +606,14 @@ Rule combinations: [`list::regex`, `int::inRange`, `float::inRange`, `num::inRan
 
   - `<rule 1> <applicable rule 1 arguments>::<rule 2> <applicable rule 2 arguments>`
 
-  - ‘::’ delimiter used to separate each rule
+  - `::` delimiter used to separate each rule
 
 - Example:
 
   - `list :: regex search [HTAN][0-9]{1}_[0-9]{4}_[0-9]*`
 
-### Component-Based Rule Setting
+Component-Based Rule Setting
+----------------------------
 
 **Component-Based Rule Setting** is a powerful feature in data modeling that enables users to create rules tailored to specific subsets of components or manifests. This functionality was developed to address scenarios where a data modeler needs to enforce uniqueness for certain attribute values within one manifest while allowing non-uniqueness in another.
 
@@ -626,9 +673,9 @@ Note: As always try the rule combos with mock data to ensure they are working as
 
   - Test by adding these rules to the `Patient ID` attribute in the `example.model.csv` model, then run validation with new rules against the example manifests.
 
-  - [Example Biospecimen Manifest](https://docs.google.com/spreadsheets/d/19_axG2Zj7URk4CT5qYjH0HfpMIOQ1dYEPvyaazSVNZE/edit#gid=0)
+  - `Example Biospecimen Manifest <https://docs.google.com/spreadsheets/d/19_axG2Zj7URk4CT5qYjH0HfpMIOQ1dYEPvyaazSVNZE/edit#gid=0>`_
 
-  - [Example Patient Manifest](https://docs.google.com/spreadsheets/d/1IO0TkzwBX-lsu3rJDjWfgWYR6VlepingN9zuhkrgVUE/edit#gid=0)
+  - `Example Patient Manifest <https://docs.google.com/spreadsheets/d/1IO0TkzwBX-lsu3rJDjWfgWYR6VlepingN9zuhkrgVUE/edit#gid=0>`_
 
     - **Rule**: `#Patient int::inRange 100 900 error^^#Biospecimen int::inRange 100 900 warning`
 
