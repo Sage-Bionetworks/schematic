@@ -148,4 +148,4 @@ For the entire Python API reference documentation, you can visit the docs here: 
    tutorials
    troubleshooting
    cli_reference
-   link_ml
+   linkml
