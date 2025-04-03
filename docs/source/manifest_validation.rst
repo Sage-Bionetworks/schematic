@@ -50,15 +50,14 @@ A ``Component`` column that specifies the data type of the metadata must be pres
 
 Restricted Column Headers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The columns ``id`` and ``entityId`` are reserved for use by schematic and should not be specified in a data model.
-``id`` is used to store a uuid for each row in the manifest.
-``entityId`` is used to store the synId of each entity in the manifest.
+The columns ``Filename``, ``entityId``, and ``Component`` are reserved for use by schematic and should not be used as other attributes in a data model.
+
 
 Manifest Validation
 -------------------------------------------------
 Overview
 ~~~~~~~~~
-Invalidities within a manifest's metadata is classified as either an error or a warning. Depending on the rule itself, whether or not the attribute is required, and what the data modeler has specified.
+Invalidities within a manifest’s metadata are classified as either errors or warnings depending on the rule itself, whether the attribute is required, and what the data modeler has specified.
 Errors are considered serious invalidities that must be corrected before submission. Warnings are considered less serious invalidities that are acceptable.
 A manifest with errors should not be submitted and the presence of errors found during submission will block submission. The presence of warnings will not block submission.
 
@@ -104,39 +103,48 @@ Parameters
 ^^^^^^^^^^^^^^^
 --manifest_path/-mp
     string
+
     Specify the path to the metadata manifest file that you want to submit to a dataset on Synapse. This is a required argument.
 
 --data_type/-dt
     optinal string
+
     Data type of the metadata to be vaidated
+
     Specify the component (data type) from the data model that is to be used for validating the metadata manifest file. You can either explicitly pass the data type here or provide it in the ``config.yml`` file as a value for the ``(manifest > data_type)`` key.
 
 --json_schema/-js
     optional string
+
     Specify the path to the JSON Validation Schema for this argument. You can either explicitly pass the ``.json`` file here or provide it in the ``config.yml`` file as a value for the ``(model > input > validation_schema)`` key.
 
 --restrict_rules/-rr
     boolean flag
+
     If flag is provided when command line utility is executed, validation suite will only run with in-house validation rules, and Great Expectations rules and suite will not be utilized. If not, the Great Expectations suite will be utilized and all rules will be available.
 
 --project_scope/-ps
     optional string
+
     Specify a comma-separated list of projects to search through for cross manifest validation. Used to speed up some interactions with synapse.
 
 --dataset_scope/-ds
     string
+
     Specify a dataset to validate against for filename validation.
 
 --data_model_labels/-dml
     string
+
     one of:
 
     * class_label - use standard class or property label
-    * display_label - use display names as label. Requires there to be no blacklisted characters in the label
+    * display_label - use display names (values given in the CSV data model, or the names designated as the display name field of the JSONLD data model) as label. Requires there to be no blacklisted characters in the label
 
     default: class_label
 
-    Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+    .. warning::
+        Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
 
 The SynId of the fileview containing all relevant project assets should also be specifed in the ``config.yml`` file under ``(asset_store > synapse > master_fileview_id)``
 
@@ -163,7 +171,7 @@ data_model_labels
     one of:
 
     * class_label - use standard class or property label
-    * display_label - use display names as label. Requires there to be no blacklisted characters in the label
+    * display_label - use display names (values given in the CSV data model, or the names designated as the display name field of the JSONLD data model) as label. Requires there to be no blacklisted characters in the label
 
     default: class_label
 
