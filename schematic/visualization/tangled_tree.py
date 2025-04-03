@@ -373,7 +373,9 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
         return source_nodes
 
     def _get_parent_child_dictionary(
-        self, edges: EdgeDataView, all_attributes: Optional[list[str]] = None
+        self,
+        edges: Union[EdgeDataView, NodeLayers],
+        all_attributes: Optional[list[str]] = None,
     ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
         """
         Based on the dependency type, create dictionaries between parent and
