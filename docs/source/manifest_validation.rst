@@ -1,5 +1,37 @@
+.. _Validating a Metadata Manifest:
+
 Validating a Metadata Manifest
 =================================================
+
+Prerequisites
+-------------
+
+**Obtain Synapse Credentials**:
+Ensure you have a Synapse account and set up Synapse configuration file correctly. See the :ref:`installation` section for more details.
+
+**Before Using the Schematic CLI**
+
+- **Install and Configure Schematic**:
+  Ensure you have installed `schematic` and set up its dependencies.
+  See the :ref:`installation` section for more details.
+
+- **Understand Important Concepts**:
+  Familiarize yourself with key concepts outlined on the :ref:`index` of the documentation.
+
+- **Configuration File**:
+  For more details on configuring Schematic, refer to the documentation on :ref:`creating a configuration file for schematic <configuration>`.
+
+- **Obtain a manifest**:
+  Please obtain a manifest by following the documentation of :ref:`generating a manifest <manifest_generation>`.
+
+
+**Using the Schematic API in Production**
+
+Visit the **Schematic API (Production Environment)**:
+`<https://schematic.api.sagebionetworks.org/v1/ui/#/>`_
+
+This will open the **Swagger UI**, where you can explore all available API endpoints.
+
 
 Requirements
 -------------------------------------------------
@@ -52,12 +84,21 @@ During submission:
 
 or by specifying a value for the ``data_type`` parameter in the `/model/submit <https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_ endpoint.
 
+If you need further assistance, help is available by running the following command:
+
+.. code-block:: bash
+
+    schematic model -c /path/to/config.yml validate -h
+
+or by viewing the parameter descriptions under the endpoints linked above.
+
+
 With the CLI
 ~~~~~~~~~~~~~~~
 
 Authentication
 ^^^^^^^^^^^^^^^^
-To authenticate for use with the CLI, follow the instructions on how to Set Up Configuration Files in the installation guide.
+To authenticate for use with the CLI, follow the installation guide instructions on how to :ref:`set up configuration files <set up configuration files>`
 
 Parameters
 ^^^^^^^^^^^^^^^
@@ -159,8 +200,11 @@ file_name
 
 Response
 ^^^^^^^^^^^
-If valiation could complete successfully, regardless of the presence of validation errors or warnings, you'll recieve a ``200`` response code.
+If valiation completes successfully, regardless of the presence of validation errors or warnings, you'll recieve a ``200`` response code.
 The body will be a JSON string containing a list of valiation errors and warnings in the format of ``{"errors": [list of errors], "warnings": [warnings]}``
+
+Validating though the CLI will display all the errors and warnings found during validation or a message that no errors or warnings were found and the manifest is considered valid.
+
 
 With the Library
 ~~~~~~~~~~~~~~~~~
