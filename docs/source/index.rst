@@ -3,6 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. _index:
+
 Welcome to Schematic's documentation!
 =====================================
 
@@ -100,7 +102,7 @@ The following are the four main endpoints that assist with the high-level goals 
 Manifest Generation
 ~~~~~~~~~~~~~~~~~~~
 
-Provides a manifest template for users for a particular project or data type. If a project with annotations already exists, a semi-filled-out template is provided to the user so that they do not start from scratch. If there are no existing annotations, an empty manifest template is provided.
+Provides a manifest template for users for a particular project or data type. If a project with annotations already exists, a semi-filled-out template can be provided to the user. This ensures they do not start from scratch. If there are no existing annotations and manifests, an empty manifest template is provided.
 
 Manifest Validation
 ~~~~~~~~~~~~~~~~~~~
@@ -145,6 +147,7 @@ For the entire Python API reference documentation, you can visit the docs here: 
    installation
    asset_store
    configuration
+   manifest_generation
    tutorials
    troubleshooting
    cli_reference
