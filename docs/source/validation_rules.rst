@@ -105,13 +105,13 @@ regex
 
 - Notes/tips/warnings
 
-  - `regex101.com <https://regex101.com/>_` is a tool that can be used to build and validate the behavior of your regular expression
+  - `regex101.com <https://regex101.com/>`_ is a tool that can be used to build and validate the behavior of your regular expression
 
   - If the module specified is match for a given attribute's validation rule, regex match validation will be preformed in Google Sheets (but not Excel) real-time during metadata entry.
 
   - The ``strict_validation parameter`` (in the config.yml file for CLI or in manifest generation REST API calls) sets whether to stop the user from entering incorrect information in a Google Sheets cell (``strict_validation = true``) or simply throws a warning (``strict_validation = false``). Default: ``true``.
 
-  - ``regex`` validation in Google Sheets is different than standard regex validation (for example, it does not support validation of digits). See `this documentation <https://github.com/google/re2/wiki/Syntax>_` for details on Google regex syntax. It is up to the user/modeler to validate that ``regex match`` is working in their manifests, as intended. This is especially important if the ``strict_validation`` parameter is set to ``True`` as users will be blocked from entering incorrect data. If you are using Google Sheets and do not want to use real-time validation use ``regex search`` instead of ``regex match``.
+  - ``regex`` validation in Google Sheets is different than standard regex validation (for example, it does not support validation of digits). See `this documentation <https://github.com/google/re2/wiki/Syntax>`_ for details on Google regex syntax. It is up to the user/modeler to validate that ``regex match`` is working in their manifests, as intended. This is especially important if the ``strict_validation`` parameter is set to ``True`` as users will be blocked from entering incorrect data. If you are using Google Sheets and do not want to use real-time validation use ``regex search`` instead of ``regex match``.
 
 Type Validation Type
 --------------------
@@ -150,7 +150,7 @@ URL Validation Type
 url
 ~~~
 
-- Using the ``url`` rule implies the user should add a URL to a free text box as a string. This function will check that the user has provided a usable URL. It will check for any standard URL error and throw an error if one is found. Further additions to this rule can allow for checking that a specific type of URL is added. For example, if the user needs to add a <http://protocols.io> URL, <http://protocols.io> can be added after url to perform this check. If the provided url does not contain this specific string, an error will be raised.
+- Using the ``url`` rule implies the user should add a URL to a free text box as a string. This function will check that the user has provided a usable URL. It will check for any standard URL error and throw an error if one is found. Further additions to this rule can allow for checking that a specific type of URL is added. For example, if the user needs to add a ``http://protocols.io`` URL, ``http://protocols.io`` can be added after url to perform this check. If the provided url does not contain this specific string, an error will be raised.
 
 - Format:
 
@@ -174,7 +174,6 @@ Required Validation Type
 required
 ~~~~~~~~
 
-ass validation.
 
 An attribute's requirement is typically set using the required column (csv) or field (JSONLD) in the data model. A ``True`` value means a users must supply a value, ``False`` means they are allowed to skip providing a value.
 
@@ -638,13 +637,13 @@ Note: As always try the rule combos with mock data to ensure they are working as
 
 - Format:
 
-  - `^^`Double carrots indicate that Component-Based rules are being set
+  - ``^^`` Double carrots indicate that Component-Based rules are being set
 
-    - Use `^^` to separate component rule sets
+    - Use ```^^``` to separate component rule sets
 
-  - `#` In the first position (prior to the rule) to define the component/manifest to apply the rule to
+  - ``#`` In the first position (prior to the rule) to define the component/manifest to apply the rule to
 
-    - `#` character cannot be used without the `^^` to indicate component rule sets
+    - ``#`` character cannot be used without the ``^^`` to indicate component rule sets
 
 - Use case:
 
