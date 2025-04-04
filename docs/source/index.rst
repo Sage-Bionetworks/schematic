@@ -149,6 +149,7 @@ For the entire Python API reference documentation, you can visit the docs here: 
    configuration
    manifest_generation
    tutorials
+   manifest_validation
    manifest_submission
    troubleshooting
    cli_reference
