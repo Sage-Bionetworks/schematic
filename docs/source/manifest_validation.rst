@@ -175,7 +175,8 @@ data_model_labels
 
     default: class_label
 
-    Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+    .. warning::
+        Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
 
 restrict_rules
     boolean
