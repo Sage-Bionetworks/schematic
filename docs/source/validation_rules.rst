@@ -3,12 +3,6 @@ Validation Rules
 ================
 
 
-.. toctree::
-   :maxdepth: 2
-   :glob:
-
-   *
-
 Overview
 ========
 
@@ -33,6 +27,8 @@ This page details how to use Validation Rules, but please refer to `this documen
 
 Rule Implementation
 ===================
+
+Some validation rules are handles by Schematic itself, while others are handled by using the Great Expectations library.
 
 ================ ======== ======================= ======================
 Rule             In-House Great Expectations (GX) JSON Schema Validation
@@ -113,20 +109,22 @@ regex
 
 - Default behavior: raises ``error``
 
-- Notes/tips/warnings
+.. note::
 
-  - `regex101.com <https://regex101.com/>`_ is a tool that can be used to build and validate the behavior of your regular expression
+  `regex101.com <https://regex101.com/>`_ is a tool that can be used to build and validate the behavior of your regular expression
 
-  - If the module specified is match for a given attribute's validation rule, regex match validation will be preformed in Google Sheets (but not Excel) real-time during metadata entry.
+  If the module specified is match for a given attribute's validation rule, regex match validation will be preformed in Google Sheets (but not Excel) real-time during metadata entry.
 
-  - The ``strict_validation parameter`` (in the config.yml file for CLI or in manifest generation REST API calls) sets whether to stop the user from entering incorrect information in a Google Sheets cell (``strict_validation = true``) or simply throws a warning (``strict_validation = false``). Default: ``true``.
+  The ``strict_validation parameter`` (in the [config.yml](https://github.com/Sage-Bionetworks/schematic/blob/develop/config_example.yml) file for CLI or in manifest generation REST API calls) sets whether to stop the user from entering incorrect information in a Google Sheets cell (``strict_validation = true``) or simply throws a warning (``strict_validation = false``). Default: ``true``.
 
-  - ``regex`` validation in Google Sheets is different than standard regex validation (for example, it does not support validation of digits). See `this documentation <https://github.com/google/re2/wiki/Syntax>`_ for details on Google regex syntax. It is up to the user/modeler to validate that ``regex match`` is working in their manifests, as intended. This is especially important if the ``strict_validation`` parameter is set to ``True`` as users will be blocked from entering incorrect data. If you are using Google Sheets and do not want to use real-time validation use ``regex search`` instead of ``regex match``.
+  ``regex`` validation in Google Sheets is different than standard regex validation (for example, it does not support validation of digits). See `this documentation <https://github.com/google/re2/wiki/Syntax>`_ for details on Google regex syntax. It is up to the user/modeler to validate that ``regex match`` is working in their manifests, as intended. This is especially important if the ``strict_validation`` parameter is set to ``True`` as users will be blocked from entering incorrect data. If you are using Google Sheets and do not want to use real-time validation use ``regex search`` instead of ``regex match``.
 
 Type Validation Type
 --------------------
 
-- There are two parameters
+- Format:
+
+  - ``<type> <warning level>``
 
   - The first parameter is type and must be one of [ ``float``, ``int``, ```num```, ``str``]
 
@@ -160,7 +158,7 @@ URL Validation Type
 url
 ~~~
 
-- Using the ``url`` rule implies the user should add a URL to a free text box as a string. This function will check that the user has provided a usable URL. It will check for any standard URL error and throw an error if one is found. Further additions to this rule can allow for checking that a specific type of URL is added. For example, if the user needs to add a ``http://protocols.io`` URL, ``http://protocols.io`` can be added after url to perform this check. If the provided url does not contain this specific string, an error will be raised.
+- Using the ``url`` rule implies the user should add a URL to a free text box as a string. This function will check that the user has provided a usable URL. It will check for any standard URL error and throw an error if one is found. Further additions to this rule can allow for checking that a specific type of URL is added. For example, if the user needs to ensure that the input contains a http://protocols.io  URL string, http://protocols.io can be added after url to perform this check.
 
 - Format:
 
@@ -195,9 +193,9 @@ Note: this new required validation rule is not a traditional validation rule, bu
 
 Notes:
 
-- When using ``required`` in validation rules, the ``Required`` **column/field must be set to** ``False`` or this will cause the rule to not work as expected (i.e. components were the attribute is expected to not be required due to the validation rules, will still be required).
+- When using the ``required`` validation rule, the ``Required`` column must ``False`` in the CSV, or the ``Required`` must be set to ``False`` in the JsonLD or this will cause the rule to not work as expected (i.e. components were the attribute is expected to not be required due to the validation rules, will still be required).
 
-  - Note: a warning will be raised for discrepancies in requirements settings are found when running validation.
+  - Note: While using the CLI, a warning will be raised for discrepancies in requirements settings are found when running validation.
 
 - ``required`` can be used in conjunction with other rules, without restriction.
 
@@ -213,7 +211,7 @@ Notes:
 
 - Controlling ``required`` through the validation rule will also impact Manifest formatting (in terms of required column highlighting).
 
-  - To check that ``required`` rules are working as expected, one could generate all impacted manifests and check the formatting is as expected.
+  - To verify that the ``required`` rule is working as expected, you can generate all impacted manifests—required, and columns should appear highlighted in light blue.
 
 Examples:
 

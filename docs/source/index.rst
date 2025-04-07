@@ -146,6 +146,6 @@ For the entire Python API reference documentation, you can visit the docs here: 
    asset_store
    configuration
    tutorials
+   validation_rules
    troubleshooting
    cli_reference
-   validation_rules
