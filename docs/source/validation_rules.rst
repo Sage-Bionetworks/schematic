@@ -126,7 +126,7 @@ Type Validation Type
 
   - ``<type> <warning level>``
 
-  - The first parameter is type and must be one of [ ``float``, ``int``, ```num```, ``str``]
+  - The first parameter is type and must be one of [ ``float``, ``int``, ``num``, ``str``]
 
   - The second optional parameter is the msg level and must be one of [ ``error``, ``warning`` ], defaults to ``error``.
 
