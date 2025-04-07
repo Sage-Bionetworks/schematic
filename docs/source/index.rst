@@ -151,6 +151,7 @@ For the entire Python API reference documentation, you can visit the docs here: 
    manifest_validation
    manifest_submission
    tutorials
+   validation_rules
    troubleshooting
    cli_reference
    linkml
