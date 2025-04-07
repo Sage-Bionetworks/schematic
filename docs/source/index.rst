@@ -147,11 +147,11 @@ For the entire Python API reference documentation, you can visit the docs here: 
    installation
    asset_store
    configuration
+   validation_rules
    manifest_generation
    manifest_validation
    manifest_submission
    tutorials
-   validation_rules
    troubleshooting
    cli_reference
    linkml
