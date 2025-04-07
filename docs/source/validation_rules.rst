@@ -189,16 +189,14 @@ Some users may want to use the same attribute across several manifests, but have
 
 Requirements can be specified per component by setting the required field in the data model to ``False``, and using component based rule setting along with the required "rule".
 
-Note::
-
+.. note::
    This new required validation rule is not a traditional validation rule, but rather impacts the JSON validation schema. This means requirements propagate automatically to manifests as well.
 
 
 
 When using the ``required`` validation rule, the ``Required`` column must ``False`` in the CSV, or the ``Required`` must be set to ``False`` in the JsonLD or this will cause the rule to not work as expected (i.e. components were the attribute is expected to not be required due to the validation rules, will still be required).
 
-Note::
-
+.. note::
   While using the CLI, a warning will be raised for discrepancies in requirements settings are found when running validation.
 
 - ``required`` can be used in conjunction with other rules, without restriction.
@@ -608,8 +606,8 @@ Rule Combinations
 
 Schematic allows certain combinations of existing validation rules to be used on a single attribute, where appropriate.
 
-Note::
-
+.. note::
+  The following are the tested and validated combinations, use all other combinations at your own risk.
   isNa and required can be combined with all rules and rule combos.
 
 Rule combinations: [``list::regex``, ``int::inRange``, ``float::inRange``, ``num::inRange``, ``protectAges::inRange``]
