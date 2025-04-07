@@ -109,7 +109,7 @@ regex
 
 - Default behavior: raises ``error``
 
-.. code-block:: shell
+Notes::
 
   `regex101.com <https://regex101.com/>`_ is a tool that can be used to build and validate the behavior of your regular expression
 
