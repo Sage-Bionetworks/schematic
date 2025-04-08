@@ -38,22 +38,22 @@ Some validation rules are handles by Schematic itself, while others are handled 
 Rule             In-House Great Expectations (GX) JSON Schema Validation
 ================ ======== ======================= ======================
 list             ✓
-regex module     +
-float            +        +
-int              +        +
-num              +        +
-string           +        +
-url              +
-matchAtLeastOne  +
-matchExactlyOne  +
-matchNone        +
-recommended               +
-protectAges               +
-unique                    +
-inRange                   +
-date                      +
-required                                              +
-valid values                                          +
+regex module     ✓
+float            ✓        ✓
+int              ✓        ✓
+num              ✓        ✓
+string           ✓        ✓
+url              ✓
+matchAtLeastOne  ✓
+matchExactlyOne  ✓
+matchNone        ✓
+recommended               ✓
+protectAges               ✓
+unique                    ✓
+inRange                   ✓
+date                      ✓
+required                                              ✓
+valid values                                          ✓
 ================ ======== ======================= ======================
 
 Rule Types and Details
