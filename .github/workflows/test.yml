@@ -178,7 +178,7 @@ jobs:
     needs: [test]
     if: ${{ always() && !cancelled()}}
     name: SonarCloud
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
         with:
