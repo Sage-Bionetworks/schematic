@@ -2106,12 +2106,24 @@ class SynapseStorage(BaseStorage):
 
     def _add_id_columns_to_manifest(
         self, manifest: pd.DataFrame, dmge: DataModelGraphExplorer
-    ):
-        """Helper function to add id and entityId columns to the manifest if they do not already exist, Fill id values per row.
+    ) -> pd.DataFrame:
+        """
+        Ensures that the manifest DataFrame has standardized 'Id' and 'entityId' columns.
+
+        If any case variation of the 'id' column is present (e.g., 'id', 'ID', 'iD'), it is renamed to 'Id'.
+        If any case variation of the 'entityid' column is present, it is renamed to 'entityId'.
+        If 'Id' is still missing, it will be created as an empty column or derived from a 'Uuid' column,
+        depending on whether 'Uuid' is defined in the schema.
+        Missing values in the 'Id' column are filled with generated UUIDs.
+        If 'entityId' is still missing, it will be created and filled with empty strings.
+        If it is already present, any missing values will be replaced with empty strings.
+
         Args:
-        Returns (pd.DataFrame):
-            Manifest df with new Id and EntityId columns (and UUID values) if they were not already present.
-            If any case variation of "id" column is present, rename it to "Id".
+            manifest (pd.DataFrame): The metadata manifest to be updated.
+            dmge (DataModelGraphExplorer): data moodel graph explorer object
+
+        Returns:
+            pd.DataFrame: The updated manifest with a standardized 'Id' column and an 'entityId' column.
         """
         # Normalize any variation of 'id' to 'Id', "entityid" to "entityId"
         for col in manifest.columns:
@@ -2147,7 +2159,7 @@ class SynapseStorage(BaseStorage):
 
         # Add entityId as a column if not already there or
         # Fill any blanks with an empty string.
-        if not col_in_dataframe("entityId", manifest):
+        if "entityId" not in manifest:
             manifest["entityId"] = ""
         else:
             manifest["entityId"] = manifest["entityId"].fillna("")

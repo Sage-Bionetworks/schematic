@@ -94,9 +94,9 @@ class TestStoreSynapse:
                 pd.DataFrame({"Id": ["test_value"], "EntityId": ["test_value"]}),
                 pd.DataFrame({"Id": ["test_value"], "entityId": ["test_value"]}),
             ),
-            # Case 5: 'EntityId' and "ID" in wrong mixed case — should be renamed to "Id" and 'entityId'
+            # Case 5: 'EntityId' and "ID" are both in wrong mixed case — should be renamed to "Id" and 'entityId'
             (
-                pd.DataFrame({"iD": ["test_value"], "EntityID": ["test_value"]}),
+                pd.DataFrame({"iD": ["test_value"], "entityID": ["test_value"]}),
                 pd.DataFrame({"Id": ["test_value"], "entityId": ["test_value"]}),
             ),
         ],
