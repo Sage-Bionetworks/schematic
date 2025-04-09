@@ -18,18 +18,18 @@ Whether you are using DCA or schematic API or schematic library/CLI, the followi
    The following are reserved words that should not be used as attribute names in your data model:
 
    - **id** (any case variation):
-     - When submitting a manifest, schematic automatically adds the "Id" column to the manifest. If you have "id" (any case variation) in your model, it could potentially cause a problem or confusion.
-     - Avoid mapping the "display name" of "Id" to "id" (lowercase), as "id" is a reserved internal key for Synapse and cannot be used as an annotation key.
+       - When submitting a manifest, schematic automatically adds the "Id" column to the manifest. If you have "id" (any case variation) in your model, it could potentially cause a problem or confusion.
+       - Avoid mapping the "display name" of "Id" to "id" (lowercase), as "id" is a reserved internal key for Synapse and cannot be used as an annotation key.
 
    - **entityId** (any case variation):
-     - The `entityId` column in a manifest refers to the Synapse ID of the file or folder that a particular row of metadata describes.
-     - It ensures your metadata is attached to the correct file in Synapse.
-     - When generating a manifest, schematic automatically adds the `entityId` column to the manifest to ensure that the metadata is attached to the correct file in Synapse during the submission step.
-     - When submitting or updating metadata, schematic uses `entityId` to know where the annotations should go.
+       - The `entityId` column in a manifest refers to the Synapse ID of the file or folder that a particular row of metadata describes.
+       - It ensures your metadata is attached to the correct file in Synapse.
+       - When generating a manifest, schematic automatically adds the `entityId` column to the manifest to ensure that the metadata is attached to the correct file in Synapse during the submission step.
+       - When submitting or updating metadata, schematic uses `entityId` to know where the annotations should go.
 
    - **eTag** (any case variation):
-     - The `eTag` is a version identifier for a file or folder in Synapse. It helps ensure that metadata is being applied to the correct version of an entity.
-     - When submitting or updating metadata, schematic automatically adds the `eTag` column to the manifest.
+       - The `eTag` is a version identifier for a file or folder in Synapse. It helps ensure that metadata is being applied to the correct version of an entity.
+       - When submitting or updating metadata, schematic automatically adds the `eTag` column to the manifest.
 
    The following also have special meaning to schematic. Please read carefully before using them in your data model:
 
