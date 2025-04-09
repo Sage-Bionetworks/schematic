@@ -2117,7 +2117,7 @@ class SynapseStorage(BaseStorage):
         for col in manifest.columns:
             if col.lower() == "id":
                 manifest = manifest.rename(columns={col: "Id"})
-            elif col.lower() == "entityid":
+            if col.lower() == "entityid":
                 manifest = manifest.rename(columns={col: "entityId"})
 
         # If 'Id' still doesn't exist, see if uuid column exists
