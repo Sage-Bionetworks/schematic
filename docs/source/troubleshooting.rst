@@ -33,11 +33,15 @@ Whether you are using DCA or schematic API or schematic library/CLI, the followi
 
    The following also have special meaning to schematic. Misusing these terms in your data model could lead to errors or unexpected behavior. Please read carefully before using them in your data model:
 
-   - **Filename**: For data types that are stored in data files, the attribute `Filename` is used to denote the file name of each file in a dataset. If `Filename` is not included in the data type schema attributes, schematic interprets the data type as “tabular” (e.g., clinical, biospecimen data).
-   - **Component**: The `Component` field in schematic is used to define higher-level groupings of attributes.
-        - For example, a Patient might be described by components such as Demographics, Family History, Diagnosis, and Therapy, each with its own set of attributes and corresponding manifest.
-        - Schematic allows declaration of "components" and relationships between components.
-        - Schematic also enables validation and tracking of components across related entities (e.g., ensuring that all parts of a Patient record are present).
+   - **Filename**:
+     For data types that are stored in data files, the attribute `Filename` is used to denote the file name of each file in a dataset.
+     If `Filename` is not included in the data type schema attributes, schematic interprets the data type as “tabular” (e.g., clinical, biospecimen data).
+
+   - **Component**:
+     The `Component` field in schematic is used to define higher-level groupings of attributes.
+     - For example, a Patient might be described by components such as Demographics, Family History, Diagnosis, and Therapy, each with its own set of attributes and corresponding manifest.
+     - Schematic allows declaration of "components" and relationships between components.
+     - Schematic also enables validation and tracking of components across related entities (e.g., ensuring that all parts of a Patient record are present).
 
 5. Create a Github issue or reach out to your respective DCC service desks.  What is the schematic or DCA configuration used? Specifically, it's most important to capture the following:
 
