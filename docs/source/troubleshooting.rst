@@ -72,6 +72,7 @@ To fix: Check if your manifest has an empty Component column.  Please fill out t
 
 Manifest Submit: `AssertionError: `input_df` lacks `Id` column.`
 --------------------------------------------------------------
+
 You may encounter this error if your manifest has an "id" (lower case) column during submission.
 
 To fix: Delete the "id", "eTag" column from your manifest and submit the manifest again.
