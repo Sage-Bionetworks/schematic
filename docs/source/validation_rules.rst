@@ -116,13 +116,9 @@ regex
 - Default behavior: raises ``error``
 
 .. note::
-
   `regex101.com <https://regex101.com/>`_ is a tool that can be used to build and validate the behavior of your regular expression
-
   If the module specified is match for a given attribute's validation rule, regex match validation will be preformed in Google Sheets (but not Excel) real-time during metadata entry.
-
   The ``strict_validation parameter`` (in the [config.yml](https://github.com/Sage-Bionetworks/schematic/blob/develop/config_example.yml) file for CLI or in manifest generation REST API calls) sets whether to stop the user from entering incorrect information in a Google Sheets cell (``strict_validation = true``) or simply throws a warning (``strict_validation = false``). Default: ``true``.
-
   ``regex`` validation in Google Sheets is different than standard regex validation (for example, it does not support validation of digits). See `this documentation <https://github.com/google/re2/wiki/Syntax>`_ for details on Google regex syntax. It is up to the user/modeler to validate that ``regex match`` is working in their manifests, as intended. This is especially important if the ``strict_validation`` parameter is set to ``True`` as users will be blocked from entering incorrect data. If you are using Google Sheets and do not want to use real-time validation use ``regex search`` instead of ``regex match``.
 
 
@@ -615,8 +611,8 @@ Rule Combinations
 Schematic allows certain combinations of existing validation rules to be used on a single attribute, where appropriate.
 
 .. note::
-
-  isNa and required can be combined with all rules and rule combos.
+  - The following are the tested and validated combinations, use all other combinations at your own risk.
+  - isNa and required can be combined with all rules and rule combos.
 
 Rule combinations: [``list::regex``, ``int::inRange``, ``float::inRange``, ``num::inRange``, ``protectAges::inRange``]
 
@@ -652,10 +648,8 @@ This feature offers flexibility and applicability beyond its original use case. 
 By leveraging the enhanced Component-Based Rule Setting feature, data modelers can efficiently enforce rules across their data models with greater precision and flexibility, ensuring data integrity while accommodating diverse use cases and requirements.
 
 .. note::
-
-  All restrictions to rule combos and implementation also apply to component based rules.
-
-  As always try the rule combos with mock data to ensure they are working as intended before using in production.
+  - All restrictions to rule combos and implementation also apply to component based rules.
+  - As always try the rule combos with mock data to ensure they are working as intended before using in production.
 
 - Format:
 
