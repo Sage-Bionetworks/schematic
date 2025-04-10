@@ -18,18 +18,62 @@ Whether you are using DCA or schematic API or schematic library/CLI, the followi
    The following are reserved words that should not be used as attribute names in your data model:
 
    - **id** (any case variation):
-       - When submitting a manifest, schematic automatically adds the "Id" column to the manifest. If you have "id" (any case variation) in your model, it could potentially cause a problem or confusion.
-       - Avoid mapping the "display name" of "Id" to "id" (lowercase), as "id" is a reserved internal key for Synapse and cannot be used as an annotation key.
+     - When submitting a manifest, schematic automatically adds the "Id" column to the manifest. If you have "id" (any case variation) in your model, it could potentially cause a problem or confusion.
+     - Avoid mapping the "display name" of "Id" to "id" (lowercase), as "id" is a reserved internal key for Synapse and cannot be used as an annotation key.
 
    - **entityId** (any case variation):
-       - The `entityId` column in a manifest refers to the Synapse ID of the file that a particular row of metadata describes.
-       - It ensures your metadata is attached to the correct file in Synapse.
-       - When generating a manifest, schematic automatically adds the `entityId` column to the manifest to ensure that the metadata is attached to the correct file in Synapse during the submission step.
-       - When submitting or updating metadata, schematic uses `entityId` to know where the annotations should go.
+     - The `entityId` column in a manifest refers to the Synapse ID of the file that a particular row of metadata describes.
+     - It ensures your metadata is attached to the correct file in Synapse.
+     - When generating a manifest, schematic automatically adds the `entityId` column to the manifest to ensure that the metadata is attached to the correct file in Synapse during the submission step.
+     - When submitting or updating metadata, schematic uses `entityId` to know where the annotations should go.
 
    - **eTag** (any case variation):
        - The `eTag` is a version identifier for a file in Synapse. It helps ensure that metadata is being applied to the correct version of an entity.
        - When submitting or updating metadata, schematic automatically adds the `eTag` column to the manifest.
+
+   Please also note that the following are reserved words for Synapse table columns. Any variations of the following would cause a conflict with Synapse table columns:
+
+   - **ROW_ID** (any case variation):
+     - Examples of invalid variations:
+       - `row_id`
+       - `RowID`
+       - `ROW ID` (contains a space)
+       - ` row_id ` (contains leading/trailing spaces)
+
+   - **ROW_VERSION** (any case variation):
+     - Examples of invalid variations:
+       - `row_version`
+       - `RowVersion`
+       - `ROW VERSION` (contains a space)
+       - ` row_version ` (contains leading/trailing spaces)
+
+   - **ROW_ETAG** (any case variation):
+     - Examples of invalid variations:
+       - `row_etag`
+       - `RowETag`
+       - `ROW ETAG` (contains a space)
+       - ` row_etag ` (contains leading/trailing spaces)
+
+   - **ROW_BENEFACTOR** (any case variation):
+     - Examples of invalid variations:
+       - `row_benefactor`
+       - `RowBenefactor`
+       - `ROW BENEFACTOR` (contains a space)
+       - ` row_benefactor ` (contains leading/trailing spaces)
+
+   - **ROW_SEARCH_CONTENT** (any case variation):
+     - Examples of invalid variations:
+       - `row_search_content`
+       - `RowSearchContent`
+       - `ROW SEARCH CONTENT` (contains spaces)
+       - ` row_search_content ` (contains leading/trailing spaces)
+
+   - **ROW_HASH_CODE** (any case variation):
+     - Examples of invalid variations:
+       - `row_hash_code`
+       - `RowHashCode`
+       - `ROW HASH CODE` (contains spaces)
+       - ` row_hash_code ` (contains leading/trailing spaces)
 
    The following also have special meaning to schematic. Misusing these terms in your data model could lead to errors or unexpected behavior. Please read carefully before using them in your data model:
 
