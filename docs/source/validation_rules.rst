@@ -81,6 +81,8 @@ list
 
 - Can use ``list`` rule in conjunction with ``regex`` rule to validate that the items in a list follow a specific pattern.
 
+  - See the ``list::regex`` rule below in rule combinations.
+
   - All the values in the list need to follow the same pattern. This is ideal for when users need to provide a list of IDs.
 
 - Default behavior: raises ``error``
@@ -211,7 +213,7 @@ Note::
 
     - For example, if the rule ``^^#Biospecimen required warning``, is added to the data model a warning will be raised letting the user know that the rule modifier cannot be applied to required.
 
-- Adding ``required`` sets ``Required`` to ``True`` for the specified component. There is no way to set ``Required`` to ``False`` using the validation rules column, that would come from the ``Required`` field in the data model.
+- Using the ``required`` validation rule is the equivalent of putting ``True`` in the ``Required`` column of the CSV. If the ``Required`` column is ``False``, and the ``required`` validation rule is used, the validation rule will override the ``Required`` column.
 
 - Controlling ``required`` through the validation rule will also impact Manifest formatting (in terms of required column highlighting).
 
@@ -219,11 +221,11 @@ Note::
 
 Examples:
 
-- ``#BiospecimenManifest unique required warning^^unique error``
+- ``#BiospecimenManifest required``
 
-  - For`BiospecimenManifest` manifests, the values supplied must be unique. If they aren't a warning will be raised. If values are missing, an error will be raised.
+  - For`BiospecimenManifest` manifests, if values are missing, an error will be raised.
 
-  - For all other manifests, the filling out values is optional. But, if the values supplied are not unique, an error will be raised.
+  - For all other manifests, the filling out values is optional.
 
 - ``#Demographics required^^#BiospecimenManifest required^^``
 
