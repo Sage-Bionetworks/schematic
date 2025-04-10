@@ -223,9 +223,9 @@ Examples:
 
 - ``#BiospecimenManifest required``
 
-  - For`BiospecimenManifest` manifests, if values are missing, an error will be raised.
+  - For ``BiospecimenManifest`` manifests, if values are missing, an error will be raised.
 
-  - For all other manifests, the filling out values is optional.
+  - For all other manifests, filling out values for the attribute is optional.
 
 - ``#Demographics required^^#BiospecimenManifest required^^``
 
@@ -611,7 +611,7 @@ Rule Combinations
 Schematic allows certain combinations of existing validation rules to be used on a single attribute, where appropriate.
 
 .. note::
-  - The following are the tested and validated combinations, use all other combinations at your own risk.
+  - The following are the tested and validated combinations, all other combinations are not officially supported.
   - isNa and required can be combined with all rules and rule combos.
 
 Rule combinations: [``list::regex``, ``int::inRange``, ``float::inRange``, ``num::inRange``, ``protectAges::inRange``]
