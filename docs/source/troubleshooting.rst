@@ -91,7 +91,7 @@ Manifest Submit: `AssertionError: input_df lacks Id column.`
 
 You may encounter this error if your manifest has an "id" (lower case) column during submission.
 
-To fix: Delete the "id" (any case variation), "eTag" column (any case variation) from your manifest and submit the manifest again.
+To fix: Delete the `id` (any case variation) and `eTag` column (any case variation) from your manifest and submit the manifest again.
 
 
 Manifest validation: `The submitted metadata does not contain all required column(s)`
