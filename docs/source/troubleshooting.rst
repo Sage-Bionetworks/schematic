@@ -34,46 +34,40 @@ Whether you are using DCA or schematic API or schematic library/CLI, the followi
    Please also note that the following are reserved words for Synapse table columns. Any variations of the following would cause a conflict with Synapse table columns:
 
    - **ROW_ID** (any case variation):
-       - Examples of invalid variations:
-           - `row_id`
-           - `RowID`
-           - `ROW ID` (contains a space)
-           - ` row_id ` (contains leading/trailing spaces)
+       - `row_id`
+       - `RowID`
+       - `ROW ID` (contains a space)
+       - ` row_id ` (contains leading/trailing spaces)
 
    - **ROW_VERSION** (any case variation):
-       - Examples of invalid variations:
-           - `row_version`
-           - `RowVersion`
-           - `ROW VERSION` (contains a space)
-           - ` row_version ` (contains leading/trailing spaces)
+       - `row_version`
+       - `RowVersion`
+       - `ROW VERSION` (contains a space)
+       - ` row_version ` (contains leading/trailing spaces)
 
    - **ROW_ETAG** (any case variation):
-       - Examples of invalid variations:
-           - `row_etag`
-           - `RowETag`
-           - `ROW ETAG` (contains a space)
-           - ` row_etag ` (contains leading/trailing spaces)
+       - `row_etag`
+       - `RowETag`
+       - `ROW ETAG` (contains a space)
+       - ` row_etag ` (contains leading/trailing spaces)
 
    - **ROW_BENEFACTOR** (any case variation):
-       - Examples of invalid variations:
-           - `row_benefactor`
-           - `RowBenefactor`
-           - `ROW BENEFACTOR` (contains a space)
-           - ` row_benefactor ` (contains leading/trailing spaces)
+       - `row_benefactor`
+       - `RowBenefactor`
+       - `ROW BENEFACTOR` (contains a space)
+       - ` row_benefactor ` (contains leading/trailing spaces)
 
    - **ROW_SEARCH_CONTENT** (any case variation):
-       - Examples of invalid variations:
-           - `row_search_content`
-           - `RowSearchContent`
-           - `ROW SEARCH CONTENT` (contains spaces)
-           - ` row_search_content ` (contains leading/trailing spaces)
+       - `row_search_content`
+       - `RowSearchContent`
+       - `ROW SEARCH CONTENT` (contains spaces)
+       - ` row_search_content ` (contains leading/trailing spaces)
 
    - **ROW_HASH_CODE** (any case variation):
-       - Examples of invalid variations:
-           - `row_hash_code`
-           - `RowHashCode`
-           - `ROW HASH CODE` (contains spaces)
-           - ` row_hash_code ` (contains leading/trailing spaces)
+       - `row_hash_code`
+       - `RowHashCode`
+       - `ROW HASH CODE` (contains spaces)
+       - ` row_hash_code ` (contains leading/trailing spaces)
 
    The following also have special meaning to schematic. Misusing these terms in your data model could lead to errors or unexpected behavior. Please read carefully before using them in your data model:
 
