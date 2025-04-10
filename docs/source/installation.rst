@@ -1,3 +1,5 @@
+.. _installation:
+
 Installation
 ============
 
@@ -115,6 +117,8 @@ Once you have obtained credentials, be sure that the json file generated is name
 
 .. note::
    Use the ``schematic_service_account_creds.json`` file for the service account mode of authentication (*for Google services/APIs*). Service accounts are special Google accounts that can be used by applications to access Google APIs programmatically via OAuth2.0, with the advantage being that they do not require human authorization.
+
+.. _Set up configuration files:
 
 6. Set up configuration files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

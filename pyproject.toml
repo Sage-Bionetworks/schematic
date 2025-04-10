@@ -91,23 +91,10 @@ pytest-rerunfailures = "^12.0"
 pytest-asyncio = "^0.24.0"
 flake8 = "^6.0.0"
 black = "^23.7.0" #If the version spec of black is changed here, the version specified in .pre-commit-config.yaml should be updated to match
-mypy = "^1.4.1"
+mypy = "^1.15.0"
 pylint = "^2.16.1"
 pytest-xdist = "^3.5.0"
 pre-commit = "^3.6.2"
-# types-requests = "^2.31.0"
-# pandas-stubs = "2.2.2.240807"
-# types-Deprecated = "1.2.15.20241117"
-# types-PyYAML = "6.0.12.20241230"
-# types-cachetools = "5.5.0.20240820"
-# types-colorama = "0.4.15.20240311"
-# types-dateparser = "1.2.0.20250208"
-# types-jsonschema = "4.23.0.20241208"
-# types-protobuf = "5.29.1.20250208"
-# types-psutil = "7.0.0.20250218"
-# types-pycurl = "7.45.4.20241216"
-# types-pytz = "2025.1.0.20250204"
-# types-setuptools = "75.8.0.20250225"
 
 [tool.poetry.group.doc.dependencies]
 pdoc = "^14.0.0"
@@ -145,3 +132,12 @@ testpaths = [
 filterwarnings = [
     "ignore::DeprecationWarning"
 ]
+
+
+[[tool.mypy.overrides]]
+module = ["pkg_resources.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["networkx.*"]
+follow_untyped_imports = true

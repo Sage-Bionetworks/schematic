@@ -92,13 +92,13 @@ jobs:
       #----------------------------------------------
       #             type checking/enforcement
       #----------------------------------------------
-      # - name: Type checking with mypy
-      #   run: |
-      #     # ran only on certain files for now
-      #     # add here when checked
-      #     # poetry run mypy --install-types --non-interactive
-      #     # add here when enforced
-      #     poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/schemas/ schematic/configuration/ schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/visualization schematic/utils/
+      - name: Type checking with mypy
+        run: |
+          # ran only on certain files for now
+          # add here when checked
+          # poetry run mypy --install-types --non-interactive
+          # add here when enforced
+          poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/schemas/ schematic/configuration/ schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/visualization schematic/utils/
 
       #----------------------------------------------
       #             linting
@@ -199,7 +199,7 @@ jobs:
         with:
           files: "coverage.xml"
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v4.1.0
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
         if: ${{ always() }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

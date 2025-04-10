@@ -16,6 +16,36 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: set-release-env
+        shell: bash
+        run: |
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+          if [[ $RELEASE_TAG =~ ^v?([[:digit:]\.]+)(-rc)? ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+            if [[ "${{ github.event.release.prerelease}}" == "true" ]]; then
+              if [[ -z "${BASH_REMATCH[2]}" ]]; then
+                echo "A test release tag should end with \"-rc\""
+                exit 1
+              fi
+
+              # for staging builds we append the build number so we have
+              # distinct version numbers between prod and test pypi.
+              VERSION="$VERSION.$GITHUB_RUN_NUMBER"
+            fi
+
+          else
+            echo "Unable to parse deployment version from $RELEASE_TAG"
+            exit 1
+          fi
+
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - id: update-version-number-in-toml
+        if: ${{ github.event.release.prerelease == true }}
+        run: |
+          sed -i '/^\[tool.poetry\]/,/^\[/{s/version = ".*"/version = "'"$VERSION"'"/}' pyproject.toml
+
       - id: build-package
         run: |
           python3 -m pip install --upgrade pip
@@ -25,7 +55,6 @@ jobs:
           python3 -m pip install .
           python3 -m build
 
-          VERSION=${{ github.event.release.tag_name }}
           SDIST_PACKAGE_NAME="schematicpy-${VERSION}.tar.gz"
           BDIST_PACKAGE_NAME="schematicpy-${VERSION}-py3-none-any.whl"
           RELEASE_URL_PREFIX="https://uploads.github.com/repos/${{ github.event.repository.full_name }}/releases/${{ github.event.release.id }}/assets?name="
@@ -40,14 +69,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build-package.outputs.sdist-package-name }}
-          path: dist/
+          path: dist/${{ steps.build-package.outputs.sdist-package-name }}
           if-no-files-found: error
 
       - name: upload-bdist-artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build-package.outputs.bdist-package-name }}
-          path: dist/
+          path: dist/${{ steps.build-package.outputs.bdist-package-name }}
           if-no-files-found: error
 
   publish:

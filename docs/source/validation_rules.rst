@@ -121,6 +121,7 @@ Notes::
 
   ``regex`` validation in Google Sheets is different than standard regex validation (for example, it does not support validation of digits). See `this documentation <https://github.com/google/re2/wiki/Syntax>`_ for details on Google regex syntax. It is up to the user/modeler to validate that ``regex match`` is working in their manifests, as intended. This is especially important if the ``strict_validation`` parameter is set to ``True`` as users will be blocked from entering incorrect data. If you are using Google Sheets and do not want to use real-time validation use ``regex search`` instead of ``regex match``.
 
+
 Type Validation Type
 --------------------
 
@@ -128,7 +129,7 @@ Type Validation Type
 
   - ``<type> <warning level>``
 
-  - The first parameter is type and must be one of [ ``float``, ``int``, ```num```, ``str``]
+  - The first parameter is type and must be one of [ ``float``, ``int``, ``num``, ``str``]
 
   - The second optional parameter is the msg level and must be one of [ ``error``, ``warning`` ], defaults to ``error``.
 
@@ -192,7 +193,6 @@ Some users may want to use the same attribute across several manifests, but have
 Requirements can be specified per component by setting the required field in the data model to ``False``, and using component based rule setting along with the required "rule".
 
 Note::
-
    This new required validation rule is not a traditional validation rule, but rather impacts the JSON validation schema. This means requirements propagate automatically to manifests as well.
 
 

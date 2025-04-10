@@ -71,6 +71,7 @@ from schematic.utils.general import (
     create_temp_folder,
     entity_type_mapping,
     get_dir_size,
+    create_like_statement,
 )
 from schematic.utils.io_utils import cleanup_temporary_storage
 from schematic.utils.schema_utils import get_class_label_from_display_name
@@ -711,7 +712,6 @@ class SynapseStorage(BaseStorage):
             raise ValueError(
                 f"Fileview {self.storageFileview} is empty, please check the table and the provided synID and try again."
             )
-
         child_path = self.storageFileviewTable.loc[
             self.storageFileviewTable["parentId"] == datasetId, "path"
         ]
@@ -725,11 +725,8 @@ class SynapseStorage(BaseStorage):
         parent = child_path.split("/")[:-1]
         parent = "/".join(parent)
 
-        # Format dataset path to be used in table query
-        dataset_path = f"'{parent}/%'"
-
         # When querying, only include files to exclude entity files and subdirectories
-        where_clauses = [f"path like {dataset_path}", "type='file'"]
+        where_clauses = [create_like_statement(parent), "type='file'"]
 
         # Requery the fileview to specifically get the files in the given dataset
         self.query_fileview(columns=["id", "path"], where_clauses=where_clauses)
@@ -3250,7 +3247,7 @@ class TableOperations:
         Method to upsert rows from a new manifest into an existing table on synapse
         For upsert functionality to work, primary keys must follow the naming convention of <componenet>_id
         `-tm upsert` should be used for initial table uploads if users intend to upsert into them at a later time; using 'upsert' at creation will generate the metadata necessary for upsert functionality.
-        Currently it is required to use -dl/--use_display_label with table upserts.
+        Currently it is required to use -tcn "display label" with table upserts.
 
 
         Args:
