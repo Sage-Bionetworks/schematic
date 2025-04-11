@@ -82,6 +82,10 @@ logger = logging.getLogger("Synapse storage")
 
 tracer = trace.get_tracer("Schematic")
 
+ID_COLUMN = "Id"
+ENTITY_ID_COLUMN = "entityId"
+UUID_COLUMN = "uuid"
+
 
 @dataclass
 class ManifestDownload(object):
@@ -2128,9 +2132,6 @@ class SynapseStorage(BaseStorage):
         Returns:
             pd.DataFrame: The updated manifest with a standardized 'Id' column and an 'entityId' column.
         """
-        ID_COLUMN = "Id"
-        ENTITY_ID_COLUMN = "entityId"
-        UUID_COLUMN = "uuid"
 
         # Normalize any variation of 'id' to 'Id', "entityid" to "entityId", "Uuid" to "uuid"
         for col in manifest.columns:
