@@ -86,7 +86,7 @@ class TestStoreSynapse:
             ),
             # Case 3: 'entityID' in wrong mixed case — should be renamed to 'entityId'
             (
-                pd.DataFrame({"Id": ["test_value"], "entityId": ["test_value"]}),
+                pd.DataFrame({"Id": ["test_value"], "entityID": ["test_value"]}),
                 pd.DataFrame({"Id": ["test_value"], "entityId": ["test_value"]}),
             ),
             # Case 4: 'EntityId' in wrong mixed case — should be renamed to 'entityId'
@@ -94,11 +94,20 @@ class TestStoreSynapse:
                 pd.DataFrame({"Id": ["test_value"], "EntityId": ["test_value"]}),
                 pd.DataFrame({"Id": ["test_value"], "entityId": ["test_value"]}),
             ),
-            # Case 5: 'EntityId' and "ID" are both in wrong mixed case — should be renamed to "Id" and 'entityId'
+            # Case 5: 'iD' and 'entityID' in mixed case — should be renamed to 'Id' and 'entityId'
             (
                 pd.DataFrame({"iD": ["test_value"], "entityID": ["test_value"]}),
                 pd.DataFrame({"Id": ["test_value"], "entityId": ["test_value"]}),
             ),
+        ],
+        ids=[
+            "normalize_lowercase_id_to_Id",
+            "normalize_uppercase_ID_to_Id",
+            "normalize_mixedcase_iD_to_Id",
+            "rename_Uuid_to_Id",
+            "rename_entityID_to_entityId",
+            "rename_EntityId_to_entityId",
+            "rename_both_iD_and_entityID",
         ],
     )
     @pytest.mark.parametrize(
