@@ -85,6 +85,8 @@ list
 
 - Can use ``list`` rule in conjunction with ``regex`` rule to validate that the items in a list follow a specific pattern.
 
+  - See the ``list::regex`` rule below in rule combinations.
+
   - All the values in the list need to follow the same pattern. This is ideal for when users need to provide a list of IDs.
 
 - Default behavior: raises ``error``
@@ -112,7 +114,6 @@ regex
   - The regular expression defined above allows comparison to an expected format of a histological morphology code.
 
 - Default behavior: raises ``error``
-
 
 .. note::
   `regex101.com <https://regex101.com/>`_ is a tool that can be used to build and validate the behavior of your regular expression
@@ -199,6 +200,7 @@ Requirements can be specified per component by setting the required field in the
 When using the ``required`` validation rule, the ``Required`` column must ``False`` in the CSV, or the ``Required`` must be set to ``False`` in the JsonLD or this will cause the rule to not work as expected (i.e. components were the attribute is expected to not be required due to the validation rules, will still be required).
 
 .. note::
+
   While using the CLI, a warning will be raised for discrepancies in requirements settings are found when running validation.
 
 - ``required`` can be used in conjunction with other rules, without restriction.
@@ -211,7 +213,7 @@ When using the ``required`` validation rule, the ``Required`` column must ``Fals
 
     - For example, if the rule ``^^#Biospecimen required warning``, is added to the data model a warning will be raised letting the user know that the rule modifier cannot be applied to required.
 
-- Adding ``required`` sets ``Required`` to ``True`` for the specified component. There is no way to set ``Required`` to ``False`` using the validation rules column, that would come from the ``Required`` field in the data model.
+- Using the ``required`` validation rule is the equivalent of putting ``True`` in the ``Required`` column of the CSV. If the ``Required`` column is ``False``, and the ``required`` validation rule is used, the validation rule will override the ``Required`` column.
 
 - Controlling ``required`` through the validation rule will also impact Manifest formatting (in terms of required column highlighting).
 
@@ -219,11 +221,11 @@ When using the ``required`` validation rule, the ``Required`` column must ``Fals
 
 Examples:
 
-- ``#BiospecimenManifest unique required warning^^unique error``
+- ``#BiospecimenManifest required``
 
-  - For`BiospecimenManifest` manifests, the values supplied must be unique. If they aren't a warning will be raised. If values are missing, an error will be raised.
+  - For ``BiospecimenManifest`` manifests, if values are missing, an error will be raised.
 
-  - For all other manifests, the filling out values is optional. But, if the values supplied are not unique, an error will be raised.
+  - For all other manifests, filling out values for the attribute is optional.
 
 - ``#Demographics required^^#BiospecimenManifest required^^``
 
@@ -609,8 +611,8 @@ Rule Combinations
 Schematic allows certain combinations of existing validation rules to be used on a single attribute, where appropriate.
 
 .. note::
-  The following are the tested and validated combinations, use all other combinations at your own risk.
-  isNa and required can be combined with all rules and rule combos.
+  - The following are the tested and validated combinations, all other combinations are not officially supported.
+  - isNa and required can be combined with all rules and rule combos.
 
 Rule combinations: [``list::regex``, ``int::inRange``, ``float::inRange``, ``num::inRange``, ``protectAges::inRange``]
 
@@ -644,7 +646,6 @@ This feature offers flexibility and applicability beyond its original use case. 
 - **Unique Rules for Each Manifest**: Users can also define unique rules for each manifest within the data model. This enables tailored rule enforcement based on the specific requirements and characteristics of each manifest.
 
 By leveraging the enhanced Component-Based Rule Setting feature, data modelers can efficiently enforce rules across their data models with greater precision and flexibility, ensuring data integrity while accommodating diverse use cases and requirements.
-
 
 .. note::
   - All restrictions to rule combos and implementation also apply to component based rules.
