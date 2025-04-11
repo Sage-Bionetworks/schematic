@@ -2128,18 +2128,22 @@ class SynapseStorage(BaseStorage):
         Returns:
             pd.DataFrame: The updated manifest with a standardized 'Id' column and an 'entityId' column.
         """
+        ID_COLUMN = "Id"
+        ENTITY_ID_COLUMN = "entityId"
+        UUID_COLUMN = "uuid"
+
         # Normalize any variation of 'id' to 'Id', "entityid" to "entityId", "Uuid" to "uuid"
         for col in manifest.columns:
             if col.lower() == "id":
-                manifest = manifest.rename(columns={col: "Id"})
+                manifest = manifest.rename(columns={col: ID_COLUMN})
             if col.lower() == "entityid":
-                manifest = manifest.rename(columns={col: "entityId"})
+                manifest = manifest.rename(columns={col: ENTITY_ID_COLUMN})
             if col.lower() == "uuid":
-                manifest = manifest.rename(columns={col: "uuid"})
+                manifest = manifest.rename(columns={col: UUID_COLUMN})
 
         # If 'Id' still doesn't exist, see if uuid column exists
         # Rename uuid column to "Id" column
-        if "Id" not in manifest.columns:
+        if ID_COLUMN not in manifest.columns:
             # See if schema has `Uuid` column specified
             try:
                 uuid_col_in_schema = dmge.is_class_in_schema(
@@ -2149,28 +2153,28 @@ class SynapseStorage(BaseStorage):
                 uuid_col_in_schema = False
 
             # Rename `uuid` column if it wasn't specified in the schema
-            if "uuid" in manifest.columns and not uuid_col_in_schema:
-                manifest = manifest.rename(columns={"uuid": "Id"})
+            if UUID_COLUMN in manifest.columns and not uuid_col_in_schema:
+                manifest = manifest.rename(columns={UUID_COLUMN: ID_COLUMN})
             # If no `uuid` column exists or it is specified in the schema, create a new `Id` column
             else:
-                manifest["Id"] = ""
+                manifest[ID_COLUMN] = ""
         else:
             # 'Id' already exists, ignore 'uuid'
-            if "uuid" in manifest.columns:
-                manifest = manifest.drop(columns=["uuid"])
+            if UUID_COLUMN in manifest.columns:
+                manifest = manifest.drop(columns=[UUID_COLUMN])
 
         # Fill in UUIDs in the "Id" column if missing
         for idx, row in manifest.iterrows():
             if not row["Id"]:
                 gen_uuid = str(uuid.uuid4())
                 row["Id"] = gen_uuid
-                manifest.loc[idx, "Id"] = gen_uuid
+                manifest.loc[idx, ID_COLUMN] = gen_uuid
 
         # Add entityId as a column if not already there
-        if "entityId" not in manifest:
-            manifest["entityId"] = ""
+        if ENTITY_ID_COLUMN not in manifest:
+            manifest[ENTITY_ID_COLUMN] = ""
         else:
-            manifest["entityId"] = manifest["entityId"].fillna("")
+            manifest[ENTITY_ID_COLUMN] = manifest[ENTITY_ID_COLUMN].fillna("")
 
         return manifest
 
