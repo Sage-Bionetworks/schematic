@@ -109,6 +109,13 @@ class TestStoreSynapse:
                 pd.DataFrame({"Uuid": ["test_value"], "id": ["test_value"]}),
                 pd.DataFrame({"Id": ["test_value"], "entityId": [""]}),
             ),
+            # Case 7: 'UUid', 'id', 'entityID' are present — UUid should be renamed to 'Id', entityID to 'entityId'
+            (
+                pd.DataFrame(
+                    {"UUid": ["test_value"], "id": ["test_value"], "entityID": [""]}
+                ),
+                pd.DataFrame({"Id": ["test_value"], "entityId": [""]}),
+            ),
         ],
         ids=[
             "normalize_lowercase_id_to_Id",
@@ -120,6 +127,7 @@ class TestStoreSynapse:
             "rename_EntityId_to_entityId",
             "rename_both_iD_and_entityID",
             "rename_both_Uuid_and_id",
+            "rename_both_UUid_and_entityID",
         ],
     )
     @pytest.mark.parametrize(
