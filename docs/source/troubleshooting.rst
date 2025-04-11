@@ -80,8 +80,7 @@ Whether you are using DCA or schematic API or schematic library/CLI, the followi
    - **createdBy**: The ID of the user who created this entity.
    - **modifiedBy**: The ID of the user who last modified this entity.
    - **parentId**: The ID of the Entity that is the parent of this Entity.
-   - **concreteType**: Indicates which implementation of Entity this object represents.
-       The value is the fully qualified class name, e.g., `org.sagebionetworks.repo.model.FileEntity`.
+   - **concreteType**: Indicates which implementation of Entity this object represents. The value is the fully qualified class name, e.g., `org.sagebionetworks.repo.model.FileEntity`.
    - **versionNumber**: The version number issued to this version of the object.
    - **versionLabel**: The version label for this entity.
    - **versionComment**: The version comment for this entity.
