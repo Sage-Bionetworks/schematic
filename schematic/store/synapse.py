@@ -2110,19 +2110,20 @@ class SynapseStorage(BaseStorage):
         """
         Ensures that the manifest DataFrame has standardized 'Id' and 'entityId' columns.
 
-        If any case variation of the 'id' column is present (e.g., 'id', 'ID', 'iD'), it is renamed to 'Id'.
-        If any case variation of the 'entityid' column is present, it is renamed to 'entityId'.
-        If any case variation of the 'uuid' column is present, it is renamed to 'uuid' before further processing.
-        If 'Id' is still missing, it will be created as an empty column or derived from a 'Uuid' column,
-        depending on whether 'uuid' is defined in the schema.
-        If both "uuid" and "Id" column exist, drop "uuid"
-        Missing values in the 'Id' column are filled with generated UUIDs.
-        If 'entityId' is still missing, it will be created and filled with empty strings.
-        If it is already present, any missing values will be replaced with empty strings.
+        - If any case variation of the 'id' column is present (e.g., 'id', 'ID', 'iD'), it is renamed to 'Id'.
+        - If any case variation of the 'entityid' column is present, it is renamed to 'entityId'.
+        - If any case variation of the 'uuid' column is present, it is renamed to 'uuid' before further processing.
+        - If 'Id' is still missing:
+            - It will be created as an empty column, or
+            - Derived from a 'Uuid' column, depending on whether 'uuid' is defined in the schema.
+        - If both 'uuid' and 'Id' columns exist, the 'uuid' column is dropped.
+        - Missing values in the 'Id' column are filled with generated UUIDs.
+        - If 'entityId' is still missing, it will be created and filled with empty strings.
+        - If 'entityId' is already present, any missing values will be replaced with empty strings.
 
         Args:
             manifest (pd.DataFrame): The metadata manifest to be updated.
-            dmge (DataModelGraphExplorer): data moodel graph explorer object
+            dmge (DataModelGraphExplorer): Data model graph explorer object.
 
         Returns:
             pd.DataFrame: The updated manifest with a standardized 'Id' column and an 'entityId' column.
@@ -2165,8 +2166,7 @@ class SynapseStorage(BaseStorage):
                 row["Id"] = gen_uuid
                 manifest.loc[idx, "Id"] = gen_uuid
 
-        # Add entityId as a column if not already there or
-        # Fill any blanks with an empty string.
+        # Add entityId as a column if not already there
         if "entityId" not in manifest:
             manifest["entityId"] = ""
         else:
