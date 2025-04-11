@@ -79,9 +79,14 @@ class TestStoreSynapse:
                 pd.DataFrame({"iD": ["test_value"]}),
                 pd.DataFrame({"Id": ["test_value"], "entityId": [""]}),
             ),
-            # Case 2: 'Uuid' present — should be renamed to 'Id'
+            # Case 2a: 'Uuid' upper case is present — should be renamed to 'Id'
             (
                 pd.DataFrame({"Uuid": ["test_value"]}),
+                pd.DataFrame({"Id": ["test_value"], "entityId": [""]}),
+            ),
+            # Case 2b: lowercase 'uuid' is present - should be renamed to "Id"
+            (
+                pd.DataFrame({"uuid": ["test_value"]}),
                 pd.DataFrame({"Id": ["test_value"], "entityId": [""]}),
             ),
             # Case 3: 'entityID' in wrong mixed case — should be renamed to 'entityId'
@@ -99,15 +104,22 @@ class TestStoreSynapse:
                 pd.DataFrame({"iD": ["test_value"], "entityID": ["test_value"]}),
                 pd.DataFrame({"Id": ["test_value"], "entityId": ["test_value"]}),
             ),
+            # Case 6: both 'uuid' and 'id' in lower case are present — should be renamed to 'Id'
+            (
+                pd.DataFrame({"Uuid": ["test_value"], "id": ["test_value"]}),
+                pd.DataFrame({"Id": ["test_value"], "entityId": [""]}),
+            ),
         ],
         ids=[
             "normalize_lowercase_id_to_Id",
             "normalize_uppercase_ID_to_Id",
             "normalize_mixedcase_iD_to_Id",
             "rename_Uuid_to_Id",
+            "rename_uuid_to_Id",
             "rename_entityID_to_entityId",
             "rename_EntityId_to_entityId",
             "rename_both_iD_and_entityID",
+            "rename_both_Uuid_and_id",
         ],
     )
     @pytest.mark.parametrize(
@@ -121,3 +133,18 @@ class TestStoreSynapse:
             self.synapse_store._add_id_columns_to_manifest(manifest_dataframe, dmge),
             expected,
         )
+
+    @pytest.mark.parametrize(
+        "data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values())
+    )
+    def test_add_id_columns_to_manifest_when_id_is_missing(
+        self, data_model, helpers
+    ) -> None:
+        dmge = helpers.get_data_model_graph_explorer(path=data_model)
+        new_df = self.synapse_store._add_id_columns_to_manifest(
+            pd.DataFrame({"test_key": ["test_value"]}), dmge
+        )
+        assert "Id" in new_df.columns
+        assert "entityId" in new_df.columns
+        # make sure that Id column is not empty
+        assert new_df["Id"].isnull().values.any() == False

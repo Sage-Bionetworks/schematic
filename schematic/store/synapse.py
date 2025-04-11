@@ -2112,8 +2112,10 @@ class SynapseStorage(BaseStorage):
 
         If any case variation of the 'id' column is present (e.g., 'id', 'ID', 'iD'), it is renamed to 'Id'.
         If any case variation of the 'entityid' column is present, it is renamed to 'entityId'.
+        If any case variation of the 'uuid' column is present, it is renamed to 'uuid' before further processing.
         If 'Id' is still missing, it will be created as an empty column or derived from a 'Uuid' column,
-        depending on whether 'Uuid' is defined in the schema.
+        depending on whether 'uuid' is defined in the schema.
+        If both "uuid" and "Id" column exist, drop "uuid"
         Missing values in the 'Id' column are filled with generated UUIDs.
         If 'entityId' is still missing, it will be created and filled with empty strings.
         If it is already present, any missing values will be replaced with empty strings.
@@ -2125,12 +2127,14 @@ class SynapseStorage(BaseStorage):
         Returns:
             pd.DataFrame: The updated manifest with a standardized 'Id' column and an 'entityId' column.
         """
-        # Normalize any variation of 'id' to 'Id', "entityid" to "entityId"
+        # Normalize any variation of 'id' to 'Id', "entityid" to "entityId", "Uuid" to "uuid"
         for col in manifest.columns:
             if col.lower() == "id":
                 manifest = manifest.rename(columns={col: "Id"})
             if col.lower() == "entityid":
                 manifest = manifest.rename(columns={col: "entityId"})
+            if col.lower() == "uuid":
+                manifest = manifest.rename(columns={col: "uuid"})
 
         # If 'Id' still doesn't exist, see if uuid column exists
         # Rename uuid column to "Id" column
@@ -2143,12 +2147,16 @@ class SynapseStorage(BaseStorage):
             except KeyError:
                 uuid_col_in_schema = False
 
-            # Rename `Uuid` column if it wasn't specified in the schema
-            if col_in_dataframe("Uuid", manifest) and not uuid_col_in_schema:
-                manifest = manifest.rename(columns={"Uuid": "Id"})
-            # If no `Uuid` column exists or it is specified in the schema, create a new `Id` column
+            # Rename `uuid` column if it wasn't specified in the schema
+            if "uuid" in manifest.columns and not uuid_col_in_schema:
+                manifest = manifest.rename(columns={"uuid": "Id"})
+            # If no `uuid` column exists or it is specified in the schema, create a new `Id` column
             else:
                 manifest["Id"] = ""
+        else:
+            # 'Id' already exists, ignore 'uuid'
+            if "uuid" in manifest.columns:
+                manifest = manifest.drop(columns=["uuid"])
 
         # Fill in UUIDs in the "Id" column if missing
         for idx, row in manifest.iterrows():
