@@ -31,7 +31,7 @@ Whether you are using DCA or schematic API or schematic library/CLI, the followi
        - The `eTag` is a version identifier for a file in Synapse. It helps ensure that metadata is being applied to the correct version of an entity.
        - When submitting or updating metadata, schematic automatically adds the `eTag` column to the manifest.
 
-   Please also note that the following are reserved words for Synapse table columns. Any variations of the following would cause a conflict with Synapse table columns:
+   Please also note that the following are reserved words for **Synapse table columns**. Any variations of the following would cause a conflict with Synapse table columns:
 
    - **ROW_ID** (any case variation):
        - `row_id`
@@ -69,17 +69,40 @@ Whether you are using DCA or schematic API or schematic library/CLI, the followi
        - `ROW HASH CODE` (contains spaces)
        - ` row_hash_code ` (contains leading/trailing spaces)
 
+   The following are reserved words for **Synapse annotations**. Variations of these words could potentially work (except id and etag which are already reserved words for schematic), but it is recommended to avoid them altogether. For more details, refer to the Synapse REST API documentation: `EntityView <https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/model/table/EntityView.html>`__.
+
+   - **name**: The name of this entity. Must be 256 characters or less. Names may only contain: letters, numbers, spaces, underscores, hyphens, periods, plus signs, apostrophes, and parentheses.
+   - **description**: The description of this entity. Must be 1000 characters or less.
+   - **id**: The unique immutable ID for this entity. A new ID will be generated for new Entities. Once issued, this ID is guaranteed to never change or be re-issued.
+   - **etag**: Synapse employs an Optimistic Concurrency Control (OCC) scheme to handle concurrent updates. Since the E-Tag changes every time an entity is updated it is used to detect when a client's current representation of an entity is out-of-date.
+   - **createdOn**: The timestamp when the entity was created.
+   - **modifiedOn**: The timestamp when the entity was last modified.
+   - **createdBy**: The ID of the user who created this entity.
+   - **modifiedBy**: The ID of the user who last modified this entity.
+   - **parentId**: The ID of the Entity that is the parent of this Entity.
+   - **concreteType**: Indicates which implementation of Entity this object represents.
+       The value is the fully qualified class name, e.g., `org.sagebionetworks.repo.model.FileEntity`.
+   - **versionNumber**: The version number issued to this version of the object.
+   - **versionLabel**: The version label for this entity.
+   - **versionComment**: The version comment for this entity.
+   - **isLatestVersion**: A boolean indicating if this is the latest version of the object.
+   - **columnIds**: An array of ColumnModel IDs that define the schema of the object.
+   - **isSearchEnabled**: A boolean specifying if full-text search is enabled. Note that enabling full-text search might slow down the indexing of the table or view.
+   - **viewTypeMask**: A bitmask representing the types to include in the view.
+   - **type**: Deprecated. Use `viewTypeMask` instead.
+   - **scopeIds**: The list of IDs defining the scope of the view.
+
    The following also have special meaning to schematic. Misusing these terms in your data model could lead to errors or unexpected behavior. Please read carefully before using them in your data model:
 
    - **Filename**:
-     For data types that are stored in data files, the attribute `Filename` is used to denote the file name of each file in a dataset.
-     If `Filename` is not included in the data type schema attributes, schematic interprets the data type as “tabular” (e.g., clinical, biospecimen data).
+       For data types that are stored in data files, the attribute `Filename` is used to denote the file name of each file in a dataset.
+       If `Filename` is not included in the data type schema attributes, schematic interprets the data type as “tabular” (e.g., clinical, biospecimen data).
 
    - **Component**:
-     The `Component` field in schematic is used to define higher-level groupings of attributes.
-        - For example, a Patient might be described by components such as Demographics, Family History, Diagnosis, and Therapy, each with its own set of attributes and corresponding manifest.
-        - Schematic allows declaration of "components" and relationships between components.
-        - Schematic also enables validation and tracking of components across related entities (e.g., ensuring that all parts of a Patient record are present).
+       The `Component` field in schematic is used to define higher-level groupings of attributes.
+       - For example, a Patient might be described by components such as Demographics, Family History, Diagnosis, and Therapy, each with its own set of attributes and corresponding manifest.
+       - Schematic allows declaration of "components" and relationships between components.
+       - Schematic also enables validation and tracking of components across related entities (e.g., ensuring that all parts of a Patient record are present).
 
 5. Create a Github issue or reach out to your respective DCC service desks.  What is the schematic or DCA configuration used? Specifically, it's most important to capture the following:
 
