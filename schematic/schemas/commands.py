@@ -13,7 +13,7 @@ from schematic.schemas.data_model_graph import DataModelGraph
 from schematic.schemas.data_model_jsonld import convert_graph_to_jsonld
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_validator import DataModelValidator
-from schematic.utils.cli_utils import query_dict
+from schematic.utils.cli_utils import query_dict, parse_comma_str_to_list
 from schematic.utils.schema_utils import DisplayLabelType, export_schema
 
 # pylint: disable=logging-fstring-interpolation
@@ -143,6 +143,54 @@ def convert(
                 "Please check your file path again"
             )
         )
+
+    # get the end time
+    end_time = time.time()
+
+    # get the execution time
+    elapsed_time = time.strftime("%M:%S", time.gmtime(end_time - start_time))
+    click.echo(f"Execution time: {elapsed_time} (M:S)")
+
+
+@schema.command(
+    "generate-jsonschema",
+    options_metavar="<options>",
+    short_help=query_dict(
+        schema_commands, ("schema", "generate-jsonschema", "short_help")
+    ),
+)
+@click_log.simple_verbosity_option(logger)
+@click.option(
+    "--data_model",
+    "-dm",
+    help=query_dict(
+        schema_commands, ("schema", "generate-jsonschema", "data_model_labels")
+    ),
+)
+@click.option(
+    "--output_directory",
+    "-od",
+    help=query_dict(
+        schema_commands, ("schema", "generate-jsonschema", "output_directory")
+    ),
+)
+@click.option(
+    "--data_type",
+    "-dt",
+    default="class_label",
+    callback=parse_comma_str_to_list,
+    help=query_dict(schema_commands, ("schema", "generate-jsonschema", "data_type")),
+)
+def generate_jsonschema(
+    schema: Any, data_model: str, output_directory: str, data_type: Optional[list[str]]
+) -> None:
+    """ """
+    # pylint: disable=too-many-locals
+    # pylint: disable=redefined-outer-name
+    # pylint: disable=too-many-branches
+
+    # get the start time
+    start_time = time.time()
 
     # get the end time
     end_time = time.time()
