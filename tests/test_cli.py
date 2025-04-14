@@ -188,14 +188,15 @@ class TestSchemaCli:
             assert result.exit_code == 0
 
     # TODO: change url target to develop branch
-    @ pytest.mark.parametrize(
+    @pytest.mark.parametrize(
         "data_model",
         [
             "example.model.jsonld",
             "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/schematic-276-jsonschema-cli/tests/data/example.model.jsonld",
         ],
         ids=["local", "remote"],
-    ) @ pytest.mark.parametrize(
+    )
+    @pytest.mark.parametrize(
         "component",
         ["MockComponent", None],
         ids=["component specified", "all components"],
