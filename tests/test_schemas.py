@@ -278,7 +278,14 @@ class TestDataModelCsvParser:
         assert "Attribute" in attr_rel_dictionary[attribute_key]["Relationships"]
 
 
-@pytest.mark.parametrize("data_model", ["example.model.jsonld"], ids=["jsonld"])
+@pytest.mark.parametrize(
+    "data_model",
+    [
+        "example.model.jsonld",
+        "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/develop/tests/data/example.model.jsonld",
+    ],
+    ids=["file-jsonld", "url-jsonld"],
+)
 class TestDataModelJsonLdParser:
     def test_gather_jsonld_attributes_relationships(
         self,
@@ -286,8 +293,11 @@ class TestDataModelJsonLdParser:
         data_model: str,
         jsonld_parser: DataModelJSONLDParser,
     ):
+        path_to_data_model = data_model
+        if not data_model.startswith("http"):
+            path_to_data_model = helpers.get_data_path(path=path_to_data_model)
+
         """The output of the function is a attributes relationship dictionary, check that it is formatted properly."""
-        path_to_data_model = helpers.get_data_path(path=data_model)
         model_jsonld = load_json(path_to_data_model)
 
         # Get output of the function:
@@ -311,8 +321,10 @@ class TestDataModelJsonLdParser:
         data_model: str,
         jsonld_parser: DataModelJSONLDParser,
     ):
+        path_to_data_model = data_model
+        if not data_model.startswith("http"):
+            path_to_data_model = helpers.get_data_path(path=path_to_data_model)
         """The output of the function is a attributes relationship dictionary, check that it is formatted properly."""
-        path_to_data_model = helpers.get_data_path(path=data_model)
         model_jsonld = load_json(path_to_data_model)
 
         # Get output of the function:
