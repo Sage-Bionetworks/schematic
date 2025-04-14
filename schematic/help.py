@@ -220,7 +220,20 @@ schema_commands = {
                 "Path to where the generated JSON-LD file needs to be outputted."
             ),
             "data_model_labels": DATA_MODEL_LABELS_HELP,
-        }
+        },
+        "generate-jsonschema": {
+            "short_help": ("Generate JSONSchema file for comoponent from data model"),
+            "data_model": (
+                "Path to the data model file or url to the raw jsonld data model."
+            ),
+            "output_directory": (
+                "Path to directory where jsonschema file(s) should be stored."
+            ),
+            "data_type": (
+                "Specify the component (data type) from the data model that is to be used."
+                "Not providing a data type here will generate jsonschema files for all components in the data model."
+            ),
+        },
     }
 }
 
