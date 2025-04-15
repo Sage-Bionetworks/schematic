@@ -170,6 +170,7 @@ def convert(
 @click.option(
     "--output_directory",
     "-od",
+    default=None,
     help=query_dict(
         schema_commands, ("schema", "generate-jsonschema", "output_directory")
     ),
@@ -177,7 +178,7 @@ def convert(
 @click.option(
     "--data_type",
     "-dt",
-    default="class_label",
+    default=None,
     callback=parse_comma_str_to_list,
     help=query_dict(schema_commands, ("schema", "generate-jsonschema", "data_type")),
 )
