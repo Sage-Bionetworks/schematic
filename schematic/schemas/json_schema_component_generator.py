@@ -3,7 +3,7 @@ import pandas as pd
 import json
 from pathlib import Path
 
-from typing import Any, Dict, List, Optional, Text
+from typing import Any, Dict, Optional
 
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
