@@ -197,12 +197,12 @@ class TestSchemaCli:
         ids=["local", "remote"],
     )
     @pytest.mark.parametrize(
-        "component",
+        "data_type",
         ["MockComponent", None],
         ids=["component specified", "all components"],
     )
     @pytest.mark.parametrize(
-        "output_path",
+        "output_directory",
         ["test/jsonschema_output/", None],
         ids=["output directory specified", "no output directory specified"],
     )
@@ -212,8 +212,8 @@ class TestSchemaCli:
         helpers: Helpers,
         config: Configuration,
         data_model: str,
-        output_path: str,
-        component: str,
+        output_directory: str,
+        data_type: str,
     ):
         if data_model.startswith("example"):
             data_model = helpers.get_data_path(data_model)
@@ -223,14 +223,13 @@ class TestSchemaCli:
         result = runner.invoke(
             schema,
             [
-                "--config",
-                config.config_path,
                 "generate-jsonschema",
                 "--data_model",
                 data_model,
-                "--output_path",
-                output_path,
-                "--component",
-                component,
+                "--output_directory",
+                output_directory,
+                "--data_type",
+                data_type,
             ],
         )
+        assert result.exit_code == 0
