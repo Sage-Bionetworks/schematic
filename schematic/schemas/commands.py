@@ -183,7 +183,7 @@ def convert(
     help=query_dict(schema_commands, ("schema", "generate-jsonschema", "data_type")),
 )
 def generate_jsonschema(
-    schema: Any, data_model: str, output_directory: str, data_type: Optional[list[str]]
+    data_model: str, output_directory: str, data_type: Optional[list[str]]
 ) -> None:
     """ """
     # pylint: disable=too-many-locals
