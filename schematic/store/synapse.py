@@ -82,6 +82,10 @@ logger = logging.getLogger("Synapse storage")
 
 tracer = trace.get_tracer("Schematic")
 
+ID_COLUMN = "Id"
+ENTITY_ID_COLUMN = "entityId"
+UUID_COLUMN = "uuid"
+
 
 @dataclass
 class ManifestDownload(object):
@@ -1568,7 +1572,6 @@ class SynapseStorage(BaseStorage):
         existing_table_id = self.syn.findEntityId(
             name=table_name, parent=table_parent_id
         )
-
         tableOps = TableOperations(
             synStore=self,
             tableToLoad=table_manifest,
@@ -2000,7 +2003,6 @@ class SynapseStorage(BaseStorage):
         # Add metadata to the annotations
         for annos_k, annos_v in metadata.items():
             annos[annos_k] = annos_v
-
         return annos
 
     '''
@@ -2108,16 +2110,41 @@ class SynapseStorage(BaseStorage):
 
     def _add_id_columns_to_manifest(
         self, manifest: pd.DataFrame, dmge: DataModelGraphExplorer
-    ):
-        """Helper function to add id and entityId columns to the manifest if they do not already exist, Fill id values per row.
+    ) -> pd.DataFrame:
+        """
+        Ensures that the manifest DataFrame has standardized 'Id' and 'entityId' columns.
+
+        - If any case variation of the 'id' column is present (e.g., 'id', 'ID', 'iD'), it is renamed to 'Id'.
+        - If any case variation of the 'entityid' column is present, it is renamed to 'entityId'.
+        - If any case variation of the 'uuid' column is present, it is renamed to 'uuid' before further processing.
+        - If 'Id' is still missing:
+            - It will be created as an empty column, or
+            - Derived from a 'Uuid' column, depending on whether 'uuid' is defined in the schema.
+        - If both 'uuid' and 'Id' columns exist, the 'uuid' column is dropped.
+        - Missing values in the 'Id' column are filled with generated UUIDs.
+        - If 'entityId' is still missing, it will be created and filled with empty strings.
+        - If 'entityId' is already present, any missing values will be replaced with empty strings.
+
         Args:
-            Manifest loaded as a pd.Dataframe
-        Returns (pd.DataFrame):
-            Manifest df with new Id and EntityId columns (and UUID values) if they were not already present.
+            manifest (pd.DataFrame): The metadata manifest to be updated.
+            dmge (DataModelGraphExplorer): Data model graph explorer object.
+
+        Returns:
+            pd.DataFrame: The updated manifest with a standardized 'Id' column and an 'entityId' column.
         """
 
-        # Add Id for table updates and fill.
-        if not col_in_dataframe("Id", manifest):
+        # Normalize any variation of 'id' to 'Id', "entityid" to "entityId", "Uuid" to "uuid"
+        for col in manifest.columns:
+            if col.lower() == "id":
+                manifest = manifest.rename(columns={col: ID_COLUMN})
+            if col.lower() == "entityid":
+                manifest = manifest.rename(columns={col: ENTITY_ID_COLUMN})
+            if col.lower() == "uuid":
+                manifest = manifest.rename(columns={col: UUID_COLUMN})
+
+        # If 'Id' still doesn't exist, see if uuid column exists
+        # Rename uuid column to "Id" column
+        if ID_COLUMN not in manifest.columns:
             # See if schema has `Uuid` column specified
             try:
                 uuid_col_in_schema = dmge.is_class_in_schema(
@@ -2126,29 +2153,29 @@ class SynapseStorage(BaseStorage):
             except KeyError:
                 uuid_col_in_schema = False
 
-            # Rename `Uuid` column if it wasn't specified in the schema
-            if col_in_dataframe("Uuid", manifest) and not uuid_col_in_schema:
-                manifest.rename(columns={"Uuid": "Id"}, inplace=True)
-            # If no `Uuid` column exists or it is specified in the schema, create a new `Id` column
+            # Rename `uuid` column if it wasn't specified in the schema
+            if UUID_COLUMN in manifest.columns and not uuid_col_in_schema:
+                manifest = manifest.rename(columns={UUID_COLUMN: ID_COLUMN})
+            # If no `uuid` column exists or it is specified in the schema, create a new `Id` column
             else:
-                manifest["Id"] = ""
-
-        # Retrieve the ID column name (id, Id and ID) are treated the same.
-        id_col_name = [col for col in manifest.columns if col.lower() == "id"][0]
-
-        # Check if values have been added to the Id coulumn, if not add a UUID so value in the row is not blank.
-        for idx, row in manifest.iterrows():
-            if not row[id_col_name]:
-                gen_uuid = str(uuid.uuid4())
-                row[id_col_name] = gen_uuid
-                manifest.loc[idx, id_col_name] = gen_uuid
-
-        # add entityId as a column if not already there or
-        # fill any blanks with an empty string.
-        if not col_in_dataframe("entityId", manifest):
-            manifest["entityId"] = ""
+                manifest[ID_COLUMN] = ""
         else:
-            manifest["entityId"].fillna("", inplace=True)
+            # 'Id' already exists, ignore 'uuid'
+            if UUID_COLUMN in manifest.columns:
+                manifest = manifest.drop(columns=[UUID_COLUMN])
+
+        # Fill in UUIDs in the "Id" column if missing
+        for idx, row in manifest.iterrows():
+            if not row["Id"]:
+                gen_uuid = str(uuid.uuid4())
+                row["Id"] = gen_uuid
+                manifest.loc[idx, ID_COLUMN] = gen_uuid
+
+        # Add entityId as a column if not already there
+        if ENTITY_ID_COLUMN not in manifest:
+            manifest[ENTITY_ID_COLUMN] = ""
+        else:
+            manifest[ENTITY_ID_COLUMN] = manifest[ENTITY_ID_COLUMN].fillna("")
 
         return manifest
 
@@ -3124,6 +3151,7 @@ class TableOperations:
         )
 
         current_columns = self.synStore.syn.getTableColumns(current_table)
+
         for col in current_columns:
             current_table.removeColumn(col)
 
@@ -3170,6 +3198,7 @@ class TableOperations:
             # adds new columns to schema
             for col in cols:
                 current_table.addColumn(col)
+
             table_result = self.synStore.syn.store(
                 current_table, isRestricted=self.restrict
             )
