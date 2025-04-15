@@ -137,9 +137,9 @@ class JsonSchemaComponentGenerator:
         data_model_grapher = DataModelGraph(self.parsed_model, "class_label")
 
         # Generate graph
-        self.graph_data_model = data_model_grapher.graph
+        graph_data_model = data_model_grapher.graph
 
-        self.dmge = DataModelGraphExplorer(self.graph_data_model)
+        self.dmge = DataModelGraphExplorer(graph_data_model)
 
     def get_data_model_json_schema(
         self,
