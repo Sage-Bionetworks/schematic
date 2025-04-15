@@ -13,8 +13,10 @@ from schematic.schemas.data_model_graph import DataModelGraph
 from schematic.schemas.data_model_jsonld import convert_graph_to_jsonld
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_validator import DataModelValidator
+from schematic.schemas.json_schema_component_generator import GeneratorDirector
 from schematic.utils.cli_utils import query_dict, parse_comma_str_to_list
 from schematic.utils.schema_utils import DisplayLabelType, export_schema
+
 
 # pylint: disable=logging-fstring-interpolation
 
@@ -192,6 +194,12 @@ def generate_jsonschema(
 
     # get the start time
     start_time = time.time()
+
+    generator = GeneratorDirector(
+        data_model=data_model, output_directory=output_directory, components=data_type
+    )
+
+    json_schemas = generator.generate_jsonschema()
 
     # get the end time
     end_time = time.time()
