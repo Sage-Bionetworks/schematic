@@ -120,7 +120,14 @@ class JsonSchemaComponentGenerator:
         self.parsed_model = parsed_model
         self._get_data_model_graph_explorer()
 
+        if component is None:
+            raise ValueError("A component must be provided")
+
         component_class_label = self.dmge.get_node_label(component)
+
+        if component_class_label == "":
+            raise ValueError(f"Component {component} not found in the data model")
+
         self.component = component_class_label if component_class_label else component
 
         self.output_path = self._build_output_path(output_directory)
@@ -189,6 +196,6 @@ class JsonSchemaComponentGenerator:
             os.makedirs(output_directory)
 
         with open(self.output_path, "w") as json_file:
-            json.dump(self.component_json_schema, json_file, indent=4)
+            json.dump(self.component_json_schema, json_file, indent=2)
 
         return
