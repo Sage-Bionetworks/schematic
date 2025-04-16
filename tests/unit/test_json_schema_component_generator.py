@@ -44,8 +44,6 @@ class TestGeneratorDirector:
 
         return
 
-
-class TestJsonSchemaComponentGenerator:
     @pytest.mark.parametrize(
         "data_model, expected_components",
         [
