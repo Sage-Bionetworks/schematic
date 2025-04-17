@@ -33,7 +33,7 @@ def data_model(helpers):
 
 @pytest.fixture
 def output_directory(helpers):
-    output_directory = helpers.get_data_path("test_jsonschemas")
+    output_directory = Path(helpers.get_data_path("test_jsonschemas"))
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
 
@@ -307,8 +307,6 @@ class TestJsonSchemaComponentGenerator:
             output_directory=output_directory,
             parsed_model=parsed_example_model,
         )
-        # AND the json schema for the model is loaded
-        generator.get_data_model_json_schema()
 
         # WHEN the component json schema is generated
         # THEN a ValueError should be raised
@@ -346,7 +344,6 @@ class TestJsonSchemaComponentGenerator:
             )
 
             # AND json schemas are generated for the data model and component
-            generator.get_data_model_json_schema()
             generator.get_component_json_schema()
 
             # THEN a file shold be written at the correct path
@@ -371,7 +368,6 @@ class TestJsonSchemaComponentGenerator:
         )
 
         # WHEN a jsonschema is generated for the component
-        generator.get_data_model_json_schema()
         generator.get_component_json_schema()
 
         # AND a description is added to the jsonschema

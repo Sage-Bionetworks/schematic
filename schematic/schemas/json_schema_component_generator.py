@@ -24,11 +24,13 @@ class GeneratorDirector:
         output_directory: Optional[str] = None,
     ):
         self.data_model = data_model
-        self.components = components
-        self.output_directory = output_directory
-        self.parsed_model = None
+        self.components = components if components else []
+
+        self.parsed_model: dict = {}
         if output_directory is None:
             self.output_directory = Path(os.getcwd(), "component_jsonschemas")
+        else:
+            self.output_directory = Path(output_directory)
 
     def generate_jsonschema(
         self,
@@ -40,7 +42,7 @@ class GeneratorDirector:
         """
         json_schemas = []
 
-        if self.components is None:
+        if not self.components:
             self.gather_components()
 
         for component in self.components:
@@ -102,7 +104,7 @@ class GeneratorDirector:
 
         return
 
-    def _generate_jsonschema(self, component: str) -> Dict[str, Any]:
+    def _generate_jsonschema(self, component: str) -> dict[str, Any]:
         """
         Execute the steps to generate the JSON schema for a single component.
         """
@@ -134,7 +136,7 @@ class JsonSchemaComponentGenerator:
         self,
         data_model: str,
         component: str,
-        output_directory: Optional[str],
+        output_directory: Path,
         parsed_model: Dict[str, Any],
     ):
         self.data_model = data_model
@@ -153,7 +155,7 @@ class JsonSchemaComponentGenerator:
 
         return
 
-    def _build_output_path(self, output_directory: str) -> Path:
+    def _build_output_path(self, output_directory: Path) -> Path:
         """
         Build the output path for the JSON schema file.
         Args:
@@ -200,10 +202,10 @@ class JsonSchemaComponentGenerator:
             graph=metadata_model.graph_data_model,
         )
 
-        self.incomplete_component_json_schema = (
-            data_model_json_schema.get_json_validation_schema(
-                source_node=self.component, schema_name=schema_name
-            )
+        self.incomplete_component_json_schema: dict[
+            str, Any
+        ] = data_model_json_schema.get_json_validation_schema(
+            source_node=self.component, schema_name=schema_name
         )
 
         return
@@ -219,7 +221,7 @@ class JsonSchemaComponentGenerator:
         description_dict = {"description": component_description}
 
         description_dict |= self.incomplete_component_json_schema
-        self.component_json_schema = description_dict
+        self.component_json_schema: dict[str, Any] = description_dict
 
         return
 
@@ -234,7 +236,9 @@ class JsonSchemaComponentGenerator:
             os.makedirs(output_directory)
 
         export_json(
-            json_doc=self.component_json_schema, file_path=self.output_path, indent=2
+            json_doc=self.component_json_schema,
+            file_path=str(self.output_path),
+            indent=2,
         )
 
         return
