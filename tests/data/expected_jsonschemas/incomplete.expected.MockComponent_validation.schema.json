@@ -1,0 +1,232 @@
+{
+  "$id": "http://example.com/MockComponent_validation",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "Check Ages": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Date": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Float": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Int": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check List": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check List Enum": {
+      "items": {
+        "enum": [
+          "gh",
+          "ef",
+          "ab",
+          "cd"
+        ]
+      },
+      "maxItems": 4,
+      "type": "array"
+    },
+    "Check List Enum Strict": {
+      "items": {
+        "enum": [
+          "gh",
+          "ef",
+          "ab",
+          "cd"
+        ]
+      },
+      "maxItems": 4,
+      "type": "array"
+    },
+    "Check List Like": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check List Like Enum": {
+      "items": {
+        "enum": [
+          "gh",
+          "ef",
+          "ab",
+          "cd"
+        ]
+      },
+      "maxItems": 4,
+      "type": "array"
+    },
+    "Check List Strict": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Match Exactly": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Match Exactly values": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Match None": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Match None values": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Match at Least": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Match at Least values": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check NA": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Num": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Range": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Recommended": {},
+    "Check Regex Format": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Regex Integer": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Regex List": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Regex List Like": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Regex List Strict": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Regex Single": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check String": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check URL": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Unique": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Component": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    }
+  },
+  "required": [
+    "Check Regex List",
+    "Check Match Exactly values",
+    "Check Match None",
+    "Check List",
+    "Component",
+    "Check Regex Integer",
+    "Check List Like Enum",
+    "Check Date",
+    "Check Match Exactly",
+    "Check Range",
+    "Check List Enum",
+    "Check List Enum Strict",
+    "Check List Like",
+    "Check List Strict",
+    "Check Regex List Like",
+    "Check Match None values",
+    "Check NA",
+    "Check Num",
+    "Check Int",
+    "Check Ages",
+    "Check Regex Single",
+    "Check Float",
+    "Check Unique",
+    "Check String",
+    "Check Regex Format",
+    "Check Regex List Strict",
+    "Check URL",
+    "Check Match at Least values",
+    "Check Match at Least"
+  ],
+  "title": "MockComponent_validation",
+  "type": "object"
+}

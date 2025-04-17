@@ -1,0 +1,131 @@
+{
+  "$id": "http://example.com/Patient_validation",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "Diagnosis": {
+            "enum": [
+              "Cancer"
+            ]
+          }
+        },
+        "required": [
+          "Diagnosis"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Family History": {
+            "items": {
+              "enum": [
+                "Prostate",
+                "Colorectal",
+                "Lung",
+                "Breast",
+                "Skin"
+              ]
+            },
+            "maxItems": 5,
+            "type": "array"
+          }
+        },
+        "required": [
+          "Family History"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Diagnosis": {
+            "enum": [
+              "Cancer"
+            ]
+          }
+        },
+        "required": [
+          "Diagnosis"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Cancer Type": {
+            "enum": [
+              "Prostate",
+              "Colorectal",
+              "Lung",
+              "Breast",
+              "Skin"
+            ]
+          }
+        },
+        "required": [
+          "Cancer Type"
+        ]
+      }
+    }
+  ],
+  "description": "TBD",
+  "properties": {
+    "Cancer Type": {
+      "enum": [
+        "Prostate",
+        "Colorectal",
+        "Lung",
+        "Breast",
+        "Skin",
+        ""
+      ]
+    },
+    "Component": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Diagnosis": {
+      "enum": [
+        "Cancer",
+        "Healthy"
+      ]
+    },
+    "Family History": {
+      "items": {
+        "enum": [
+          "Prostate",
+          "Colorectal",
+          "Lung",
+          "Breast",
+          "Skin",
+          ""
+        ]
+      },
+      "maxItems": 5,
+      "type": "array"
+    },
+    "Patient ID": {
+      "minLength": 1,
+      "not": {
+        "type": "null"
+      }
+    },
+    "Sex": {
+      "enum": [
+        "Male",
+        "Female",
+        "Other"
+      ]
+    },
+    "Year of Birth": {}
+  },
+  "required": [
+    "Sex",
+    "Diagnosis",
+    "Patient ID",
+    "Component"
+  ],
+  "title": "Patient_validation",
+  "type": "object"
+}
