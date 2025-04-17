@@ -2,18 +2,15 @@ import pytest
 
 from pathlib import Path
 import os
-import filecmp
-import json
+
 
 from schematic.schemas.json_schema_component_generator import (
     GeneratorDirector,
     JsonSchemaComponentGenerator,
 )
 from schematic.schemas.data_model_parser import DataModelParser
-
-from tests.conftest import Helpers
 from tests.utils import json_files_equal
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
 
 @pytest.fixture
@@ -261,7 +258,7 @@ class TestGeneratorDirector:
 
 
 class TestJsonSchemaComponentGenerator:
-    def test_init(self, helpers, parsed_example_model, output_directory, data_model):
+    def test_init(self, parsed_example_model, output_directory, data_model):
         # GIVEN certain parameters
         component = "MockComponent"
         expected_output_path = Path(
@@ -282,7 +279,7 @@ class TestJsonSchemaComponentGenerator:
         assert generator.output_path == expected_output_path
 
     def test_init_missing_component(
-        self, helpers, parsed_example_model, output_directory, data_model
+        self, parsed_example_model, output_directory, data_model
     ):
         # GIVEN a missing component specification
         component = None
@@ -298,7 +295,7 @@ class TestJsonSchemaComponentGenerator:
             )
 
     def test_init_invalid_component(
-        self, helpers, parsed_example_model, output_directory, data_model
+        self, parsed_example_model, output_directory, data_model
     ):
         # GIVEN a component not present in the data model
         component = "InvalidComponent"
@@ -362,7 +359,7 @@ class TestJsonSchemaComponentGenerator:
             )
 
     def test_add_description_to_json_schema(
-        self, helpers, parsed_example_model, output_directory, data_model
+        self, parsed_example_model, output_directory, data_model
     ):
         # GIVEN a component and a generator instance
         component = "MockComponent"
