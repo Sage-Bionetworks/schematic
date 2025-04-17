@@ -4,7 +4,7 @@ import json
 import os
 import time
 import urllib.request
-from typing import Any
+from typing import Any, Optional
 
 
 def load_json(file_path: str) -> Any:
@@ -23,10 +23,10 @@ def load_json(file_path: str) -> Any:
             return data
 
 
-def export_json(json_doc: Any, file_path: str) -> None:
+def export_json(json_doc: Any, file_path: str, indent: Optional[int] = 4) -> None:
     """Export JSON doc to file"""
     with open(file_path, "w", encoding="utf8") as fle:
-        json.dump(json_doc, fle, sort_keys=True, indent=4, ensure_ascii=False)
+        json.dump(json_doc, fle, sort_keys=True, indent=indent, ensure_ascii=False)
 
 
 def load_default() -> Any:
