@@ -9,6 +9,7 @@ from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.utils.io_utils import export_json
 
 
 class GeneratorDirector:
@@ -125,9 +126,6 @@ class JsonSchemaComponentGenerator:
 
         component_class_label = self.dmge.get_node_label(component)
 
-        if component_class_label == "":
-            raise ValueError(f"Component {component} not found in the data model")
-
         self.component = component_class_label if component_class_label else component
 
         self.output_path = self._build_output_path(output_directory)
@@ -135,7 +133,8 @@ class JsonSchemaComponentGenerator:
         return
 
     def _build_output_path(self, output_directory: str) -> None:
-        return Path(output_directory, f"{self.component}_validation_schema.json")
+        stripped_component = self.component.replace(" ", "")
+        return Path(output_directory, f"{stripped_component}_validation_schema.json")
 
     def _get_data_model_graph_explorer(
         self,
@@ -195,7 +194,8 @@ class JsonSchemaComponentGenerator:
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
 
-        with open(self.output_path, "w") as json_file:
-            json.dump(self.component_json_schema, json_file, indent=2)
+        export_json(
+            json_doc=self.component_json_schema, file_path=self.output_path, indent=2
+        )
 
         return
