@@ -5,7 +5,6 @@ import pathlib
 from typing import Any, Optional, Union
 
 import pandas as pd
-import requests
 from opentelemetry import trace
 
 from schematic.schemas.data_model_relationships import DataModelRelationships
