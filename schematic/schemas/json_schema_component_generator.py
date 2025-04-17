@@ -34,7 +34,9 @@ class GeneratorDirector:
         self,
     ) -> list[Dict[str, Any]]:
         """
-        call steps in jsonschemagenerator to generate the jsonschema
+        Gather necessary components and generate JSON schema for each component.
+        Returns:
+            json_schemas: A list of JSON schemas for each component.
         """
         json_schemas = []
 
@@ -50,7 +52,7 @@ class GeneratorDirector:
         self,
     ) -> None:
         """
-        In cases where no components are provided, gather all components from the data model
+        Gather all components from the data model and store as list in the components attribute.
         """
 
         self.components = self._extract_components()
@@ -59,9 +61,13 @@ class GeneratorDirector:
 
     def _extract_components(
         self,
-    ):
+    ) -> list[str]:
+        # Store the parsed model in the parsed_model attribute
+        # The parsed model is a nested dictionary
         self._parse_model()
 
+        # To represent each column of the model as a column in a dataframe,
+        # it must be unpacked and the index reset
         attrs = pd.DataFrame.from_dict(
             {
                 (i, j): self.parsed_model[i][j]
@@ -71,16 +77,25 @@ class GeneratorDirector:
             orient="index",
         ).reset_index(drop=True)
 
+        # Get a series of boolean values that can be used to identify with attributes (rows) have 'Component' in the DependsOn column
         depends_on_component = (
             attrs["DependsOn"].astype("str").str.contains("Component")
         )
+
+        # select this subset and return as list of all components in the data model
         components = attrs["Attribute"].loc[depends_on_component]
 
         return list(components)
 
     def _parse_model(
         self,
-    ):
+    ) -> None:
+        """
+        Parse the data model to extract the components and their attributes and later for JSON schema generation.
+        Stores:
+            parsed_model: A dictionary representation of the data model.
+        """
+
         data_model_parser = DataModelParser(self.data_model)
 
         self.parsed_model = data_model_parser.parse_model()
@@ -88,9 +103,11 @@ class GeneratorDirector:
         return
 
     def _generate_jsonschema(self, component: str) -> Dict[str, Any]:
+        # parse model in cases where a component was provided and it wasn't necessary before
         if not self.parsed_model:
             self._parse_model()
 
+        # Direct the generation of the jsonschema for a single component
         generator = JsonSchemaComponentGenerator(
             data_model=self.data_model,
             component=component,
