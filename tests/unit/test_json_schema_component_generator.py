@@ -86,13 +86,19 @@ class TestGeneratorDirector:
         expected_components,
         output_directory,
         data_model,
+        mocker,
     ):
+        comopnent_gather_spy = mocker.spy(GeneratorDirector, "gather_components")
+
         generator = GeneratorDirector(
             data_model=data_model,
             components=specified_component,
             output_directory=output_directory,
         )
         json_schema = generator.generate_jsonschema()
+
+        if specified_component is None:
+            comopnent_gather_spy.assert_called_once()
 
         assert json_schema is not None
         assert isinstance(json_schema, list)
