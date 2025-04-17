@@ -12,7 +12,7 @@ from schematic.schemas.json_schema_component_generator import (
 from schematic.schemas.data_model_parser import DataModelParser
 
 from tests.conftest import Helpers
-from tests.utils import dict_equal
+from tests.utils import json_files_equal
 from unittest.mock import MagicMock, Mock, patch
 
 
@@ -50,34 +50,67 @@ def output_directory(helpers):
 
 
 class TestGeneratorDirector:
-    @pytest.mark.parametrize("component", ["MockComponent"])
-    def test_generate_jsonschema(
-        self, helpers, component, output_directory, data_model
-    ):
-        expected_jsonschema = helpers.get_data_path(
-            f"expected_jsonschemas/expected.{component}_validation_schema.json"
-        )
-
+    @pytest.mark.parametrize("component", [(["MockComponent"], None)])
+    def test_init(self, helpers, component, output_directory, data_model):
         generator = GeneratorDirector(
             data_model=data_model,
-            components=[component],
+            components=["MockComponent"],
+            output_directory=output_directory,
+        )
+
+        assert generator.data_model == data_model
+        assert generator.components == ["MockComponent"]
+        assert generator.output_directory == output_directory
+
+    @pytest.mark.parametrize(
+        "specified_component, expected_components",
+        [
+            (["MockComponent"], ["MockComponent"]),
+            (
+                None,
+                [
+                    "Patient",
+                    "Biospecimen",
+                    "Bulk RNA-seq Assay",
+                    "MockComponent",
+                    "MockRDB",
+                    "MockFilename",
+                ],
+            ),
+        ],
+    )
+    def test_generate_jsonschema(
+        self,
+        helpers,
+        specified_component,
+        expected_components,
+        output_directory,
+        data_model,
+    ):
+        generator = GeneratorDirector(
+            data_model=data_model,
+            components=specified_component,
             output_directory=output_directory,
         )
         json_schema = generator.generate_jsonschema()
 
-        generated_jsonschema = helpers.get_data_path(
-            f"{output_directory}/{component}_validation_schema.json"
-        )
-
         assert json_schema is not None
         assert isinstance(json_schema, list)
+        assert len(json_schema) == len(expected_components)
 
-        assert os.path.isfile(generated_jsonschema)
-        assert filecmp.cmp(
-            expected_jsonschema,
-            generated_jsonschema,
-            shallow=False,
-        )
+        for expected_component in expected_components:
+            expected_component = expected_component.replace(" ", "")
+
+            expected_jsonschema = helpers.get_data_path(
+                f"expected_jsonschemas/expected.{expected_component}.schema.json"
+            )
+
+            generated_jsonschema = helpers.get_data_path(
+                f"{output_directory}/{expected_component}_validation_schema.json"
+            )
+
+            assert os.path.isfile(generated_jsonschema)
+            assert json_files_equal(expected_jsonschema, generated_jsonschema)
 
     @pytest.mark.parametrize(
         "data_model, expected_components",
@@ -184,16 +217,10 @@ class TestJsonSchemaComponentGenerator:
 
             assert os.path.isfile(generated_json_schema_path)
 
-            with open(generated_json_schema_path, "r") as generated_json_schema_file:
-                generated_json_schema = json.load(generated_json_schema_file)
-            with open(
-                expected_intermediate_json_schema_content_path, "r"
-            ) as expected_intermediate_json_schema_file:
-                expected_intermediate_json_schema = json.load(
-                    expected_intermediate_json_schema_file
-                )
-
-            assert dict_equal(expected_intermediate_json_schema, generated_json_schema)
+            assert json_files_equal(
+                expected_intermediate_json_schema_content_path,
+                generated_json_schema_path,
+            )
 
     def test_add_description_to_json_schema(
         self, helpers, parsed_example_model, output_directory, data_model
