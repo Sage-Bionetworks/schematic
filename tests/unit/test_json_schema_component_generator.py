@@ -262,11 +262,13 @@ class TestGeneratorDirector:
 
 class TestJsonSchemaComponentGenerator:
     def test_init(self, helpers, parsed_example_model, output_directory, data_model):
+        # GIVEN certain parameters
         component = "MockComponent"
         expected_output_path = Path(
             output_directory, f"{component}_validation_schema.json"
         )
 
+        # WHEN the JsonSchemaComponentGenerator class is initialized
         generator = JsonSchemaComponentGenerator(
             data_model=data_model,
             component=component,
@@ -274,6 +276,7 @@ class TestJsonSchemaComponentGenerator:
             parsed_model=parsed_example_model,
         )
 
+        # THEN the class should be initialized with the correct parameters
         assert generator.data_model == data_model
         assert generator.component == component
         assert generator.output_path == expected_output_path
@@ -281,7 +284,11 @@ class TestJsonSchemaComponentGenerator:
     def test_init_missing_component(
         self, helpers, parsed_example_model, output_directory, data_model
     ):
+        # GIVEN a missing component specification
         component = None
+
+        # WHEN the JsonSchemaComponentGenerator class is initialized
+        # THEN a ValueError should be raised
         with pytest.raises(ValueError):
             generator = JsonSchemaComponentGenerator(
                 data_model=data_model,
@@ -293,28 +300,38 @@ class TestJsonSchemaComponentGenerator:
     def test_init_invalid_component(
         self, helpers, parsed_example_model, output_directory, data_model
     ):
+        # GIVEN a component not present in the data model
         component = "InvalidComponent"
 
+        # WHEN the JsonSchemaComponentGenerator class is initialized
         generator = JsonSchemaComponentGenerator(
             data_model=data_model,
             component=component,
             output_directory=output_directory,
             parsed_model=parsed_example_model,
         )
-
+        # AND the json schema for the model is loaded
         generator.get_data_model_json_schema()
+
+        # WHEN the component json schema is generated
+        # THEN a ValueError should be raised
         with pytest.raises(ValueError):
             generator.get_component_json_schema()
 
     def test_get_intermediate_json_schemas(
         self, helpers, parsed_example_model, output_directory, data_model
     ):
+        # GIVEN a component
         component = "MockComponent"
-        generated_json_schema_path = Path(
-            output_directory, f"example.{component}.schema.json"
-        )
+
+        # AND a path to an expected intermediate json schema
         expected_intermediate_json_schema_content_path = helpers.get_data_path(
             f"expected_jsonschemas/incomplete.expected.{component}_validation.schema.json"
+        )
+
+        # AND a path to create a json schema at
+        generated_json_schema_path = Path(
+            output_directory, f"example.{component}.schema.json"
         )
 
         with patch(
@@ -323,6 +340,7 @@ class TestJsonSchemaComponentGenerator:
             mock_get_json_schema_log_file_path.return_value = Path(
                 output_directory, f"example.{component}.schema.json"
             )
+            # WHEN the JsonSchemaComponentGenerator class is initialized
             generator = JsonSchemaComponentGenerator(
                 data_model=data_model,
                 component=component,
@@ -330,11 +348,14 @@ class TestJsonSchemaComponentGenerator:
                 parsed_model=parsed_example_model,
             )
 
+            # AND json schemas are generated for the data model and component
             generator.get_data_model_json_schema()
             generator.get_component_json_schema()
 
+            # THEN a file shold be written at the correct path
             assert os.path.isfile(generated_json_schema_path)
 
+            # AND the generated json schema should match the expected schema
             assert json_files_equal(
                 expected_intermediate_json_schema_content_path,
                 generated_json_schema_path,
@@ -343,6 +364,7 @@ class TestJsonSchemaComponentGenerator:
     def test_add_description_to_json_schema(
         self, helpers, parsed_example_model, output_directory, data_model
     ):
+        # GIVEN a component and a generator instance
         component = "MockComponent"
         generator = JsonSchemaComponentGenerator(
             data_model=data_model,
@@ -351,11 +373,14 @@ class TestJsonSchemaComponentGenerator:
             parsed_model=parsed_example_model,
         )
 
+        # WHEN a jsonschema is generated for the component
         generator.get_data_model_json_schema()
-
         generator.get_component_json_schema()
+
+        # AND a description is added to the jsonschema
         generator.add_description_to_json_schema()
 
+        # THEN the description should be present in the jsonschema and match the specification from the data model
         assert generator.component_json_schema.get(
             "description"
         ) == parsed_example_model.get("MockComponent").get("Relationships").get(
