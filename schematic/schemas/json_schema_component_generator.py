@@ -86,9 +86,8 @@ class GeneratorDirector:
         ).reset_index(drop=True)
 
         # Get a series of boolean values that can be used to identify with attributes (rows) have 'Component' in the DependsOn column
-        depends_on_component = (
-            attrs["DependsOn"].astype("str").str.contains("Component")
-        )
+        string_depends_on = attrs["DependsOn"].astype("str")
+        depends_on_component = string_depends_on.str.contains("Component")
 
         # select this subset and return as list of all components in the data model
         components = attrs.loc[depends_on_component, "Attribute"]
