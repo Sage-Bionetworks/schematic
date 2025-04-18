@@ -1,6 +1,5 @@
 "Data Model Json Schema"
 
-import json
 import logging
 import os
 from typing import Any, Optional
