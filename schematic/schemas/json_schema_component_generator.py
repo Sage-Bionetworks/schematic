@@ -71,14 +71,16 @@ class GeneratorDirector:
         # The parsed model is a nested dictionary
         self._parse_model()
 
-        # To represent each column of the model as a column in a dataframe,
+        # To represent each attribute of the nested model dictionary as a column in a dataframe,
         # it must be unpacked and the index reset
+        unpacked_model_dict = {}
+
+        for top_key, nested_dict in self.parsed_model.items():
+            for nested_key, value in nested_dict.items():
+                unpacked_model_dict[top_key, nested_key] = value
+
         attrs = pd.DataFrame.from_dict(
-            {
-                (i, j): self.parsed_model[i][j]
-                for i in self.parsed_model.keys()
-                for j in self.parsed_model[i].keys()
-            },
+            unpacked_model_dict,
             orient="index",
         ).reset_index(drop=True)
 
