@@ -187,6 +187,9 @@ def convert(
 def generate_jsonschema(
     data_model: str, output_directory: str, data_type: Optional[list[str]]
 ) -> None:
+    """
+    Command to generate jsonschema files for validation for component(s) of the data model.
+    """
     """ """
     # pylint: disable=too-many-locals
     # pylint: disable=redefined-outer-name
@@ -199,7 +202,7 @@ def generate_jsonschema(
         data_model=data_model, output_directory=output_directory, components=data_type
     )
 
-    json_schemas = generator.generate_jsonschema()
+    generator.generate_jsonschema()
 
     # get the end time
     end_time = time.time()
