@@ -2,6 +2,7 @@
 
 # pylint: disable=useless-return
 # pylint: disable=line-too-long
+# pylint: disable=attribute-defined-outside-init
 
 import os
 from pathlib import Path
