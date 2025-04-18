@@ -1,8 +1,8 @@
+"JSON schema file generator"
+
 import os
 import pandas as pd
-import json
 from pathlib import Path
-
 from typing import Any, Dict, Optional
 
 from schematic.models.metadata import MetadataModel
@@ -85,7 +85,7 @@ class GeneratorDirector:
         )
 
         # select this subset and return as list of all components in the data model
-        components = attrs["Attribute"].loc[depends_on_component]
+        components = attrs.loc[depends_on_component, "Attribute"]
 
         return list(components)
 
