@@ -1,9 +1,12 @@
 "JSON schema file generator"
 
+# pylint: disable=useless-return
+# pylint: disable=line-too-long
+
 import os
-import pandas as pd
 from pathlib import Path
 from typing import Any, Dict, Optional
+import pandas as pd
 
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
