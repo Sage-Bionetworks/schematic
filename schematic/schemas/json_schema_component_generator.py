@@ -69,7 +69,7 @@ class GeneratorDirector:
             orient="index",
         ).reset_index(drop=True)
 
-        # Get a series of boolean values that can be used to identify with attributes (rows) have 'Component' in the DependsOn column
+        # Get a series of boolean values that can be used to identify which attributes (rows) have 'Component' in the DependsOn column
         string_depends_on = attrs.DependsOn
         string_depends_on = string_depends_on.astype(str)
         depends_on_component = string_depends_on.str.contains("Component")
