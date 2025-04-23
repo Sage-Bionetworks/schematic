@@ -5,7 +5,7 @@ import os
 
 
 from schematic.schemas.json_schema_component_generator import (
-    GeneratorDirector,
+    JsonSchemaGeneratorDirector,
     JsonSchemaComponentGenerator,
 )
 from schematic.schemas.data_model_parser import DataModelParser
@@ -46,12 +46,12 @@ def output_directory(helpers):
             os.remove(file_path)
 
 
-class TestGeneratorDirector:
+class TestJsonSchemaGeneratorDirector:
     @pytest.mark.parametrize("component", [(["MockComponent"], None)])
     def test_init(self, helpers, component, output_directory, data_model):
-        # GIVEN the GeneratorDirector class and certain parameters
+        # GIVEN the JsonSchemaGeneratorDirector class and certain parameters
         # WHEN the class is initialized
-        generator = GeneratorDirector(
+        generator = JsonSchemaGeneratorDirector(
             data_model=data_model,
             components=["MockComponent"],
             output_directory=output_directory,
@@ -88,10 +88,12 @@ class TestGeneratorDirector:
         data_model,
         mocker,
     ):
-        comopnent_gather_spy = mocker.spy(GeneratorDirector, "gather_components")
+        comopnent_gather_spy = mocker.spy(
+            JsonSchemaGeneratorDirector, "gather_components"
+        )
 
-        # GIVEN a GeneratorDirector instance, a data model, an output directory, and optionally a component
-        generator = GeneratorDirector(
+        # GIVEN a JsonSchemaGeneratorDirector instance, a data model, an output directory, and optionally a component
+        generator = JsonSchemaGeneratorDirector(
             data_model=data_model,
             components=specified_component,
             output_directory=output_directory,
@@ -248,8 +250,8 @@ class TestGeneratorDirector:
         if data_model.startswith("example"):
             data_model = helpers.get_data_path(data_model)
 
-        # WHEN an instance of the GeneratorDirector class is created
-        generator = GeneratorDirector(data_model=data_model)
+        # WHEN an instance of the JsonSchemaGeneratorDirector class is created
+        generator = JsonSchemaGeneratorDirector(data_model=data_model)
         # AND the _extract_components method is called
         identified_components = generator.gather_components()
 

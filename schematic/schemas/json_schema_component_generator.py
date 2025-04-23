@@ -14,7 +14,7 @@ from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExp
 from schematic.utils.io_utils import export_json
 
 
-class GeneratorDirector:
+class JsonSchemaGeneratorDirector:
     """
     A class that directs the generation of a JSON schema component.
     """
