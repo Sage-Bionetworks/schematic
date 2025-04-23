@@ -1,6 +1,5 @@
 "JSON schema file generator"
 
-# pylint: disable=useless-return
 # pylint: disable=line-too-long
 # pylint: disable=attribute-defined-outside-init
 
@@ -63,8 +62,6 @@ class GeneratorDirector:
 
         self.components = self._extract_components()
 
-        return
-
     def _extract_components(
         self,
     ) -> list[str]:
@@ -107,8 +104,6 @@ class GeneratorDirector:
         data_model_parser = DataModelParser(self.data_model)
 
         self.parsed_model = data_model_parser.parse_model()
-
-        return
 
     def _generate_jsonschema(self, component: str) -> dict[str, Any]:
         """
@@ -159,8 +154,6 @@ class JsonSchemaComponentGenerator:
 
         self.output_path = self._build_output_path(output_directory)
 
-        return
-
     def _build_output_path(self, output_directory: Path) -> Path:
         """
         Build the output path for the JSON schema file.
@@ -187,8 +180,6 @@ class JsonSchemaComponentGenerator:
 
         self.dmge = DataModelGraphExplorer(graph_data_model)
 
-        return
-
     def get_component_json_schema(
         self,
     ) -> None:
@@ -214,8 +205,6 @@ class JsonSchemaComponentGenerator:
             source_node=self.component, schema_name=schema_name
         )
 
-        return
-
     def add_description_to_json_schema(
         self,
     ) -> None:
@@ -228,8 +217,6 @@ class JsonSchemaComponentGenerator:
 
         description_dict |= self.incomplete_component_json_schema
         self.component_json_schema: dict[str, Any] = description_dict
-
-        return
 
     def write_json_schema_to_file(
         self,
@@ -246,5 +233,3 @@ class JsonSchemaComponentGenerator:
             file_path=str(self.output_path),
             indent=2,
         )
-
-        return
