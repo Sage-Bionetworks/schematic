@@ -241,7 +241,7 @@ class TestGeneratorDirector:
             "HTAN model - url",
         ],
     )
-    def test_extract_components(
+    def test_gather_components(
         self, helpers, data_model: str, expected_components: list[str]
     ):
         # GIVEN a data model from a local file or a url
@@ -251,7 +251,7 @@ class TestGeneratorDirector:
         # WHEN an instance of the GeneratorDirector class is created
         generator = GeneratorDirector(data_model=data_model)
         # AND the _extract_components method is called
-        identified_components = generator._extract_components()
+        identified_components = generator.gather_components()
 
         # THEN all components from the data model should be identified
         assert expected_components.sort() == identified_components.sort()

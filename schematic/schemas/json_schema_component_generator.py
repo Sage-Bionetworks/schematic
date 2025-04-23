@@ -60,13 +60,6 @@ class GeneratorDirector:
         Gather all components from the data model and store as list in the components attribute.
         """
 
-        self.components = self._extract_components()
-
-    def _extract_components(
-        self,
-    ) -> list[str]:
-        # Store the parsed model in the parsed_model attribute
-        # The parsed model is a nested dictionary
         self._parse_model()
 
         # To represent each attribute of the nested model dictionary as a column in a dataframe,
