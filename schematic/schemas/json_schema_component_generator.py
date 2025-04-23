@@ -51,7 +51,7 @@ class GeneratorDirector:
 
     def gather_components(
         self,
-    ) -> None:
+    ) -> list[str]:
         """
         Gather all components from the data model and store as list in the components attribute.
         """
@@ -81,7 +81,7 @@ class GeneratorDirector:
 
     def _parse_model(
         self,
-    ) -> None:
+    ) -> dict[str, dict[str, Any]]:
         """
         Parse the data model to extract the components and their attributes and later for JSON schema generation.
         Stores:
@@ -149,7 +149,7 @@ class JsonSchemaComponentGenerator:
 
     def _get_data_model_graph_explorer(
         self,
-    ) -> None:
+    ) -> DataModelGraphExplorer:
         """'
         Create a DataModelGraphExplorer object to explore the data model graph.
         """
