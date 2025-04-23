@@ -29,6 +29,8 @@ class GeneratorDirector:
         self.data_model = data_model
         self.components = components if components else []
 
+        self.parsed_model = self._parse_model()
+
         self.parsed_model: dict = {}
         if output_directory is None:
             self.output_directory = Path(os.getcwd(), "component_jsonschemas")
@@ -59,8 +61,6 @@ class GeneratorDirector:
         """
         Gather all components from the data model and store as list in the components attribute.
         """
-
-        self._parse_model()
 
         # To represent each attribute of the nested model dictionary as a column in a dataframe,
         # it must be unpacked and the index reset
@@ -96,15 +96,12 @@ class GeneratorDirector:
 
         data_model_parser = DataModelParser(self.data_model)
 
-        self.parsed_model = data_model_parser.parse_model()
+        return data_model_parser.parse_model()
 
     def _generate_jsonschema(self, component: str) -> dict[str, Any]:
         """
         Execute the steps to generate the JSON schema for a single component.
         """
-        # parse model in cases where a component was provided and it wasn't necessary before
-        if not self.parsed_model:
-            self._parse_model()
 
         # Direct the generation of the jsonschema for a single component
         generator = JsonSchemaComponentGenerator(
