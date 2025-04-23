@@ -192,9 +192,6 @@ def generate_jsonschema(
     """
     Command to generate jsonschema files for validation for component(s) of the data model.
     """
-    # pylint: disable=too-many-locals
-    # pylint: disable=redefined-outer-name
-    # pylint: disable=too-many-branches
 
     # get the start time
     start_time = time.time()
