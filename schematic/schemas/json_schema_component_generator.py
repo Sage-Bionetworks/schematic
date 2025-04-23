@@ -27,11 +27,9 @@ class GeneratorDirector:
         output_directory: Optional[str] = None,
     ):
         self.data_model = data_model
-        self.components = components if components else []
-
         self.parsed_model = self._parse_model()
+        self.components = components if components else self.gather_components()
 
-        self.parsed_model: dict = {}
         if output_directory is None:
             self.output_directory = Path(os.getcwd(), "component_jsonschemas")
         else:
@@ -46,9 +44,6 @@ class GeneratorDirector:
             json_schemas: A list of JSON schemas for each component.
         """
         json_schemas = []
-
-        if not self.components:
-            self.gather_components()
 
         for component in self.components:
             json_schemas.append(self._generate_jsonschema(component))
