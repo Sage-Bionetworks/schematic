@@ -1,7 +1,6 @@
 "JSON schema file generator"
 
 # pylint: disable=line-too-long
-# pylint: disable=attribute-defined-outside-init
 
 import os
 from pathlib import Path
@@ -127,7 +126,7 @@ class JsonSchemaComponentGenerator:
     ):
         self.data_model = data_model
         self.parsed_model = parsed_model
-        self._get_data_model_graph_explorer()
+        self.dmge = self._get_data_model_graph_explorer()
 
         if component is None:
             raise ValueError("A component must be provided")
@@ -163,7 +162,7 @@ class JsonSchemaComponentGenerator:
         # Generate graph
         graph_data_model = data_model_grapher.graph
 
-        self.dmge = DataModelGraphExplorer(graph_data_model)
+        return DataModelGraphExplorer(graph_data_model)
 
     def get_component_json_schema(
         self,
