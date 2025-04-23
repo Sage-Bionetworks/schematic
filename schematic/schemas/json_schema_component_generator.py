@@ -128,9 +128,6 @@ class JsonSchemaComponentGenerator:
         self.parsed_model = parsed_model
         self.dmge = self._get_data_model_graph_explorer()
 
-        if component is None:
-            raise ValueError("A component must be provided")
-
         # the component can be provided as either a class label or display name
         # internally all the work is done with the class label
         component_class_label = self.dmge.get_node_label(component)
