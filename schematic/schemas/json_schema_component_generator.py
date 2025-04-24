@@ -149,12 +149,7 @@ class JsonSchemaComponentGenerator:
         """
 
         stripped_component = self.component.replace(" ", "")
-        data_model_basename = Path(self.data_model_location).name
-        return Path(
-            output_directory,
-            data_model_basename,
-            f"{stripped_component}_validation_schema.json",
-        )
+        return Path(output_directory, f"{stripped_component}_validation_schema.json")
 
     def _get_data_model_graph_explorer(
         self,
