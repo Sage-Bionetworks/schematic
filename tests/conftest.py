@@ -320,3 +320,19 @@ def wrap_with_otel(request):
     """Start a new OTEL Span for each test function."""
     with tracer.start_as_current_span(request.node.name):
         yield
+
+
+@pytest.fixture(scope="function")
+def example_data_model_path(helpers):
+    example_data_model_path = helpers.get_data_path("example.model.jsonld")
+
+    yield example_data_model_path
+
+
+@pytest.fixture(scope="function")
+def parsed_example_model(helpers, example_data_model_path):
+    data_model_parser = DataModelParser(example_data_model_path)
+
+    parsed_example_model = data_model_parser.parse_model()
+
+    yield parsed_example_model
