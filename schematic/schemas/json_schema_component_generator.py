@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 import pandas as pd
+import click
 
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
@@ -201,6 +202,7 @@ class JsonSchemaComponentGenerator:
 
         description_dict |= self.incomplete_component_json_schema
         self.component_json_schema = description_dict
+        click.echo(f"JSONschema generated for {self.component}.")
 
     def write_json_schema_to_file(
         self,
@@ -217,3 +219,4 @@ class JsonSchemaComponentGenerator:
             file_path=str(self.output_path),
             indent=2,
         )
+        click.echo(f"JSONschema file for {self.component} saved to {self.output_path}.")
