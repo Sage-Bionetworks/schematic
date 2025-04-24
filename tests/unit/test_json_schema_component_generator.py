@@ -52,13 +52,13 @@ class TestJsonSchemaGeneratorDirector:
         # GIVEN the JsonSchemaGeneratorDirector class and certain parameters
         # WHEN the class is initialized
         generator = JsonSchemaGeneratorDirector(
-            data_model=data_model,
+            data_model_location=data_model,
             components=["MockComponent"],
             output_directory=output_directory,
         )
 
         # THEN the class should be initialized with the correct parameters
-        assert generator.data_model == data_model
+        assert generator.data_model_location == data_model
         assert generator.components == ["MockComponent"]
         assert generator.output_directory == output_directory
 
@@ -94,7 +94,7 @@ class TestJsonSchemaGeneratorDirector:
 
         # GIVEN a JsonSchemaGeneratorDirector instance, a data model, an output directory, and optionally a component
         generator = JsonSchemaGeneratorDirector(
-            data_model=data_model,
+            data_model_location=data_model,
             components=specified_component,
             output_directory=output_directory,
         )
@@ -251,7 +251,7 @@ class TestJsonSchemaGeneratorDirector:
             data_model = helpers.get_data_path(data_model)
 
         # WHEN an instance of the JsonSchemaGeneratorDirector class is created
-        generator = JsonSchemaGeneratorDirector(data_model=data_model)
+        generator = JsonSchemaGeneratorDirector(data_model_location=data_model)
         # AND the _extract_components method is called
         identified_components = generator.gather_components()
 
@@ -269,14 +269,14 @@ class TestJsonSchemaComponentGenerator:
 
         # WHEN the JsonSchemaComponentGenerator class is initialized
         generator = JsonSchemaComponentGenerator(
-            data_model=data_model,
+            data_model_location=data_model,
             component=component,
             output_directory=output_directory,
             parsed_model=parsed_example_model,
         )
 
         # THEN the class should be initialized with the correct parameters
-        assert generator.data_model == data_model
+        assert generator.data_model_location == data_model
         assert generator.component == component
         assert generator.output_path == expected_output_path
 
@@ -290,7 +290,7 @@ class TestJsonSchemaComponentGenerator:
         # THEN a ValueError should be raised
         with pytest.raises(ValueError):
             generator = JsonSchemaComponentGenerator(
-                data_model=data_model,
+                data_model_location=data_model,
                 component=component,
                 output_directory=output_directory,
                 parsed_model=parsed_example_model,
@@ -304,7 +304,7 @@ class TestJsonSchemaComponentGenerator:
 
         # WHEN the JsonSchemaComponentGenerator class is initialized
         generator = JsonSchemaComponentGenerator(
-            data_model=data_model,
+            data_model_location=data_model,
             component=component,
             output_directory=output_directory,
             parsed_model=parsed_example_model,
@@ -339,7 +339,7 @@ class TestJsonSchemaComponentGenerator:
             )
             # WHEN the JsonSchemaComponentGenerator class is initialized
             generator = JsonSchemaComponentGenerator(
-                data_model=data_model,
+                data_model_location=data_model,
                 component=component,
                 output_directory=output_directory,
                 parsed_model=parsed_example_model,
@@ -363,7 +363,7 @@ class TestJsonSchemaComponentGenerator:
         # GIVEN a component and a generator instance
         component = "MockComponent"
         generator = JsonSchemaComponentGenerator(
-            data_model=data_model,
+            data_model_location=data_model,
             component=component,
             output_directory=output_directory,
             parsed_model=parsed_example_model,

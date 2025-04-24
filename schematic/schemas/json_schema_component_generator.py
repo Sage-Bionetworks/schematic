@@ -21,11 +21,11 @@ class JsonSchemaGeneratorDirector:
 
     def __init__(
         self,
-        data_model: str,
+        data_model_location: str,
         components: Optional[list[str]] = None,
         output_directory: Optional[str] = None,
     ):
-        self.data_model = data_model
+        self.data_model_location = data_model_location
         self.parsed_model = self._parse_model()
         self.components = components if components else self.gather_components()
 
@@ -88,7 +88,7 @@ class JsonSchemaGeneratorDirector:
             parsed_model: A dictionary representation of the data model.
         """
 
-        data_model_parser = DataModelParser(self.data_model)
+        data_model_parser = DataModelParser(self.data_model_location)
 
         return data_model_parser.parse_model()
 
@@ -99,7 +99,7 @@ class JsonSchemaGeneratorDirector:
 
         # Direct the generation of the jsonschema for a single component
         generator = JsonSchemaComponentGenerator(
-            data_model=self.data_model,
+            data_model_location=self.data_model_location,
             component=component,
             output_directory=self.output_directory,
             parsed_model=self.parsed_model,
@@ -119,12 +119,12 @@ class JsonSchemaComponentGenerator:
 
     def __init__(
         self,
-        data_model: str,
+        data_model_location: str,
         component: str,
         output_directory: Path,
         parsed_model: Dict[str, Any],
     ):
-        self.data_model = data_model
+        self.data_model_location = data_model_location
         self.parsed_model = parsed_model
         self.dmge = self._get_data_model_graph_explorer()
 
@@ -174,7 +174,7 @@ class JsonSchemaComponentGenerator:
         schema_name = self.component + "_validation"
 
         metadata_model = MetadataModel(
-            inputMModelLocation=self.data_model,
+            inputMModelLocation=self.data_model_location,
             inputMModelLocationType="local",
             data_model_labels="class_label",
         )

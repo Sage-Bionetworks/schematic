@@ -197,7 +197,9 @@ def generate_jsonschema(
     start_time = time.time()
 
     generator = JsonSchemaGeneratorDirector(
-        data_model=data_model, output_directory=output_directory, components=data_type
+        data_model_location=data_model,
+        output_directory=output_directory,
+        components=data_type,
     )
 
     generator.generate_jsonschema()
