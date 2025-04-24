@@ -166,7 +166,7 @@ def convert(
 @click_log.simple_verbosity_option(logger)
 @click.option(
     "--data_model_location",
-    "-dm",
+    "-dml",
     help=query_dict(
         schema_commands, ("schema", "generate-jsonschema", "data_model_location")
     ),
@@ -193,9 +193,6 @@ def generate_jsonschema(
     Command to generate jsonschema files for validation for component(s) of the data model.
     """
 
-    # get the start time
-    start_time = time.time()
-
     generator = JsonSchemaGeneratorDirector(
         data_model_location=data_model_location,
         output_directory=output_directory,
@@ -203,10 +200,3 @@ def generate_jsonschema(
     )
 
     generator.generate_jsonschema()
-
-    # get the end time
-    end_time = time.time()
-
-    # get the execution time
-    elapsed_time = time.strftime("%M:%S", time.gmtime(end_time - start_time))
-    click.echo(f"Execution time: {elapsed_time} (M:S)")
