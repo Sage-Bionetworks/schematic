@@ -2,7 +2,8 @@ import pytest
 
 from pathlib import Path
 import os
-
+import collections
+from shutil import rmtree
 
 from schematic.schemas.json_schema_component_generator import (
     JsonSchemaGeneratorDirector,
@@ -11,20 +12,37 @@ from schematic.schemas.json_schema_component_generator import (
 from tests.utils import json_files_equal
 from unittest.mock import patch
 
+OutputDirectory = collections.namedtuple("OutputDirectory", ["given", "expected"])
+
 
 @pytest.fixture
-def output_directory(helpers):
-    output_directory = Path(helpers.get_data_path("test_jsonschemas"))
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
+def data_model_location(helpers, request):
+    try:
+        data_model_location = request.param
+    except AttributeError:
+        data_model_location = helpers.get_data_path("tests/data/example.model.jsonld")
 
-    yield output_directory
+    yield data_model_location
+
+
+@pytest.fixture
+def output_directory(helpers, data_model_location):
+    data_model_basename = Path(data_model_location).stem
+
+    given_output_directory = Path(helpers.get_data_path("test_jsonschemas"))
+    expected_output_directory = Path(
+        helpers.get_data_path("test_jsonschemas"), data_model_basename
+    )
+
+    if not os.path.exists(given_output_directory):
+        os.makedirs(given_output_directory)
+
+    yield OutputDirectory(
+        given=given_output_directory, expected=expected_output_directory
+    )
 
     # Cleanup after test
-    for file in os.listdir(output_directory):
-        file_path = os.path.join(output_directory, file)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
+    rmtree(given_output_directory)
 
 
 class TestJsonSchemaGeneratorDirector:
@@ -34,13 +52,13 @@ class TestJsonSchemaGeneratorDirector:
         generator = JsonSchemaGeneratorDirector(
             data_model_location=example_data_model_path,
             components=["MockComponent"],
-            output_directory=output_directory,
+            output_directory=output_directory.given,
         )
 
         # THEN the class should be initialized with the correct parameters
         assert generator.data_model_location == example_data_model_path
         assert generator.components == ["MockComponent"]
-        assert generator.output_directory == output_directory
+        assert generator.output_directory == output_directory.given
 
     @pytest.mark.parametrize(
         "specified_component, expected_components",
@@ -76,7 +94,7 @@ class TestJsonSchemaGeneratorDirector:
         generator = JsonSchemaGeneratorDirector(
             data_model_location=example_data_model_path,
             components=specified_component,
-            output_directory=output_directory,
+            output_directory=output_directory.given,
         )
 
         # WHEN a schema is generated
@@ -101,7 +119,7 @@ class TestJsonSchemaGeneratorDirector:
             )
 
             generated_jsonschema = helpers.get_data_path(
-                f"{output_directory}/{expected_component}_validation_schema.json"
+                f"{output_directory.expected}/{expected_component}_validation_schema.json"
             )
 
             # A file should be written to the correct path
@@ -240,25 +258,39 @@ class TestJsonSchemaGeneratorDirector:
 
 
 class TestJsonSchemaComponentGenerator:
+    @pytest.mark.parametrize(
+        "data_model_location, component",
+        [
+            ("example.model.jsonld", "MockComponent"),
+            (
+                "https://raw.githubusercontent.com/ncihtan/data-models/refs/heads/main/HTAN.model.jsonld",
+                "Biospecimen",
+            ),
+        ],
+        indirect=["data_model_location"],
+    )
     def test_init(
-        self, parsed_example_model, output_directory, example_data_model_path
+        self,
+        data_model_location,
+        component,
+        parsed_example_model,
+        output_directory,
     ):
         # GIVEN certain parameters
-        component = "MockComponent"
         expected_output_path = Path(
-            output_directory, f"{component}_validation_schema.json"
+            output_directory.expected, f"{component}_validation_schema.json"
         )
 
         # WHEN the JsonSchemaComponentGenerator class is initialized
         generator = JsonSchemaComponentGenerator(
-            data_model_location=example_data_model_path,
+            data_model_location=data_model_location,
             component=component,
-            output_directory=output_directory,
+            output_directory=output_directory.given,
             parsed_model=parsed_example_model,
         )
 
         # THEN the class should be initialized with the correct parameters
-        assert generator.data_model_location == example_data_model_path
+        assert generator.data_model_location == data_model_location
         assert generator.component == component
         assert generator.output_path == expected_output_path
 
@@ -274,7 +306,7 @@ class TestJsonSchemaComponentGenerator:
             generator = JsonSchemaComponentGenerator(
                 data_model_location=example_data_model_path,
                 component=component,
-                output_directory=output_directory,
+                output_directory=output_directory.given,
                 parsed_model=parsed_example_model,
             )
 
@@ -288,7 +320,7 @@ class TestJsonSchemaComponentGenerator:
         generator = JsonSchemaComponentGenerator(
             data_model_location=example_data_model_path,
             component=component,
-            output_directory=output_directory,
+            output_directory=output_directory.given,
             parsed_model=parsed_example_model,
         )
 
@@ -310,20 +342,20 @@ class TestJsonSchemaComponentGenerator:
 
         # AND a path to create a json schema at
         generated_json_schema_path = Path(
-            output_directory, f"example.{component}.schema.json"
+            output_directory.given, f"example.{component}.schema.json"
         )
 
         with patch(
             "schematic.schemas.data_model_json_schema.get_json_schema_log_file_path"
         ) as mock_get_json_schema_log_file_path:
             mock_get_json_schema_log_file_path.return_value = Path(
-                output_directory, f"example.{component}.schema.json"
+                output_directory.given, f"example.{component}.schema.json"
             )
             # WHEN the JsonSchemaComponentGenerator class is initialized
             generator = JsonSchemaComponentGenerator(
                 data_model_location=example_data_model_path,
                 component=component,
-                output_directory=output_directory,
+                output_directory=output_directory.given,
                 parsed_model=parsed_example_model,
             )
 
@@ -347,7 +379,7 @@ class TestJsonSchemaComponentGenerator:
         generator = JsonSchemaComponentGenerator(
             data_model_location=example_data_model_path,
             component=component,
-            output_directory=output_directory,
+            output_directory=output_directory.given,
             parsed_model=parsed_example_model,
         )
 
