@@ -222,8 +222,10 @@ schema_commands = {
             "data_model_labels": DATA_MODEL_LABELS_HELP,
         },
         "generate-jsonschema": {
-            "short_help": ("Generate JSONSchema file for comoponent from data model"),
-            "data_model": (
+            "short_help": (
+                "Generate one or more JSON Schema files for a data type or all data types from the data model."
+            ),
+            "data_model_location": (
                 "Path to the data model file or url to the raw jsonld data model."
             ),
             "output_directory": (

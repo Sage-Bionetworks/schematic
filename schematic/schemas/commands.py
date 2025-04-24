@@ -165,10 +165,10 @@ def convert(
 )
 @click_log.simple_verbosity_option(logger)
 @click.option(
-    "--data_model",
+    "--data_model_location",
     "-dm",
     help=query_dict(
-        schema_commands, ("schema", "generate-jsonschema", "data_model_labels")
+        schema_commands, ("schema", "generate-jsonschema", "data_model_location")
     ),
 )
 @click.option(
@@ -187,7 +187,7 @@ def convert(
     help=query_dict(schema_commands, ("schema", "generate-jsonschema", "data_type")),
 )
 def generate_jsonschema(
-    data_model: str, output_directory: str, data_type: Optional[list[str]]
+    data_model_location: str, output_directory: str, data_type: Optional[list[str]]
 ) -> None:
     """
     Command to generate jsonschema files for validation for component(s) of the data model.
@@ -197,7 +197,7 @@ def generate_jsonschema(
     start_time = time.time()
 
     generator = JsonSchemaGeneratorDirector(
-        data_model_location=data_model,
+        data_model_location=data_model_location,
         output_directory=output_directory,
         components=data_type,
     )
