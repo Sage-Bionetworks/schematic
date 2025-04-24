@@ -135,6 +135,9 @@ class JsonSchemaComponentGenerator:
 
         self.output_path = self._build_output_path(output_directory)
 
+        self.incomplete_component_json_schema: dict[str, Any] = None
+        self.component_json_schema: dict[str, Any] = None
+
     def _build_output_path(self, output_directory: Path) -> Path:
         """
         Build the output path for the JSON schema file.
@@ -180,10 +183,10 @@ class JsonSchemaComponentGenerator:
             graph=metadata_model.graph_data_model,
         )
 
-        self.incomplete_component_json_schema: dict[
-            str, Any
-        ] = data_model_json_schema.get_json_validation_schema(
-            source_node=self.component, schema_name=schema_name
+        self.incomplete_component_json_schema = (
+            data_model_json_schema.get_json_validation_schema(
+                source_node=self.component, schema_name=schema_name
+            )
         )
 
     def add_description_to_json_schema(
@@ -197,7 +200,7 @@ class JsonSchemaComponentGenerator:
         description_dict = {"description": component_description}
 
         description_dict |= self.incomplete_component_json_schema
-        self.component_json_schema: dict[str, Any] = description_dict
+        self.component_json_schema = description_dict
 
     def write_json_schema_to_file(
         self,
