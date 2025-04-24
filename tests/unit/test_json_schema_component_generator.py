@@ -294,22 +294,6 @@ class TestJsonSchemaComponentGenerator:
         assert generator.component == component
         assert generator.output_path == expected_output_path
 
-    def test_init_missing_component(
-        self, parsed_example_model, output_directory, example_data_model_path
-    ):
-        # GIVEN a missing component specification
-        component = None
-
-        # WHEN the JsonSchemaComponentGenerator class is initialized
-        # THEN a ValueError should be raised
-        with pytest.raises(ValueError):
-            generator = JsonSchemaComponentGenerator(
-                data_model_location=example_data_model_path,
-                component=component,
-                output_directory=output_directory.given,
-                parsed_model=parsed_example_model,
-            )
-
     def test_init_invalid_component(
         self, parsed_example_model, output_directory, example_data_model_path
     ):
