@@ -135,8 +135,8 @@ class JsonSchemaComponentGenerator:
 
         self.output_path = self._build_output_path(output_directory)
 
-        self.incomplete_component_json_schema: dict[str, Any] = None
-        self.component_json_schema: dict[str, Any] = None
+        self.incomplete_component_json_schema: dict[str, Any] = {}
+        self.component_json_schema: dict[str, Any] = {}
 
     def _build_output_path(self, output_directory: Path) -> Path:
         """
