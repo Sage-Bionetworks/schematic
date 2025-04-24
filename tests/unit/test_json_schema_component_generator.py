@@ -240,25 +240,35 @@ class TestJsonSchemaGeneratorDirector:
 
 
 class TestJsonSchemaComponentGenerator:
+    @pytest.mark.parametrize(
+        "data_model_location, component",
+        [
+            ("example.model.jsonld", "MockComponent"),
+            (
+                "https://raw.githubusercontent.com/ncihtan/data-models/refs/heads/main/HTAN.model.jsonld",
+                "Biospecimen",
+            ),
+        ],
+    )
     def test_init(
-        self, parsed_example_model, output_directory, example_data_model_path
+        self, parsed_example_model, output_directory, data_model_location, component
     ):
         # GIVEN certain parameters
-        component = "MockComponent"
+        data_model_basename = Path(data_model_location).name
         expected_output_path = Path(
-            output_directory, f"{component}_validation_schema.json"
+            output_directory, data_model_basename, f"{component}_validation_schema.json"
         )
 
         # WHEN the JsonSchemaComponentGenerator class is initialized
         generator = JsonSchemaComponentGenerator(
-            data_model_location=example_data_model_path,
+            data_model_location=data_model_location,
             component=component,
             output_directory=output_directory,
             parsed_model=parsed_example_model,
         )
 
         # THEN the class should be initialized with the correct parameters
-        assert generator.data_model_location == example_data_model_path
+        assert generator.data_model_location == data_model_location
         assert generator.component == component
         assert generator.output_path == expected_output_path
 
