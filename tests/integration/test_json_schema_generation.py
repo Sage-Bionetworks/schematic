@@ -60,7 +60,7 @@ class TestSchemaCli:
             schema,
             [
                 "generate-jsonschema",
-                "--data_model",
+                "--data_model_location",
                 data_model_location,
                 "--output_directory",
                 output_directory,
