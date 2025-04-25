@@ -17,7 +17,13 @@ from schematic.utils.io_utils import export_json
 
 class JsonSchemaGeneratorDirector:
     """
-    A class that directs the generation of a JSON schema component.
+    Directs the generation of JSON schemas for one or more components from a specified data model.
+
+    Attributes:
+        data_model_location (str): Path or URL to the data model file.
+        parsed_model (dict): Parsed representation of the data model.
+        components (list[str]): List of component names to generate schemas for.
+        output_directory (Path): Directory where generated JSON schema files will be saved.
     """
 
     def __init__(
@@ -26,6 +32,20 @@ class JsonSchemaGeneratorDirector:
         components: Optional[list[str]] = None,
         output_directory: Optional[str] = None,
     ):
+        """
+        Initialize the JsonSchemaGeneratorDirector with data model location, components, and output directory.
+
+        Args:
+            data_model_location (str): Path or URL to the data model JSON-LD file.
+            components (Optional[list[str]]): List of component names. If None, components will be gathered automatically from the data model.
+            output_directory (Optional[str]): Directory where JSON schema files will be saved. Defaults to a subdirectory named 'component_jsonschemas' in the current working directory.
+
+        Attributes Updated:
+            self.data_model_location
+            self.parsed_model
+            self.components
+            self.output_directory
+        """
         self.data_model_location = data_model_location
         self.parsed_model = self._parse_model()
         self.components = components if components else self.gather_components()
@@ -39,9 +59,10 @@ class JsonSchemaGeneratorDirector:
         self,
     ) -> list[Dict[str, Any]]:
         """
-        Gather necessary components and generate JSON schema for each component.
+        Generate JSON schemas for all specified components.
+
         Returns:
-            json_schemas: A list of JSON schemas for each component.
+            list[Dict[str, Any]]: A list of JSON schema dictionaries, each corresponding to a component.
         """
         json_schemas = []
 
@@ -54,7 +75,10 @@ class JsonSchemaGeneratorDirector:
         self,
     ) -> list[str]:
         """
-        Gather all components from the data model and store as list in the components attribute.
+        Identify all components in the data model based on the 'DependsOn' attribute containing 'Component'.
+
+        Returns:
+            list[str]: List of component names extracted from the data model.
         """
 
         # To represent each attribute of the nested model dictionary as a column in a dataframe,
@@ -84,9 +108,13 @@ class JsonSchemaGeneratorDirector:
         self,
     ) -> dict[str, dict[str, Any]]:
         """
-        Parse the data model to extract the components and their attributes and later for JSON schema generation.
-        Stores:
-            parsed_model: A dictionary representation of the data model.
+        Parse the data model file into a structured dictionary representation.
+
+        Returns:
+            dict[str, dict[str, Any]]: The parsed model as a nested dictionary.
+
+        Attributes Updated:
+            self.parsed_model
         """
 
         data_model_parser = DataModelParser(self.data_model_location)
@@ -95,7 +123,16 @@ class JsonSchemaGeneratorDirector:
 
     def _generate_jsonschema(self, component: str) -> dict[str, Any]:
         """
-        Execute the steps to generate the JSON schema for a single component.
+        Generate the JSON schema for a single specified component.
+
+        Args:
+            component (str): The name of the component for which the JSON schema is to be generated.
+
+        Returns:
+            dict[str, Any]: The generated JSON schema dictionary for the specified component.
+
+        Side Effects:
+            Writes the generated JSON schema to a file via the JsonSchemaComponentGenerator.
         """
 
         # Direct the generation of the jsonschema for a single component
@@ -115,7 +152,16 @@ class JsonSchemaGeneratorDirector:
 
 class JsonSchemaComponentGenerator:
     """
-    Used to generate a jsonschema for a given component and write it to a file.
+    Responsible for generating the JSON schema for a specific component and writing it to a file.
+
+    Attributes:
+        data_model_location (str): Path or URL to the data model.
+        parsed_model (dict): Parsed representation of the data model.
+        dmge (DataModelGraphExplorer): Graph explorer for navigating the data model.
+        component (str): The class label of the target component.
+        output_path (Path): Path where the generated JSON schema file will be saved.
+        incomplete_component_json_schema (dict): JSON schema before adding the component description.
+        component_json_schema (dict): Final JSON schema with the description added.
     """
 
     def __init__(
@@ -125,6 +171,24 @@ class JsonSchemaComponentGenerator:
         output_directory: Path,
         parsed_model: Dict[str, Any],
     ):
+        """
+        Initialize the JsonSchemaComponentGenerator.
+
+        Args:
+            data_model_location (str): Path or URL to the data model JSON-LD file.
+            component (str): Component name (class label or display name).
+            output_directory (Path): Output directory for saving the JSON schema file.
+            parsed_model (Dict[str, Any]): The parsed model dictionary.
+
+        Attributes Updated:
+            self.data_model_location
+            self.parsed_model
+            self.dmge
+            self.component
+            self.output_path
+            self.incomplete_component_json_schema
+            self.component_json_schema
+        """
         self.data_model_location = data_model_location
         self.parsed_model = parsed_model
         self.dmge = self._get_data_model_graph_explorer()
@@ -141,11 +205,13 @@ class JsonSchemaComponentGenerator:
 
     def _build_output_path(self, output_directory: Path) -> Path:
         """
-        Build the output path for the JSON schema file.
+        Construct the file path where the JSON schema file will be saved.
+
         Args:
-            output_directory: The directory where the JSON schema file will be saved.
+            output_directory (Path): Directory for saving the JSON schema.
+
         Returns:
-            output_path: The path to the JSON schema file.
+            Path: Full path to the JSON schema file.
         """
 
         stripped_component = self.component.replace(" ", "")
@@ -159,8 +225,11 @@ class JsonSchemaComponentGenerator:
     def _get_data_model_graph_explorer(
         self,
     ) -> DataModelGraphExplorer:
-        """'
-        Create a DataModelGraphExplorer object to explore the data model graph.
+        """
+        Instantiate and return a DataModelGraphExplorer to navigate the data model graph.
+
+        Returns:
+            DataModelGraphExplorer: An instance for exploring the data model graph.
         """
         # Instantiate DataModelGraph
         data_model_grapher = DataModelGraph(self.parsed_model, "class_label")
@@ -174,8 +243,13 @@ class JsonSchemaComponentGenerator:
         self,
     ) -> None:
         """
-        Generate the JSON schema for the component using the DataModelJSONSchema instance.
-        The jsonschema is incomplete and will lack the description of the component.
+        Generate the initial JSON schema for the specified component without the description.
+
+        Attributes Updated:
+            self.incomplete_component_json_schema
+
+        Raises:
+            May raise errors if the component is not found in the data model graph.
         """
         schema_name = self.component + "_validation"
 
@@ -199,7 +273,10 @@ class JsonSchemaComponentGenerator:
         self,
     ) -> None:
         """
-        Add the description of the component to the JSON schema.
+        Add the description of the component from the data model graph to the JSON schema.
+
+        Attributes Updated:
+            self.component_json_schema
         """
         component_description = self.dmge.get_node_comment(node_label=self.component)
 
@@ -213,7 +290,12 @@ class JsonSchemaComponentGenerator:
         self,
     ) -> None:
         """
-        Write the JSON schema to a file.
+        Write the finalized JSON schema with the description to the designated file path.
+
+        Side Effects:
+            Creates directories if they do not exist.
+            Writes the JSON schema to the file system.
+            Outputs status messages via Click.
         """
         output_directory = os.path.dirname(self.output_path)
         if not os.path.exists(output_directory):
