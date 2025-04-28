@@ -4,7 +4,7 @@
 
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 import pandas as pd
 import click
 
@@ -57,12 +57,12 @@ class JsonSchemaGeneratorDirector:
 
     def generate_jsonschema(
         self,
-    ) -> list[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Generate JSON schemas for all specified components.
 
         Returns:
-            list[Dict[str, Any]]: A list of JSON schema dictionaries, each corresponding to a component.
+            list[dict[str, Any]]: A list of JSON schema dictionaries, each corresponding to a component.
         """
         json_schemas = []
 
@@ -169,7 +169,7 @@ class JsonSchemaComponentGenerator:
         data_model_location: str,
         component: str,
         output_directory: Path,
-        parsed_model: Dict[str, Any],
+        parsed_model: dict[str, Any],
     ):
         """
         Initialize the JsonSchemaComponentGenerator.
@@ -178,7 +178,7 @@ class JsonSchemaComponentGenerator:
             data_model_location (str): Path or URL to the data model JSON-LD file.
             component (str): Component name (class label or display name).
             output_directory (Path): Output directory for saving the JSON schema file.
-            parsed_model (Dict[str, Any]): The parsed model dictionary.
+            parsed_model (dict[str, Any]): The parsed model dictionary.
 
         Attributes Updated:
             self.data_model_location
