@@ -250,7 +250,7 @@ class TestJsonSchemaGeneratorDirector:
 
         # WHEN an instance of the JsonSchemaGeneratorDirector class is created
         generator = JsonSchemaGeneratorDirector(data_model_location=data_model_location)
-        # AND the _extract_components method is called
+        # AND the gather_components method is called
         identified_components = generator.gather_components()
 
         # THEN all components from the data model should be identified
