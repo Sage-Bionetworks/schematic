@@ -142,7 +142,7 @@ class TestJsonSchemaGeneratorDirector:
                 ],
             ),
             (
-                "https://raw.githubusercontent.com/ncihtan/data-models/refs/heads/main/HTAN.model.jsonld",
+                "https://raw.githubusercontent.com/ncihtan/data-models/238173f2f193d0b068313d096fcab6ee19c34c3b/HTAN.model.jsonld",
                 [
                     "10x Visium Spatial Transcriptomics - Auxiliary Files",
                     "10x Visium Spatial Transcriptomics - RNA-seq Level 1",
@@ -263,7 +263,7 @@ class TestJsonSchemaComponentGenerator:
         [
             ("example.model.jsonld", "MockComponent"),
             (
-                "https://raw.githubusercontent.com/ncihtan/data-models/refs/heads/main/HTAN.model.jsonld",
+                "https://raw.githubusercontent.com/ncihtan/data-models/238173f2f193d0b068313d096fcab6ee19c34c3b/HTAN.model.jsonld",
                 "Biospecimen",
             ),
         ],
