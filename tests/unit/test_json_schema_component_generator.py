@@ -86,7 +86,7 @@ class TestJsonSchemaGeneratorDirector:
         example_data_model_path,
         mocker,
     ):
-        comopnent_gather_spy = mocker.spy(
+        component_gather_spy = mocker.spy(
             JsonSchemaGeneratorDirector, "gather_components"
         )
 
@@ -103,7 +103,7 @@ class TestJsonSchemaGeneratorDirector:
         # AND if no component is specified already
         # THEN all components should be gathered from the data model
         if specified_component is None:
-            comopnent_gather_spy.assert_called_once()
+            component_gather_spy.assert_called_once()
 
         # AND a list json schema(s) should be returned with entries for each component
         assert json_schema is not None
