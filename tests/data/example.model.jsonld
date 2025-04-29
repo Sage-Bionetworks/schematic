@@ -883,7 +883,7 @@
         {
             "@id": "bts:MockComponent",
             "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
+            "rdfs:comment": "Component to hold mock attributes for testing all validation rules",
             "rdfs:label": "MockComponent",
             "rdfs:subClassOf": [
                 {

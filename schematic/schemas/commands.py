@@ -13,8 +13,12 @@ from schematic.schemas.data_model_graph import DataModelGraph
 from schematic.schemas.data_model_jsonld import convert_graph_to_jsonld
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_validator import DataModelValidator
-from schematic.utils.cli_utils import query_dict
+from schematic.schemas.json_schema_component_generator import (
+    JsonSchemaGeneratorDirector,
+)
+from schematic.utils.cli_utils import query_dict, parse_comma_str_to_list
 from schematic.utils.schema_utils import DisplayLabelType, export_schema
+
 
 # pylint: disable=logging-fstring-interpolation
 
@@ -150,3 +154,49 @@ def convert(
     # get the execution time
     elapsed_time = time.strftime("%M:%S", time.gmtime(end_time - start_time))
     click.echo(f"Execution time: {elapsed_time} (M:S)")
+
+
+@schema.command(
+    "generate-jsonschema",
+    options_metavar="<options>",
+    short_help=query_dict(
+        schema_commands, ("schema", "generate-jsonschema", "short_help")
+    ),
+)
+@click_log.simple_verbosity_option(logger)
+@click.option(
+    "--data_model_location",
+    "-dml",
+    help=query_dict(
+        schema_commands, ("schema", "generate-jsonschema", "data_model_location")
+    ),
+)
+@click.option(
+    "--output_directory",
+    "-od",
+    default=None,
+    help=query_dict(
+        schema_commands, ("schema", "generate-jsonschema", "output_directory")
+    ),
+)
+@click.option(
+    "--data_type",
+    "-dt",
+    default=None,
+    callback=parse_comma_str_to_list,
+    help=query_dict(schema_commands, ("schema", "generate-jsonschema", "data_type")),
+)
+def generate_jsonschema(
+    data_model_location: str, output_directory: str, data_type: Optional[list[str]]
+) -> None:
+    """
+    Command to generate jsonschema files for validation for component(s) of the data model.
+    """
+
+    generator = JsonSchemaGeneratorDirector(
+        data_model_location=data_model_location,
+        output_directory=output_directory,
+        components=data_type,
+    )
+
+    generator.generate_jsonschema()
