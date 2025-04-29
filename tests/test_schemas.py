@@ -282,7 +282,7 @@ class TestDataModelCsvParser:
     "data_model",
     [
         "example.model.jsonld",
-        "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/develop/tests/data/example.model.jsonld",
+        "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/f893707661aad2f889eccd5dce53480c8a54331e/tests/data/example.model.jsonldtests/data/example.model.jsonld",
     ],
     ids=["file-jsonld", "url-jsonld"],
 )
