@@ -284,6 +284,14 @@ class JsonSchemaComponentGenerator:
 
         description_dict |= self.incomplete_component_json_schema
         self.component_json_schema = description_dict
+
+        for attribute, value in self.component_json_schema["properties"].items():
+            if isinstance(value, dict) and "description" not in value:
+                # TODO: Update to give either class label or display name
+                value["description"] = self.dmge.get_node_comment(
+                    node_display_name=attribute
+                )
+
         click.echo(f"Validation JSONschema generated for {self.component}.")
 
     def write_json_schema_to_file(
