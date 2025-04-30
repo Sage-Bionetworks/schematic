@@ -4,18 +4,21 @@
   "description": "TBD",
   "properties": {
     "Component": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "MockRDB_id": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "SourceManifest": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
