@@ -287,7 +287,8 @@ class JsonSchemaComponentGenerator:
 
         for attribute, value in self.component_json_schema["properties"].items():
             if isinstance(value, dict) and "description" not in value:
-                # TODO: Update to give either class label or display name
+                # https://sagebionetworks.jira.com/browse/SCHEMATIC-284
+                # https://sagebionetworks.jira.com/browse/SCHEMATIC-283
                 value["description"] = self.dmge.get_node_comment(
                     node_display_name=attribute
                 )
