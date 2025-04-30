@@ -4,36 +4,42 @@
   "description": "Component to hold mock attributes for testing all validation rules",
   "properties": {
     "Check Ages": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Date": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Float": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Int": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check List": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check List Enum": {
+      "description": "TBD",
       "items": {
         "enum": [
           "ab",
@@ -46,6 +52,7 @@
       "type": "array"
     },
     "Check List Enum Strict": {
+      "description": "TBD",
       "items": {
         "enum": [
           "ab",
@@ -58,12 +65,14 @@
       "type": "array"
     },
     "Check List Like": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check List Like Enum": {
+      "description": "TBD",
       "items": {
         "enum": [
           "ab",
@@ -76,121 +85,143 @@
       "type": "array"
     },
     "Check List Strict": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Match Exactly": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Match Exactly values": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Match None": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Match None values": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Match at Least": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Match at Least values": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check NA": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Num": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Range": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
-    "Check Recommended": {},
+    "Check Recommended": {
+      "description": "TBD"
+    },
     "Check Regex Format": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Regex Integer": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Regex List": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Regex List Like": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Regex List Strict": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Regex Single": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check String": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check URL": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Unique": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Component": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
