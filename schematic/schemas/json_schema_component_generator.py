@@ -282,8 +282,8 @@ class JsonSchemaComponentGenerator:
 
         description_dict = {"description": component_description}
 
-        description_dict |= self.incomplete_component_json_schema
-        self.component_json_schema = description_dict
+        self.component_json_schema.update(self.incomplete_component_json_schema)
+        self.component_json_schema.update(description_dict)
 
         for attribute, value in self.component_json_schema["properties"].items():
             if isinstance(value, dict) and "description" not in value:
