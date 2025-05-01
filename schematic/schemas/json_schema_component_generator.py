@@ -285,6 +285,16 @@ class JsonSchemaComponentGenerator:
         self.component_json_schema.update(self.incomplete_component_json_schema)
         self.component_json_schema.update(description_dict)
 
+        if "properties" not in self.component_json_schema:
+            raise ValueError(
+                f"component: {self.component} is malformed, missing properties"
+            )
+
+        if not isinstance(self.component_json_schema["properties"], dict):
+            raise ValueError(
+                f"component: {self.component} is malformed, properties should be an object"
+            )
+
         for attribute, value in self.component_json_schema["properties"].items():
             if isinstance(value, dict) and "description" not in value:
                 # https://sagebionetworks.jira.com/browse/SCHEMATIC-284
