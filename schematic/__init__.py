@@ -8,7 +8,12 @@ from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
-from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs import (
+    LoggerProvider,
+    LoggingHandler,
+    LogRecordProcessor,
+    LogRecord,
+)
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import (
     DEPLOYMENT_ENVIRONMENT,
@@ -17,9 +22,14 @@ from opentelemetry.sdk.resources import (
     SERVICE_VERSION,
     Resource,
 )
-from opentelemetry.sdk.trace import TracerProvider, SpanProcessor
+from opentelemetry.sdk.trace import (
+    TracerProvider,
+    SpanProcessor,
+    ReadableSpan,
+    Span as SpanSdk,
+)
 from opentelemetry.trace import Span, SpanContext, get_current_span
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, Span
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
 from synapseclient import Synapse, USER_AGENT
 from werkzeug import Request
@@ -28,6 +38,10 @@ from schematic.configuration.configuration import CONFIG
 from schematic.loader import LOADER
 from schematic.version import __version__
 from dotenv import load_dotenv
+from schematic.utils.remove_sensitive_data_utils import (
+    redact_string,
+    redacted_sensitive_data_in_exception,
+)
 
 Synapse.allow_client_caching(False)
 logger = logging.getLogger(__name__)
@@ -95,6 +109,29 @@ class AttributePropagatingSpanProcessor(SpanProcessor):
         pass
 
 
+class CustomFilter(LogRecordProcessor):
+    """A custom log record processor that redacts sensitive data from log messages before they are exported."""
+
+    def __init__(self, exporter):
+        self._exporter = exporter
+        self._shutdown = False
+
+    def emit(self, log_record: LogRecord) -> None:
+        """Modify log traces before they are exported."""
+        # Redact sensitive data in the log message (body)
+        if log_record.log_record.body and "googleapis" in log_record.log_record.body:
+            log_record.log_record.body = redact_string(log_record.log_record.body)
+
+    def force_flush(self, timeout_millis=30000) -> bool:
+        """Flush any pending log records (if needed)."""
+        return self._exporter.force_flush(timeout_millis)
+
+    def shutdown(self) -> None:
+        """Clean up resources."""
+        self._shutdown = True
+        self._exporter.shutdown()
+
+
 def create_telemetry_session() -> requests.Session:
     """
     Create a requests session with authorization enabled if environment variables are set.
@@ -159,9 +196,39 @@ def set_up_tracing(session: requests.Session) -> None:
         attribute_propagator = AttributePropagatingSpanProcessor(["user.id"])
         trace.get_tracer_provider().add_span_processor(attribute_propagator)
         exporter = OTLPSpanExporter(session=session)
+        # Overwrite the _readable_span method to redact sensitive data
+        SpanSdk._readable_span = _readable_span_alternate
         trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(exporter))
     else:
         trace.set_tracer_provider(TracerProvider(sampler=ALWAYS_OFF))
+
+
+original_function_readable_span = SpanSdk._readable_span
+
+
+def _readable_span_alternate(self: SpanSdk) -> ReadableSpan:
+    """Alternative function to the readable span. This function redacts sensitive data from the span attributes and events.
+
+    Args:
+        self (SpanSdk): _readable_span method of the SpanSdk class
+
+    Returns:
+        ReadableSpan: a new readable span that redacts sensitive data
+    """
+    # Remove sensitive information from the span status description
+    # to prevent exposing sensitive details in the statusMessage on SigNoz
+    if self._status.status_code == trace.StatusCode.ERROR:
+        status_description_redacted = redact_string(str(self._status.description))
+        self._status._description = status_description_redacted
+
+    # Remove sensitive information in event attributes
+    # to prevent exposing sensitive details in exception traces and messages
+    for event in self._events:
+        attributes = event.attributes
+        redacted_event_attributes = redacted_sensitive_data_in_exception(attributes)
+        event._name = redact_string(event.name)
+        event._attributes = redacted_event_attributes
+    return original_function_readable_span(self)
 
 
 def set_up_logging(session: requests.Session) -> None:
@@ -184,6 +251,7 @@ def set_up_logging(session: requests.Session) -> None:
         set_logger_provider(logger_provider=logger_provider)
 
         exporter = OTLPLogExporter(session=session)
+        logger_provider.add_log_record_processor(CustomFilter(exporter))
         logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
         handler = LoggingHandler(level=logging.NOTSET, logger_provider=logger_provider)
         logging.getLogger().addHandler(handler)

@@ -1066,4 +1066,4 @@ class TestCsvUtils:
         expected_jsonld = open(expected_jsonld_path).read()
         actual_jsonld = open(actual_jsonld_path).read()
 
-        assert expected_jsonld == actual_jsonld
+        assert json.loads(expected_jsonld) == json.loads(actual_jsonld)

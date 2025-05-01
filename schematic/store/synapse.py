@@ -71,6 +71,7 @@ from schematic.utils.general import (
     create_temp_folder,
     entity_type_mapping,
     get_dir_size,
+    create_like_statement,
 )
 from schematic.utils.io_utils import cleanup_temporary_storage
 from schematic.utils.schema_utils import get_class_label_from_display_name
@@ -80,6 +81,10 @@ from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_r
 logger = logging.getLogger("Synapse storage")
 
 tracer = trace.get_tracer("Schematic")
+
+ID_COLUMN = "Id"
+ENTITY_ID_COLUMN = "entityId"
+UUID_COLUMN = "uuid"
 
 
 @dataclass
@@ -711,7 +716,6 @@ class SynapseStorage(BaseStorage):
             raise ValueError(
                 f"Fileview {self.storageFileview} is empty, please check the table and the provided synID and try again."
             )
-
         child_path = self.storageFileviewTable.loc[
             self.storageFileviewTable["parentId"] == datasetId, "path"
         ]
@@ -725,11 +729,8 @@ class SynapseStorage(BaseStorage):
         parent = child_path.split("/")[:-1]
         parent = "/".join(parent)
 
-        # Format dataset path to be used in table query
-        dataset_path = f"'{parent}/%'"
-
         # When querying, only include files to exclude entity files and subdirectories
-        where_clauses = [f"path like {dataset_path}", "type='file'"]
+        where_clauses = [create_like_statement(parent), "type='file'"]
 
         # Requery the fileview to specifically get the files in the given dataset
         self.query_fileview(columns=["id", "path"], where_clauses=where_clauses)
@@ -1571,7 +1572,6 @@ class SynapseStorage(BaseStorage):
         existing_table_id = self.syn.findEntityId(
             name=table_name, parent=table_parent_id
         )
-
         tableOps = TableOperations(
             synStore=self,
             tableToLoad=table_manifest,
@@ -2003,7 +2003,6 @@ class SynapseStorage(BaseStorage):
         # Add metadata to the annotations
         for annos_k, annos_v in metadata.items():
             annos[annos_k] = annos_v
-
         return annos
 
     '''
@@ -2111,16 +2110,41 @@ class SynapseStorage(BaseStorage):
 
     def _add_id_columns_to_manifest(
         self, manifest: pd.DataFrame, dmge: DataModelGraphExplorer
-    ):
-        """Helper function to add id and entityId columns to the manifest if they do not already exist, Fill id values per row.
+    ) -> pd.DataFrame:
+        """
+        Ensures that the manifest DataFrame has standardized 'Id' and 'entityId' columns.
+
+        - If any case variation of the 'id' column is present (e.g., 'id', 'ID', 'iD'), it is renamed to 'Id'.
+        - If any case variation of the 'entityid' column is present, it is renamed to 'entityId'.
+        - If any case variation of the 'uuid' column is present, it is renamed to 'uuid' before further processing.
+        - If 'Id' is still missing:
+            - It will be created as an empty column, or
+            - Derived from a 'Uuid' column, depending on whether 'uuid' is defined in the schema.
+        - If both 'uuid' and 'Id' columns exist, the 'uuid' column is dropped.
+        - Missing values in the 'Id' column are filled with generated UUIDs.
+        - If 'entityId' is still missing, it will be created and filled with empty strings.
+        - If 'entityId' is already present, any missing values will be replaced with empty strings.
+
         Args:
-            Manifest loaded as a pd.Dataframe
-        Returns (pd.DataFrame):
-            Manifest df with new Id and EntityId columns (and UUID values) if they were not already present.
+            manifest (pd.DataFrame): The metadata manifest to be updated.
+            dmge (DataModelGraphExplorer): Data model graph explorer object.
+
+        Returns:
+            pd.DataFrame: The updated manifest with a standardized 'Id' column and an 'entityId' column.
         """
 
-        # Add Id for table updates and fill.
-        if not col_in_dataframe("Id", manifest):
+        # Normalize any variation of 'id' to 'Id', "entityid" to "entityId", "Uuid" to "uuid"
+        for col in manifest.columns:
+            if col.lower() == "id":
+                manifest = manifest.rename(columns={col: ID_COLUMN})
+            if col.lower() == "entityid":
+                manifest = manifest.rename(columns={col: ENTITY_ID_COLUMN})
+            if col.lower() == "uuid":
+                manifest = manifest.rename(columns={col: UUID_COLUMN})
+
+        # If 'Id' still doesn't exist, see if uuid column exists
+        # Rename uuid column to "Id" column
+        if ID_COLUMN not in manifest.columns:
             # See if schema has `Uuid` column specified
             try:
                 uuid_col_in_schema = dmge.is_class_in_schema(
@@ -2129,29 +2153,29 @@ class SynapseStorage(BaseStorage):
             except KeyError:
                 uuid_col_in_schema = False
 
-            # Rename `Uuid` column if it wasn't specified in the schema
-            if col_in_dataframe("Uuid", manifest) and not uuid_col_in_schema:
-                manifest.rename(columns={"Uuid": "Id"}, inplace=True)
-            # If no `Uuid` column exists or it is specified in the schema, create a new `Id` column
+            # Rename `uuid` column if it wasn't specified in the schema
+            if UUID_COLUMN in manifest.columns and not uuid_col_in_schema:
+                manifest = manifest.rename(columns={UUID_COLUMN: ID_COLUMN})
+            # If no `uuid` column exists or it is specified in the schema, create a new `Id` column
             else:
-                manifest["Id"] = ""
-
-        # Retrieve the ID column name (id, Id and ID) are treated the same.
-        id_col_name = [col for col in manifest.columns if col.lower() == "id"][0]
-
-        # Check if values have been added to the Id coulumn, if not add a UUID so value in the row is not blank.
-        for idx, row in manifest.iterrows():
-            if not row[id_col_name]:
-                gen_uuid = str(uuid.uuid4())
-                row[id_col_name] = gen_uuid
-                manifest.loc[idx, id_col_name] = gen_uuid
-
-        # add entityId as a column if not already there or
-        # fill any blanks with an empty string.
-        if not col_in_dataframe("entityId", manifest):
-            manifest["entityId"] = ""
+                manifest[ID_COLUMN] = ""
         else:
-            manifest["entityId"].fillna("", inplace=True)
+            # 'Id' already exists, ignore 'uuid'
+            if UUID_COLUMN in manifest.columns:
+                manifest = manifest.drop(columns=[UUID_COLUMN])
+
+        # Fill in UUIDs in the "Id" column if missing
+        for idx, row in manifest.iterrows():
+            if not row["Id"]:
+                gen_uuid = str(uuid.uuid4())
+                row["Id"] = gen_uuid
+                manifest.loc[idx, ID_COLUMN] = gen_uuid
+
+        # Add entityId as a column if not already there
+        if ENTITY_ID_COLUMN not in manifest:
+            manifest[ENTITY_ID_COLUMN] = ""
+        else:
+            manifest[ENTITY_ID_COLUMN] = manifest[ENTITY_ID_COLUMN].fillna("")
 
         return manifest
 
@@ -3127,6 +3151,7 @@ class TableOperations:
         )
 
         current_columns = self.synStore.syn.getTableColumns(current_table)
+
         for col in current_columns:
             current_table.removeColumn(col)
 
@@ -3173,6 +3198,7 @@ class TableOperations:
             # adds new columns to schema
             for col in cols:
                 current_table.addColumn(col)
+
             table_result = self.synStore.syn.store(
                 current_table, isRestricted=self.restrict
             )
@@ -3250,7 +3276,7 @@ class TableOperations:
         Method to upsert rows from a new manifest into an existing table on synapse
         For upsert functionality to work, primary keys must follow the naming convention of <componenet>_id
         `-tm upsert` should be used for initial table uploads if users intend to upsert into them at a later time; using 'upsert' at creation will generate the metadata necessary for upsert functionality.
-        Currently it is required to use -dl/--use_display_label with table upserts.
+        Currently it is required to use -tcn "display label" with table upserts.
 
 
         Args:
