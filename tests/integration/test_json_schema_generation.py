@@ -28,7 +28,7 @@ class TestSchemaCli:
         "data_model_location",
         [
             "example.model.jsonld",
-            "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/schematic-276-jsonschema-cli/tests/data/example.model.jsonld",
+            "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/f49215d5a7968ceffde855907fa0128a309768fb/tests/data/example.model.jsonld",
         ],
         ids=["local", "remote"],
     )

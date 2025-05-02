@@ -70,6 +70,7 @@
   "description": "TBD",
   "properties": {
     "Cancer Type": {
+      "description": "TBD",
       "enum": [
         "Prostate",
         "Colorectal",
@@ -80,18 +81,21 @@
       ]
     },
     "Component": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Diagnosis": {
+      "description": "TBD",
       "enum": [
         "Cancer",
         "Healthy"
       ]
     },
     "Family History": {
+      "description": "TBD",
       "items": {
         "enum": [
           "Prostate",
@@ -106,19 +110,23 @@
       "type": "array"
     },
     "Patient ID": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Sex": {
+      "description": "TBD",
       "enum": [
         "Male",
         "Female",
         "Other"
       ]
     },
-    "Year of Birth": {}
+    "Year of Birth": {
+      "description": "TBD"
+    }
   },
   "required": [
     "Sex",

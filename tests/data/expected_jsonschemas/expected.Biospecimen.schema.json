@@ -4,24 +4,28 @@
   "description": "TBD",
   "properties": {
     "Component": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Patient ID": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Sample ID": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Tissue Status": {
+      "description": "TBD",
       "enum": [
         "Malignant",
         "None",
