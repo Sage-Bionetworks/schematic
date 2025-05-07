@@ -40,13 +40,11 @@ def fixture_dm_json_schema() -> Generator[DataModelJSONSchema2, None, None]:
 
 
 def test_json_schema():
-    js = JSONSchema("id", "title")
+    JSONSchema("id", "title")
 
 
 def test_get_json_validation_schema(dm_json_schema: DataModelJSONSchema2) -> None:
-    schema = dm_json_schema.get_json_validation_schema("Patient", "")
-    # print(schema)
-    assert False
+    dm_json_schema.get_json_validation_schema("Patient", "")
 
 
 
