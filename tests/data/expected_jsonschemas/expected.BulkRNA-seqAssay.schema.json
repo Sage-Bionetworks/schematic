@@ -120,12 +120,14 @@
   "description": "TBD",
   "properties": {
     "Component": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "File Format": {
+      "description": "TBD",
       "enum": [
         "CSV/TSV",
         "FASTQ",
@@ -134,12 +136,14 @@
       ]
     },
     "Filename": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Genome Build": {
+      "description": "TBD",
       "enum": [
         "GRCm38",
         "GRCh37",
@@ -148,8 +152,11 @@
         ""
       ]
     },
-    "Genome FASTA": {},
+    "Genome FASTA": {
+      "description": "TBD"
+    },
     "Sample ID": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"

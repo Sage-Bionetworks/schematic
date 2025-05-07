@@ -282,8 +282,27 @@ class JsonSchemaComponentGenerator:
 
         description_dict = {"description": component_description}
 
-        description_dict |= self.incomplete_component_json_schema
-        self.component_json_schema = description_dict
+        self.component_json_schema.update(self.incomplete_component_json_schema)
+        self.component_json_schema.update(description_dict)
+
+        if "properties" not in self.component_json_schema:
+            raise ValueError(
+                f"component: {self.component} is malformed, missing properties"
+            )
+
+        if not isinstance(self.component_json_schema["properties"], dict):
+            raise ValueError(
+                f"component: {self.component} is malformed, properties should be an object"
+            )
+
+        for attribute, value in self.component_json_schema["properties"].items():
+            if isinstance(value, dict) and "description" not in value:
+                # https://sagebionetworks.jira.com/browse/SCHEMATIC-284
+                # https://sagebionetworks.jira.com/browse/SCHEMATIC-283
+                value["description"] = self.dmge.get_node_comment(
+                    node_display_name=attribute
+                )
+
         click.echo(f"Validation JSONschema generated for {self.component}.")
 
     def write_json_schema_to_file(

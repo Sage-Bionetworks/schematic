@@ -4,12 +4,14 @@
   "description": "TBD",
   "properties": {
     "Component": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Filename": {
+      "description": "TBD",
       "minLength": 1,
       "not": {
         "type": "null"
