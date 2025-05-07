@@ -166,7 +166,7 @@ class DataModelJSONSchema2:
         root_dependencies: list[str],
         reverse_dependencies: dict[str, list[str]]
     ):
-        # node range(valid values, enum values)
+        # Node range(valid values, enum values)
         node_range = self.dmge.get_adjacent_nodes_by_relationship(
             node_label=node_being_processed,
             relationship=self.rel_dict["rangeIncludes"]["edge_key"],
@@ -174,14 +174,12 @@ class DataModelJSONSchema2:
 
         node_range_display_names = self.dmge.get_nodes_display_names(node_list=node_range)
 
+        # When a datatype(component) depends on another datatype
         node_dependencies = self.dmge.get_adjacent_nodes_by_relationship(
             node_label=node_being_processed,
             relationship=self.rel_dict["requiresDependency"]["edge_key"],
         )
-        print(node_being_processed)
-        print(node_dependencies)
 
-        # get process node display name
         node_display_name:str = self.graph.nodes[node_being_processed][
             self.rel_dict["displayName"]["node_label"]
         ]
