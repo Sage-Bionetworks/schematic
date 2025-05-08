@@ -316,9 +316,7 @@ def test_set_property(
     ],
 )
 def test_create_enum_array_property(
-    enum_list: list[str],
-    is_required: bool,
-    expected_schema: dict[str, Any]
+    enum_list: list[str], is_required: bool, expected_schema: dict[str, Any]
 ) -> None:
     """Test for _create_enum_array_property"""
     schema = _create_enum_array_property(
