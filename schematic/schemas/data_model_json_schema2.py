@@ -3,7 +3,7 @@
 import json
 import logging
 import os
-from typing import Optional
+from typing import Optional, Union
 from dataclasses import dataclass, field, asdict
 
 import networkx as nx  # type: ignore
@@ -30,10 +30,10 @@ TYPE_RULES = {
 class PropertyData:
     """A Dataclass representing data about a JSON Schema property from its validation rules"""
 
-    property_type: str | None = None
+    property_type: Union[str, None] = None
     is_array: bool = False
-    range_min: float | None = None
-    range_max: float | None = None
+    range_min: Union[float, None] = None
+    range_max: Union[float, None] = None
 
 
 @dataclass
@@ -545,10 +545,10 @@ def _get_property_data_from_validation_rules(
     Returns:
         PropertyData: validation rule data
     """
-    property_type: str | None = None
+    property_type: Union[str, None] = None
     is_array = False
-    range_min: float | None = None
-    range_max: float | None = None
+    range_min: Union[float, None] = None
+    range_max: Union[float, None] = None
 
     if validation_rules:
         if rule_in_rule_list("list", validation_rules):
@@ -567,18 +567,20 @@ def _get_property_data_from_validation_rules(
     return PropertyData(property_type, is_array, range_min, range_max)
 
 
-def _get_ranges_from_range_rule(rule: str) -> tuple[float | None, float | None]:
+def _get_ranges_from_range_rule(
+    rule: str,
+) -> tuple[Union[float, None], Union[float, None]]:
     """
     Returns the min and max from an inRange rule if they exist
 
-    Args:
+    Arguments:
         rule: The inRange rule
 
     Returns:
-        tuple[float|None, float|None]: The min and max form the rule
+        The min and max form the rule
     """
-    range_min: float | None = None
-    range_max: float | None = None
+    range_min: Union[float, None] = None
+    range_max: Union[float, None] = None
     parameters = rule.split(" ")
     if len(parameters) > 1 and parameters[1].isnumeric():
         range_min = float(parameters[1])
@@ -587,7 +589,7 @@ def _get_ranges_from_range_rule(rule: str) -> tuple[float | None, float | None]:
     return (range_min, range_max)
 
 
-def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> str | None:
+def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
     """
     Returns the inRange rule from a list of rules if there is only one
     Returns None if there are no inRange rules
@@ -599,7 +601,7 @@ def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> str | None:
         ValueError: When more than one inRange rule is found
 
     Returns:
-        str|None: The inRange rule if one is found, or None
+        The inRange rule if one is found, or None
     """
     in_range_rules = [rule for rule in rule_list if rule.startswith("inRange")]
     if len(in_range_rules) > 1:
@@ -609,7 +611,7 @@ def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> str | None:
     return in_range_rules[0]
 
 
-def _get_type_rule_from_rule_list(rule_list: list[str]) -> str | None:
+def _get_type_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
     """
     Returns the type rule from a list of rules if there is only one
     Returns None if there are no type rules
@@ -621,7 +623,7 @@ def _get_type_rule_from_rule_list(rule_list: list[str]) -> str | None:
         ValueError: When more than one type rule is found
 
     Returns:
-        str|None: The type rule if one is found, or None
+        The type rule if one is found, or None
     """
     rule_list = [rule.split(" ")[0] for rule in rule_list]
     type_rules = [rule for rule in rule_list if rule in TYPE_RULES]
