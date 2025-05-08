@@ -37,7 +37,7 @@ class PropertyData:
 
 
 @dataclass
-class JSONSchema:
+class JSONSchema: #pylint: disable=too-many-instance-attributes
     """A dataclass representing a JSON Schema"""
 
     schema_id: str = ""
@@ -198,12 +198,10 @@ class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
                 range_domain_map[node] = []
             range_domain_map[node].append(node_display_name)
 
-        # Get node validation rules for the current node, and the given component
         node_validation_rules = self.dmge.get_component_node_validation_rules(
             manifest_component=source_node, node_display_name=node_display_name
         )
 
-        # Get if the node is required for the given component
         node_required = self.dmge.get_component_node_required(
             manifest_component=source_node,
             node_validation_rules=node_validation_rules,
@@ -356,7 +354,7 @@ def _set_conditional_dependencies(
                 json_schema.all_of.append(conditional_schema)
 
 
-def _set_property(
+def _set_property( #pylint: disable=too-many-arguments
     json_schema: JSONSchema,
     name: str,
     enum_list: list[str],
