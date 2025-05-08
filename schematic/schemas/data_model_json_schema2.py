@@ -16,28 +16,35 @@ from schematic.utils.types import JsonType
 
 logger = logging.getLogger(__name__)
 
+# A dict where the keys are type validation rules, and the values are their JSON Schema equivalent
 TYPE_RULES = {
     "str": "string",
     "num": "number",
     "float": "number",
     "int": "integer",
-    "bool": "boolean"
+    "bool": "boolean",
 }
 
 
 @dataclass
-class PropertyType:
+class PropertyData:
+    """A Dataclass representing data about a JSON Schema property from its validation rules"""
+
     property_type: str | None = None
     is_array: bool = False
-
+    range_min: float | None = None
+    range_max: float | None = None
 
 
 @dataclass
 class JSONSchema:
-    id: str = ""
+    """A dataclass representing a JSON Schema"""
+
+    schema_id: str = ""
     title: str = ""
     schema: str = "http://json-schema.org/draft-07/schema#"
     type: str = "object"
+    description: str = "TBD"
     properties: dict = field(default_factory=dict)
     required: list[str] = field(default_factory=list)
     all_of: list = field(default_factory=list)
@@ -46,19 +53,18 @@ class JSONSchema:
         """Returns class as a JSON Schema dictionary, with proper keywords"""
         json_schema_dict = asdict(self)
         keywords_to_change = {
-            "id": "$id",
+            "schema_id": "$id",
             "schema": "$schema",
-            "all_of": "allOf"
+            "all_of": "allOf",
         }
         for old_word, new_word in keywords_to_change.items():
             json_schema_dict[new_word] = json_schema_dict.pop(old_word)
         if len(self.all_of) == 0:
-            json_schema_dict.pop('allOf')
+            json_schema_dict.pop("allOf")
         return json_schema_dict
 
 
-
-class DataModelJSONSchema2:
+class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
     "Data Model Json Schema"
 
     def __init__(
@@ -87,7 +93,7 @@ class DataModelJSONSchema2:
         2) Find all the allowable metadata values / nodes that can be assigned to a particular
           node (if such a constraint is specified on the schema).
 
-        Args:
+        Arguments:
             source_node: Node from which we can start recursive dependency traversal
                 (as mentioned above).
             schema_name: Name assigned to JSON-LD schema (to uniquely identify it via URI
@@ -96,10 +102,10 @@ class DataModelJSONSchema2:
         Returns:
             JsonType: JSON Schema as a dictionary.
         """
-
         json_schema = JSONSchema(
-            id = "http://example.com/" + schema_name,
-            title=schema_name
+            schema_id="http://example.com/" + schema_name,
+            title=schema_name,
+            description=self.dmge.get_node_comment(node_label=source_node),
         )
 
         # list of nodes to be checked for dependencies, starting with the source node
@@ -111,7 +117,7 @@ class DataModelJSONSchema2:
         reverse_dependencies: dict[str, list[str]] = {}
         # maintain a map between range nodes and their domain nodes {range_value : domain_value}
         # the domain node is very likely the parentof ("parentOf" relationship) of the range node
-        range_domain_map: dict[str, list[str]]  = {}
+        range_domain_map: dict[str, list[str]] = {}
         # Gets the dependency nodes of the source node. These will be first nodes processed.
         root_dependencies = self.dmge.get_adjacent_nodes_by_relationship(
             node_label=source_node,
@@ -135,7 +141,7 @@ class DataModelJSONSchema2:
                     processed_nodes,
                     range_domain_map,
                     root_dependencies,
-                    reverse_dependencies
+                    reverse_dependencies,
                 )
 
             # if the list of nodes to process is not empty
@@ -155,7 +161,7 @@ class DataModelJSONSchema2:
 
         return json_schema_dict
 
-    def _process_node(
+    def _process_node(  # pylint: disable=too-many-arguments, too-many-locals
         self,
         json_schema: JSONSchema,
         node_being_processed: str,
@@ -164,7 +170,7 @@ class DataModelJSONSchema2:
         processed_nodes: list[str],
         range_domain_map: dict[str, list[str]],
         root_dependencies: list[str],
-        reverse_dependencies: dict[str, list[str]]
+        reverse_dependencies: dict[str, list[str]],
     ):
         # Node range(valid values, enum values)
         node_range = self.dmge.get_adjacent_nodes_by_relationship(
@@ -172,7 +178,9 @@ class DataModelJSONSchema2:
             relationship=self.rel_dict["rangeIncludes"]["edge_key"],
         )
 
-        node_range_display_names = self.dmge.get_nodes_display_names(node_list=node_range)
+        node_range_display_names = self.dmge.get_nodes_display_names(
+            node_list=node_range
+        )
 
         # When a datatype(component) depends on another datatype
         node_dependencies = self.dmge.get_adjacent_nodes_by_relationship(
@@ -180,7 +188,7 @@ class DataModelJSONSchema2:
             relationship=self.rel_dict["requiresDependency"]["edge_key"],
         )
 
-        node_display_name:str = self.graph.nodes[node_being_processed][
+        node_display_name: str = self.graph.nodes[node_being_processed][
             self.rel_dict["displayName"]["node_label"]
         ]
 
@@ -202,17 +210,37 @@ class DataModelJSONSchema2:
             node_display_name=node_display_name,
         )
 
-        node_is_processed = _set_property(
-            node_being_processed,
-            root_dependencies,
-            json_schema,
-            node_display_name,
-            reverse_dependencies,
-            range_domain_map,
-            node_range_display_names,
-            node_validation_rules,
-            node_required
+        if node_display_name in reverse_dependencies:
+            _set_conditional_dependencies(
+                json_schema, node_display_name, reverse_dependencies, range_domain_map
+            )
+            node_required = False
+
+        set_property = any(
+            [
+                node_display_name in reverse_dependencies,
+                node_required,
+                node_being_processed in root_dependencies,
+            ]
         )
+        node_comment = self.dmge.get_node_comment(node_display_name=node_display_name)
+
+        if set_property:
+            _set_property(
+                json_schema,
+                node_display_name,
+                node_range_display_names,
+                node_validation_rules,
+                node_required,
+                node_comment,
+            )
+            node_is_processed = True
+        else:
+            node_is_processed = False
+            # node doesn't have conditionals and it is not required and it
+            # is not a root dependency the node doesn't belong in the schema
+            # do not add to processed nodes since its conditional may be traversed
+            # at a later iteration (though unlikely for most schemas we consider)
 
         # add process node as a conditional to its dependencies
         node_dependencies_d = self.dmge.get_nodes_display_names(
@@ -225,7 +253,6 @@ class DataModelJSONSchema2:
 
             reverse_dependencies[dep].append(node_display_name)
 
-
         # add nodes found as dependencies and range of this processed node
         # to the list of nodes to be processed
         nodes_to_process += node_range
@@ -235,7 +262,10 @@ class DataModelJSONSchema2:
         if node_is_processed:
             processed_nodes.append(node_being_processed)
 
-def _write_data_model(jsonld_path: str, name: str, json_schema_dict: dict[str, JsonType]) -> None:
+
+def _write_data_model(
+    jsonld_path: str, name: str, json_schema_dict: dict[str, JsonType]
+) -> None:
     """
     Creates the JSON Schema file
 
@@ -253,58 +283,13 @@ def _write_data_model(jsonld_path: str, name: str, json_schema_dict: dict[str, J
     with open(json_schema_log_file_path, "w", encoding="UTF-8") as js_f:
         json.dump(json_schema_dict, js_f, indent=2)
 
-def _set_property(
-    node_being_processed: str,
-    root_dependencies: list[str],
-    json_schema: JSONSchema,
-    node_display_name: str,
-    reverse_dependencies: dict[str, list[str]],
-    range_domain_map: dict[str, list[str]] ,
-    node_range_display_names: list[str],
-    node_validation_rules: list[str],
-    node_required: bool
-) -> bool:
-
-    property_type = _get_type_from_validation_rules(node_validation_rules)
-
-    if node_display_name in reverse_dependencies:
-        _set_conditional_dependencies(
-            json_schema,
-            node_display_name,
-            reverse_dependencies,
-            range_domain_map
-        )
-        node_required = False
-
-    set_property = any([
-        node_display_name in reverse_dependencies,
-        node_required,
-        node_being_processed in root_dependencies
-    ])
-
-    if set_property:
-        _set_property2(
-            json_schema,
-            node_display_name,
-            node_range_display_names,
-            property_type,
-            node_required
-        )
-        return True
-    # node doesn't have conditionals and it is not required and it
-    # is not a root dependency the node doesn't belong in the schema
-    # do not add to processed nodes since its conditional may be traversed
-    # at a later iteration (though unlikely for most schemas we consider)
-    return False
-
-
 
 def _set_conditional_dependencies(
     json_schema: JSONSchema,
     conditional_property: str,
     reverse_dependencies: dict[str, list[str]],
-    range_domain_map: dict[str, list[str]] ,
-)-> None:
+    range_domain_map: dict[str, list[str]],
+) -> None:
     """
     This sets conditional requirements in the "allOf" keyword.
     This is used when certain properties are required depending on the value of another property.
@@ -360,56 +345,67 @@ def _set_conditional_dependencies(
             # the conditional_property becomes required
             for watched_property in properties:
                 conditional_schema = {
-                    "if": {"properties": {watched_property: { "enum": [conditional_value]}}},
+                    "if": {
+                        "properties": {watched_property: {"enum": [conditional_value]}}
+                    },
                     "then": {
-                        "properties": {conditional_property: {"not": {"type":"null"}}},
-                        "required": [conditional_property]
-                    }
+                        "properties": {conditional_property: {"not": {"type": "null"}}},
+                        "required": [conditional_property],
+                    },
                 }
-                json_schema.all_of.append(
-                    conditional_schema
-                )
+                json_schema.all_of.append(conditional_schema)
 
 
-def _set_property2(
+def _set_property(
     json_schema: JSONSchema,
     name: str,
     enum_list: list[str],
-    property_type: PropertyType,
-    is_required: bool = True
+    validation_rules: list[str],
+    is_required: bool,
+    description: str,
 ) -> None:
     """
-    Sets a property in the JSON schema that is required by the schema, but has no dependencies
-    The property is added to the "properties" dict, and the name to the "required" list.
+    Sets a property in the JSON schema. that is required by the schema
 
     Arguments:
         json_schema: The JSON Schema to modify
         name: The name of the property in the JSON Schema to set
         enum_list: A list of enums(valid values) for this property
-        property_type: What to set the type to
+        validation_rules: The validation rules for the property
         is_required: Whether or not the property is required
+        description: a description of the property
     """
-
+    property_data = _get_property_data_from_validation_rules(validation_rules)
     if enum_list:
-        if property_type.is_array:
+        if property_data.is_array:
             schema_property = _create_enum_array_property(
                 name=name,
                 enum_list=enum_list,
-                is_required=is_required
+                is_required=is_required,
+                description=description,
             )
         else:
             schema_property = _create_enum_property(
                 name=name,
                 enum_list=enum_list,
-                is_required=is_required
+                is_required=is_required,
+                description=description,
             )
 
     else:
-        if property_type.is_array:
-            schema_property = _create_array_property(name, property_type.property_type)
+        if property_data.is_array:
+            schema_property = _create_array_property(
+                name=name,
+                property_data=property_data,
+                is_required=is_required,
+                description=description,
+            )
         else:
             schema_property = _create_simple_property(
-                name, property_type.property_type, is_required
+                name=name,
+                property_data=property_data,
+                is_required=is_required,
+                description=description,
             )
 
     json_schema.properties.update(schema_property)
@@ -419,9 +415,7 @@ def _set_property2(
 
 
 def _create_enum_array_property(
-    name: str,
-    enum_list: list[str],
-    is_required: bool
+    name: str, enum_list: list[str], is_required: bool, description: str
 ) -> dict[str, JsonType]:
     """
     Creates a JSON Schema array/enum
@@ -429,8 +423,8 @@ def _create_enum_array_property(
     Arguments:
         enum_list: List of values that will make up the enum
         name: What to name the object
-        add_blank_string: Defaults to False.
-            If True, add empty string to end of enum
+        is_required: Whether or not the property is required by the schema
+        description: a description of the property
 
     Returns:
         JSON object
@@ -440,16 +434,13 @@ def _create_enum_array_property(
     if not is_required:
         types += [{"type": "null"}]
 
-    schema = {
-        name: {
-            "oneOf": types
-        }
-    }
-    return schema
+    schema = {name: {"oneOf": types, "description": description}}
+    return schema  # type: ignore
+
 
 def _create_array_property(
-        name: str, item_type: None|str = None, is_required: bool = False
-    ) -> dict[str, JsonType]:
+    name: str, property_data: PropertyData, is_required: bool, description: str
+) -> dict[str, JsonType]:
     """
     Creates a JSON Schema array
 
@@ -457,32 +448,41 @@ def _create_array_property(
         name: What to name the object
         item_type: The type of of items in the array
         is_required: Whether or not the property is required by the schema
+        description: a description of the property
 
     Returns:
         JSON object
     """
 
-    array_type = {"type": "array"}
+    array_dict: dict = {"type": "array"}
 
-    if item_type:
-        array_type["items"] = {"type": item_type}
+    include_items = any(
+        [
+            property_data.property_type,
+            property_data.range_min is not None,
+            property_data.range_max is not None,
+        ]
+    )
 
-    types = [array_type]
+    if include_items:
+        array_dict["items"] = {}
+        if property_data.property_type:
+            array_dict["items"]["type"] = property_data.property_type
+        if property_data.range_min is not None:
+            array_dict["items"]["minimum"] = property_data.range_min
+        if property_data.range_max is not None:
+            array_dict["items"]["maximum"] = property_data.range_max
+
+    types = [array_dict]
     if not is_required:
         types += [{"type": "null"}]
 
-    schema = {
-        name: {
-            "oneOf": types
-        }
-    }
-    return schema
+    schema = {name: {"oneOf": types, "description": description}}
+    return schema  # type: ignore
 
 
 def _create_enum_property(
-    name: str,
-    enum_list: list[str],
-    is_required: bool
+    name: str, enum_list: list[str], is_required: bool, description: str
 ) -> dict[str, JsonType]:
     """
     Creates a JSON Schema enum
@@ -491,17 +491,18 @@ def _create_enum_property(
         enum_list: List of values that will make up the enum
         name: What to name the object
         is_required: Whether or not the property is required by the schema
+        description: a description of the property
 
     Returns:
         JSON object
     """
     if not is_required:
-        enum_list += [None]
-    return {name: {"enum": enum_list}} #type: ignore
+        enum_list += [None]  # type: ignore
+    return {name: {"enum": enum_list, "description": description}}  # type: ignore
 
 
 def _create_simple_property(
-    name: str, property_type: str|None, is_required:bool
+    name: str, property_data: PropertyData, is_required: bool, description: str
 ) -> dict[str, JsonType]:
     """
     Creates a JSON Schema property
@@ -510,32 +511,124 @@ def _create_simple_property(
 
     Arguments:
         name: What to name the object
-        property_type: The type of the property
+        property_data: Info parsed about the property from the validation rules
         is_required: Whether or not the property is required
+        description: a description of the property
 
     Returns:
         JSON object
     """
-    if property_type and is_required:
-        return {name: {"type": property_type}}
-    if property_type:
-        return {name: {"type": [property_type, "null"]}}
-    if is_required:
-        return {name: {"not": {"type": "null"}}}
-    return {name: {}}
+    schema: dict = {name: {"description": description}}
 
-def _get_type_from_validation_rules(validation_rules:list[str]) -> PropertyType:
-    property_type = None
+    if property_data.property_type and is_required:
+        schema[name]["type"] = property_data.property_type
+    elif property_data.property_type:
+        schema[name]["type"] = [property_data.property_type, "null"]
+    elif is_required:
+        schema[name]["not"] = {"type": "null"}
+
+    if property_data.range_min is not None:
+        schema[name]["minimum"] = property_data.range_min
+    if property_data.range_max is not None:
+        schema[name]["maximum"] = property_data.range_max
+
+    return schema
+
+
+def _get_property_data_from_validation_rules(
+    validation_rules: list[str],
+) -> PropertyData:
+    """
+    Returns data from validation rules in the form of a PropertyData dataclass
+
+    Args:
+        validation_rules: A list of validation rules
+
+    Returns:
+        PropertyData: validation rule data
+    """
+    property_type: str | None = None
     is_array = False
+    range_min: float | None = None
+    range_max: float | None = None
+
     if validation_rules:
-        type_rules = _get_type_rules_from_rule_list(validation_rules)
-        if len(type_rules) == 1:
-            property_type = TYPE_RULES.get(type_rules[0])
         if rule_in_rule_list("list", validation_rules):
             is_array = True
-    return PropertyType(property_type, is_array)
 
-def _get_type_rules_from_rule_list(rule_list:list[str]) -> list[str]:
+        type_rule = _get_type_rule_from_rule_list(validation_rules)
+        if type_rule:
+            property_type = TYPE_RULES.get(type_rule)
+
+        range_rule = _get_in_range_rule_from_rule_list(validation_rules)
+        if range_rule:
+            if property_type not in ["number", "integer"]:
+                property_type = "number"
+            range_min, range_max = _get_ranges_from_range_rule(range_rule)
+
+    return PropertyData(property_type, is_array, range_min, range_max)
+
+
+def _get_ranges_from_range_rule(rule: str) -> tuple[float | None, float | None]:
+    """
+    Returns the min and max from an inRange rule if they exist
+
+    Args:
+        rule: The inRange rule
+
+    Returns:
+        tuple[float|None, float|None]: The min and max form the rule
+    """
+    range_min: float | None = None
+    range_max: float | None = None
+    parameters = rule.split(" ")
+    if len(parameters) > 1 and parameters[1].isnumeric():
+        range_min = float(parameters[1])
+    if len(parameters) > 2 and parameters[2].isnumeric():
+        range_max = float(parameters[2])
+    return (range_min, range_max)
+
+
+def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> str | None:
+    """
+    Returns the inRange rule from a list of rules if there is only one
+    Returns None if there are no inRange rules
+
+    Arguments:
+        rule_list: A list of validation rules
+
+    Raises:
+        ValueError: When more than one inRange rule is found
+
+    Returns:
+        str|None: The inRange rule if one is found, or None
+    """
+    in_range_rules = [rule for rule in rule_list if rule.startswith("inRange")]
+    if len(in_range_rules) > 1:
+        raise ValueError("Found more than one inRange rule in validation rules")
+    if len(in_range_rules) == 0:
+        return None
+    return in_range_rules[0]
+
+
+def _get_type_rule_from_rule_list(rule_list: list[str]) -> str | None:
+    """
+    Returns the type rule from a list of rules if there is only one
+    Returns None if there are no type rules
+
+    Arguments:
+        rule_list: A list of validation rules
+
+    Raises:
+        ValueError: When more than one type rule is found
+
+    Returns:
+        str|None: The type rule if one is found, or None
+    """
     rule_list = [rule.split(" ")[0] for rule in rule_list]
-    rule_list = [rule for rule in rule_list if rule in TYPE_RULES]
-    return rule_list
+    type_rules = [rule for rule in rule_list if rule in TYPE_RULES]
+    if len(type_rules) > 1:
+        raise ValueError("Found more than one type rule in validation rules")
+    if len(type_rules) == 0:
+        return None
+    return type_rules[0]

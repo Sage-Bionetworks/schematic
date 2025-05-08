@@ -4,17 +4,19 @@ import pytest
 
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_json_schema2 import (
-    PropertyType,
+    PropertyData,
     JSONSchema,
     DataModelJSONSchema2,
     _set_conditional_dependencies,
-    _set_property2,
+    _set_property,
     _create_enum_array_property,
     _create_array_property,
     _create_enum_property,
     _create_simple_property,
-    _get_type_from_validation_rules,
-    _get_type_rules_from_rule_list,
+    _get_property_data_from_validation_rules,
+    _get_ranges_from_range_rule,
+    _get_in_range_rule_from_rule_list,
+    _get_type_rule_from_rule_list,
 )
 
 from schematic.utils.types import JsonType
@@ -45,6 +47,7 @@ def test_json_schema():
 
 def test_get_json_validation_schema(dm_json_schema: DataModelJSONSchema2) -> None:
     dm_json_schema.get_json_validation_schema("Patient", "")
+    assert False
 
 
 
@@ -172,19 +175,20 @@ def test_set_conditional_dependencies(
 
 
 @pytest.mark.parametrize(
-    "schema, enum_list, property_type, is_required, expected_schema",
+    "schema, enum_list, validation_rules, is_required, expected_schema",
     [
-        # enum_list is not empty, and property_type.is_array is True, is_required is True
+        # enum_list is not empty, validation rules contain a list rule, is_required is True
         # The property should be an array with an enum
         # required list should have "property_name"
         (
             JSONSchema(),
             ["enum1"],
-            PropertyType(is_array=True),
+            ["list"],
             True,
             JSONSchema(
                 properties={
                     "property_name": {
+                        "description":"TBD",
                         "oneOf": [
                             {
                                 "type": "array",
@@ -196,17 +200,18 @@ def test_set_conditional_dependencies(
                 required=["property_name"],
             ),
         ),
-        # enum_list is not empty, and property_type.is_array is True, is_required is False
+        # enum_list is not empty, validation rules contain a list rule, is_required is False
         # The property should be an array with an enum
         # required list should be empty
         (
             JSONSchema(),
             ["enum1"],
-            PropertyType(is_array=True),
+            ["list"],
             False,
             JSONSchema(
                 properties={
                     "property_name": {
+                        "description":"TBD",
                         "oneOf": [
                             {
                                 "type": "array",
@@ -221,60 +226,61 @@ def test_set_conditional_dependencies(
                 required=[],
             ),
         ),
-        # enum_list is not empty, and property_type.is_array is False
+        # enum_list is not empty, validation rules do not contain a list rule
         # The property should be an enum
         (
             JSONSchema(),
             ["enum1"],
-            PropertyType(),
+            [],
             False,
             JSONSchema(
-                properties={"property_name": {"enum": ["enum1", None]}},
+                properties={"property_name": {"enum": ["enum1", None], "description":"TBD"}},
                 required=[],
             ),
         ),
-        # enum_list is empty and and property_type.is_array is True
+        # enum_list is empty, validation rules do contain a list rule
         # The property should be an array
         (
             JSONSchema(),
             [],
-            PropertyType(is_array=True),
+            ["list"],
             False,
             JSONSchema(
                 properties={
-                    "property_name": {"oneOf": [{"type": "array"}, {"type": "null"}]}
+                    "property_name": {"oneOf": [{"type": "array"}, {"type": "null"}], "description":"TBD"}
                 },
                 required=[],
             ),
         ),
-        # enum_list is empty and property_type.is_array is False
+        # enum_list is empty, validation rules do not contain a list rule
         # The property should be neither an array or enum
         (
             JSONSchema(),
             [],
-            PropertyType(),
+            [],
             False,
             JSONSchema(
-                properties={"property_name": {}},
+                properties={"property_name": {"description":"TBD"}},
                 required=[],
             ),
         ),
     ],
 )
-def test_set_property2(
+def test_set_property(
     schema: JSONSchema,
     enum_list: list[str],
     expected_schema: dict[str, Any],
-    property_type: PropertyType,
+    validation_rules: list[str],
     is_required: bool,
 ) -> None:
-    """Tests for set_property2"""
-    _set_property2(
+    """Tests for set_property"""
+    _set_property(
         json_schema=schema,
         name="property_name",
         enum_list=enum_list,
-        property_type=property_type,
+        validation_rules=validation_rules,
         is_required=is_required,
+        description="TBD"
     )
     assert schema == expected_schema
 
@@ -285,7 +291,7 @@ def test_set_property2(
         (
             ["enum1"],
             True,
-            {"name": {"oneOf": [{"type": "array", "items": {"enum": ["enum1"]}}]}},
+            {"name": {"description":"TBD", "oneOf": [{"type": "array", "items": {"enum": ["enum1"]}}]}},
         ),
         # If is_required is False, "{'type': 'null'}" is added to the oneOf list
         (
@@ -293,6 +299,7 @@ def test_set_property2(
             False,
             {
                 "name": {
+                    "description":"TBD",
                     "oneOf": [
                         {"type": "array", "items": {"enum": ["enum1"]}},
                         {"type": "null"},
@@ -312,32 +319,46 @@ def test_create_enum_array_property(
         name="name",
         enum_list=enum_list,
         is_required=is_required,
+        description="TBD"
     )
     assert schema == expected_schema
 
 
 @pytest.mark.parametrize(
-    "item_type, is_required, expected_schema",
+    "property_data, is_required, expected_schema",
     [
-        (None, True, {"name": {"oneOf": [{"type": "array"}]}}),
+        (PropertyData(is_array=True), True, {"name": {"description":"TBD", "oneOf": [{"type": "array"}]}}),
         # If is_required is False, "{'type': 'null'}" is added to the oneOf list
-        (None, False, {"name": {"oneOf": [{"type": "array"}, {"type": "null"}]}}),
+        (
+            PropertyData(is_array=True),
+            False,
+            {"name": {"oneOf": [{"type": "array"}, {"type": "null"}], "description":"TBD"}}
+        ),
         # If item_type is given, it is set in the schema
         (
-            "string",
+            PropertyData("string", is_array=True),
             True,
-            {"name": {"oneOf": [{"type": "array", "items": {"type": "string"}}]}},
+            {"name": {"oneOf": [{"type": "array", "items": {"type": "string"}}], "description":"TBD"}},
+        ),
+        # If property_data has range_min or range_max, they are set in the schema
+        (
+            PropertyData("number", is_array=True, range_min=0, range_max=1),
+            True,
+            {"name":{
+                "description":"TBD",
+                "oneOf": [{"type": "array", "items": {"type": "number", "minimum":0, "maximum":1}}],
+            }}
         ),
     ],
 )
 def test_create_array_property(
-    item_type: None | str,
+    property_data: PropertyData,
     is_required: bool,
     expected_schema: JsonType,
 ) -> None:
     """Test for _create_array_property"""
     schema = _create_array_property(
-        name="name", item_type=item_type, is_required=is_required
+        name="name", property_data=property_data, is_required=is_required, description="TBD"
     )
     assert schema == expected_schema
 
@@ -345,12 +366,12 @@ def test_create_array_property(
 @pytest.mark.parametrize(
     "enum_list, is_required, expected_schema",
     [
-        ([], True, {"name": {"enum": []}}),
-        (["enum1"], True, {"name": {"enum": ["enum1"]}}),
-        (["enum1", "enum2"], True, {"name": {"enum": ["enum1", "enum2"]}}),
+        ([], True, {"name": {"enum": [], "description":"TBD"}}),
+        (["enum1"], True, {"name": {"enum": ["enum1"], "description":"TBD"}}),
+        (["enum1", "enum2"], True, {"name": {"enum": ["enum1", "enum2"], "description":"TBD"}}),
         # If is is_required is False, None is added to the enum_list
-        ([], False, {"name": {"enum": [None]}}),
-        (["enum1"], False, {"name": {"enum": ["enum1", None]}}),
+        ([], False, {"name": {"enum": [None], "description":"TBD"}}),
+        (["enum1"], False, {"name": {"enum": ["enum1", None], "description":"TBD"}}),
     ],
 )
 def test_create_enum_property(
@@ -360,35 +381,41 @@ def test_create_enum_property(
 ) -> None:
     """Test for _create_enum_property"""
     schema = _create_enum_property(
-        enum_list=enum_list, name="name", is_required=is_required
+        enum_list=enum_list, name="name", is_required=is_required, description="TBD"
     )
     assert schema == expected_schema
 
 
 @pytest.mark.parametrize(
-    "property_type, is_required, expected_schema",
+    "property_data, is_required, expected_schema",
     [
-        (None, False, {"name": {}}),
+        (PropertyData(), False, {"name": {"description":"TBD"}}),
         # If property_type is given, it is added to the schema
-        ("string", True, {"name": {"type": "string"}}),
+        (PropertyData("string"), True, {"name": {"type": "string", "description":"TBD"}}),
         # If property_type is given, and is_required is False,
         # type is set to given property_type and "null"
-        ("string", False, {"name": {"type": ["string", "null"]}}),
+        (PropertyData("string"), False, {"name": {"type": ["string", "null"], "description":"TBD"}}),
         # If is_required is True '"not": {"type":"null"}' is added to schema if
         # property_type is not given
-        (None, True, {"name": {"not": {"type": "null"}}}),
+        (PropertyData(), True, {"name": {"not": {"type": "null"}, "description":"TBD"}}),
+        (
+            PropertyData(property_type="number", range_min=0, range_max=1),
+            True,
+            {"name": {"type": "number", "minimum": 0, "maximum":1, "description":"TBD"}}
+        )
     ],
 )
 def test_create_simple_property(
-    property_type: str | None,
+    property_data: PropertyData,
     is_required: bool,
     expected_schema: JsonType,
 ) -> None:
     """Test for _create_simple_property"""
     schema = _create_simple_property(
         "name",
-        property_type,
+        property_data,
         is_required,
+        description="TBD"
     )
     assert schema == expected_schema
 
@@ -397,47 +424,87 @@ def test_create_simple_property(
     "validation_rules, expected_type",
     [
         # If there are no type validation rules the property_type is None
-        ([], PropertyType()),
-        (["xxx"], PropertyType()),
-        # if there are more than one validation rules found property_type is None
-        (["str", "bool"], PropertyType()),
+        ([], PropertyData()),
+        (["xxx"], PropertyData()),
         # If there is one type validation rule the property_type is set to the
         #  JSON Schema equivalent of the validation rule
-        (["str"], PropertyType("string")),
-        (["bool"], PropertyType("boolean")),
+        (["str"], PropertyData("string")),
+        (["bool"], PropertyData("boolean")),
         # If there are any list type validation rules the property_type is set to "array"
-        (["list like"], PropertyType(is_array=True)),
-        (["list strict"], PropertyType(is_array=True)),
-        (["list::regex"], PropertyType(is_array=True)),
+        (["list like"], PropertyData(is_array=True)),
+        (["list strict"], PropertyData(is_array=True)),
+        (["list::regex"], PropertyData(is_array=True)),
         # If there are any list type validation rules and one type validation rule
         #  the property_type is set to "array", and the item_type is set to the
         #  JSON Schema equivalent of the validation rule
-        (["list::regex", "str"], PropertyType("string", is_array=True)),
+        (["list::regex", "str"], PropertyData("string", is_array=True)),
+        # If there are any inRange rules the min and max will be set
+        (["inRange 0 1", "int"], PropertyData("integer", range_min=0, range_max=1)),
+        # If there are any inRange rules but no type rule, or a non-numeric type rule
+        #  the type will be set to number
+        (["inRange 0 1"], PropertyData("number", range_min=0, range_max=1)),
+        (["inRange 0 1", "str"], PropertyData("number", range_min=0, range_max=1)),
     ],
 )
-def test_get_type_from_validation_rules(
-    validation_rules: list[str], expected_type: PropertyType
+def test_get_property_data_from_validation_rules(
+    validation_rules: list[str], expected_type: PropertyData
 ) -> None:
-    """Test for _get_type_from_validation_rules"""
-    result = _get_type_from_validation_rules(validation_rules)
+    """Test for _get_property_data_from_validation_rules"""
+    result = _get_property_data_from_validation_rules(validation_rules)
     assert result == expected_type
 
 
 @pytest.mark.parametrize(
-    "input_rules, expected_rules",
+    "input_rule, expected_tuple",
     [
-        ([], []),
-        (["list strict"], []),
-        (["str"], ["str"]),
-        (["str error"], ["str"]),
-        (["str error", "int warning"], ["str", "int"]),
-        (["str error", "int warning", "list strict"], ["str", "int"]),
+        ("", (None, None)),
+        ("inRange", (None, None)),
+        ("inRange x x", (None, None)),
+        ("inRange 0", (0, None)),
+        ("inRange 0 x", (0, None)),
+        ("inRange 0 1", (0, 1)),
+        ("inRange 0 1 x", (0, 1)),
     ],
 )
-def test_get_type_rules_from_rule_list(
-    input_rules: list[str],
-    expected_rules: list[str],
+def test_get_ranges_from_range_rule(
+    input_rule: str,
+    expected_tuple: tuple[float|None, float|None],
 ) -> None:
-    """Test for _get_type_rules_from_rule_list"""
-    result = _get_type_rules_from_rule_list(input_rules)
-    assert result == expected_rules
+    """Test for _get_ranges_from_range_rule"""
+    result = _get_ranges_from_range_rule(input_rule)
+    assert result == expected_tuple
+
+@pytest.mark.parametrize(
+    "input_rules, expected_rule",
+    [
+        ([], None),
+        (["list strict"], None),
+        (["inRange 0 1"], "inRange 0 1"),
+        (["str error", "inRange 0 1"], "inRange 0 1")
+    ],
+)
+def test_get_in_range_rule_from_rule_list(
+    input_rules: list[str],
+    expected_rule: str|None,
+) -> None:
+    """Test for _get_in_range_rule_from_rule_list"""
+    result = _get_in_range_rule_from_rule_list(input_rules)
+    assert result == expected_rule
+
+
+@pytest.mark.parametrize(
+    "input_rules, expected_rule",
+    [
+        ([], None),
+        (["list strict"], None),
+        (["str"], "str"),
+        (["str error"], "str")
+    ],
+)
+def test_get_type_rule_from_rule_list(
+    input_rules: list[str],
+    expected_rule: str|None,
+) -> None:
+    """Test for _get_type_rule_from_rule_list"""
+    result = _get_type_rule_from_rule_list(input_rules)
+    assert result == expected_rule
