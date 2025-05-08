@@ -37,7 +37,7 @@ class PropertyData:
 
 
 @dataclass
-class JSONSchema: #pylint: disable=too-many-instance-attributes
+class JSONSchema:  # pylint: disable=too-many-instance-attributes
     """A dataclass representing a JSON Schema"""
 
     schema_id: str = ""
@@ -354,7 +354,7 @@ def _set_conditional_dependencies(
                 json_schema.all_of.append(conditional_schema)
 
 
-def _set_property( #pylint: disable=too-many-arguments
+def _set_property(  # pylint: disable=too-many-arguments
     json_schema: JSONSchema,
     name: str,
     enum_list: list[str],
