@@ -3,7 +3,7 @@
 import json
 import logging
 import os
-from typing import Optional, Union
+from typing import Optional, Union, Any
 from dataclasses import dataclass, field, asdict
 
 import networkx as nx  # type: ignore
@@ -12,7 +12,6 @@ from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.schema_utils import get_json_schema_log_file_path
 from schematic.utils.validate_utils import rule_in_rule_list
-from schematic.utils.types import JsonType
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +48,7 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
     required: list[str] = field(default_factory=list)
     all_of: list = field(default_factory=list)
 
-    def as_json_schema_dict(self) -> dict[str, JsonType]:
+    def as_json_schema_dict(self) -> dict[str, Any]:
         """Returns class as a JSON Schema dictionary, with proper keywords"""
         json_schema_dict = asdict(self)
         keywords_to_change = {
@@ -81,7 +80,7 @@ class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
 
     def get_json_validation_schema(
         self, source_node: str, schema_name: str
-    ) -> dict[str, JsonType]:
+    ) -> dict[str, Any]:
         """
         Consolidated method that aims to gather dependencies and value constraints across terms
         / nodes in a schema.org schema and store them in a jsonschema /JSON Schema schema.
@@ -262,7 +261,7 @@ class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
 
 
 def _write_data_model(
-    jsonld_path: str, name: str, json_schema_dict: dict[str, JsonType]
+    jsonld_path: str, name: str, json_schema_dict: dict[str, Any]
 ) -> None:
     """
     Creates the JSON Schema file
@@ -414,7 +413,7 @@ def _set_property(  # pylint: disable=too-many-arguments
 
 def _create_enum_array_property(
     name: str, enum_list: list[str], is_required: bool, description: str
-) -> dict[str, JsonType]:
+) -> dict[str, Any]:
     """
     Creates a JSON Schema array/enum
 
@@ -438,7 +437,7 @@ def _create_enum_array_property(
 
 def _create_array_property(
     name: str, property_data: PropertyData, is_required: bool, description: str
-) -> dict[str, JsonType]:
+) -> dict[str, Any]:
     """
     Creates a JSON Schema array
 
@@ -476,12 +475,12 @@ def _create_array_property(
         types += [{"type": "null"}]
 
     schema = {name: {"oneOf": types, "description": description}}
-    return schema  # type: ignore
+    return schema
 
 
 def _create_enum_property(
     name: str, enum_list: list[str], is_required: bool, description: str
-) -> dict[str, JsonType]:
+) -> dict[str, Any]:
     """
     Creates a JSON Schema enum
 
@@ -496,12 +495,12 @@ def _create_enum_property(
     """
     if not is_required:
         enum_list += [None]  # type: ignore
-    return {name: {"enum": enum_list, "description": description}}  # type: ignore
+    return {name: {"enum": enum_list, "description": description}}
 
 
 def _create_simple_property(
     name: str, property_data: PropertyData, is_required: bool, description: str
-) -> dict[str, JsonType]:
+) -> dict[str, Any]:
     """
     Creates a JSON Schema property
     If a property_type is given the type is added to the schema

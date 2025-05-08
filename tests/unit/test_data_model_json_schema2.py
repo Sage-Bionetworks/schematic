@@ -19,8 +19,6 @@ from schematic.schemas.data_model_json_schema2 import (
     _get_type_rule_from_rule_list,
 )
 
-from schematic.utils.types import JsonType
-
 # pylint: disable=protected-access
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
@@ -320,7 +318,7 @@ def test_set_property(
 def test_create_enum_array_property(
     enum_list: list[str],
     is_required: bool,
-    expected_schema: JsonType,
+    expected_schema: dict[str, Any]
 ) -> None:
     """Test for _create_enum_array_property"""
     schema = _create_enum_array_property(
@@ -380,7 +378,7 @@ def test_create_enum_array_property(
 def test_create_array_property(
     property_data: PropertyData,
     is_required: bool,
-    expected_schema: JsonType,
+    expected_schema: dict[str, Any],
 ) -> None:
     """Test for _create_array_property"""
     schema = _create_array_property(
@@ -410,7 +408,7 @@ def test_create_array_property(
 def test_create_enum_property(
     enum_list: list[str],
     is_required: bool,
-    expected_schema: JsonType,
+    expected_schema: dict[str, Any],
 ) -> None:
     """Test for _create_enum_property"""
     schema = _create_enum_property(
@@ -460,7 +458,7 @@ def test_create_enum_property(
 def test_create_simple_property(
     property_data: PropertyData,
     is_required: bool,
-    expected_schema: JsonType,
+    expected_schema: dict[str, Any],
 ) -> None:
     """Test for _create_simple_property"""
     schema = _create_simple_property(
