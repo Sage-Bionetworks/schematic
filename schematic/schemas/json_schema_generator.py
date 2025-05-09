@@ -5,7 +5,6 @@ import logging
 import os
 from typing import Optional, Union, Any
 from dataclasses import dataclass, field, asdict
-
 import networkx as nx  # type: ignore
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
@@ -63,7 +62,81 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
         return json_schema_dict
 
 
-class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
+class NodeProcessor:
+    """Keeps track of needed information for processing a node in a graph"""
+
+    def __init__(self, initial_nodes: list[str]):
+        """
+        Arguments:
+            initial_nodes: A list of nodes to start processing
+        """
+        self.root_dependencies: list[str] = initial_nodes
+        self.nodes_to_process = self.root_dependencies.copy()
+        self.current_node = self.nodes_to_process.pop(0)
+        self.processed_nodes: list[str] = []
+        self.reverse_dependencies: dict[str, list[str]] = {}
+        self.range_domain_map: dict[str, list[str]] = {}
+
+    def move_to_next_node(self) -> None:
+        """Removes the first node in nodes to process and sets it as current node"""
+        self.current_node = self.nodes_to_process.pop(0)
+
+    def are_nodes_remaining(self) -> bool:
+        """
+        Returns:
+            Whether or not there are any nodes left to process
+        """
+        return len(self.nodes_to_process) > 0
+
+    def is_current_node_processed(self) -> bool:
+        """
+        Returns:
+            Whether or not the current node has been processed yet
+        """
+        return self.current_node in self.processed_nodes
+
+    def update_range_domain_map(
+        self, node_display_name: str, node_range_display_names: list[str]
+    ) -> None:
+        """Updates the range domain map
+
+        Arguments:
+            node_display_name: The display name of the node
+            node_range_display_names: The display names of the the nodes range
+        """
+        for node in node_range_display_names:
+            if not node in self.range_domain_map:
+                self.range_domain_map[node] = []
+            self.range_domain_map[node].append(node_display_name)
+
+    def update_reverse_dependencies(
+        self, node_display_name: str, node_dependencies_display_names: list[str]
+    ) -> None:
+        """Updates the reverse dependencies
+
+        Arguments:
+            node_display_name: The display name of the node
+            node_dependencies_display_names: the display names of the reverse dependencies
+        """
+        for dep in node_dependencies_display_names:
+            if not dep in self.reverse_dependencies:
+                self.reverse_dependencies[dep] = []
+            self.reverse_dependencies[dep].append(node_display_name)
+
+    def update_nodes_to_process(self, nodes: list[str]) -> None:
+        """Updates the nodes to process with the input nodes
+
+        Arguments:
+            nodes: Nodes to add
+        """
+        self.nodes_to_process += nodes
+
+    def update_processed_node_with_current_node(self) -> None:
+        """Adds the current node to the list of processed nodes"""
+        self.processed_nodes.append(self.current_node)
+
+
+class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
     "Data Model Json Schema"
 
     def __init__(
@@ -73,7 +146,7 @@ class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
     ):
         self.jsonld_path = jsonld_path
         self.jsonld_path_root: Optional[str] = None
-        self.graph = graph  # Graph would be fully made at this point.
+        self.graph = graph
         self.dmge = DataModelGraphExplorer(self.graph)
         self.dmr = DataModelRelationships()
         self.rel_dict = self.dmr.relationships_dictionary
@@ -97,26 +170,12 @@ class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
                 (as mentioned above).
             schema_name: Name assigned to JSON-LD schema (to uniquely identify it via URI
                 when it is hosted on the Internet).
+            schema_path: Where to save the JSON Schema file
 
         Returns:
             JsonType: JSON Schema as a dictionary.
         """
-        json_schema = JSONSchema(
-            schema_id="http://example.com/" + schema_name,
-            title=schema_name,
-            description=self.dmge.get_node_comment(node_label=source_node),
-        )
 
-        # list of nodes to be checked for dependencies, starting with the source node
-        nodes_to_process: list[str] = []
-        # keep of track of nodes whose dependencies have been processed
-        processed_nodes: list[str] = []
-        # maintain a map between conditional nodes and their dependencies
-        # (reversed) -- {dependency : conditional_node}
-        reverse_dependencies: dict[str, list[str]] = {}
-        # maintain a map between range nodes and their domain nodes {range_value : domain_value}
-        # the domain node is very likely the parentof ("parentOf" relationship) of the range node
-        range_domain_map: dict[str, list[str]] = {}
         # Gets the dependency nodes of the source node. These will be first nodes processed.
         root_dependencies = self.dmge.get_adjacent_nodes_by_relationship(
             node_label=source_node,
@@ -126,30 +185,21 @@ class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
         # in the schema, but it is not a valid component
         if not root_dependencies:
             raise ValueError(f"'{source_node}' is not a valid component in the schema.")
-        # Loads the source nodes dependency nodes as first to process
-        nodes_to_process += root_dependencies
-        node_being_processed = nodes_to_process.pop(0)
 
-        while node_being_processed:
-            if not node_being_processed in processed_nodes:
-                self._process_node(
-                    json_schema,
-                    node_being_processed,
-                    source_node,
-                    nodes_to_process,
-                    processed_nodes,
-                    range_domain_map,
-                    root_dependencies,
-                    reverse_dependencies,
-                )
+        node_processor = NodeProcessor(root_dependencies)
 
-            # if the list of nodes to process is not empty
-            # set the process node the next remaining node to process
-            if nodes_to_process:
-                node_being_processed = nodes_to_process.pop(0)
+        json_schema = JSONSchema(
+            schema_id="http://example.com/" + schema_name,
+            title=schema_name,
+            description=self.dmge.get_node_comment(node_label=source_node),
+        )
+
+        while True:
+            if not node_processor.is_current_node_processed():
+                self._process_node(json_schema, source_node, node_processor)
+            if node_processor.are_nodes_remaining():
+                node_processor.move_to_next_node()
             else:
-                # no more nodes to process
-                # exit the loop
                 break
 
         logger.info("JSON schema successfully generated from schema.org schema!")
@@ -160,20 +210,11 @@ class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
 
         return json_schema_dict
 
-    def _process_node(  # pylint: disable=too-many-arguments, too-many-locals
-        self,
-        json_schema: JSONSchema,
-        node_being_processed: str,
-        source_node: str,
-        nodes_to_process: list[str],
-        processed_nodes: list[str],
-        range_domain_map: dict[str, list[str]],
-        root_dependencies: list[str],
-        reverse_dependencies: dict[str, list[str]],
+    def _process_node(
+        self, json_schema: JSONSchema, source_node: str, node_processor: NodeProcessor
     ):
-        # Node range(valid values, enum values)
         node_range = self.dmge.get_adjacent_nodes_by_relationship(
-            node_label=node_being_processed,
+            node_label=node_processor.current_node,
             relationship=self.rel_dict["rangeIncludes"]["edge_key"],
         )
 
@@ -181,21 +222,18 @@ class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
             node_list=node_range
         )
 
-        # When a datatype(component) depends on another datatype
         node_dependencies = self.dmge.get_adjacent_nodes_by_relationship(
-            node_label=node_being_processed,
+            node_label=node_processor.current_node,
             relationship=self.rel_dict["requiresDependency"]["edge_key"],
         )
 
-        node_display_name: str = self.graph.nodes[node_being_processed][
+        node_display_name: str = self.graph.nodes[node_processor.current_node][
             self.rel_dict["displayName"]["node_label"]
         ]
 
-        # updating map between node and node's valid values
-        for node in node_range_display_names:
-            if not node in range_domain_map:
-                range_domain_map[node] = []
-            range_domain_map[node].append(node_display_name)
+        node_processor.update_range_domain_map(
+            node_display_name, node_range_display_names
+        )
 
         node_validation_rules = self.dmge.get_component_node_validation_rules(
             manifest_component=source_node, node_display_name=node_display_name
@@ -207,70 +245,74 @@ class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
             node_display_name=node_display_name,
         )
 
-        if node_display_name in reverse_dependencies:
-            _set_conditional_dependencies(
-                json_schema, node_display_name, reverse_dependencies, range_domain_map
-            )
-            node_required = False
+        node_description = self.dmge.get_node_comment(
+            node_display_name=node_display_name
+        )
 
+        # Determine if current node is a property to set
         set_property = any(
             [
-                node_display_name in reverse_dependencies,
+                node_display_name in node_processor.reverse_dependencies,
                 node_required,
-                node_being_processed in root_dependencies,
+                node_processor.current_node in node_processor.root_dependencies,
             ]
         )
-        node_comment = self.dmge.get_node_comment(node_display_name=node_display_name)
 
         if set_property:
+            # Determine if current node has conditional dependencies that need to be set
+            if node_display_name in node_processor.reverse_dependencies:
+                _set_conditional_dependencies(
+                    json_schema,
+                    node_display_name,
+                    node_processor.reverse_dependencies,
+                    node_processor.range_domain_map,
+                )
+                node_required = False
             _set_property(
                 json_schema,
                 node_display_name,
                 node_range_display_names,
                 node_validation_rules,
                 node_required,
-                node_comment,
+                node_description,
             )
-            node_is_processed = True
-        else:
-            node_is_processed = False
-            # node doesn't have conditionals and it is not required and it
-            # is not a root dependency the node doesn't belong in the schema
-            # do not add to processed nodes since its conditional may be traversed
-            # at a later iteration (though unlikely for most schemas we consider)
+            node_processor.update_processed_node_with_current_node()
 
         # add process node as a conditional to its dependencies
         node_dependencies_d = self.dmge.get_nodes_display_names(
             node_list=node_dependencies
         )
-
-        for dep in node_dependencies_d:
-            if not dep in reverse_dependencies:
-                reverse_dependencies[dep] = []
-
-            reverse_dependencies[dep].append(node_display_name)
+        node_processor.update_reverse_dependencies(
+            node_display_name, node_dependencies_d
+        )
 
         # add nodes found as dependencies and range of this processed node
         # to the list of nodes to be processed
-        nodes_to_process += node_range
-        nodes_to_process += node_dependencies
-
-        # if the node is processed add it to the processed nodes set
-        if node_is_processed:
-            processed_nodes.append(node_being_processed)
+        node_processor.update_nodes_to_process(node_range)
+        node_processor.update_nodes_to_process(node_dependencies)
 
 
 def _write_data_model(
-    jsonld_path: str, name: str, json_schema_dict: dict[str, Any], schema_path: Union[str, None]
+    json_schema_dict: dict[str, Any],
+    schema_path: Union[str, None],
+    name: str,
+    jsonld_path: str,
 ) -> None:
     """
     Creates the JSON Schema file
 
     Arguments:
-        jsonld_path: The path to the JSONLD model, used to create the path
-        name: The name of the datatype(source node) the schema is being created for
         json_schema_dict: The JSON schema in dict form
+        schema_path: Where to save the JSON Schema file
+        jsonld_path:
+          The path to the JSONLD model, used to create the path
+          Used if schema_path is None
+        name:
+          The name of the datatype(source node) the schema is being created for
+          Used if schema_path is None
     """
+    if schema_path:
+        json_schema_log_file_path = schema_path
     if not schema_path:
         json_schema_log_file_path = get_json_schema_log_file_path(
             data_model_path=jsonld_path, source_node=name
@@ -278,9 +320,6 @@ def _write_data_model(
         json_schema_dirname = os.path.dirname(json_schema_log_file_path)
         if json_schema_dirname != "":
             os.makedirs(json_schema_dirname, exist_ok=True)
-    else:
-        json_schema_log_file_path =  schema_path
-    print(json_schema_log_file_path)
     with open(json_schema_log_file_path, "w", encoding="UTF-8") as js_f:
         json.dump(json_schema_dict, js_f, indent=2)
 
@@ -497,8 +536,8 @@ def _create_enum_property(
     Returns:
         JSON object
     """
-    schema: dict = {name : {"description": description}}
-    one_of_list = [{"enum": enum_list}]
+    schema: dict[str, Any] = {name: {"description": description}}
+    one_of_list: list[dict[str, Any]] = [{"enum": enum_list}]
     if not is_required:
         one_of_list += [{"type": "null"}]
     schema[name]["oneOf"] = one_of_list
