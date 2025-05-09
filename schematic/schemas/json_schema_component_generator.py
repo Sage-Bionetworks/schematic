@@ -9,7 +9,7 @@ import pandas as pd
 import click
 
 from schematic.models.metadata import MetadataModel
-from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+from schematic.schemas.json_schema_generator import JSONSchemaGenerator
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.utils.io_utils import export_json
@@ -258,7 +258,7 @@ class JsonSchemaComponentGenerator:
             inputMModelLocationType="local",
             data_model_labels="class_label",
         )
-        data_model_json_schema = DataModelJSONSchema(
+        data_model_json_schema = JSONSchemaGenerator(
             jsonld_path=metadata_model.inputMModelLocation,
             graph=metadata_model.graph_data_model,
         )

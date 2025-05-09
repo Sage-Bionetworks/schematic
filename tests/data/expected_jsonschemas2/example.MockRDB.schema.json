@@ -1,0 +1,30 @@
+{
+  "title": "",
+  "type": "object",
+  "description": "TBD",
+  "properties": {
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "SourceManifest": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "MockRDB_id": {
+      "description": "TBD",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "Component",
+    "SourceManifest",
+    "MockRDB_id"
+  ],
+  "$id": "http://example.com/",
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
