@@ -116,7 +116,7 @@ class TestJsonSchemaGeneratorDirector:
             expected_component = expected_component.replace(" ", "")
 
             expected_jsonschema = helpers.get_data_path(
-                f"expected_jsonschemas/expected.{expected_component}.schema.json"
+                f"expected_jsonschemas2/expected.{expected_component}.schema.json"
             )
 
             generated_jsonschema = helpers.get_data_path(
@@ -127,6 +127,8 @@ class TestJsonSchemaGeneratorDirector:
             assert os.path.isfile(generated_jsonschema)
             # AND the JSON schema should match the expected schema
             assert json_files_equal(expected_jsonschema, generated_jsonschema)
+
+
 
     @pytest.mark.parametrize(
         "data_model_location, expected_components",
