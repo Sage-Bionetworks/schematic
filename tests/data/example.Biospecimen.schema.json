@@ -1,0 +1,45 @@
+{
+  "title": "",
+  "type": "object",
+  "description": "TBD",
+  "properties": {
+    "Patient ID": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Tissue Status": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "None",
+            "Healthy",
+            "Malignant"
+          ]
+        }
+      ]
+    },
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Sample ID": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    }
+  },
+  "required": [
+    "Patient ID",
+    "Tissue Status",
+    "Component",
+    "Sample ID"
+  ],
+  "$id": "http://example.com/",
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

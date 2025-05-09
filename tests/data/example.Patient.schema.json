@@ -1,0 +1,138 @@
+{
+  "title": "",
+  "type": "object",
+  "description": "TBD",
+  "properties": {
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Year of Birth": {
+      "description": "TBD"
+    },
+    "Patient ID": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Sex": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "Other",
+            "Male",
+            "Female"
+          ]
+        }
+      ]
+    },
+    "Diagnosis": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "Cancer",
+            "Healthy"
+          ]
+        }
+      ]
+    },
+    "Cancer Type": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "Breast",
+            "Skin",
+            "Prostate",
+            "Lung",
+            "Colorectal"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "Family History": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "enum": [
+              "Breast",
+              "Skin",
+              "Prostate",
+              "Lung",
+              "Colorectal"
+            ]
+          }
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "TBD"
+    }
+  },
+  "required": [
+    "Component",
+    "Patient ID",
+    "Sex",
+    "Diagnosis"
+  ],
+  "$id": "http://example.com/",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "Diagnosis": {
+            "enum": [
+              "Cancer"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "Cancer Type": {
+            "not": {
+              "type": "null"
+            }
+          }
+        },
+        "required": [
+          "Cancer Type"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Diagnosis": {
+            "enum": [
+              "Cancer"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "Family History": {
+            "not": {
+              "type": "null"
+            }
+          }
+        },
+        "required": [
+          "Family History"
+        ]
+      }
+    }
+  ]
+}

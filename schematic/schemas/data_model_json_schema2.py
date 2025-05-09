@@ -493,9 +493,12 @@ def _create_enum_property(
     Returns:
         JSON object
     """
+    schema: dict = {name : {"description": description}}
+    one_of_list = [{"enum": enum_list}]
     if not is_required:
-        enum_list += [None]  # type: ignore
-    return {name: {"enum": enum_list, "description": description}}
+        one_of_list += [{"type": "null"}]
+    schema[name]["oneOf"] = one_of_list
+    return schema
 
 
 def _create_simple_property(
