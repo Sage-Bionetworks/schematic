@@ -118,12 +118,13 @@ class TestNodeProcessor:
 def test_get_json_validation_schema(
     dm_json_schema: JSONSchemaGenerator, datatype: str
 ) -> None:
+    """Tests for JSONSchemaGenerator.get_json_validation_schema"""
     try:
-        test_folder = "tests/data/test_jsonschemas2"
+        test_folder = "tests/data/test_jsonschemas"
         test_file = f"test.{datatype}.schema.json"
         test_path = os.path.join(test_folder, test_file)
         expected_path = (
-            f"tests/data/expected_jsonschemas2/expected.{datatype}.schema.json"
+            f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
         )
         title = f"{datatype}_validation"
         os.makedirs(test_folder, exist_ok=True)
@@ -131,12 +132,6 @@ def test_get_json_validation_schema(
         json_files_equal(test_path, expected_path)
     finally:
         os.remove(test_path)
-
-
-def test_get_json_validation_schema2(dm_json_schema: JSONSchemaGenerator) -> None:
-    # dm_json_schema.get_json_validation_schema("Biospecimen", "")
-    # assert False
-    pass
 
 
 @pytest.mark.parametrize(

@@ -115,7 +115,7 @@ class TestJsonSchemaGeneratorDirector:
             expected_component = expected_component.replace(" ", "")
 
             expected_jsonschema = helpers.get_data_path(
-                f"expected_jsonschemas2/expected.{expected_component}.schema.json"
+                f"expected_jsonschemas/expected.{expected_component}.schema.json"
             )
 
             generated_jsonschema = helpers.get_data_path(

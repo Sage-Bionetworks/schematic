@@ -1,4 +1,90 @@
 {
+  "title": "Patient_validation",
+  "type": "object",
+  "description": "TBD",
+  "properties": {
+    "Sex": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "Other",
+            "Male",
+            "Female"
+          ]
+        }
+      ]
+    },
+    "Patient ID": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Year of Birth": {
+      "description": "TBD"
+    },
+    "Diagnosis": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "Cancer",
+            "Healthy"
+          ]
+        }
+      ]
+    },
+    "Family History": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "enum": [
+              "Prostate",
+              "Lung",
+              "Colorectal",
+              "Breast",
+              "Skin"
+            ]
+          }
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "TBD"
+    },
+    "Cancer Type": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "Prostate",
+            "Lung",
+            "Colorectal",
+            "Breast",
+            "Skin"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "Sex",
+    "Patient ID",
+    "Component",
+    "Diagnosis"
+  ],
   "$id": "http://example.com/Patient_validation",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "allOf": [
@@ -10,25 +96,14 @@
               "Cancer"
             ]
           }
-        },
-        "required": [
-          "Diagnosis"
-        ]
+        }
       },
       "then": {
         "properties": {
           "Family History": {
-            "items": {
-              "enum": [
-                "Prostate",
-                "Colorectal",
-                "Lung",
-                "Breast",
-                "Skin"
-              ]
-            },
-            "maxItems": 5,
-            "type": "array"
+            "not": {
+              "type": "null"
+            }
           }
         },
         "required": [
@@ -44,21 +119,14 @@
               "Cancer"
             ]
           }
-        },
-        "required": [
-          "Diagnosis"
-        ]
+        }
       },
       "then": {
         "properties": {
           "Cancer Type": {
-            "enum": [
-              "Prostate",
-              "Colorectal",
-              "Lung",
-              "Breast",
-              "Skin"
-            ]
+            "not": {
+              "type": "null"
+            }
           }
         },
         "required": [
@@ -66,74 +134,5 @@
         ]
       }
     }
-  ],
-  "description": "TBD",
-  "properties": {
-    "Cancer Type": {
-      "description": "TBD",
-      "enum": [
-        "Prostate",
-        "Colorectal",
-        "Lung",
-        "Breast",
-        "Skin",
-        ""
-      ]
-    },
-    "Component": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Diagnosis": {
-      "description": "TBD",
-      "enum": [
-        "Cancer",
-        "Healthy"
-      ]
-    },
-    "Family History": {
-      "description": "TBD",
-      "items": {
-        "enum": [
-          "Prostate",
-          "Colorectal",
-          "Lung",
-          "Breast",
-          "Skin",
-          ""
-        ]
-      },
-      "maxItems": 5,
-      "type": "array"
-    },
-    "Patient ID": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Sex": {
-      "description": "TBD",
-      "enum": [
-        "Male",
-        "Female",
-        "Other"
-      ]
-    },
-    "Year of Birth": {
-      "description": "TBD"
-    }
-  },
-  "required": [
-    "Sex",
-    "Diagnosis",
-    "Patient ID",
-    "Component"
-  ],
-  "title": "Patient_validation",
-  "type": "object"
+  ]
 }

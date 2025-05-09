@@ -1,264 +1,249 @@
 {
-  "$id": "http://example.com/MockComponent_validation",
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MockComponent_validation",
+  "type": "object",
   "description": "Component to hold mock attributes for testing all validation rules",
   "properties": {
-    "Check Ages": {
+    "Check Match at Least values": {
       "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Date": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Float": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Int": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check List": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check List Enum": {
-      "description": "TBD",
-      "items": {
-        "enum": [
-          "ab",
-          "ef",
-          "cd",
-          "gh"
-        ]
-      },
-      "maxItems": 4,
-      "type": "array"
-    },
-    "Check List Enum Strict": {
-      "description": "TBD",
-      "items": {
-        "enum": [
-          "ab",
-          "ef",
-          "cd",
-          "gh"
-        ]
-      },
-      "maxItems": 4,
-      "type": "array"
-    },
-    "Check List Like": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check List Like Enum": {
-      "description": "TBD",
-      "items": {
-        "enum": [
-          "ab",
-          "ef",
-          "cd",
-          "gh"
-        ]
-      },
-      "maxItems": 4,
-      "type": "array"
-    },
-    "Check List Strict": {
-      "description": "TBD",
-      "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Match Exactly": {
       "description": "TBD",
-      "minLength": 1,
       "not": {
         "type": "null"
       }
     },
-    "Check Match Exactly values": {
+    "Check Ages": {
       "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Match None": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Match None values": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Match at Least": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Match at Least values": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check NA": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Num": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Range": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Recommended": {
-      "description": "TBD"
-    },
-    "Check Regex Format": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Regex Integer": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Regex List": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Regex List Like": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Regex List Strict": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check Regex Single": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check String": {
-      "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
-    },
-    "Check URL": {
-      "description": "TBD",
-      "minLength": 1,
       "not": {
         "type": "null"
       }
     },
     "Check Unique": {
       "description": "TBD",
-      "minLength": 1,
       "not": {
         "type": "null"
       }
     },
-    "Component": {
+    "Check Regex List Strict": {
+      "oneOf": [
+        {
+          "type": "array"
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check List Enum": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "enum": [
+              "cd",
+              "ab",
+              "ef",
+              "gh"
+            ]
+          }
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check Regex Single": {
       "description": "TBD",
-      "minLength": 1,
       "not": {
         "type": "null"
       }
+    },
+    "Check Regex List": {
+      "oneOf": [
+        {
+          "type": "array"
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check Range": {
+      "description": "TBD",
+      "type": "number",
+      "minimum": 50.0,
+      "maximum": 100.0
+    },
+    "Check List Enum Strict": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "enum": [
+              "cd",
+              "ab",
+              "ef",
+              "gh"
+            ]
+          }
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check URL": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check String": {
+      "description": "TBD",
+      "type": "string"
+    },
+    "Check Match Exactly values": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Num": {
+      "description": "TBD",
+      "type": "number"
+    },
+    "Check List Strict": {
+      "oneOf": [
+        {
+          "type": "array"
+        }
+      ],
+      "description": "TBD"
+    },
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Date": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Int": {
+      "description": "TBD",
+      "type": "integer"
+    },
+    "Check Match None": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Regex Format": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check List": {
+      "oneOf": [
+        {
+          "type": "array"
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check Match at Least": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Float": {
+      "description": "TBD",
+      "type": "number"
+    },
+    "Check List Like Enum": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "enum": [
+              "cd",
+              "ab",
+              "ef",
+              "gh"
+            ]
+          }
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check Regex List Like": {
+      "oneOf": [
+        {
+          "type": "array"
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check List Like": {
+      "oneOf": [
+        {
+          "type": "array"
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check NA": {
+      "description": "TBD",
+      "type": "integer"
+    },
+    "Check Match None values": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Regex Integer": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Recommended": {
+      "description": "TBD"
     }
   },
   "required": [
-    "Check List",
-    "Check Regex Integer",
+    "Check Match at Least values",
     "Check Match Exactly",
+    "Check Ages",
+    "Check Unique",
+    "Check Regex List Strict",
+    "Check List Enum",
+    "Check Regex Single",
+    "Check Regex List",
     "Check Range",
     "Check List Enum Strict",
-    "Check Match None",
-    "Check String",
-    "Check Date",
-    "Check List Strict",
-    "Check Unique",
-    "Check Regex Single",
-    "Check NA",
-    "Check List Enum",
-    "Check Regex List",
-    "Check Regex Format",
-    "Check Match Exactly values",
-    "Check Ages",
-    "Check Regex List Like",
-    "Check List Like Enum",
-    "Check Match at Least",
-    "Check Num",
-    "Check Regex List Strict",
-    "Check Match None values",
-    "Check Match at Least values",
     "Check URL",
-    "Check List Like",
-    "Check Float",
+    "Check String",
+    "Check Match Exactly values",
+    "Check Num",
+    "Check List Strict",
+    "Component",
+    "Check Date",
     "Check Int",
-    "Component"
+    "Check Match None",
+    "Check Regex Format",
+    "Check List",
+    "Check Match at Least",
+    "Check Float",
+    "Check List Like Enum",
+    "Check Regex List Like",
+    "Check List Like",
+    "Check NA",
+    "Check Match None values",
+    "Check Regex Integer"
   ],
-  "title": "MockComponent_validation",
-  "type": "object"
+  "$id": "http://example.com/MockComponent_validation",
+  "$schema": "http://json-schema.org/draft-07/schema#"
 }
