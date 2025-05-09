@@ -1,30 +1,25 @@
 {
-  "title": "",
+  "title": "MockFilename_validation",
   "type": "object",
   "description": "TBD",
   "properties": {
+    "Filename": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
     "Component": {
       "description": "TBD",
       "not": {
         "type": "null"
       }
-    },
-    "SourceManifest": {
-      "description": "TBD",
-      "not": {
-        "type": "null"
-      }
-    },
-    "MockRDB_id": {
-      "description": "TBD",
-      "type": "integer"
     }
   },
   "required": [
-    "Component",
-    "SourceManifest",
-    "MockRDB_id"
+    "Filename",
+    "Component"
   ],
-  "$id": "http://example.com/",
+  "$id": "http://example.com/MockFilename_validation",
   "$schema": "http://json-schema.org/draft-07/schema#"
 }
