@@ -263,7 +263,6 @@ class JsonSchemaComponentGenerator:
 
         click.echo(f"Validation JSONschema generated for {self.component}.")
 
-
     def write_json_schema_to_file(
         self,
     ) -> None:
