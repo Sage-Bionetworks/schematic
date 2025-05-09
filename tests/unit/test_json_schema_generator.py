@@ -1,6 +1,6 @@
 """Tests for JSON Schema generation"""
 
-from typing import Generator, Any
+from typing import Generator, Any, Union
 import os
 
 import pytest
@@ -609,7 +609,7 @@ def test_get_property_data_from_validation_rules(
 )
 def test_get_ranges_from_range_rule(
     input_rule: str,
-    expected_tuple: tuple[float | None, float | None],
+    expected_tuple: tuple[Union[str, None], Union[str, None]],
 ) -> None:
     """Test for _get_ranges_from_range_rule"""
     result = _get_ranges_from_range_rule(input_rule)
@@ -627,7 +627,7 @@ def test_get_ranges_from_range_rule(
 )
 def test_get_in_range_rule_from_rule_list(
     input_rules: list[str],
-    expected_rule: str | None,
+    expected_rule: Union[str, None],
 ) -> None:
     """Test for _get_in_range_rule_from_rule_list"""
     result = _get_in_range_rule_from_rule_list(input_rules)
@@ -640,7 +640,7 @@ def test_get_in_range_rule_from_rule_list(
 )
 def test_get_type_rule_from_rule_list(
     input_rules: list[str],
-    expected_rule: str | None,
+    expected_rule: Union[str, None],
 ) -> None:
     """Test for _get_type_rule_from_rule_list"""
     result = _get_type_rule_from_rule_list(input_rules)
