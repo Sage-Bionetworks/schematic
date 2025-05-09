@@ -280,6 +280,7 @@ def _write_data_model(
             os.makedirs(json_schema_dirname, exist_ok=True)
     else:
         json_schema_log_file_path =  schema_path
+    print(json_schema_log_file_path)
     with open(json_schema_log_file_path, "w", encoding="UTF-8") as js_f:
         json.dump(json_schema_dict, js_f, indent=2)
 

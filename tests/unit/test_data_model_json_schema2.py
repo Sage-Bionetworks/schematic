@@ -1,4 +1,5 @@
 from typing import Generator, Any
+import os
 
 import pytest
 
@@ -50,11 +51,16 @@ def fixture_dm_json_schema() -> Generator[DataModelJSONSchema2, None, None]:
     ]
 )
 def test_get_json_validation_schema(dm_json_schema: DataModelJSONSchema2, datatype: str) -> None:
-    dm_json_schema.get_json_validation_schema(datatype, "")
-    json_files_equal(
-        f"tests/data/example.{datatype}.schema.json",
-        f"tests/data/expected_jsonschemas2/example.{datatype}.schema.json"
-    )
+    try:
+        created_folder = "tests/data/created_jsonschemas2"
+        created_file = f"example.{datatype}.schema.json"
+        created_path = os.path.join(created_folder, created_file)
+        expected_path = f"tests/data/expected_jsonschemas2/example.{datatype}.schema.json"
+        os.makedirs(created_folder, exist_ok=True)
+        dm_json_schema.get_json_validation_schema(datatype, "", created_path)
+        json_files_equal(created_path, expected_path)
+    finally:
+        os.remove(created_path)
 
 def test_get_json_validation_schema2(dm_json_schema: DataModelJSONSchema2) -> None:
     #dm_json_schema.get_json_validation_schema("Biospecimen", "")
