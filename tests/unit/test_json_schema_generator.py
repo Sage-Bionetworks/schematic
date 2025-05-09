@@ -43,6 +43,7 @@ def fixture_dm_json_schema() -> Generator[JSONSchemaGenerator, None, None]:
     )
     yield data_model_js
 
+
 class TestNodeProcessor:
     """Tests for NodeProcessor class"""
 
@@ -99,7 +100,7 @@ class TestNodeProcessor:
         """Test NodeProcessor.update_processed_nodes_with_current_node"""
         np = NodeProcessor(["node1"])
         assert not np.processed_nodes
-        np.update_processed_nodes_with_current_node ()
+        np.update_processed_nodes_with_current_node()
         assert np.processed_nodes == ["node1"]
 
 
@@ -111,8 +112,8 @@ class TestNodeProcessor:
         ("MockComponent"),
         ("MockFilename"),
         ("MockRDB"),
-        ("Patient")
-    ]
+        ("Patient"),
+    ],
 )
 def test_get_json_validation_schema(
     dm_json_schema: JSONSchemaGenerator, datatype: str

@@ -259,14 +259,11 @@ class JsonSchemaComponentGenerator:
             graph=metadata_model.graph_data_model,
         )
 
-        self.component_json_schema = (
-            data_model_json_schema.get_json_validation_schema(
-                source_node=self.component, schema_name=schema_name
-            )
+        self.component_json_schema = data_model_json_schema.get_json_validation_schema(
+            datatype=self.component, schema_name=schema_name
         )
 
         click.echo(f"Validation JSONschema generated for {self.component}.")
-
 
     def write_json_schema_to_file(
         self,

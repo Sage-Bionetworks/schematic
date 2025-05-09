@@ -127,8 +127,6 @@ class TestJsonSchemaGeneratorDirector:
             # AND the JSON schema should match the expected schema
             assert json_files_equal(expected_jsonschema, generated_jsonschema)
 
-
-
     @pytest.mark.parametrize(
         "data_model_location, expected_components",
         [

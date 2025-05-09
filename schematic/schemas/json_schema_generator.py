@@ -3,7 +3,7 @@
 import json
 import logging
 import os
-from typing import Optional, Union, Any
+from typing import Union, Any
 from dataclasses import dataclass, field, asdict
 import networkx as nx  # type: ignore
 
@@ -145,14 +145,13 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
         graph: nx.MultiDiGraph,
     ):
         self.jsonld_path = jsonld_path
-        self.jsonld_path_root: Optional[str] = None
         self.graph = graph
         self.dmge = DataModelGraphExplorer(self.graph)
         self.dmr = DataModelRelationships()
         self.rel_dict = self.dmr.relationships_dictionary
 
     def get_json_validation_schema(
-        self, source_node: str, schema_name: str, schema_path: Union[str, None] = None
+        self, datatype: str, schema_name: str, schema_path: Union[str, None] = None
     ) -> dict[str, Any]:
         """
         Consolidated method that aims to gather dependencies and value constraints across terms
@@ -166,10 +165,11 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
           node (if such a constraint is specified on the schema).
 
         Arguments:
-            source_node: Node from which we can start recursive dependency traversal
-                (as mentioned above).
+            datatype: the datatype to create the schema for.
+              Its node is where we can start recursive dependency traversal
+              (as mentioned above).
             schema_name: Name assigned to JSON-LD schema (to uniquely identify it via URI
-                when it is hosted on the Internet).
+              when it is hosted on the Internet).
             schema_path: Where to save the JSON Schema file
 
         Returns:
@@ -178,25 +178,25 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
 
         # Gets the dependency nodes of the source node. These will be first nodes processed.
         root_dependencies = self.dmge.get_adjacent_nodes_by_relationship(
-            node_label=source_node,
+            node_label=datatype,
             relationship=self.rel_dict["requiresDependency"]["edge_key"],
         )
         # if root_dependencies is empty it means that a class with name 'source_node' exists
         # in the schema, but it is not a valid component
         if not root_dependencies:
-            raise ValueError(f"'{source_node}' is not a valid component in the schema.")
+            raise ValueError(f"'{datatype}' is not a valid component in the schema.")
 
         node_processor = NodeProcessor(root_dependencies)
 
         json_schema = JSONSchema(
             schema_id="http://example.com/" + schema_name,
             title=schema_name,
-            description=self.dmge.get_node_comment(node_label=source_node),
+            description=self.dmge.get_node_comment(node_label=datatype),
         )
 
         while True:
             if not node_processor.is_current_node_processed():
-                self._process_node(json_schema, source_node, node_processor)
+                self._process_node(json_schema, datatype, node_processor)
             if node_processor.are_nodes_remaining():
                 node_processor.move_to_next_node()
             else:
@@ -206,7 +206,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
 
         json_schema_dict = json_schema.as_json_schema_dict()
 
-        _write_data_model(json_schema_dict, schema_path, source_node, self.jsonld_path)
+        _write_data_model(json_schema_dict, schema_path, datatype, self.jsonld_path)
 
         return json_schema_dict
 
@@ -239,7 +239,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
             manifest_component=source_node, node_display_name=node_display_name
         )
 
-        node_required = self.dmge.get_component_node_required(
+        is_node_required = self.dmge.get_component_node_required(
             manifest_component=source_node,
             node_validation_rules=node_validation_rules,
             node_display_name=node_display_name,
@@ -253,7 +253,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
         set_property = any(
             [
                 node_display_name in node_processor.reverse_dependencies,
-                node_required,
+                is_node_required,
                 node_processor.current_node in node_processor.root_dependencies,
             ]
         )
@@ -267,13 +267,13 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
                     node_processor.reverse_dependencies,
                     node_processor.range_domain_map,
                 )
-                node_required = False
+                is_node_required = False
             _set_property(
                 json_schema,
                 node_display_name,
                 node_range_display_names,
                 node_validation_rules,
-                node_required,
+                is_node_required,
                 node_description,
             )
             node_processor.update_processed_nodes_with_current_node()
