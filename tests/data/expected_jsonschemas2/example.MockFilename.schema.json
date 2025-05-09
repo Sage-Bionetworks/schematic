@@ -1,0 +1,25 @@
+{
+  "title": "",
+  "type": "object",
+  "description": "TBD",
+  "properties": {
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Filename": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    }
+  },
+  "required": [
+    "Component",
+    "Filename"
+  ],
+  "$id": "http://example.com/",
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
