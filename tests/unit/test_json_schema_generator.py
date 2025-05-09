@@ -104,7 +104,15 @@ class TestNodeProcessor:
 
 
 @pytest.mark.parametrize(
-    "datatype", [("Biospecimen"), ("BulkRNA-seqAssay"), ("MockComponent"), ("Patient")]
+    "datatype",
+    [
+        ("Biospecimen"),
+        ("BulkRNA-seqAssay"),
+        ("MockComponent"),
+        ("MockFilename"),
+        ("MockRDB"),
+        ("Patient")
+    ]
 )
 def test_get_json_validation_schema(
     dm_json_schema: JSONSchemaGenerator, datatype: str
