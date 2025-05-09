@@ -118,17 +118,18 @@ def test_get_json_validation_schema(
     dm_json_schema: JSONSchemaGenerator, datatype: str
 ) -> None:
     try:
-        created_folder = "tests/data/created_jsonschemas2"
-        created_file = f"example.{datatype}.schema.json"
-        created_path = os.path.join(created_folder, created_file)
+        test_folder = "tests/data/test_jsonschemas2"
+        test_file = f"test.{datatype}.schema.json"
+        test_path = os.path.join(test_folder, test_file)
         expected_path = (
-            f"tests/data/expected_jsonschemas2/example.{datatype}.schema.json"
+            f"tests/data/expected_jsonschemas2/expected.{datatype}.schema.json"
         )
-        os.makedirs(created_folder, exist_ok=True)
-        dm_json_schema.get_json_validation_schema(datatype, "", created_path)
-        json_files_equal(created_path, expected_path)
+        title = f"{datatype}_validation"
+        os.makedirs(test_folder, exist_ok=True)
+        dm_json_schema.get_json_validation_schema(datatype, title, test_path)
+        json_files_equal(test_path, expected_path)
     finally:
-        os.remove(created_path)
+        os.remove(test_path)
 
 
 def test_get_json_validation_schema2(dm_json_schema: JSONSchemaGenerator) -> None:

@@ -115,7 +115,7 @@ class TestJsonSchemaGeneratorDirector:
             expected_component = expected_component.replace(" ", "")
 
             expected_jsonschema = helpers.get_data_path(
-                f"expected_jsonschemas/expected.{expected_component}.schema.json"
+                f"expected_jsonschemas2/expected.{expected_component}.schema.json"
             )
 
             generated_jsonschema = helpers.get_data_path(
@@ -126,6 +126,8 @@ class TestJsonSchemaGeneratorDirector:
             assert os.path.isfile(generated_jsonschema)
             # AND the JSON schema should match the expected schema
             assert json_files_equal(expected_jsonschema, generated_jsonschema)
+
+
 
     @pytest.mark.parametrize(
         "data_model_location, expected_components",
@@ -321,12 +323,12 @@ class TestJsonSchemaComponentGenerator:
 
         # AND a path to an expected intermediate json schema
         expected_intermediate_json_schema_content_path = helpers.get_data_path(
-            f"expected_jsonschemas/incomplete.expected.{component}_validation.schema.json"
+            f"expected_jsonschemas2/expected.{component}.schema.json"
         )
 
         # AND a path to create a json schema at
         generated_json_schema_path = Path(
-            output_directory.given, f"example.{component}.schema.json"
+            "tests", "data", f"example.{component}.schema.json"
         )
 
         with patch(
@@ -346,7 +348,7 @@ class TestJsonSchemaComponentGenerator:
             # AND json schemas are generated for the data model and component
             generator.get_component_json_schema()
 
-            # THEN a file shold be written at the correct path
+            # THEN a file should be written at the correct path
             assert os.path.isfile(generated_json_schema_path)
 
             # AND the generated json schema should match the expected schema
