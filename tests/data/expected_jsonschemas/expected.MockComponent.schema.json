@@ -1,6 +1,6 @@
 {
-  "$id": "http://example.com/MockComponent_validation",
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MockComponent_validation",
+  "type": "object",
   "description": "Component to hold mock attributes for testing all validation rules",
   "properties": {
     "CheckAges": {
@@ -215,11 +215,190 @@
         "type": "null"
       }
     },
+    "Check Regex List Strict": {
+      "oneOf": [
+        {
+          "type": "array"
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check List Enum": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "enum": [
+              "cd",
+              "ab",
+              "ef",
+              "gh"
+            ]
+          }
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check Regex Single": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Regex List": {
+      "oneOf": [
+        {
+          "type": "array"
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check Range": {
+      "description": "TBD",
+      "type": "number",
+      "minimum": 50.0,
+      "maximum": 100.0
+    },
+    "Check List Enum Strict": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "enum": [
+              "cd",
+              "ab",
+              "ef",
+              "gh"
+            ]
+          }
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check URL": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check String": {
+      "description": "TBD",
+      "type": "string"
+    },
+    "Check Match Exactly values": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Num": {
+      "description": "TBD",
+      "type": "number"
+    },
+    "Check List Strict": {
+      "oneOf": [
+        {
+          "type": "array"
+        }
+      ],
+      "description": "TBD"
+    },
     "Component": {
       "description": "TBD",
       "not": {
         "type": "null"
       }
+    },
+    "Check Date": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Int": {
+      "description": "TBD",
+      "type": "integer"
+    },
+    "Check Match None": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Regex Format": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check List": {
+      "oneOf": [
+        {
+          "type": "array"
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check Match at Least": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Float": {
+      "description": "TBD",
+      "type": "number"
+    },
+    "Check List Like Enum": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "enum": [
+              "cd",
+              "ab",
+              "ef",
+              "gh"
+            ]
+          }
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check Regex List Like": {
+      "oneOf": [
+        {
+          "type": "array"
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check List Like": {
+      "oneOf": [
+        {
+          "type": "array"
+        }
+      ],
+      "description": "TBD"
+    },
+    "Check NA": {
+      "description": "TBD",
+      "type": "integer"
+    },
+    "Check Match None values": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Regex Integer": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Check Recommended": {
+      "description": "TBD"
     }
   },
   "required": [
@@ -253,6 +432,6 @@
     "CheckUnique",
     "Component"
   ],
-  "title": "MockComponent_validation",
-  "type": "object"
+  "$id": "http://example.com/MockComponent_validation",
+  "$schema": "http://json-schema.org/draft-07/schema#"
 }

@@ -1,6 +1,6 @@
 {
-  "$id": "http://example.com/Biospecimen_validation",
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Biospecimen_validation",
+  "type": "object",
   "description": "TBD",
   "properties": {
     "Component": {
@@ -33,6 +33,12 @@
           "title": "enum"
         }
       ]
+    },
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
     }
   },
   "required": [
@@ -41,6 +47,6 @@
     "SampleID",
     "TissueStatus"
   ],
-  "title": "Biospecimen_validation",
-  "type": "object"
+  "$id": "http://example.com/Biospecimen_validation",
+  "$schema": "http://json-schema.org/draft-07/schema#"
 }

@@ -1,4 +1,90 @@
 {
+  "title": "Patient_validation",
+  "type": "object",
+  "description": "TBD",
+  "properties": {
+    "Sex": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "Other",
+            "Male",
+            "Female"
+          ]
+        }
+      ]
+    },
+    "Patient ID": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Year of Birth": {
+      "description": "TBD"
+    },
+    "Diagnosis": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "Cancer",
+            "Healthy"
+          ]
+        }
+      ]
+    },
+    "Family History": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "enum": [
+              "Prostate",
+              "Lung",
+              "Colorectal",
+              "Breast",
+              "Skin"
+            ]
+          }
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "TBD"
+    },
+    "Cancer Type": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "Prostate",
+            "Lung",
+            "Colorectal",
+            "Breast",
+            "Skin"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "Sex",
+    "Patient ID",
+    "Component",
+    "Diagnosis"
+  ],
   "$id": "http://example.com/Patient_validation",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "allOf": [
