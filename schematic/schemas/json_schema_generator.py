@@ -43,9 +43,9 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
     schema: str = "http://json-schema.org/draft-07/schema#"
     type: str = "object"
     description: str = "TBD"
-    properties: dict = field(default_factory=dict)
+    properties: dict[str, Any] = field(default_factory=dict)
     required: list[str] = field(default_factory=list)
-    all_of: list = field(default_factory=list)
+    all_of: list[dict[str, Any]] = field(default_factory=list)
 
     def as_json_schema_dict(self) -> dict[str, Any]:
         """Returns class as a JSON Schema dictionary, with proper keywords"""
@@ -65,7 +65,7 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
 class NodeProcessor:
     """Keeps track of needed information for processing a node in a graph"""
 
-    def __init__(self, initial_nodes: list[str]):
+    def __init__(self, initial_nodes: list[str]) -> None:
         """
         Arguments:
             initial_nodes: A list of nodes to start processing
@@ -105,7 +105,7 @@ class NodeProcessor:
             node_range_display_names: The display names of the the nodes range
         """
         for node in node_range_display_names:
-            if not node in self.range_domain_map:
+            if node not in self.range_domain_map:
                 self.range_domain_map[node] = []
             self.range_domain_map[node].append(node_display_name)
 
@@ -119,7 +119,7 @@ class NodeProcessor:
             node_dependencies_display_names: the display names of the reverse dependencies
         """
         for dep in node_dependencies_display_names:
-            if not dep in self.reverse_dependencies:
+            if dep not in self.reverse_dependencies:
                 self.reverse_dependencies[dep] = []
             self.reverse_dependencies[dep].append(node_display_name)
 
@@ -143,7 +143,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
         self,
         jsonld_path: str,
         graph: nx.MultiDiGraph,
-    ):
+    ) -> None:
         self.jsonld_path = jsonld_path
         self.graph = graph
         self.dmge = DataModelGraphExplorer(self.graph)
@@ -212,7 +212,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
 
     def _process_node(
         self, json_schema: JSONSchema, source_node: str, node_processor: NodeProcessor
-    ):
+    ) -> None:
         node_range = self.dmge.get_adjacent_nodes_by_relationship(
             node_label=node_processor.current_node,
             relationship=self.rel_dict["rangeIncludes"]["edge_key"],
@@ -494,7 +494,7 @@ def _create_array_property(
         JSON object
     """
 
-    array_dict: dict = {"type": "array"}
+    array_dict: dict[str, Any] = {"type": "array"}
 
     include_items = any(
         [
@@ -561,7 +561,7 @@ def _create_simple_property(
     Returns:
         JSON object
     """
-    schema: dict = {name: {"description": description}}
+    schema: dict[str, Any] = {name: {"description": description}}
 
     if property_data.property_type and is_required:
         schema[name]["type"] = property_data.property_type
