@@ -1,0 +1,159 @@
+{
+  "title": "",
+  "type": "object",
+  "description": "TBD",
+  "properties": {
+    "Filename": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Sample ID": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "File Format": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "CRAM",
+            "BAM",
+            "CSV/TSV",
+            "FASTQ"
+          ]
+        }
+      ]
+    },
+    "Genome Build": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "GRCm38",
+            "GRCh38",
+            "GRCm39",
+            "GRCh37"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "Genome FASTA": {
+      "description": "TBD"
+    }
+  },
+  "required": [
+    "Filename",
+    "Sample ID",
+    "Component",
+    "File Format"
+  ],
+  "$id": "http://example.com/",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "File Format": {
+            "enum": [
+              "CRAM"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "Genome Build": {
+            "not": {
+              "type": "null"
+            }
+          }
+        },
+        "required": [
+          "Genome Build"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "File Format": {
+            "enum": [
+              "BAM"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "Genome Build": {
+            "not": {
+              "type": "null"
+            }
+          }
+        },
+        "required": [
+          "Genome Build"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "File Format": {
+            "enum": [
+              "CSV/TSV"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "Genome Build": {
+            "not": {
+              "type": "null"
+            }
+          }
+        },
+        "required": [
+          "Genome Build"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "File Format": {
+            "enum": [
+              "CRAM"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "Genome FASTA": {
+            "not": {
+              "type": "null"
+            }
+          }
+        },
+        "required": [
+          "Genome FASTA"
+        ]
+      }
+    }
+  ]
+}

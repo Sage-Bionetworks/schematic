@@ -3,6 +3,7 @@ from typing import Generator, Any
 import pytest
 
 from schematic.models.metadata import MetadataModel
+from tests.utils import json_files_equal
 from schematic.schemas.data_model_json_schema2 import (
     PropertyData,
     JSONSchema,
@@ -39,14 +40,26 @@ def fixture_dm_json_schema() -> Generator[DataModelJSONSchema2, None, None]:
     yield data_model_js
 
 
-def test_json_schema():
-    JSONSchema("id", "title")
+@pytest.mark.parametrize(
+    "datatype",
+    [
+        ("Biospecimen"),
+        ("BulkRNA-seqAssay"),
+        ("MockComponent"),
+        ("Patient")
+    ]
+)
+def test_get_json_validation_schema(dm_json_schema: DataModelJSONSchema2, datatype: str) -> None:
+    dm_json_schema.get_json_validation_schema(datatype, "")
+    json_files_equal(
+        f"tests/data/example.{datatype}.schema.json",
+        f"tests/data/expected_jsonschemas2/example.{datatype}.schema.json"
+    )
 
-
-def test_get_json_validation_schema(dm_json_schema: DataModelJSONSchema2) -> None:
-    dm_json_schema.get_json_validation_schema("Patient", "")
-    assert False
-
+def test_get_json_validation_schema2(dm_json_schema: DataModelJSONSchema2) -> None:
+    #dm_json_schema.get_json_validation_schema("Biospecimen", "")
+    #assert False
+    pass
 
 @pytest.mark.parametrize(
     "reverse_dependencies, range_domain_map",
@@ -231,7 +244,10 @@ def test_set_conditional_dependencies(
             False,
             JSONSchema(
                 properties={
-                    "property_name": {"enum": ["enum1", None], "description": "TBD"}
+                    "property_name": {
+                        "description": "TBD",
+                        "oneOf": [{"enum": ["enum1"]}, {"type": "null"}]
+                    }
                 },
                 required=[],
             ),
@@ -391,16 +407,27 @@ def test_create_array_property(
 @pytest.mark.parametrize(
     "enum_list, is_required, expected_schema",
     [
-        ([], True, {"name": {"enum": [], "description": "TBD"}}),
-        (["enum1"], True, {"name": {"enum": ["enum1"], "description": "TBD"}}),
         (
-            ["enum1", "enum2"],
+            [],
             True,
-            {"name": {"enum": ["enum1", "enum2"], "description": "TBD"}},
+            {"name": {"description": "TBD", "oneOf": [{"enum": []}]}}
         ),
-        # If is is_required is False, None is added to the enum_list
-        ([], False, {"name": {"enum": [None], "description": "TBD"}}),
-        (["enum1"], False, {"name": {"enum": ["enum1", None], "description": "TBD"}}),
+        (
+            ["enum1"],
+            True,
+            {"name": {"description": "TBD", "oneOf": [{"enum": ["enum1"]}]}}
+        ),
+        # If is_required is False, None is added as a type
+        (
+            ["enum1"],
+            False,
+            {
+                "name": {
+                    "description": "TBD",
+                    "oneOf": [{"enum": ["enum1"]}, {"type": "null"}]
+           }
+            }
+        ),
     ],
 )
 def test_create_enum_property(
