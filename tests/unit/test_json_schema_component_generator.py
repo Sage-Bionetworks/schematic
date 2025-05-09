@@ -356,28 +356,3 @@ class TestJsonSchemaComponentGenerator:
                 expected_intermediate_json_schema_content_path,
                 generated_json_schema_path,
             )
-
-    def test_add_description_to_json_schema(
-        self, parsed_example_model, output_directory, example_data_model_path
-    ):
-        # GIVEN a component and a generator instance
-        component = "MockComponent"
-        generator = JsonSchemaComponentGenerator(
-            data_model_location=example_data_model_path,
-            component=component,
-            output_directory=output_directory.given,
-            parsed_model=parsed_example_model,
-        )
-
-        # WHEN a jsonschema is generated for the component
-        generator.get_component_json_schema()
-
-        # AND a description is added to the jsonschema
-        generator.add_description_to_json_schema()
-
-        # THEN the description should be present in the jsonschema and match the specification from the data model
-        assert generator.component_json_schema.get(
-            "description"
-        ) == parsed_example_model.get("MockComponent").get("Relationships").get(
-            "Description"
-        )

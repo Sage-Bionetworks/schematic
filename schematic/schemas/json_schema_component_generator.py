@@ -144,7 +144,6 @@ class JsonSchemaGeneratorDirector:
         )
 
         generator.get_component_json_schema()
-        generator.add_description_to_json_schema()
         generator.write_json_schema_to_file()
 
         return generator.component_json_schema
@@ -160,8 +159,7 @@ class JsonSchemaComponentGenerator:
         dmge (DataModelGraphExplorer): Graph explorer for navigating the data model.
         component (str): The class label of the target component.
         output_path (Path): Path where the generated JSON schema file will be saved.
-        incomplete_component_json_schema (dict): JSON schema before adding the component description.
-        component_json_schema (dict): Final JSON schema with the description added.
+        component_json_schema (dict): Final JSON schema.
     """
 
     def __init__(
@@ -186,7 +184,6 @@ class JsonSchemaComponentGenerator:
             self.dmge
             self.component
             self.output_path
-            self.incomplete_component_json_schema
             self.component_json_schema
         """
         self.data_model_location = data_model_location
@@ -200,7 +197,6 @@ class JsonSchemaComponentGenerator:
 
         self.output_path = self._build_output_path(output_directory)
 
-        self.incomplete_component_json_schema: dict[str, Any] = {}
         self.component_json_schema: dict[str, Any] = {}
 
     def _build_output_path(self, output_directory: Path) -> Path:
@@ -243,10 +239,10 @@ class JsonSchemaComponentGenerator:
         self,
     ) -> None:
         """
-        Generate the initial JSON schema for the specified component without the description.
+        Generate JSON schema for the specified component.
 
         Attributes Updated:
-            self.incomplete_component_json_schema
+            self.component_json_schema
 
         Raises:
             May raise errors if the component is not found in the data model graph.
@@ -263,47 +259,14 @@ class JsonSchemaComponentGenerator:
             graph=metadata_model.graph_data_model,
         )
 
-        self.incomplete_component_json_schema = (
+        self.component_json_schema = (
             data_model_json_schema.get_json_validation_schema(
                 source_node=self.component, schema_name=schema_name
             )
         )
 
-    def add_description_to_json_schema(
-        self,
-    ) -> None:
-        """
-        Add the description of the component from the data model graph to the JSON schema.
-
-        Attributes Updated:
-            self.component_json_schema
-        """
-        component_description = self.dmge.get_node_comment(node_label=self.component)
-
-        description_dict = {"description": component_description}
-
-        self.component_json_schema.update(self.incomplete_component_json_schema)
-        self.component_json_schema.update(description_dict)
-
-        if "properties" not in self.component_json_schema:
-            raise ValueError(
-                f"component: {self.component} is malformed, missing properties"
-            )
-
-        if not isinstance(self.component_json_schema["properties"], dict):
-            raise ValueError(
-                f"component: {self.component} is malformed, properties should be an object"
-            )
-
-        for attribute, value in self.component_json_schema["properties"].items():
-            if isinstance(value, dict) and "description" not in value:
-                # https://sagebionetworks.jira.com/browse/SCHEMATIC-284
-                # https://sagebionetworks.jira.com/browse/SCHEMATIC-283
-                value["description"] = self.dmge.get_node_comment(
-                    node_display_name=attribute
-                )
-
         click.echo(f"Validation JSONschema generated for {self.component}.")
+
 
     def write_json_schema_to_file(
         self,
