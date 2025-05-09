@@ -79,7 +79,7 @@ class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
         self.rel_dict = self.dmr.relationships_dictionary
 
     def get_json_validation_schema(
-        self, source_node: str, schema_name: str
+        self, source_node: str, schema_name: str, schema_path: Union[str, None] = None
     ) -> dict[str, Any]:
         """
         Consolidated method that aims to gather dependencies and value constraints across terms
@@ -156,7 +156,7 @@ class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
 
         json_schema_dict = json_schema.as_json_schema_dict()
 
-        _write_data_model(self.jsonld_path, source_node, json_schema_dict)
+        _write_data_model(self.jsonld_path, source_node, json_schema_dict, schema_path)
 
         return json_schema_dict
 
@@ -261,7 +261,7 @@ class DataModelJSONSchema2:  # pylint: disable=too-few-public-methods
 
 
 def _write_data_model(
-    jsonld_path: str, name: str, json_schema_dict: dict[str, Any]
+    jsonld_path: str, name: str, json_schema_dict: dict[str, Any], schema_path: Union[str, None]
 ) -> None:
     """
     Creates the JSON Schema file
@@ -271,12 +271,15 @@ def _write_data_model(
         name: The name of the datatype(source node) the schema is being created for
         json_schema_dict: The JSON schema in dict form
     """
-    json_schema_log_file_path = get_json_schema_log_file_path(
-        data_model_path=jsonld_path, source_node=name
-    )
-    json_schema_dirname = os.path.dirname(json_schema_log_file_path)
-    if json_schema_dirname != "":
-        os.makedirs(json_schema_dirname, exist_ok=True)
+    if not schema_path:
+        json_schema_log_file_path = get_json_schema_log_file_path(
+            data_model_path=jsonld_path, source_node=name
+        )
+        json_schema_dirname = os.path.dirname(json_schema_log_file_path)
+        if json_schema_dirname != "":
+            os.makedirs(json_schema_dirname, exist_ok=True)
+    else:
+        json_schema_log_file_path =  schema_path
     with open(json_schema_log_file_path, "w", encoding="UTF-8") as js_f:
         json.dump(json_schema_dict, js_f, indent=2)
 
