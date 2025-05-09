@@ -1,14 +1,16 @@
+"""Tests for JSON Schema generation"""
+
 from typing import Generator, Any
 import os
 
 import pytest
 
 from schematic.models.metadata import MetadataModel
-from tests.utils import json_files_equal
-from schematic.schemas.data_model_json_schema2 import (
+from schematic.schemas.json_schema_generator import (
     PropertyData,
     JSONSchema,
-    DataModelJSONSchema2,
+    NodeProcessor,
+    JSONSchemaGenerator,
     _set_conditional_dependencies,
     _set_property,
     _create_enum_array_property,
@@ -20,6 +22,7 @@ from schematic.schemas.data_model_json_schema2 import (
     _get_in_range_rule_from_rule_list,
     _get_type_rule_from_rule_list,
 )
+from tests.utils import json_files_equal
 
 # pylint: disable=protected-access
 # pylint: disable=too-many-arguments
@@ -27,45 +30,55 @@ from schematic.schemas.data_model_json_schema2 import (
 
 
 @pytest.fixture(name="dm_json_schema")
-def fixture_dm_json_schema() -> Generator[DataModelJSONSchema2, None, None]:
+def fixture_dm_json_schema() -> Generator[JSONSchemaGenerator, None, None]:
     """Yields a DataModelJSONSchema2 with the example data model"""
     metadata_model = MetadataModel(
         inputMModelLocation="tests/data/example.model.jsonld",
         inputMModelLocationType="local",
         data_model_labels="class_label",
     )
-    data_model_js = DataModelJSONSchema2(
+    data_model_js = JSONSchemaGenerator(
         jsonld_path=metadata_model.inputMModelLocation,
         graph=metadata_model.graph_data_model,
     )
     yield data_model_js
 
+class TestNodeProcessor:
+
+    def test_init(self) -> None:
+        np = NodeProcessor(["node1", "node2"])
+        assert np.current_node == "node1"
+        assert np.nodes_to_process == ["node2"]
+        assert np.root_dependencies == ["node1", "node2"]
+
+
+
 
 @pytest.mark.parametrize(
-    "datatype",
-    [
-        ("Biospecimen"),
-        ("BulkRNA-seqAssay"),
-        ("MockComponent"),
-        ("Patient")
-    ]
+    "datatype", [("Biospecimen"), ("BulkRNA-seqAssay"), ("MockComponent"), ("Patient")]
 )
-def test_get_json_validation_schema(dm_json_schema: DataModelJSONSchema2, datatype: str) -> None:
+def test_get_json_validation_schema(
+    dm_json_schema: JSONSchemaGenerator, datatype: str
+) -> None:
     try:
         created_folder = "tests/data/created_jsonschemas2"
         created_file = f"example.{datatype}.schema.json"
         created_path = os.path.join(created_folder, created_file)
-        expected_path = f"tests/data/expected_jsonschemas2/example.{datatype}.schema.json"
+        expected_path = (
+            f"tests/data/expected_jsonschemas2/example.{datatype}.schema.json"
+        )
         os.makedirs(created_folder, exist_ok=True)
         dm_json_schema.get_json_validation_schema(datatype, "", created_path)
         json_files_equal(created_path, expected_path)
     finally:
         os.remove(created_path)
 
-def test_get_json_validation_schema2(dm_json_schema: DataModelJSONSchema2) -> None:
-    #dm_json_schema.get_json_validation_schema("Biospecimen", "")
-    #assert False
+
+def test_get_json_validation_schema2(dm_json_schema: JSONSchemaGenerator) -> None:
+    # dm_json_schema.get_json_validation_schema("Biospecimen", "")
+    # assert False
     pass
+
 
 @pytest.mark.parametrize(
     "reverse_dependencies, range_domain_map",
@@ -252,7 +265,7 @@ def test_set_conditional_dependencies(
                 properties={
                     "property_name": {
                         "description": "TBD",
-                        "oneOf": [{"enum": ["enum1"]}, {"type": "null"}]
+                        "oneOf": [{"enum": ["enum1"]}, {"type": "null"}],
                     }
                 },
                 required=[],
@@ -413,15 +426,11 @@ def test_create_array_property(
 @pytest.mark.parametrize(
     "enum_list, is_required, expected_schema",
     [
-        (
-            [],
-            True,
-            {"name": {"description": "TBD", "oneOf": [{"enum": []}]}}
-        ),
+        ([], True, {"name": {"description": "TBD", "oneOf": [{"enum": []}]}}),
         (
             ["enum1"],
             True,
-            {"name": {"description": "TBD", "oneOf": [{"enum": ["enum1"]}]}}
+            {"name": {"description": "TBD", "oneOf": [{"enum": ["enum1"]}]}},
         ),
         # If is_required is False, None is added as a type
         (
@@ -430,9 +439,9 @@ def test_create_array_property(
             {
                 "name": {
                     "description": "TBD",
-                    "oneOf": [{"enum": ["enum1"]}, {"type": "null"}]
-           }
-            }
+                    "oneOf": [{"enum": ["enum1"]}, {"type": "null"}],
+                }
+            },
         ),
     ],
 )
