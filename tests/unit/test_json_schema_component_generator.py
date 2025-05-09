@@ -321,7 +321,7 @@ class TestJsonSchemaComponentGenerator:
 
         # AND a path to an expected intermediate json schema
         expected_intermediate_json_schema_content_path = helpers.get_data_path(
-            f"expected_jsonschemas2/expected.{component}.schema.json"
+            f"expected_jsonschemas/expected.{component}.schema.json"
         )
 
         # AND a path to create a json schema at
