@@ -131,7 +131,7 @@ class NodeProcessor:
         """
         self.nodes_to_process += nodes
 
-    def update_processed_node_with_current_node(self) -> None:
+    def update_processed_nodes_with_current_node(self) -> None:
         """Adds the current node to the list of processed nodes"""
         self.processed_nodes.append(self.current_node)
 
@@ -206,7 +206,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
 
         json_schema_dict = json_schema.as_json_schema_dict()
 
-        _write_data_model(self.jsonld_path, source_node, json_schema_dict, schema_path)
+        _write_data_model(json_schema_dict, schema_path, source_node, self.jsonld_path)
 
         return json_schema_dict
 
@@ -276,7 +276,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
                 node_required,
                 node_description,
             )
-            node_processor.update_processed_node_with_current_node()
+            node_processor.update_processed_nodes_with_current_node()
 
         # add process node as a conditional to its dependencies
         node_dependencies_d = self.dmge.get_nodes_display_names(

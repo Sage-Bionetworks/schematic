@@ -44,14 +44,63 @@ def fixture_dm_json_schema() -> Generator[JSONSchemaGenerator, None, None]:
     yield data_model_js
 
 class TestNodeProcessor:
+    """Tests for NodeProcessor class"""
 
     def test_init(self) -> None:
+        """Test NodeProcessor.__init__"""
         np = NodeProcessor(["node1", "node2"])
         assert np.current_node == "node1"
         assert np.nodes_to_process == ["node2"]
         assert np.root_dependencies == ["node1", "node2"]
 
+    def test_move_to_next_node(self) -> None:
+        """Test NodeProcessor.move_to_next_node"""
+        np = NodeProcessor(["node1", "node2"])
+        np.move_to_next_node()
+        assert np.current_node == "node2"
+        assert np.nodes_to_process == []
 
+    def test_are_nodes_remaining(self) -> None:
+        """Test NodeProcessor.are_nodes_remaining"""
+        np = NodeProcessor(["node1", "node2"])
+        assert np.are_nodes_remaining()
+        np.move_to_next_node()
+        assert not np.are_nodes_remaining()
+
+    def test_is_current_node_processed(self) -> None:
+        """Test NodeProcessor.is_current_node_processed"""
+        np = NodeProcessor(["node1"])
+        assert not np.is_current_node_processed()
+        np.processed_nodes += ["node1"]
+        assert np.is_current_node_processed()
+
+    def test_update_range_domain_map(self) -> None:
+        """Test NodeProcessor.update_range_domain_map"""
+        np = NodeProcessor(["node1"])
+        assert not np.range_domain_map
+        np.update_range_domain_map("node1", ["nodeA", "nodeB"])
+        assert np.range_domain_map == {"nodeA": ["node1"], "nodeB": ["node1"]}
+
+    def test_update_reverse_dependencies(self) -> None:
+        """Test NodeProcessor.update_reverse_dependencies"""
+        np = NodeProcessor(["node1"])
+        assert not np.reverse_dependencies
+        np.update_reverse_dependencies("node1", ["nodeA", "nodeB"])
+        assert np.reverse_dependencies == {"nodeA": ["node1"], "nodeB": ["node1"]}
+
+    def test_update_nodes_to_process(self) -> None:
+        """Test NodeProcessor.update_nodes_to_process"""
+        np = NodeProcessor(["node1"])
+        assert not np.are_nodes_remaining()
+        np.update_nodes_to_process(["node2"])
+        assert np.are_nodes_remaining()
+
+    def test_update_processed_nodes_with_current_node(self) -> None:
+        """Test NodeProcessor.update_processed_nodes_with_current_node"""
+        np = NodeProcessor(["node1"])
+        assert not np.processed_nodes
+        np.update_processed_nodes_with_current_node ()
+        assert np.processed_nodes == ["node1"]
 
 
 @pytest.mark.parametrize(
