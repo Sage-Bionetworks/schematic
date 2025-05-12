@@ -3,23 +3,20 @@
   "type": "object",
   "description": "TBD",
   "properties": {
-    "Sex": {
+    "Diagnosis": {
       "description": "TBD",
       "oneOf": [
         {
           "enum": [
-            "Other",
-            "Male",
-            "Female"
-          ]
+            "Healthy",
+            "Cancer"
+          ],
+          "title": "enum"
         }
       ]
     },
-    "Patient ID": {
-      "description": "TBD",
-      "not": {
-        "type": "null"
-      }
+    "Year of Birth": {
+      "description": "TBD"
     },
     "Component": {
       "description": "TBD",
@@ -27,17 +24,22 @@
         "type": "null"
       }
     },
-    "Year of Birth": {
-      "description": "TBD"
+    "Patient ID": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
     },
-    "Diagnosis": {
+    "Sex": {
       "description": "TBD",
       "oneOf": [
         {
           "enum": [
-            "Cancer",
-            "Healthy"
-          ]
+            "Other",
+            "Female",
+            "Male"
+          ],
+          "title": "enum"
         }
       ]
     },
@@ -45,18 +47,20 @@
       "oneOf": [
         {
           "type": "array",
+          "title": "array",
           "items": {
             "enum": [
-              "Prostate",
-              "Lung",
+              "Skin",
               "Colorectal",
+              "Lung",
               "Breast",
-              "Skin"
+              "Prostate"
             ]
           }
         },
         {
-          "type": "null"
+          "type": "null",
+          "title": "null"
         }
       ],
       "description": "TBD"
@@ -66,24 +70,26 @@
       "oneOf": [
         {
           "enum": [
-            "Prostate",
-            "Lung",
+            "Skin",
             "Colorectal",
+            "Lung",
             "Breast",
-            "Skin"
-          ]
+            "Prostate"
+          ],
+          "title": "enum"
         },
         {
-          "type": "null"
+          "type": "null",
+          "title": "null"
         }
       ]
     }
   },
   "required": [
-    "Sex",
-    "Patient ID",
+    "Diagnosis",
     "Component",
-    "Diagnosis"
+    "Patient ID",
+    "Sex"
   ],
   "$id": "http://example.com/Patient_validation",
   "$schema": "http://json-schema.org/draft-07/schema#",

@@ -34,7 +34,7 @@
         }
       ]
     },
-    "Component": {
+    "Sample ID": {
       "description": "TBD",
       "not": {
         "type": "null"

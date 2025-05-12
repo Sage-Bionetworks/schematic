@@ -3,13 +3,13 @@
   "type": "object",
   "description": "TBD",
   "properties": {
-    "Filename": {
+    "Component": {
       "description": "TBD",
       "not": {
         "type": "null"
       }
     },
-    "Component": {
+    "Filename": {
       "description": "TBD",
       "not": {
         "type": "null"
@@ -17,8 +17,8 @@
     }
   },
   "required": [
-    "Filename",
-    "Component"
+    "Component",
+    "Filename"
   ],
   "$id": "http://example.com/MockFilename_validation",
   "$schema": "http://json-schema.org/draft-07/schema#"

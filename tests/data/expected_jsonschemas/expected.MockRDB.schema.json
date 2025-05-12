@@ -3,6 +3,12 @@
   "type": "object",
   "description": "TBD",
   "properties": {
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
     "SourceManifest": {
       "description": "TBD",
       "not": {
@@ -12,12 +18,6 @@
     "MockRDBId": {
       "description": "TBD",
       "type": "integer"
-    },
-    "Component": {
-      "description": "TBD",
-      "not": {
-        "type": "null"
-      }
     }
   },
   "required": [
