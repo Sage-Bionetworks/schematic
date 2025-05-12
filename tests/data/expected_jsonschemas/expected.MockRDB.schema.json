@@ -3,6 +3,12 @@
   "type": "object",
   "description": "TBD",
   "properties": {
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
     "SourceManifest": {
       "description": "TBD",
       "not": {
@@ -12,18 +18,12 @@
     "MockRDB_id": {
       "description": "TBD",
       "type": "integer"
-    },
-    "Component": {
-      "description": "TBD",
-      "not": {
-        "type": "null"
-      }
     }
   },
   "required": [
+    "Component",
     "SourceManifest",
-    "MockRDB_id",
-    "Component"
+    "MockRDB_id"
   ],
   "$id": "http://example.com/MockRDB_validation",
   "$schema": "http://json-schema.org/draft-07/schema#"

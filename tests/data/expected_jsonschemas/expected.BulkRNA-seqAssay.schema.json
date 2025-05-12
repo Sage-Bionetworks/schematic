@@ -3,18 +3,11 @@
   "type": "object",
   "description": "TBD",
   "properties": {
-    "File Format": {
+    "Component": {
       "description": "TBD",
-      "oneOf": [
-        {
-          "enum": [
-            "CSV/TSV",
-            "BAM",
-            "FASTQ",
-            "CRAM"
-          ]
-        }
-      ]
+      "not": {
+        "type": "null"
+      }
     },
     "Sample ID": {
       "description": "TBD",
@@ -28,25 +21,35 @@
         "type": "null"
       }
     },
-    "Component": {
+    "File Format": {
       "description": "TBD",
-      "not": {
-        "type": "null"
-      }
+      "oneOf": [
+        {
+          "enum": [
+            "CRAM",
+            "BAM",
+            "CSV/TSV",
+            "FASTQ"
+          ],
+          "title": "enum"
+        }
+      ]
     },
     "Genome Build": {
       "description": "TBD",
       "oneOf": [
         {
           "enum": [
-            "GRCh37",
             "GRCm39",
-            "GRCm38",
-            "GRCh38"
-          ]
+            "GRCh38",
+            "GRCh37",
+            "GRCm38"
+          ],
+          "title": "enum"
         },
         {
-          "type": "null"
+          "type": "null",
+          "title": "null"
         }
       ]
     },
@@ -55,10 +58,10 @@
     }
   },
   "required": [
-    "File Format",
+    "Component",
     "Sample ID",
     "Filename",
-    "Component"
+    "File Format"
   ],
   "$id": "http://example.com/BulkRNA-seqAssay_validation",
   "$schema": "http://json-schema.org/draft-07/schema#",
@@ -68,7 +71,7 @@
         "properties": {
           "File Format": {
             "enum": [
-              "CSV/TSV"
+              "CRAM"
             ]
           }
         }
@@ -114,7 +117,7 @@
         "properties": {
           "File Format": {
             "enum": [
-              "CRAM"
+              "CSV/TSV"
             ]
           }
         }

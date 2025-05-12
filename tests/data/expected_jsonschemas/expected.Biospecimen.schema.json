@@ -3,13 +3,13 @@
   "type": "object",
   "description": "TBD",
   "properties": {
-    "Patient ID": {
+    "Component": {
       "description": "TBD",
       "not": {
         "type": "null"
       }
     },
-    "Sample ID": {
+    "Patient ID": {
       "description": "TBD",
       "not": {
         "type": "null"
@@ -20,14 +20,15 @@
       "oneOf": [
         {
           "enum": [
+            "Healthy",
             "Malignant",
-            "None",
-            "Healthy"
-          ]
+            "None"
+          ],
+          "title": "enum"
         }
       ]
     },
-    "Component": {
+    "Sample ID": {
       "description": "TBD",
       "not": {
         "type": "null"
@@ -35,10 +36,10 @@
     }
   },
   "required": [
+    "Component",
     "Patient ID",
-    "Sample ID",
     "Tissue Status",
-    "Component"
+    "Sample ID"
   ],
   "$id": "http://example.com/Biospecimen_validation",
   "$schema": "http://json-schema.org/draft-07/schema#"
