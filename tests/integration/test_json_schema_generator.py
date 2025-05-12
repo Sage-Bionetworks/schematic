@@ -13,6 +13,7 @@ from schematic.schemas.json_schema_generator import (
     JSONSchemaGenerator,
 )
 
+
 @pytest.fixture(name="dm_json_schema")
 def fixture_dm_json_schema() -> Generator[JSONSchemaGenerator, None, None]:
     """Yields a DataModelJSONSchema2 with the example data model"""
@@ -26,6 +27,7 @@ def fixture_dm_json_schema() -> Generator[JSONSchemaGenerator, None, None]:
         graph=metadata_model.graph_data_model,
     )
     yield data_model_js
+
 
 @pytest.mark.parametrize(
     "datatype",
@@ -51,7 +53,7 @@ def test_upload_schemas_to_synapse(
         dm_json_schema.get_json_validation_schema(datatype, title, test_path)
 
         # Create a unique id fot the schema that is only characters
-        schema_id = ''.join(i for i in str(uuid.uuid4()) if i.isalpha())
+        schema_id = "".join(i for i in str(uuid.uuid4()) if i.isalpha())
         test_schema_name = f"test.schematic.{schema_id}"
 
         syn = synapseclient.login()
