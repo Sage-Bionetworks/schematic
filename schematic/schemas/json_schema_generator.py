@@ -469,10 +469,10 @@ def _create_enum_array_property(
     Returns:
         JSON object
     """
-    types = [{"type": "array", "items": {"enum": enum_list}}]
+    types = [{"type": "array", "title": "array", "items": {"enum": enum_list}}]
 
     if not is_required:
-        types += [{"type": "null"}]
+        types += [{"type": "null", "title": "null"}]
 
     schema = {name: {"oneOf": types, "description": description}}
     return schema  # type: ignore
@@ -494,7 +494,7 @@ def _create_array_property(
         JSON object
     """
 
-    array_dict: dict[str, Any] = {"type": "array"}
+    array_dict: dict[str, Any] = {"type": "array", "title": "array"}
 
     include_items = any(
         [
@@ -515,7 +515,7 @@ def _create_array_property(
 
     types = [array_dict]
     if not is_required:
-        types += [{"type": "null"}]
+        types += [{"type": "null", "title": "null"}]
 
     schema = {name: {"oneOf": types, "description": description}}
     return schema
@@ -537,9 +537,9 @@ def _create_enum_property(
         JSON object
     """
     schema: dict[str, Any] = {name: {"description": description}}
-    one_of_list: list[dict[str, Any]] = [{"enum": enum_list}]
+    one_of_list: list[dict[str, Any]] = [{"enum": enum_list, "title": "enum"}]
     if not is_required:
-        one_of_list += [{"type": "null"}]
+        one_of_list += [{"type": "null", "title": "null"}]
     schema[name]["oneOf"] = one_of_list
     return schema
 
@@ -567,8 +567,8 @@ def _create_simple_property(
         schema[name]["type"] = property_data.property_type
     elif property_data.property_type:
         schema[name]["oneOf"] = [
-            {"type": property_data.property_type},
-            {"type": "null"},
+            {"type": property_data.property_type, "title": property_data.property_type},
+            {"type": "null", "title": "null"},
         ]
     elif is_required:
         schema[name]["not"] = {"type": "null"}
