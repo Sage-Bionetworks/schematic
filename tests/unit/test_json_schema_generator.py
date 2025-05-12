@@ -526,7 +526,12 @@ def test_create_enum_property(
         (
             PropertyData("string"),
             False,
-            {"name": {"type": ["string", "null"], "description": "TBD"}},
+            {
+                "name": {
+                    "description": "TBD",
+                    "oneOf": [{"type": "string"}, {"type": "null"}],
+                }
+            },
         ),
         # If is_required is True '"not": {"type":"null"}' is added to schema if
         # property_type is not given

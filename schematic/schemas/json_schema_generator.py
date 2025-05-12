@@ -566,7 +566,10 @@ def _create_simple_property(
     if property_data.property_type and is_required:
         schema[name]["type"] = property_data.property_type
     elif property_data.property_type:
-        schema[name]["type"] = [property_data.property_type, "null"]
+        schema[name]["oneOf"] = [
+            {"type": property_data.property_type},
+            {"type": "null"},
+        ]
     elif is_required:
         schema[name]["not"] = {"type": "null"}
 
