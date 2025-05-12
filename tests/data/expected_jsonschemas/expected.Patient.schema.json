@@ -1,96 +1,4 @@
 {
-  "title": "Patient_validation",
-  "type": "object",
-  "description": "TBD",
-  "properties": {
-    "Diagnosis": {
-      "description": "TBD",
-      "oneOf": [
-        {
-          "enum": [
-            "Healthy",
-            "Cancer"
-          ],
-          "title": "enum"
-        }
-      ]
-    },
-    "Year of Birth": {
-      "description": "TBD"
-    },
-    "Component": {
-      "description": "TBD",
-      "not": {
-        "type": "null"
-      }
-    },
-    "Patient ID": {
-      "description": "TBD",
-      "not": {
-        "type": "null"
-      }
-    },
-    "Sex": {
-      "description": "TBD",
-      "oneOf": [
-        {
-          "enum": [
-            "Other",
-            "Female",
-            "Male"
-          ],
-          "title": "enum"
-        }
-      ]
-    },
-    "Family History": {
-      "oneOf": [
-        {
-          "type": "array",
-          "title": "array",
-          "items": {
-            "enum": [
-              "Skin",
-              "Colorectal",
-              "Lung",
-              "Breast",
-              "Prostate"
-            ]
-          }
-        },
-        {
-          "type": "null",
-          "title": "null"
-        }
-      ],
-      "description": "TBD"
-    },
-    "Cancer Type": {
-      "description": "TBD",
-      "oneOf": [
-        {
-          "enum": [
-            "Skin",
-            "Colorectal",
-            "Lung",
-            "Breast",
-            "Prostate"
-          ],
-          "title": "enum"
-        },
-        {
-          "type": "null",
-          "title": "null"
-        }
-      ]
-    }
-  },
-  "required": [
-    "Diagnosis",
-    "Component",
-    "Patient ID",
-    "Sex"
-  ],
   "$id": "http://example.com/Patient_validation",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "allOf": [
@@ -106,14 +14,14 @@
       },
       "then": {
         "properties": {
-          "Family History": {
+          "CancerType": {
             "not": {
               "type": "null"
             }
           }
         },
         "required": [
-          "Family History"
+          "CancerType"
         ]
       }
     },
@@ -129,16 +37,108 @@
       },
       "then": {
         "properties": {
-          "Cancer Type": {
+          "FamilyHistory": {
             "not": {
               "type": "null"
             }
           }
         },
         "required": [
-          "Cancer Type"
+          "FamilyHistory"
         ]
       }
     }
-  ]
+  ],
+  "description": "TBD",
+  "properties": {
+    "CancerType": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "Breast",
+            "Prostate",
+            "Colorectal",
+            "Lung",
+            "Skin"
+          ],
+          "title": "enum"
+        },
+        {
+          "title": "null",
+          "type": "null"
+        }
+      ]
+    },
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Diagnosis": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "Cancer",
+            "Healthy"
+          ],
+          "title": "enum"
+        }
+      ]
+    },
+    "FamilyHistory": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "items": {
+            "enum": [
+              "Breast",
+              "Prostate",
+              "Colorectal",
+              "Lung",
+              "Skin"
+            ]
+          },
+          "title": "array",
+          "type": "array"
+        },
+        {
+          "title": "null",
+          "type": "null"
+        }
+      ]
+    },
+    "PatientID": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Sex": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "Female",
+            "Other",
+            "Male"
+          ],
+          "title": "enum"
+        }
+      ]
+    },
+    "YearofBirth": {
+      "description": "TBD"
+    }
+  },
+  "required": [
+    "Sex",
+    "Diagnosis",
+    "Component",
+    "PatientID"
+  ],
+  "title": "Patient_validation",
+  "type": "object"
 }
