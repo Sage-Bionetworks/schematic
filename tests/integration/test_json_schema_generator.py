@@ -6,6 +6,7 @@ import json
 import uuid
 
 import synapseclient
+from synapseclient.client import Synapse
 import pytest
 
 from schematic.models.metadata import MetadataModel
@@ -41,7 +42,7 @@ def fixture_dm_json_schema() -> Generator[JSONSchemaGenerator, None, None]:
     ],
 )
 def test_upload_schemas_to_synapse(
-    dm_json_schema: JSONSchemaGenerator, datatype: str
+    syn: Synapse, dm_json_schema: JSONSchemaGenerator, datatype: str
 ) -> None:
     """Tests for JSONSchemaGenerator.get_json_validation_schema"""
     try:
@@ -56,7 +57,6 @@ def test_upload_schemas_to_synapse(
         schema_id = "".join(i for i in str(uuid.uuid4()) if i.isalpha())
         test_schema_name = f"test.schematic.{schema_id}"
 
-        syn = synapseclient.login()
         js = syn.service("json_schema")
         org = js.JsonSchemaOrganization("dpetest")
         with open(test_path, "r") as f:
