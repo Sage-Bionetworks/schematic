@@ -640,6 +640,20 @@ def test_get_in_range_rule_from_rule_list(
 
 
 @pytest.mark.parametrize(
+    "input_rules",
+    [(["inRange", "inRange"]), (["inRange 0", "inRange 0"])],
+)
+def test_get_in_range_rule_from_rule_list_exceptions(
+    input_rules: list[str],
+) -> None:
+    """Test for _get_in_range_rule_from_rule_list with exceptions"""
+    with pytest.raises(
+        ValueError, match="Found more than one inRange rule in validation rules"
+    ):
+        _get_in_range_rule_from_rule_list(input_rules)
+
+
+@pytest.mark.parametrize(
     "input_rules, expected_rule",
     [([], None), (["list strict"], None), (["str"], "str"), (["str error"], "str")],
 )
@@ -650,3 +664,17 @@ def test_get_type_rule_from_rule_list(
     """Test for _get_type_rule_from_rule_list"""
     result = _get_type_rule_from_rule_list(input_rules)
     assert result == expected_rule
+
+
+@pytest.mark.parametrize(
+    "input_rules",
+    [(["str", "int"]), (["str", "str", "str"]), (["str", "str error", "str warning"])],
+)
+def test_get_type_rule_from_rule_list_exceptions(
+    input_rules: list[str],
+) -> None:
+    """Test for _get_type_rule_from_rule_list with exceptions"""
+    with pytest.raises(
+        ValueError, match="Found more than one type rule in validation rules"
+    ):
+        _get_type_rule_from_rule_list(input_rules)
