@@ -262,6 +262,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
             if node_display_name in node_processor.reverse_dependencies:
                 _set_conditional_dependencies(
                     json_schema,
+                    node_processor.current_node,
                     node_display_name,
                     node_processor.reverse_dependencies,
                     node_processor.range_domain_map,
@@ -269,7 +270,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
                 is_node_required = False
             _set_property(
                 json_schema,
-                node_display_name,
+                node_processor.current_node,
                 node_range_display_names,
                 node_validation_rules,
                 is_node_required,
@@ -332,6 +333,7 @@ def _write_data_model(
 def _set_conditional_dependencies(
     json_schema: JSONSchema,
     conditional_property: str,
+    property_display_name: str,
     reverse_dependencies: dict[str, list[str]],
     range_domain_map: dict[str, list[str]],
 ) -> None:
@@ -359,14 +361,14 @@ def _set_conditional_dependencies(
          },
          "then":{
             "properties":{
-               "Family History":{
+               "FamilyHistory":{
                   "not":{
                      "type":"null"
                   }
                }
             },
             "required":[
-               "Family History"
+               "FamilyHistory"
             ]
          }
 
@@ -374,6 +376,7 @@ def _set_conditional_dependencies(
         json_schema: The JSON Schema to add conditional dependencies to
         conditional_property: The name of the node to add conditional dependencies for
           In the above example this would be Cancer Type or Family History
+        property_display_name: the display name of the conditional property.
         reverse_dependencies: A map of nodes and a list of their dependencies
           In the above example this would be:
           {'Family History': ['Cancer'], 'Cancer Type': ['Cancer']}
@@ -382,7 +385,7 @@ def _set_conditional_dependencies(
     """
     # The conditional_value will be the specific value that triggers the conditional dependency.
     # When the watched_property == conditional_value, the conditional_property will become required
-    for conditional_value in reverse_dependencies[conditional_property]:
+    for conditional_value in reverse_dependencies[property_display_name]:
         if conditional_value in range_domain_map:
             properties = range_domain_map[conditional_value]
             # watched_property is the property such that when the

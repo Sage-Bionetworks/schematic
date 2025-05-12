@@ -160,6 +160,7 @@ def test_set_conditional_dependencies_nothing_added(
     _set_conditional_dependencies(
         json_schema=json_schema,
         conditional_property="property_name",
+        property_display_name="property_name",
         reverse_dependencies=reverse_dependencies,
         range_domain_map=range_domain_map,
     )
@@ -251,6 +252,7 @@ def test_set_conditional_dependencies(
     _set_conditional_dependencies(
         json_schema=json_schema,
         conditional_property="property_name",
+        property_display_name="property_name",
         reverse_dependencies=reverse_dependencies,
         range_domain_map=range_domain_map,
     )
