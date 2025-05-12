@@ -274,6 +274,7 @@ def test_set_conditional_dependencies(
                         "oneOf": [
                             {
                                 "type": "array",
+                                "title": "array",
                                 "items": {"enum": ["enum1"]},
                             },
                         ],
@@ -297,11 +298,10 @@ def test_set_conditional_dependencies(
                         "oneOf": [
                             {
                                 "type": "array",
+                                "title": "array",
                                 "items": {"enum": ["enum1"]},
                             },
-                            {
-                                "type": "null",
-                            },
+                            {"type": "null", "title": "null"},
                         ],
                     }
                 },
@@ -319,7 +319,10 @@ def test_set_conditional_dependencies(
                 properties={
                     "property_name": {
                         "description": "TBD",
-                        "oneOf": [{"enum": ["enum1"]}, {"type": "null"}],
+                        "oneOf": [
+                            {"enum": ["enum1"], "title": "enum"},
+                            {"type": "null", "title": "null"},
+                        ],
                     }
                 },
                 required=[],
@@ -335,7 +338,10 @@ def test_set_conditional_dependencies(
             JSONSchema(
                 properties={
                     "property_name": {
-                        "oneOf": [{"type": "array"}, {"type": "null"}],
+                        "oneOf": [
+                            {"type": "array", "title": "array"},
+                            {"type": "null", "title": "null"},
+                        ],
                         "description": "TBD",
                     }
                 },
@@ -384,7 +390,13 @@ def test_set_property(
             {
                 "name": {
                     "description": "TBD",
-                    "oneOf": [{"type": "array", "items": {"enum": ["enum1"]}}],
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "title": "array",
+                            "items": {"enum": ["enum1"]},
+                        }
+                    ],
                 }
             },
         ),
@@ -396,8 +408,12 @@ def test_set_property(
                 "name": {
                     "description": "TBD",
                     "oneOf": [
-                        {"type": "array", "items": {"enum": ["enum1"]}},
-                        {"type": "null"},
+                        {
+                            "type": "array",
+                            "title": "array",
+                            "items": {"enum": ["enum1"]},
+                        },
+                        {"type": "null", "title": "null"},
                     ],
                 }
             },
@@ -420,7 +436,12 @@ def test_create_enum_array_property(
         (
             PropertyData(is_array=True),
             True,
-            {"name": {"description": "TBD", "oneOf": [{"type": "array"}]}},
+            {
+                "name": {
+                    "description": "TBD",
+                    "oneOf": [{"type": "array", "title": "array"}],
+                }
+            },
         ),
         # If is_required is False, "{'type': 'null'}" is added to the oneOf list
         (
@@ -428,7 +449,10 @@ def test_create_enum_array_property(
             False,
             {
                 "name": {
-                    "oneOf": [{"type": "array"}, {"type": "null"}],
+                    "oneOf": [
+                        {"type": "array", "title": "array"},
+                        {"type": "null", "title": "null"},
+                    ],
                     "description": "TBD",
                 }
             },
@@ -439,7 +463,9 @@ def test_create_enum_array_property(
             True,
             {
                 "name": {
-                    "oneOf": [{"type": "array", "items": {"type": "string"}}],
+                    "oneOf": [
+                        {"type": "array", "title": "array", "items": {"type": "string"}}
+                    ],
                     "description": "TBD",
                 }
             },
@@ -454,6 +480,7 @@ def test_create_enum_array_property(
                     "oneOf": [
                         {
                             "type": "array",
+                            "title": "array",
                             "items": {"type": "number", "minimum": 0, "maximum": 1},
                         }
                     ],
@@ -480,11 +507,20 @@ def test_create_array_property(
 @pytest.mark.parametrize(
     "enum_list, is_required, expected_schema",
     [
-        ([], True, {"name": {"description": "TBD", "oneOf": [{"enum": []}]}}),
+        (
+            [],
+            True,
+            {"name": {"description": "TBD", "oneOf": [{"enum": [], "title": "enum"}]}},
+        ),
         (
             ["enum1"],
             True,
-            {"name": {"description": "TBD", "oneOf": [{"enum": ["enum1"]}]}},
+            {
+                "name": {
+                    "description": "TBD",
+                    "oneOf": [{"enum": ["enum1"], "title": "enum"}],
+                }
+            },
         ),
         # If is_required is False, None is added as a type
         (
@@ -493,7 +529,10 @@ def test_create_array_property(
             {
                 "name": {
                     "description": "TBD",
-                    "oneOf": [{"enum": ["enum1"]}, {"type": "null"}],
+                    "oneOf": [
+                        {"enum": ["enum1"], "title": "enum"},
+                        {"type": "null", "title": "null"},
+                    ],
                 }
             },
         ),
@@ -529,7 +568,10 @@ def test_create_enum_property(
             {
                 "name": {
                     "description": "TBD",
-                    "oneOf": [{"type": "string"}, {"type": "null"}],
+                    "oneOf": [
+                        {"type": "string", "title": "string"},
+                        {"type": "null", "title": "null"},
+                    ],
                 }
             },
         ),
