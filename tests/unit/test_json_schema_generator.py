@@ -239,6 +239,7 @@ def test_set_conditional_dependencies_nothing_added(
             ),
         ),
     ],
+    ids=["one rev dep, one enum", "two rev deps, one enum", "two rev deps, two enums"],
 )
 def test_set_conditional_dependencies(
     reverse_dependencies: dict[str, list[str]],
@@ -507,11 +508,13 @@ def test_create_array_property(
 @pytest.mark.parametrize(
     "enum_list, is_required, expected_schema",
     [
+        # Empty enum list
         (
             [],
             True,
             {"name": {"description": "TBD", "oneOf": [{"enum": [], "title": "enum"}]}},
         ),
+        # If is_required is True, no type is added
         (
             ["enum1"],
             True,
@@ -522,7 +525,7 @@ def test_create_array_property(
                 }
             },
         ),
-        # If is_required is False, None is added as a type
+        # If is_required is False, "null" is added as a type
         (
             ["enum1"],
             False,
@@ -537,6 +540,7 @@ def test_create_array_property(
             },
         ),
     ],
+    ids=["empty enum list", "is required==True", "is required==False"],
 )
 def test_create_enum_property(
     enum_list: list[str],

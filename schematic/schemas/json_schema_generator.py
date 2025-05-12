@@ -12,6 +12,9 @@ from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.schema_utils import get_json_schema_log_file_path
 from schematic.utils.validate_utils import rule_in_rule_list
 
+from schematic.utils.io_utils import export_json
+
+
 logger = logging.getLogger(__name__)
 
 # A dict where the keys are type validation rules, and the values are their JSON Schema equivalent
@@ -72,7 +75,7 @@ class NodeProcessor:
         """
         self.root_dependencies: list[str] = initial_nodes
         self.nodes_to_process = self.root_dependencies.copy()
-        self.current_node = self.nodes_to_process.pop(0)
+        self.current_node: str = self.nodes_to_process.pop(0)
         self.processed_nodes: list[str] = []
         self.reverse_dependencies: dict[str, list[str]] = {}
         self.range_domain_map: dict[str, list[str]] = {}
@@ -194,13 +197,10 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
             description=self.dmge.get_node_comment(node_label=datatype),
         )
 
-        while True:
+        while node_processor.are_nodes_remaining():
             if not node_processor.is_current_node_processed():
                 self._process_node(json_schema, datatype, node_processor)
-            if node_processor.are_nodes_remaining():
-                node_processor.move_to_next_node()
-            else:
-                break
+            node_processor.move_to_next_node()
 
         logger.info("JSON schema successfully generated from schema.org schema!")
 
@@ -320,8 +320,14 @@ def _write_data_model(
         json_schema_dirname = os.path.dirname(json_schema_log_file_path)
         if json_schema_dirname != "":
             os.makedirs(json_schema_dirname, exist_ok=True)
-    with open(json_schema_log_file_path, "w", encoding="UTF-8") as js_f:
-        json.dump(json_schema_dict, js_f, indent=2)
+
+        logger.info(
+            "The JSON schema file can be inspected by setting the following "
+            "nested key in the configuration: (model > location)."
+        )
+    export_json(
+        json_doc=json_schema_dict, file_path=json_schema_log_file_path, indent=2
+    )
 
 
 def _set_conditional_dependencies(
@@ -459,6 +465,45 @@ def _create_enum_array_property(
 ) -> dict[str, Any]:
     """
     Creates a JSON Schema array/enum
+
+    Example(not is_required):
+
+    {
+        "type": "object",
+        "properties": {
+            "property_name" : {
+                "oneOf": [
+                    {
+                        "type": "array",
+                        "title": "array"
+                        "items": {"enum": ["enum1", "enum2"]},
+                    },
+                    {
+                        "type": "null"
+                        "title": "null"
+                    }
+                ]
+            }
+        }
+    }
+
+    Example(is_required):
+
+    {
+        "type": "object",
+        "properties": {
+            "property_name" : {
+                "oneOf": [
+                    {
+                        "type": "array",
+                        "title": "array"
+                        "items": {"enum": ["enum1", "enum2"]},
+                    }
+                ]
+            }
+        }
+    }
+
 
     Arguments:
         enum_list: List of values that will make up the enum
