@@ -138,6 +138,8 @@ class NodeProcessor:
 
     def update_processed_nodes_with_current_node(self) -> None:
         """Adds the current node to the list of processed nodes"""
+        if self.current_node is None:
+            raise ValueError("Current node is None")
         self.processed_nodes.append(self.current_node)
 
 
@@ -225,6 +227,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
             source_node: The node that the JSON Schema is being created for
             node_processor: A node processor for the source node
         """
+        assert node_processor.current_node
         node_range = self.dmge.get_adjacent_nodes_by_relationship(
             node_label=node_processor.current_node,
             relationship=self.rel_dict["rangeIncludes"]["edge_key"],
