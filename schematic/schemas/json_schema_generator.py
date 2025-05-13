@@ -212,6 +212,16 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
     def _process_node(
         self, json_schema: JSONSchema, source_node: str, node_processor: NodeProcessor
     ) -> None:
+        """
+        Processes a node in the data model graph.
+        If it should be a property in the JSON Schema, that is set.
+        If it is a property with reverse dependencies, conditional properties are set.
+
+        Argument:
+            json_schema: The JSON Scheme where the node might be set as a property
+            source_node: The node that the JSON Schema is being created for
+            node_processor: A node processor for the source node
+        """
         node_range = self.dmge.get_adjacent_nodes_by_relationship(
             node_label=node_processor.current_node,
             relationship=self.rel_dict["rangeIncludes"]["edge_key"],
