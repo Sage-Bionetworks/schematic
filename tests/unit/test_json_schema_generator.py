@@ -136,28 +136,10 @@ def test_create_json_schema(js_generator: JSONSchemaGenerator, datatype: str) ->
 
 
 @pytest.mark.parametrize(
-    "instance, datatype",
+    "instance_path, datatype",
     [
-        (
-            {
-                "Diagnosis": "Healthy",
-                "Component": "test",
-                "Sex": "Male",
-                "PatientID": "test",
-            },
-            "Patient",
-        ),
-        (
-            {
-                "Diagnosis": "Cancer",
-                "Component": "test",
-                "Sex": "Male",
-                "PatientID": "test",
-                "CancerType": "Skin",
-                "FamilyHistory": ["Skin"],
-            },
-            "Patient",
-        ),
+        ("tests/data/json_instances/valid_patient1.json", "Patient"),
+        ("tests/data/json_instances/valid_patient2.json", "Patient"),
     ],
     ids=[
         "Patient, Diagnosis is Healthy",
@@ -165,40 +147,39 @@ def test_create_json_schema(js_generator: JSONSchemaGenerator, datatype: str) ->
     ],
 )
 def test_validate_valid_instances(
-    instance: dict[str, Any],
+    instance_path: str,
     datatype: str,
 ) -> None:
     """Validates instances using expected JSON Schemas"""
     schema_path = f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
-    with open(schema_path, encoding="utf-8") as f1:
-        schema = json.load(f1)
+    with open(schema_path, encoding="utf-8") as schema_file:
+        schema = json.load(schema_file)
+    with open(instance_path, encoding="utf-8") as instance_file:
+        instance = json.load(instance_file)
     validator = Draft7Validator(schema)
     validator.validate(instance)
 
 
 @pytest.mark.parametrize(
-    "instance, datatype",
+    "instance_path, datatype",
     [
         (
-            {
-                "Diagnosis": "Cancer",
-                "Component": "test",
-                "Sex": "Male",
-                "PatientID": "test",
-            },
+            "tests/data/json_instances/patient_missing_conditional_dependencies.json",
             "Patient",
-        )
+        ),
     ],
     ids=["Patient, Diagnosis is Cancer, missing conditional dependencies"],
 )
 def test_validate_invalid_instances(
-    instance: dict[str, Any],
+    instance_path: str,
     datatype: str,
 ) -> None:
     """Raises a ValidationError validating invalid instances using expected JSON Schemas"""
     schema_path = f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
-    with open(schema_path, encoding="utf-8") as f1:
-        schema = json.load(f1)
+    with open(schema_path, encoding="utf-8") as schema_file:
+        schema = json.load(schema_file)
+    with open(instance_path, encoding="utf-8") as instance_file:
+        instance = json.load(instance_file)
     validator = Draft7Validator(schema)
     with pytest.raises(ValidationError):
         validator.validate(instance)
