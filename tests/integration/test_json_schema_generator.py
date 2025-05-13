@@ -39,7 +39,6 @@ def fixture_js_generator() -> Generator[JSONSchemaGenerator, None, None]:
         ("MockComponent"),
         ("MockFilename"),
         ("MockRDB"),
-        ("Patient"),
     ],
 )
 def test_upload_schemas_to_synapse(
@@ -60,9 +59,9 @@ def test_upload_schemas_to_synapse(
 
         js = syn.service("json_schema")
         org = js.JsonSchemaOrganization("dpetest")
-        with open(test_path, "r") as f:
-            temp = json.load(f)
-        org.create_json_schema(temp, test_schema_name, "0.0.1")
+        with open(test_path, encoding="utf-8") as schema_file:
+            schema = json.load(schema_file)
+        org.create_json_schema(schema, test_schema_name, "0.0.1")
 
     finally:
         os.remove(test_path)
@@ -70,27 +69,17 @@ def test_upload_schemas_to_synapse(
 
 
 @pytest.mark.parametrize(
-    "datatype, annotations, is_valid, messages",
+    "datatype, instance_path, is_valid, messages",
     [
         (
             "Patient",
-            {
-                "Diagnosis": "Healthy",
-                "Component": "test",
-                "Sex": "Male",
-                "PatientID": "test",
-            },
+            "tests/data/json_instances/valid_patient1.json",
             True,
             [],
         ),
         (
             "Patient",
-            {
-                "Diagnosis": "Cancer",
-                "Component": "test",
-                "Sex": "Male",
-                "PatientID": "test",
-            },
+            "tests/data/json_instances/patient_missing_conditional_dependencies.json",
             False,
             [
                 "#: required key [CancerType] not found",
@@ -107,7 +96,7 @@ def test_upload_and_validate_schemas_in_synapse(
     syn: Synapse,
     js_generator: JSONSchemaGenerator,
     datatype: str,
-    annotations: dict[str, Any],
+    instance_path: str,
     is_valid: bool,
     messages: list[str],
 ) -> None:
@@ -117,33 +106,42 @@ def test_upload_and_validate_schemas_in_synapse(
         test_file = f"test.{datatype}.schema.json"
         test_path = os.path.join(test_folder, test_file)
         title = f"{datatype}_validation"
+
+        # Create JSON Schema locally
         os.makedirs(test_folder, exist_ok=True)
-        js_generator.get_json_validation_schema(datatype, title, test_path)
+        js_generator.create_json_schema(datatype, title, test_path)
 
         # Create a unique id fot the schema that is only characters
         schema_id = "".join(i for i in str(uuid.uuid4()) if i.isalpha())
-        test_schema_name = f"test.schematic.{schema_id}"
 
+        # Create the JSON Schema in Synapse
         js = syn.service("json_schema")
         org = js.JsonSchemaOrganization("dpetest")
-        with open(test_path, "r") as f:
-            temp = json.load(f)
-        org.create_json_schema(temp, test_schema_name, "0.0.1")
+        with open(test_path, encoding="utf-8") as schema_file:
+            schema = json.load(schema_file)
+        test_schema_name = f"test.schematic.{schema_id}"
+        org.create_json_schema(schema, test_schema_name, "0.0.1")
+        test_schema_uri = f"dpetest-{test_schema_name}-0.0.1"
 
+        # Create a folder to bind the JSON Schema to in Synapse
         folder_name = f"test_json_schema_validation_{str(uuid.uuid4())}"
         folder = Folder(name=folder_name, parent="syn23643250")
         folder = syn.store(obj=folder)
         folder_id = folder.id
-        test_schema_uri = f"dpetest-{test_schema_name}-0.0.1"
+
+        # Bind the Synapse folder with the schema
         js.bind_json_schema(test_schema_uri, folder_id)
 
+        # Annotate the folder with a test instance
         existing_annotations = syn.get_annotations(folder_id)
-        existing_annotations.update(annotations)
+        with open(instance_path, encoding="utf-8") as instance_file:
+            instance = json.load(instance_file)
+        existing_annotations.update(instance)
         syn.set_annotations(annotations=existing_annotations)
         sleep(4)
 
+        # Attempt to validate the annotations against the bound schema
         results = js.validate(folder.id)
-        print(results)
         assert results["isValid"] == is_valid
         if not results["isValid"]:
             assert "allValidationMessages" in results

@@ -1,0 +1,8 @@
+{
+    "Diagnosis": "Cancer",
+    "Component": "test",
+    "Sex": "Male",
+    "PatientID": "test",
+    "CancerType": "Skin",
+    "FamilyHistory": ["Skin"]
+}
