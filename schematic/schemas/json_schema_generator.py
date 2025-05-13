@@ -74,21 +74,24 @@ class NodeProcessor:
         """
         self.root_dependencies: list[str] = initial_nodes
         self.nodes_to_process = self.root_dependencies.copy()
-        self.current_node: str = self.nodes_to_process.pop(0)
+        self.current_node: Union[str, None] = self.nodes_to_process.pop(0)
         self.processed_nodes: list[str] = []
         self.reverse_dependencies: dict[str, list[str]] = {}
         self.range_domain_map: dict[str, list[str]] = {}
 
     def move_to_next_node(self) -> None:
         """Removes the first node in nodes to process and sets it as current node"""
-        self.current_node = self.nodes_to_process.pop(0)
+        if self.nodes_to_process:
+            self.current_node = self.nodes_to_process.pop(0)
+        else:
+            self.current_node = None
 
     def are_nodes_remaining(self) -> bool:
         """
         Returns:
             Whether or not there are any nodes left to process
         """
-        return len(self.nodes_to_process) > 0
+        return self.current_node is not None
 
     def is_current_node_processed(self) -> bool:
         """
@@ -188,7 +191,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
         if not root_dependencies:
             raise ValueError(f"'{datatype}' is not a valid component in the schema.")
 
-        node_processor = NodeProcessor(root_dependencies)
+        node_processor = NodeProcessor(sorted(root_dependencies))
 
         json_schema = JSONSchema(
             schema_id="http://example.com/" + schema_name,
@@ -266,7 +269,6 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
                 node_processor.current_node in node_processor.root_dependencies,
             ]
         )
-
         if set_property:
             # Determine if current node has conditional dependencies that need to be set
             if node_display_name in node_processor.reverse_dependencies:

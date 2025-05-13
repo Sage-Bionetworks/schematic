@@ -7,7 +7,7 @@
         "properties": {
           "FileFormat": {
             "enum": [
-              "BAM"
+              "CSV/TSV"
             ]
           }
         }

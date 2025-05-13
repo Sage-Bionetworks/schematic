@@ -26,9 +26,9 @@
       "oneOf": [
         {
           "enum": [
+            "Healthy",
             "Malignant",
-            "None",
-            "Healthy"
+            "None"
           ],
           "title": "enum"
         }
@@ -36,7 +36,6 @@
     }
   },
   "required": [
-    "TissueStatus",
     "Component",
     "PatientID",
     "SampleID",
