@@ -3,6 +3,7 @@
 from typing import Generator, Any, Union
 import os
 import json
+from shutil import rmtree
 
 import pytest
 from jsonschema import Draft7Validator
@@ -45,6 +46,14 @@ def fixture_js_generator() -> Generator[JSONSchemaGenerator, None, None]:
         graph=metadata_model.graph_data_model,
     )
     yield data_model_js
+
+
+@pytest.fixture(name="test_directory", scope="session")
+def fixture_test_directory():
+    test_folder = "tests/data/test_jsonschemas"
+    os.makedirs(test_folder, exist_ok=True)
+    yield test_folder
+    rmtree(test_folder)
 
 
 class TestNodeProcessor:
@@ -118,21 +127,16 @@ class TestNodeProcessor:
         ("Patient"),
     ],
 )
-def test_create_json_schema(js_generator: JSONSchemaGenerator, datatype: str) -> None:
+def test_create_json_schema(
+    js_generator: JSONSchemaGenerator, datatype: str, test_directory: str
+) -> None:
     """Tests for JSONSchemaGenerator.create_json_schema"""
-    try:
-        test_folder = "tests/data/test_jsonschemas"
-        test_file = f"test.{datatype}.schema.json"
-        test_path = os.path.join(test_folder, test_file)
-        expected_path = (
-            f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
-        )
-        title = f"{datatype}_validation"
-        os.makedirs(test_folder, exist_ok=True)
-        js_generator.create_json_schema(datatype, title, test_path)
-        json_files_equal(test_path, expected_path)
-    finally:
-        os.remove(test_path)
+    test_file = f"test.{datatype}.schema.json"
+    test_path = os.path.join(test_directory, test_file)
+    expected_path = f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
+    title = f"{datatype}_validation"
+    js_generator.create_json_schema(datatype, title, test_path)
+    json_files_equal(test_path, expected_path)
 
 
 @pytest.mark.parametrize(
