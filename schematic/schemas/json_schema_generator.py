@@ -152,7 +152,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
         self.dmr = DataModelRelationships()
         self.rel_dict = self.dmr.relationships_dictionary
 
-    def get_json_validation_schema(
+    def create_json_schema(
         self, datatype: str, schema_name: str, schema_path: Union[str, None] = None
     ) -> dict[str, Any]:
         """

@@ -16,19 +16,19 @@ from schematic.schemas.json_schema_generator import (
 )
 
 
-@pytest.fixture(name="dm_json_schema")
-def fixture_dm_json_schema() -> Generator[JSONSchemaGenerator, None, None]:
+@pytest.fixture(name="js_generator")
+def fixture_js_generator() -> Generator[JSONSchemaGenerator, None, None]:
     """Yields a DataModelJSONSchema2 with the example data model"""
     metadata_model = MetadataModel(
         inputMModelLocation="tests/data/example.model.jsonld",
         inputMModelLocationType="local",
         data_model_labels="class_label",
     )
-    data_model_js = JSONSchemaGenerator(
+    js_generator = JSONSchemaGenerator(
         jsonld_path=metadata_model.inputMModelLocation,
         graph=metadata_model.graph_data_model,
     )
-    yield data_model_js
+    yield js_generator
 
 
 @pytest.mark.parametrize(
@@ -43,7 +43,7 @@ def fixture_dm_json_schema() -> Generator[JSONSchemaGenerator, None, None]:
     ],
 )
 def test_upload_schemas_to_synapse(
-    syn: Synapse, dm_json_schema: JSONSchemaGenerator, datatype: str
+    syn: Synapse, js_generator: JSONSchemaGenerator, datatype: str
 ) -> None:
     """Tests for JSONSchemaGenerator.get_json_validation_schema"""
     try:
@@ -52,7 +52,7 @@ def test_upload_schemas_to_synapse(
         test_path = os.path.join(test_folder, test_file)
         title = f"{datatype}_validation"
         os.makedirs(test_folder, exist_ok=True)
-        dm_json_schema.get_json_validation_schema(datatype, title, test_path)
+        js_generator.create_json_schema(datatype, title, test_path)
 
         # Create a unique id fot the schema that is only characters
         schema_id = "".join(i for i in str(uuid.uuid4()) if i.isalpha())
@@ -105,7 +105,7 @@ def test_upload_schemas_to_synapse(
 )
 def test_upload_and_validate_schemas_in_synapse(
     syn: Synapse,
-    dm_json_schema: JSONSchemaGenerator,
+    js_generator: JSONSchemaGenerator,
     datatype: str,
     annotations: dict[str, Any],
     is_valid: bool,
@@ -118,7 +118,7 @@ def test_upload_and_validate_schemas_in_synapse(
         test_path = os.path.join(test_folder, test_file)
         title = f"{datatype}_validation"
         os.makedirs(test_folder, exist_ok=True)
-        dm_json_schema.get_json_validation_schema(datatype, title, test_path)
+        js_generator.get_json_validation_schema(datatype, title, test_path)
 
         # Create a unique id fot the schema that is only characters
         schema_id = "".join(i for i in str(uuid.uuid4()) if i.isalpha())
@@ -143,6 +143,7 @@ def test_upload_and_validate_schemas_in_synapse(
         sleep(4)
 
         results = js.validate(folder.id)
+        print(results)
         assert results["isValid"] == is_valid
         if not results["isValid"]:
             assert "allValidationMessages" in results
