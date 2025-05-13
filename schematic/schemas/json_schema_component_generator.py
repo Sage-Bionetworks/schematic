@@ -254,12 +254,12 @@ class JsonSchemaComponentGenerator:
             inputMModelLocationType="local",
             data_model_labels="class_label",
         )
-        data_model_json_schema = JSONSchemaGenerator(
+        json_schema_generator = JSONSchemaGenerator(
             jsonld_path=metadata_model.inputMModelLocation,
             graph=metadata_model.graph_data_model,
         )
 
-        self.component_json_schema = data_model_json_schema.get_json_validation_schema(
+        self.component_json_schema = json_schema_generator.create_json_schema(
             datatype=self.component, schema_name=schema_name
         )
 

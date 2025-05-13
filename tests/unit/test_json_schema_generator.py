@@ -2,8 +2,11 @@
 
 from typing import Generator, Any, Union
 import os
+import json
 
 import pytest
+from jsonschema import Draft7Validator
+from jsonschema.exceptions import ValidationError
 
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.json_schema_generator import (
@@ -29,8 +32,8 @@ from tests.utils import json_files_equal
 # pylint: disable=too-many-positional-arguments
 
 
-@pytest.fixture(name="dm_json_schema")
-def fixture_dm_json_schema() -> Generator[JSONSchemaGenerator, None, None]:
+@pytest.fixture(name="js_generator")
+def fixture_js_generator() -> Generator[JSONSchemaGenerator, None, None]:
     """Yields a DataModelJSONSchema2 with the example data model"""
     metadata_model = MetadataModel(
         inputMModelLocation="tests/data/example.model.jsonld",
@@ -115,10 +118,8 @@ class TestNodeProcessor:
         ("Patient"),
     ],
 )
-def test_get_json_validation_schema(
-    dm_json_schema: JSONSchemaGenerator, datatype: str
-) -> None:
-    """Tests for JSONSchemaGenerator.get_json_validation_schema"""
+def test_create_json_schema(js_generator: JSONSchemaGenerator, datatype: str) -> None:
+    """Tests for JSONSchemaGenerator.create_json_schema"""
     try:
         test_folder = "tests/data/test_jsonschemas"
         test_file = f"test.{datatype}.schema.json"
@@ -128,10 +129,79 @@ def test_get_json_validation_schema(
         )
         title = f"{datatype}_validation"
         os.makedirs(test_folder, exist_ok=True)
-        dm_json_schema.get_json_validation_schema(datatype, title, test_path)
+        js_generator.create_json_schema(datatype, title, test_path)
         json_files_equal(test_path, expected_path)
     finally:
         os.remove(test_path)
+
+
+@pytest.mark.parametrize(
+    "instance, datatype",
+    [
+        (
+            {
+                "Diagnosis": "Healthy",
+                "Component": "test",
+                "Sex": "Male",
+                "PatientID": "test",
+            },
+            "Patient",
+        ),
+        (
+            {
+                "Diagnosis": "Cancer",
+                "Component": "test",
+                "Sex": "Male",
+                "PatientID": "test",
+                "CancerType": "Skin",
+                "FamilyHistory": ["Skin"],
+            },
+            "Patient",
+        ),
+    ],
+    ids=[
+        "Patient, Diagnosis is Healthy",
+        "Patient, Diagnosis is Cancer",
+    ],
+)
+def test_validate_valid_instances(
+    instance: dict[str, Any],
+    datatype: str,
+) -> None:
+    """Validates instances using expected JSON Schemas"""
+    schema_path = f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
+    with open(schema_path, encoding="utf-8") as f1:
+        schema = json.load(f1)
+    validator = Draft7Validator(schema)
+    validator.validate(instance)
+
+
+@pytest.mark.parametrize(
+    "instance, datatype",
+    [
+        (
+            {
+                "Diagnosis": "Cancer",
+                "Component": "test",
+                "Sex": "Male",
+                "PatientID": "test",
+            },
+            "Patient",
+        )
+    ],
+    ids=["Patient, Diagnosis is Cancer, missing conditional dependencies"],
+)
+def test_validate_invalid_instances(
+    instance: dict[str, Any],
+    datatype: str,
+) -> None:
+    """Raises a ValidationError validating invalid instances using expected JSON Schemas"""
+    schema_path = f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
+    with open(schema_path, encoding="utf-8") as f1:
+        schema = json.load(f1)
+    validator = Draft7Validator(schema)
+    with pytest.raises(ValidationError):
+        validator.validate(instance)
 
 
 @pytest.mark.parametrize(
@@ -385,7 +455,7 @@ def test_set_property(
 
 
 @pytest.mark.parametrize(
-    "enum_list, is_required, expected_schema",
+    "enum_list, is_required, expected_schema, valid_values, invalid_values",
     [
         (
             ["enum1"],
@@ -402,6 +472,8 @@ def test_set_property(
                     ],
                 }
             },
+            [[], ["enum1"]],
+            [[None], ["x"], None],
         ),
         # If is_required is False, "{'type': 'null'}" is added to the oneOf list
         (
@@ -420,21 +492,35 @@ def test_set_property(
                     ],
                 }
             },
+            [[], ["enum1"], None],
+            [[None], ["x"]],
         ),
     ],
+    ids=["Required", "Not required"],
 )
 def test_create_enum_array_property(
-    enum_list: list[str], is_required: bool, expected_schema: dict[str, Any]
+    enum_list: list[str],
+    is_required: bool,
+    expected_schema: dict[str, Any],
+    valid_values: list[Any],
+    invalid_values: list[Any],
 ) -> None:
     """Test for _create_enum_array_property"""
     schema = _create_enum_array_property(
         name="name", enum_list=enum_list, is_required=is_required, description="TBD"
     )
     assert schema == expected_schema
+    full_schema = {"type": "object", "properties": schema, "required": []}
+    validator = Draft7Validator(full_schema)
+    for value in valid_values:
+        validator.validate({"name": value})
+    for value in invalid_values:
+        with pytest.raises(ValidationError):
+            validator.validate({"name": value})
 
 
 @pytest.mark.parametrize(
-    "property_data, is_required, expected_schema",
+    "property_data, is_required, expected_schema, valid_values, invalid_values",
     [
         (
             PropertyData(is_array=True),
@@ -445,6 +531,8 @@ def test_create_enum_array_property(
                     "oneOf": [{"type": "array", "title": "array"}],
                 }
             },
+            [[], [None], ["x"]],
+            ["x", None],
         ),
         # If is_required is False, "{'type': 'null'}" is added to the oneOf list
         (
@@ -459,6 +547,8 @@ def test_create_enum_array_property(
                     "description": "TBD",
                 }
             },
+            [None, [], [None], ["x"]],
+            ["x"],
         ),
         # If item_type is given, it is set in the schema
         (
@@ -472,6 +562,8 @@ def test_create_enum_array_property(
                     "description": "TBD",
                 }
             },
+            [[], ["x"]],
+            [None, [None], [1]],
         ),
         # If property_data has range_min or range_max, they are set in the schema
         (
@@ -489,13 +581,23 @@ def test_create_enum_array_property(
                     ],
                 }
             },
+            [[], [1]],
+            [None, [None], [2], ["x"]],
         ),
+    ],
+    ids=[
+        "Required, no item type",
+        "Not required, no item type",
+        "Required, string item type",
+        "Required, number item type",
     ],
 )
 def test_create_array_property(
     property_data: PropertyData,
     is_required: bool,
     expected_schema: dict[str, Any],
+    valid_values: list[Any],
+    invalid_values: list[Any],
 ) -> None:
     """Test for _create_array_property"""
     schema = _create_array_property(
@@ -505,16 +607,25 @@ def test_create_array_property(
         description="TBD",
     )
     assert schema == expected_schema
+    full_schema = {"type": "object", "properties": schema, "required": []}
+    validator = Draft7Validator(full_schema)
+    for value in valid_values:
+        validator.validate({"name": value})
+    for value in invalid_values:
+        with pytest.raises(ValidationError):
+            validator.validate({"name": value})
 
 
 @pytest.mark.parametrize(
-    "enum_list, is_required, expected_schema",
+    "enum_list, is_required, expected_schema, valid_values, invalid_values",
     [
         # Empty enum list
         (
             [],
             True,
             {"name": {"description": "TBD", "oneOf": [{"enum": [], "title": "enum"}]}},
+            [],
+            [1, "x", None],
         ),
         # If is_required is True, no type is added
         (
@@ -526,6 +637,8 @@ def test_create_array_property(
                     "oneOf": [{"enum": ["enum1"], "title": "enum"}],
                 }
             },
+            ["enum1"],
+            [1, "x", None],
         ),
         # If is_required is False, "null" is added as a type
         (
@@ -540,6 +653,8 @@ def test_create_array_property(
                     ],
                 }
             },
+            ["enum1", None],
+            [1, "x"],
         ),
     ],
     ids=["empty enum list", "is required==True", "is required==False"],
@@ -548,23 +663,34 @@ def test_create_enum_property(
     enum_list: list[str],
     is_required: bool,
     expected_schema: dict[str, Any],
+    valid_values: list[Any],
+    invalid_values: list[Any],
 ) -> None:
     """Test for _create_enum_property"""
     schema = _create_enum_property(
         enum_list=enum_list, name="name", is_required=is_required, description="TBD"
     )
     assert schema == expected_schema
+    full_schema = {"type": "object", "properties": schema, "required": []}
+    validator = Draft7Validator(full_schema)
+    for value in valid_values:
+        validator.validate({"name": value})
+    for value in invalid_values:
+        with pytest.raises(ValidationError):
+            validator.validate({"name": value})
 
 
 @pytest.mark.parametrize(
-    "property_data, is_required, expected_schema",
+    "property_data, is_required, expected_schema, valid_values, invalid_values",
     [
-        (PropertyData(), False, {"name": {"description": "TBD"}}),
+        (PropertyData(), False, {"name": {"description": "TBD"}}, [None, 1, ""], []),
         # If property_type is given, it is added to the schema
         (
             PropertyData("string"),
             True,
             {"name": {"type": "string", "description": "TBD"}},
+            [""],
+            [1, None],
         ),
         # If property_type is given, and is_required is False,
         # type is set to given property_type and "null"
@@ -580,6 +706,8 @@ def test_create_enum_property(
                     ],
                 }
             },
+            [None, "x"],
+            [1],
         ),
         # If is_required is True '"not": {"type":"null"}' is added to schema if
         # property_type is not given
@@ -587,6 +715,8 @@ def test_create_enum_property(
             PropertyData(),
             True,
             {"name": {"not": {"type": "null"}, "description": "TBD"}},
+            ["x", 1],
+            [None],
         ),
         (
             PropertyData(property_type="number", range_min=0, range_max=1),
@@ -599,19 +729,37 @@ def test_create_enum_property(
                     "description": "TBD",
                 }
             },
+            [1],
+            [None, 2],
         ),
+    ],
+    ids=[
+        "Not required, no type",
+        "Required, string type",
+        "Not required, string type",
+        "Required, no type",
+        "Required, number type",
     ],
 )
 def test_create_simple_property(
     property_data: PropertyData,
     is_required: bool,
     expected_schema: dict[str, Any],
+    valid_values: list[Any],
+    invalid_values: list[Any],
 ) -> None:
     """Test for _create_simple_property"""
     schema = _create_simple_property(
         "name", property_data, is_required, description="TBD"
     )
     assert schema == expected_schema
+    full_schema = {"type": "object", "properties": schema, "required": []}
+    validator = Draft7Validator(full_schema)
+    for value in valid_values:
+        validator.validate({"name": value})
+    for value in invalid_values:
+        with pytest.raises(ValidationError):
+            validator.validate({"name": value})
 
 
 @pytest.mark.parametrize(
