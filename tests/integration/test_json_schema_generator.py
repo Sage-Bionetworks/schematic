@@ -184,6 +184,12 @@ def test_upload_schemas_fixtures(schema_fixture: str, request) -> None:
             "patient_json_schema",
         ),
         (
+            "tests/data/json_instances/valid_patient2.json",
+            True,
+            [],
+            "patient_json_schema",
+        ),
+        (
             "tests/data/json_instances/patient_missing_conditional_dependencies.json",
             False,
             [
@@ -194,7 +200,8 @@ def test_upload_schemas_fixtures(schema_fixture: str, request) -> None:
         ),
     ],
     ids=[
-        "Patient:valid",
+        "Patient:valid #1",
+        "Patient:valid #2",
         "Patient:CancerType and FamilyHistory required when Diagnosis==Cancer",
     ],
 )
