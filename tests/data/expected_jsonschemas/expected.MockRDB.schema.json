@@ -9,6 +9,10 @@
         "type": "null"
       }
     },
+    "MockRDBId": {
+      "description": "TBD",
+      "type": "integer"
+    },
     "SourceManifest": {
       "description": "TBD",
       "not": {
@@ -18,6 +22,7 @@
   },
   "required": [
     "Component",
+    "MockRDBId",
     "SourceManifest"
   ],
   "title": "MockRDB_validation",

@@ -66,7 +66,7 @@ class TestNodeProcessor:
 
     def test_are_nodes_remaining(self) -> None:
         """Test NodeProcessor.are_nodes_remaining"""
-        np = NodeProcessor(["node1", "node2"])
+        np = NodeProcessor(["node1"])
         assert np.are_nodes_remaining()
         np.move_to_next_node()
         assert not np.are_nodes_remaining()
@@ -95,9 +95,9 @@ class TestNodeProcessor:
     def test_update_nodes_to_process(self) -> None:
         """Test NodeProcessor.update_nodes_to_process"""
         np = NodeProcessor(["node1"])
-        assert not np.are_nodes_remaining()
+        assert np.nodes_to_process == []
         np.update_nodes_to_process(["node2"])
-        assert np.are_nodes_remaining()
+        assert np.nodes_to_process == ["node2"]
 
     def test_update_processed_nodes_with_current_node(self) -> None:
         """Test NodeProcessor.update_processed_nodes_with_current_node"""

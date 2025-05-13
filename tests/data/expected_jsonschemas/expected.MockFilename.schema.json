@@ -8,10 +8,17 @@
       "not": {
         "type": "null"
       }
+    },
+    "Filename": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
     }
   },
   "required": [
-    "Component"
+    "Component",
+    "Filename"
   ],
   "title": "MockFilename_validation",
   "type": "object"

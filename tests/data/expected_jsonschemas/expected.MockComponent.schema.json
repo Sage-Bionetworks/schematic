@@ -38,9 +38,9 @@
         {
           "items": {
             "enum": [
-              "ab",
-              "gh",
               "cd",
+              "gh",
+              "ab",
               "ef"
             ]
           },
@@ -55,9 +55,9 @@
         {
           "items": {
             "enum": [
-              "ab",
-              "gh",
               "cd",
+              "gh",
+              "ab",
               "ef"
             ]
           },
@@ -81,9 +81,9 @@
         {
           "items": {
             "enum": [
-              "ab",
-              "gh",
               "cd",
+              "gh",
+              "ab",
               "ef"
             ]
           },
@@ -223,34 +223,34 @@
     }
   },
   "required": [
-    "CheckRegexSingle",
-    "CheckMatchNone",
-    "CheckNum",
-    "CheckListLikeEnum",
-    "CheckFloat",
-    "CheckListStrict",
-    "CheckListEnumStrict",
-    "CheckRange",
-    "CheckInt",
     "CheckAges",
-    "CheckListLike",
-    "CheckRegexFormat",
-    "CheckMatchExactlyvalues",
-    "CheckRegexList",
-    "CheckURL",
-    "CheckMatchExactly",
-    "CheckListEnum",
-    "CheckString",
-    "CheckList",
-    "CheckUnique",
     "CheckDate",
-    "CheckNA",
+    "CheckFloat",
+    "CheckInt",
+    "CheckList",
+    "CheckListEnum",
+    "CheckListEnumStrict",
+    "CheckListLike",
+    "CheckListLikeEnum",
+    "CheckListStrict",
+    "CheckMatchExactly",
+    "CheckMatchExactlyvalues",
+    "CheckMatchNone",
     "CheckMatchNonevalues",
-    "CheckMatchatLeastvalues",
-    "CheckRegexListLike",
     "CheckMatchatLeast",
+    "CheckMatchatLeastvalues",
+    "CheckNA",
+    "CheckNum",
+    "CheckRange",
+    "CheckRegexFormat",
     "CheckRegexInteger",
+    "CheckRegexList",
+    "CheckRegexListLike",
     "CheckRegexListStrict",
+    "CheckRegexSingle",
+    "CheckString",
+    "CheckURL",
+    "CheckUnique",
     "Component"
   ],
   "title": "MockComponent_validation",

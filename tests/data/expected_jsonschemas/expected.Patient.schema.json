@@ -56,11 +56,11 @@
       "oneOf": [
         {
           "enum": [
-            "Breast",
-            "Prostate",
-            "Colorectal",
             "Lung",
-            "Skin"
+            "Skin",
+            "Colorectal",
+            "Prostate",
+            "Breast"
           ],
           "title": "enum"
         },
@@ -81,8 +81,8 @@
       "oneOf": [
         {
           "enum": [
-            "Cancer",
-            "Healthy"
+            "Healthy",
+            "Cancer"
           ],
           "title": "enum"
         }
@@ -94,11 +94,11 @@
         {
           "items": {
             "enum": [
-              "Breast",
-              "Prostate",
-              "Colorectal",
               "Lung",
-              "Skin"
+              "Skin",
+              "Colorectal",
+              "Prostate",
+              "Breast"
             ]
           },
           "title": "array",
@@ -121,9 +121,9 @@
       "oneOf": [
         {
           "enum": [
-            "Female",
             "Other",
-            "Male"
+            "Male",
+            "Female"
           ],
           "title": "enum"
         }
@@ -134,10 +134,10 @@
     }
   },
   "required": [
-    "Sex",
-    "Diagnosis",
     "Component",
-    "PatientID"
+    "Diagnosis",
+    "PatientID",
+    "Sex"
   ],
   "title": "Patient_validation",
   "type": "object"

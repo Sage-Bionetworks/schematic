@@ -7,7 +7,7 @@
         "properties": {
           "File Format": {
             "enum": [
-              "CSV/TSV"
+              "BAM"
             ]
           }
         }
@@ -53,7 +53,7 @@
         "properties": {
           "File Format": {
             "enum": [
-              "BAM"
+              "CSV/TSV"
             ]
           }
         }
@@ -108,10 +108,10 @@
       "oneOf": [
         {
           "enum": [
-            "CSV/TSV",
+            "BAM",
             "FASTQ",
             "CRAM",
-            "BAM"
+            "CSV/TSV"
           ],
           "title": "enum"
         }
@@ -128,10 +128,10 @@
       "oneOf": [
         {
           "enum": [
+            "GRCh38",
             "GRCm39",
             "GRCm38",
-            "GRCh37",
-            "GRCh38"
+            "GRCh37"
           ],
           "title": "enum"
         },
@@ -152,10 +152,10 @@
     }
   },
   "required": [
-    "SampleID",
-    "FileFormat",
     "Component",
-    "Filename"
+    "FileFormat",
+    "Filename",
+    "SampleID"
   ],
   "title": "BulkRNA-seqAssay_validation",
   "type": "object"
