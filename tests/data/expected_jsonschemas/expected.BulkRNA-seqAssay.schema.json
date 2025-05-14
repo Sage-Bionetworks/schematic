@@ -5,7 +5,7 @@
     {
       "if": {
         "properties": {
-          "File Format": {
+          "FileFormat": {
             "enum": [
               "BAM"
             ]
@@ -28,7 +28,7 @@
     {
       "if": {
         "properties": {
-          "File Format": {
+          "FileFormat": {
             "enum": [
               "CRAM"
             ]
@@ -51,7 +51,7 @@
     {
       "if": {
         "properties": {
-          "File Format": {
+          "FileFormat": {
             "enum": [
               "CSV/TSV"
             ]
@@ -74,7 +74,7 @@
     {
       "if": {
         "properties": {
-          "File Format": {
+          "FileFormat": {
             "enum": [
               "CRAM"
             ]
@@ -108,8 +108,8 @@
       "oneOf": [
         {
           "enum": [
-            "BAM",
             "FASTQ",
+            "BAM",
             "CRAM",
             "CSV/TSV"
           ],
@@ -128,8 +128,8 @@
       "oneOf": [
         {
           "enum": [
-            "GRCh38",
             "GRCm39",
+            "GRCh38",
             "GRCm38",
             "GRCh37"
           ],

@@ -253,7 +253,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
         ]
 
         node_processor.update_range_domain_map(
-            node_display_name, node_range_display_names
+            node_processor.current_node, node_range
         )
 
         node_validation_rules = self.dmge.get_component_node_validation_rules(
