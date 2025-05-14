@@ -140,7 +140,6 @@ def test_create_json_schema(
     json_files_equal(test_path, expected_path)
 
 
-
 @pytest.mark.parametrize(
     "instance_path, datatype",
     [

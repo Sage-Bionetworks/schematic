@@ -38,10 +38,10 @@
         {
           "items": {
             "enum": [
-              "cd",
-              "gh",
               "ab",
-              "ef"
+              "cd",
+              "ef",
+              "gh"
             ]
           },
           "title": "array",
@@ -55,10 +55,10 @@
         {
           "items": {
             "enum": [
-              "cd",
-              "gh",
               "ab",
-              "ef"
+              "cd",
+              "ef",
+              "gh"
             ]
           },
           "title": "array",
@@ -81,10 +81,10 @@
         {
           "items": {
             "enum": [
-              "cd",
-              "gh",
               "ab",
-              "ef"
+              "cd",
+              "ef",
+              "gh"
             ]
           },
           "title": "array",

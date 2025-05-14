@@ -108,10 +108,10 @@
       "oneOf": [
         {
           "enum": [
-            "FASTQ",
             "BAM",
             "CRAM",
-            "CSV/TSV"
+            "CSV/TSV",
+            "FASTQ"
           ],
           "title": "enum"
         }
@@ -128,10 +128,10 @@
       "oneOf": [
         {
           "enum": [
-            "GRCm39",
+            "GRCh37",
             "GRCh38",
             "GRCm38",
-            "GRCh37"
+            "GRCm39"
           ],
           "title": "enum"
         },

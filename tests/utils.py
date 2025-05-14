@@ -59,4 +59,4 @@ def json_files_equal(file1: str, file2: str) -> bool:
         bool: True if the JSON files are equal, False otherwise.
     """
     with open(file1) as f1, open(file2) as f2:
-        return dict_equal(json.load(f1), json.load(f2))
+        return json.load(f1) == json.load(f2)

@@ -56,11 +56,11 @@
       "oneOf": [
         {
           "enum": [
-            "Lung",
-            "Skin",
+            "Breast",
             "Colorectal",
+            "Lung",
             "Prostate",
-            "Breast"
+            "Skin"
           ],
           "title": "enum"
         },
@@ -81,8 +81,8 @@
       "oneOf": [
         {
           "enum": [
-            "Healthy",
-            "Cancer"
+            "Cancer",
+            "Healthy"
           ],
           "title": "enum"
         }
@@ -94,11 +94,11 @@
         {
           "items": {
             "enum": [
-              "Lung",
-              "Skin",
+              "Breast",
               "Colorectal",
+              "Lung",
               "Prostate",
-              "Breast"
+              "Skin"
             ]
           },
           "title": "array",
@@ -121,9 +121,9 @@
       "oneOf": [
         {
           "enum": [
-            "Other",
+            "Female",
             "Male",
-            "Female"
+            "Other"
           ],
           "title": "enum"
         }
