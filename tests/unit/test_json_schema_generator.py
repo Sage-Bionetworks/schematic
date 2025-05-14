@@ -185,7 +185,7 @@ def test_validate_valid_instances(
     ],
     ids=[
         "BulkRNA, FileFormat is CRAM, missing conditional dependencies",
-        "Patient, Diagnosis is Cancer, missing conditional dependencies"
+        "Patient, Diagnosis is Cancer, missing conditional dependencies",
     ],
 )
 def test_validate_invalid_instances(

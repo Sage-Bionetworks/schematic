@@ -162,7 +162,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
         datatype: str,
         schema_name: str,
         schema_path: Union[str, None] = None,
-        write_schema: bool = True
+        write_schema: bool = True,
     ) -> dict[str, Any]:
         """
         Consolidated method that aims to gather dependencies and value constraints across terms
@@ -252,9 +252,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
             self.rel_dict["displayName"]["node_label"]
         ]
 
-        node_processor.update_range_domain_map(
-            node_processor.current_node, node_range
-        )
+        node_processor.update_range_domain_map(node_processor.current_node, node_range)
 
         node_validation_rules = self.dmge.get_component_node_validation_rules(
             manifest_component=source_node, node_display_name=node_display_name
@@ -345,9 +343,7 @@ def _write_data_model(
             "The JSON schema file can be inspected by setting the following "
             "nested key in the configuration: (model > location)."
         )
-    export_json(
-        json_doc=json_schema_dict, file_path=json_schema_path, indent=2
-    )
+    export_json(json_doc=json_schema_dict, file_path=json_schema_path, indent=2)
 
 
 def _set_conditional_dependencies(
@@ -414,7 +410,9 @@ def _set_conditional_dependencies(
             for watched_property in properties:
                 conditional_schema = {
                     "if": {
-                        "properties": {watched_property: {"enum": sorted([conditional_value])}}
+                        "properties": {
+                            watched_property: {"enum": sorted([conditional_value])}
+                        }
                     },
                     "then": {
                         "properties": {conditional_property: {"not": {"type": "null"}}},
