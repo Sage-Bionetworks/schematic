@@ -50,6 +50,7 @@ def fixture_js_generator() -> Generator[JSONSchemaGenerator, None, None]:
 
 @pytest.fixture(name="test_directory", scope="session")
 def fixture_test_directory():
+    """Yields a directory for creating test jSON Schemas in"""
     test_folder = "tests/data/test_jsonschemas"
     os.makedirs(test_folder, exist_ok=True)
     yield test_folder
@@ -139,13 +140,20 @@ def test_create_json_schema(
     json_files_equal(test_path, expected_path)
 
 
+
 @pytest.mark.parametrize(
     "instance_path, datatype",
     [
+        ("tests/data/json_instances/valid_biospecimen1.json", "Biospecimen"),
+        ("tests/data/json_instances/valid_bulk_rna1.json", "BulkRNA-seqAssay"),
+        ("tests/data/json_instances/valid_bulk_rna2.json", "BulkRNA-seqAssay"),
         ("tests/data/json_instances/valid_patient1.json", "Patient"),
         ("tests/data/json_instances/valid_patient2.json", "Patient"),
     ],
     ids=[
+        "Biospecimen",
+        "BulkRNASeqAssay, FileFormat is BAM",
+        "BulkRNASeqAssay, FileFormat is CRAM",
         "Patient, Diagnosis is Healthy",
         "Patient, Diagnosis is Cancer",
     ],
@@ -168,11 +176,18 @@ def test_validate_valid_instances(
     "instance_path, datatype",
     [
         (
+            "tests/data/json_instances/bulk_rna_missing_conditional_dependencies.json",
+            "BulkRNA-seqAssay",
+        ),
+        (
             "tests/data/json_instances/patient_missing_conditional_dependencies.json",
             "Patient",
         ),
     ],
-    ids=["Patient, Diagnosis is Cancer, missing conditional dependencies"],
+    ids=[
+        "BulkRNA, FileFormat is CRAM, missing conditional dependencies",
+        "Patient, Diagnosis is Cancer, missing conditional dependencies"
+    ],
 )
 def test_validate_invalid_instances(
     instance_path: str,
