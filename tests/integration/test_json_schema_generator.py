@@ -18,6 +18,21 @@ from schematic.schemas.json_schema_generator import (
 from schematic.configuration.configuration import CONFIG
 
 
+@pytest.fixture(name="schema_org", scope="module")
+def fixture_schema_org() -> Generator[str, None, None]:
+    """
+    This yields the Synapse org the test Schemas will be created at
+    """
+    yield "dpetest"
+
+@pytest.fixture(name="schema_version", scope="module")
+def fixture_schema_version() -> Generator[str, None, None]:
+    """
+    This the version to give all created test schemas
+    """
+    yield "0.0.1"
+
+
 @pytest.fixture(name="synapse", scope="module")
 def fixture_synapse() -> Generator[Synapse, None, None]:
     """
@@ -40,69 +55,69 @@ def fixture_synapse() -> Generator[Synapse, None, None]:
 
 
 @pytest.fixture(name="biospecimen_json_schema", scope="module")
-def fixture_biospecimen_json_schema(synapse: Synapse):
+def fixture_biospecimen_json_schema(synapse: Synapse, schema_org: str, schema_version: str):
     """This yields a Synapse JSON Schema uri"""
     path = "tests/data/expected_jsonschemas/expected.Biospecimen.schema.json"
-    schema_name = upload_schema_to_synapse(path, synapse)
+    schema_name = upload_schema_to_synapse(path, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
-    uri = f"dpetest-{schema_name}-0.0.1"
+    uri = f"{schema_org}-{schema_name}-{schema_version}"
     yield uri
-    js.delete_json_schema(f"dpetest-{schema_name}")
+    js.delete_json_schema(f"{schema_org}-{schema_name}")
 
 
 @pytest.fixture(name="bulk_rna_json_schema", scope="module")
-def fixture_bulk_rna_json_schema(synapse: Synapse):
+def fixture_bulk_rna_json_schema(synapse: Synapse, schema_org: str, schema_version: str):
     """This yields a Synapse JSON Schema uri"""
     path = "tests/data/expected_jsonschemas/expected.BulkRNA-seqAssay.schema.json"
-    schema_name = upload_schema_to_synapse(path, synapse)
+    schema_name = upload_schema_to_synapse(path, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
-    uri = f"dpetest-{schema_name}-0.0.1"
+    uri = f"{schema_org}-{schema_name}-{schema_version}"
     yield uri
-    js.delete_json_schema(f"dpetest-{schema_name}")
+    js.delete_json_schema(f"{schema_org}-{schema_name}")
 
 
 @pytest.fixture(name="mock_component_json_schema", scope="module")
-def fixture_mock_component_json_schema(synapse: Synapse):
+def fixture_mock_component_json_schema(synapse: Synapse, schema_org: str, schema_version: str):
     """This yields a Synapse JSON Schema uri"""
     path = "tests/data/expected_jsonschemas/expected.MockComponent.schema.json"
-    schema_name = upload_schema_to_synapse(path, synapse)
+    schema_name = upload_schema_to_synapse(path, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
-    uri = f"dpetest-{schema_name}-0.0.1"
+    uri = f"{schema_org}-{schema_name}-{schema_version}"
     yield uri
-    js.delete_json_schema(f"dpetest-{schema_name}")
+    js.delete_json_schema(f"{schema_org}-{schema_name}")
 
 
 @pytest.fixture(name="mock_filename_json_schema", scope="module")
-def fixture_mock_filename_json_schema(synapse: Synapse):
+def fixture_mock_filename_json_schema(synapse: Synapse, schema_org: str, schema_version: str):
     """This yields a Synapse JSON Schema uri"""
     path = "tests/data/expected_jsonschemas/expected.MockFilename.schema.json"
-    schema_name = upload_schema_to_synapse(path, synapse)
+    schema_name = upload_schema_to_synapse(path, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
-    uri = f"dpetest-{schema_name}-0.0.1"
+    uri = f"{schema_org}-{schema_name}-{schema_version}"
     yield uri
-    js.delete_json_schema(f"dpetest-{schema_name}")
+    js.delete_json_schema(f"{schema_org}-{schema_name}")
 
 
 @pytest.fixture(name="mock_rdb_json_schema", scope="module")
-def fixture_mock_rdb_json_schema(synapse: Synapse):
+def fixture_mock_rdb_json_schema(synapse: Synapse, schema_org: str, schema_version: str):
     """This yields a Synapse JSON Schema uri"""
     path = "tests/data/expected_jsonschemas/expected.MockRDB.schema.json"
-    schema_name = upload_schema_to_synapse(path, synapse)
+    schema_name = upload_schema_to_synapse(path, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
-    uri = f"dpetest-{schema_name}-0.0.1"
+    uri = f"{schema_org}-{schema_name}-{schema_version}"
     yield uri
-    js.delete_json_schema(f"dpetest-{schema_name}")
+    js.delete_json_schema(f"{schema_org}-{schema_name}")
 
 
 @pytest.fixture(name="patient_json_schema", scope="module")
-def fixture_patient_json_schema(synapse: Synapse):
+def fixture_patient_json_schema(synapse: Synapse, schema_org: str, schema_version: str):
     """This yields a Synapse JSON Schema uri"""
     path = "tests/data/expected_jsonschemas/expected.Patient.schema.json"
-    schema_name = upload_schema_to_synapse(path, synapse)
+    schema_name = upload_schema_to_synapse(path, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
-    uri = f"dpetest-{schema_name}-0.0.1"
+    uri = f"{schema_org}-{schema_name}-{schema_version}"
     yield uri
-    js.delete_json_schema(f"dpetest-{schema_name}")
+    js.delete_json_schema(f"{schema_org}-{schema_name}")
 
 
 @pytest.fixture(name="synapse_folder", scope="function")
@@ -134,12 +149,14 @@ def fixture_js_generator() -> Generator[JSONSchemaGenerator, None, None]:
     yield js_generator
 
 
-def upload_schema_to_synapse(path: str, syn: Synapse) -> str:
+def upload_schema_to_synapse(path: str, syn: Synapse, schema_org: str, version: str) -> str:
     """Uploads a JSON Schema file to Synapse
 
     Arguments:
         path: The path to the JSON Schema file
         syn: A Synapse instance that's been logged in
+        schema_org: The name of the org to store the schema at
+        version: the version to give to the schema
 
     Returns:
         The name of the Schema in synapse
@@ -150,8 +167,8 @@ def upload_schema_to_synapse(path: str, syn: Synapse) -> str:
     with open(path, encoding="utf-8") as schema_file:
         schema = json.load(schema_file)
     js = syn.service("json_schema")
-    org = js.JsonSchemaOrganization("dpetest")
-    org.create_json_schema(schema, schema_name, "0.0.1")
+    org = js.JsonSchemaOrganization(schema_org)
+    org.create_json_schema(schema, schema_name, version)
     return schema_name
 
 

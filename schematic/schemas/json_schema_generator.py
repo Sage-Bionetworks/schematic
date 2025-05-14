@@ -158,7 +158,11 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
         self.rel_dict = self.dmr.relationships_dictionary
 
     def create_json_schema(
-        self, datatype: str, schema_name: str, schema_path: Union[str, None] = None
+        self,
+        datatype: str,
+        schema_name: str,
+        schema_path: Union[str, None] = None,
+        write_schema: bool = True
     ) -> dict[str, Any]:
         """
         Consolidated method that aims to gather dependencies and value constraints across terms
@@ -178,9 +182,10 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
             schema_name: Name assigned to JSON-LD schema (to uniquely identify it via URI
               when it is hosted on the Internet).
             schema_path: Where to save the JSON Schema file
+            write_schema: whether or not to write the schema as a json file
 
         Returns:
-            JsonType: JSON Schema as a dictionary.
+            JSON Schema as a dictionary.
         """
 
         # Gets the dependency nodes of the source node. These will be first nodes processed.
@@ -210,7 +215,8 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
 
         json_schema_dict = json_schema.as_json_schema_dict()
 
-        _write_data_model(json_schema_dict, schema_path, datatype, self.jsonld_path)
+        if write_schema:
+            _write_data_model(json_schema_dict, schema_path, datatype, self.jsonld_path)
 
         return json_schema_dict
 
@@ -327,12 +333,12 @@ def _write_data_model(
           Used if schema_path is None
     """
     if schema_path:
-        json_schema_log_file_path = schema_path
+        json_schema_path = schema_path
     if not schema_path:
-        json_schema_log_file_path = get_json_schema_log_file_path(
+        json_schema_path = get_json_schema_log_file_path(
             data_model_path=jsonld_path, source_node=name
         )
-        json_schema_dirname = os.path.dirname(json_schema_log_file_path)
+        json_schema_dirname = os.path.dirname(json_schema_path)
         if json_schema_dirname != "":
             os.makedirs(json_schema_dirname, exist_ok=True)
 
@@ -341,7 +347,7 @@ def _write_data_model(
             "nested key in the configuration: (model > location)."
         )
     export_json(
-        json_doc=json_schema_dict, file_path=json_schema_log_file_path, indent=2
+        json_doc=json_schema_dict, file_path=json_schema_path, indent=2
     )
 
 
