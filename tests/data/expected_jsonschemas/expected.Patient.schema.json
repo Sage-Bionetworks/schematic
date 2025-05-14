@@ -81,8 +81,8 @@
       "oneOf": [
         {
           "enum": [
-            "Healthy",
-            "Cancer"
+            "Cancer",
+            "Healthy"
           ],
           "title": "enum"
         }

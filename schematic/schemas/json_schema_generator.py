@@ -306,11 +306,10 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
         node_processor.update_reverse_dependencies(
             node_display_name, node_dependencies_d
         )
-
         # add nodes found as dependencies and range of this processed node
         # to the list of nodes to be processed
-        node_processor.update_nodes_to_process(node_range)
-        node_processor.update_nodes_to_process(node_dependencies)
+        node_processor.update_nodes_to_process(sorted(node_range))
+        node_processor.update_nodes_to_process(sorted(node_dependencies))
 
 
 def _write_data_model(
@@ -406,16 +405,16 @@ def _set_conditional_dependencies(
     """
     # The conditional_value will be the specific value that triggers the conditional dependency.
     # When the watched_property == conditional_value, the conditional_property will become required
-    for conditional_value in reverse_dependencies[property_display_name]:
+    for conditional_value in sorted(reverse_dependencies[property_display_name]):
         if conditional_value in range_domain_map:
-            properties = range_domain_map[conditional_value]
+            properties = sorted(range_domain_map[conditional_value])
             # watched_property is the property such that when the
             # watched_property == conditional_value
             # the conditional_property becomes required
             for watched_property in properties:
                 conditional_schema = {
                     "if": {
-                        "properties": {watched_property: {"enum": [conditional_value]}}
+                        "properties": {watched_property: {"enum": sorted([conditional_value])}}
                     },
                     "then": {
                         "properties": {conditional_property: {"not": {"type": "null"}}},
@@ -537,7 +536,7 @@ def _create_enum_array_property(
     Returns:
         JSON object
     """
-    types = [{"type": "array", "title": "array", "items": {"enum": enum_list}}]
+    types = [{"type": "array", "title": "array", "items": {"enum": sorted(enum_list)}}]
 
     if not is_required:
         types += [{"type": "null", "title": "null"}]
@@ -605,7 +604,7 @@ def _create_enum_property(
         JSON object
     """
     schema: dict[str, Any] = {name: {"description": description}}
-    one_of_list: list[dict[str, Any]] = [{"enum": enum_list, "title": "enum"}]
+    one_of_list: list[dict[str, Any]] = [{"enum": sorted(enum_list), "title": "enum"}]
     if not is_required:
         one_of_list += [{"type": "null", "title": "null"}]
     schema[name]["oneOf"] = one_of_list
