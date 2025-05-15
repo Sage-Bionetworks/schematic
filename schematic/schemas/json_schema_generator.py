@@ -39,6 +39,13 @@ class PropertyData:
     The type is taken from type validation rules (see TYPE_RULES).
     Whether or not its an array depends on if a list rule is present.
     The maximum and minimum are taken from the inRange rule if present.
+
+    Attributes:
+      validation_rules: A list of validation rules for a property
+      type: The type of the property (inferred from validation_rules)
+      is_array: Whether or not the property is an array (inferred from validation_rules)
+      minimum: The minimum value of the property (if numeric) (inferred from validation_rules)
+      maximum: The maximum value of the property (if numeric) (inferred from validation_rules)
     """
     validation_rules: list[str] = field(default_factory=list)
     type: Optional[str] = field(init=False)
