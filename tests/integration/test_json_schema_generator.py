@@ -285,12 +285,13 @@ def test_upload_and_validate_schemas_in_synapse(
     """
     js = syn.service("json_schema")
 
+    # GIVEN a schema in Synapse
     test_schema_uri = request.getfixturevalue(schema_fixture)
 
-    # Bind the Synapse folder with the schema
+    # WHEN binding the schema to a folder
     js.bind_json_schema(test_schema_uri, synapse_folder)
 
-    # Annotate the folder with a test instance
+    # WHEN annotating the folder with a JSON instance of the datatype
     existing_annotations = syn.get_annotations(synapse_folder)
     with open(instance_path, encoding="utf-8") as instance_file:
         instance = json.load(instance_file)
@@ -298,9 +299,13 @@ def test_upload_and_validate_schemas_in_synapse(
     syn.set_annotations(annotations=existing_annotations)
     sleep(4)
 
-    # Attempt to validate the annotations against the bound schema
+    # WHEN validating the annotation against the schema
     results = js.validate(synapse_folder)
+    # THEN the annotations were valid
     assert results["isValid"] == is_valid
+    # OR THEN the annotations were invalid
     if not results["isValid"]:
+        # THEN the results contain "allValidationMessages"
         assert "allValidationMessages" in results
+         # THEN the "allValidationMessages" match the expected messages
         assert sorted(results["allValidationMessages"]) == messages
