@@ -590,11 +590,7 @@ def _set_conditional_dependencies(
             properties = sorted(valid_values_map[enum])
             for watched_property in properties:
                 conditional_schema = {
-                    "if": {
-                        "properties": {
-                            watched_property: {"enum": [enum]}
-                        }
-                    },
+                    "if": {"properties": {watched_property: {"enum": [enum]}}},
                     "then": {
                         "properties": {conditional_property: {"not": {"type": "null"}}},
                         "required": [conditional_property],
