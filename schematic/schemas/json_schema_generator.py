@@ -53,7 +53,7 @@ class PropertyData:
     minimum: Optional[float] = field(init=False)
     maximum: Optional[float] = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.type = None
         self.is_array = False
         self.minimum = None
@@ -142,8 +142,20 @@ def _get_type_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
 
 @dataclass
 class JSONSchema:  # pylint: disable=too-many-instance-attributes
-    """A dataclass representing a JSON Schema"""
+    """
+    A dataclass representing a JSON Schema.
+    Each attribute represents a keyword in a JSON Schema.
 
+    Attributes:
+        schema_id: A URI for the schema.
+        title: An optional title for this schema.
+        schema: Specifies which draft of the JSON Schema standard the schema adheres to.
+        type: The datatype of the schema. This will always be "object".
+        description: An optional description of the object described by this schema.
+        properties: A list of property schemas.
+        required: A list of properties required by the schema.
+        all_of: A list of conditions the schema must meet. This should be removed if empty.
+    """
     schema_id: str = ""
     title: str = ""
     schema: str = "http://json-schema.org/draft-07/schema#"
@@ -154,7 +166,12 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
     all_of: list[dict[str, Any]] = field(default_factory=list)
 
     def as_json_schema_dict(self) -> dict[str, Any]:
-        """Returns class as a JSON Schema dictionary, with proper keywords"""
+        """
+        Returns class as a JSON Schema dictionary, with proper keywords
+
+        Returns:
+            The dataclass as a dict.
+        """
         json_schema_dict = asdict(self)
         keywords_to_change = {
             "schema_id": "$id",
@@ -166,6 +183,34 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
         if len(self.all_of) == 0:
             json_schema_dict.pop("allOf")
         return json_schema_dict
+
+    def add_required_property(self, name: str) -> None:
+        """
+        Adds a property to the required list
+
+        Args:
+            name: The name of the property
+        """
+        self.required.append(name)
+
+    def add_to_all_of_list(self, item: dict[str, Any]) -> None:
+        """
+        Adds a property to the all_of list
+
+        Args:
+            item: The item to add to the all_of list
+        """
+        self.all_of.append(item)
+
+    def update_property(self, property: dict[str, Any]) -> None:
+        """
+        Updates the property dict
+
+        Args:
+            property: The property dict to add to the properties dict
+        """
+        self.properties.update(property)
+
 
 
 class NodeProcessor:
@@ -523,7 +568,7 @@ def _set_conditional_dependencies(
                         "required": [conditional_property],
                     },
                 }
-                json_schema.all_of.append(conditional_schema)
+                json_schema.add_to_all_of_list(conditional_schema)
 
 
 def _set_property(  # pylint: disable=too-many-arguments
@@ -578,10 +623,10 @@ def _set_property(  # pylint: disable=too-many-arguments
                 description=description,
             )
 
-    json_schema.properties.update(schema_property)
+    json_schema.update_property(schema_property)
 
     if is_required:
-        json_schema.required += [name]
+        json_schema.add_required_property(name)
 
 
 def _create_enum_array_property(

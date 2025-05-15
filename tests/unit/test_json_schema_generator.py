@@ -106,6 +106,59 @@ def test_property_data(
     assert result.minimum == expected_min
     assert result.maximum == expected_max
 
+class TestJSONSchema:
+    """Tests for JSONSchema"""
+
+    def test_init(self) -> None:
+        """Test the JSONSchema.init method"""
+        schema = JSONSchema()
+        assert schema.schema_id == ""
+        assert schema.title == ""
+        assert schema.schema == "http://json-schema.org/draft-07/schema#"
+        assert schema.type == "object"
+        assert schema.description == "TBD"
+        assert not schema.properties
+        assert not schema.required
+        assert not schema.all_of
+
+    def test_as_json_schema_dict(self) -> None:
+        """Test the JSONSchema.as_json_schema_dict method"""
+        schema = JSONSchema()
+        assert schema.as_json_schema_dict() == {
+            '$id': '',
+            '$schema': 'http://json-schema.org/draft-07/schema#',
+            'description': 'TBD',
+            'properties': {},
+            'required': [],
+            'title': '',
+            'type': 'object',
+        }
+
+    def test_add_required_property(self) -> None:
+        """Test the JSONSchema.add_required_property method"""
+        schema = JSONSchema()
+        schema.add_required_property("name1")
+        assert schema.required == ["name1"]
+        schema.add_required_property("name2")
+        assert schema.required == ["name1", "name2"]
+
+    def test_add_to_all_of_list(self) -> None:
+        """Test the JSONSchema.add_to_all_of_list method"""
+        schema = JSONSchema()
+        schema.add_to_all_of_list({"if":{}, "then": {}})
+        assert schema.all_of == [{"if":{}, "then": {}}]
+        schema.add_to_all_of_list({"if2":{}, "then2": {}})
+        assert schema.all_of == [{"if":{}, "then": {}}, {"if2":{}, "then2": {}}]
+
+    def test_update_property(self) -> None:
+        """Test the JSONSchema.update_property method"""
+        schema = JSONSchema()
+        schema.update_property({"name1": "property"})
+        assert schema.properties == {"name1": "property"}
+        schema.update_property({"name1": "property2"})
+        assert schema.properties == {"name1": "property2"}
+        schema.update_property({"name3": "property3"})
+        assert schema.properties == {"name1": "property2", "name3": "property3"}
 
 @pytest.mark.parametrize(
     "input_rule, expected_tuple",
