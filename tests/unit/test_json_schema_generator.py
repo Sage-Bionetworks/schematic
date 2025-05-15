@@ -500,7 +500,7 @@ def test_set_conditional_dependencies_nothing_added(
 def test_set_conditional_dependencies(
     reverse_dependencies: dict[str, list[str]],
     range_domain_map: dict[str, list[str]],
-    expected_schema: dict[str, Any],
+    expected_schema: JSONSchema,
 ) -> None:
     """Tests for _set_conditional_dependencies"""
     json_schema = JSONSchema()
