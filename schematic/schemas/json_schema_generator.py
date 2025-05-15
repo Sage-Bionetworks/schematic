@@ -1,4 +1,8 @@
-"Data Model Json Schema"
+"""
+This module contains The JSONSchemaGenerator class, and its helper functions.
+It also contains the classes Node Processor,PropertyData and JSONSchema which are used internally
+ by the JSONSchemaGenerator class.
+"""
 
 import logging
 import os
