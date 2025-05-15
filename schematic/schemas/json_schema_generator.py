@@ -529,7 +529,7 @@ def _set_conditional_dependencies(
     conditional_property: str,
     property_display_name: str,
     reverse_dependencies: dict[str, list[str]],
-    range_domain_map: dict[str, list[str]],
+    valid_values_map: dict[str, list[str]],
 ) -> None:
     """
     This sets conditional requirements in the "allOf" keyword.
@@ -574,22 +574,21 @@ def _set_conditional_dependencies(
         reverse_dependencies: A map of nodes and a list of their dependencies
           In the above example this would be:
           {'Family History': ['Cancer'], 'Cancer Type': ['Cancer']}
-        range_domain_map: A map of nodes and a list of their range
+        valid_values_map:
+          The keys are valid_values
+          The values are a list of nodes the valid value belongs to
           In the above example {'Healthy': ['Diagnosis'], 'Cancer': ['Diagnosis']}
     """
-    # The conditional_value will be the specific value that triggers the conditional dependency.
-    # When the watched_property == conditional_value, the conditional_property will become required
-    for conditional_value in sorted(reverse_dependencies[property_display_name]):
-        if conditional_value in range_domain_map:
-            properties = sorted(range_domain_map[conditional_value])
-            # watched_property is the property such that when the
-            # watched_property == conditional_value
-            # the conditional_property becomes required
+    # The enum is the specific value that triggers the conditional dependency.
+    # When the watched_property == enum, the conditional_property will become required
+    for enum in reverse_dependencies[property_display_name]:
+        if enum in valid_values_map:
+            properties = sorted(valid_values_map[enum])
             for watched_property in properties:
                 conditional_schema = {
                     "if": {
                         "properties": {
-                            watched_property: {"enum": sorted([conditional_value])}
+                            watched_property: {"enum": [enum]}
                         }
                     },
                     "then": {
