@@ -1,6 +1,6 @@
 """Tests for JSON Schema generation"""
 
-from typing import Generator, Any, Union
+from typing import Generator, Any, Union, Optional
 import os
 import json
 from shutil import rmtree
@@ -12,6 +12,9 @@ from jsonschema.exceptions import ValidationError
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.json_schema_generator import (
     PropertyData,
+    _get_ranges_from_range_rule,
+    _get_in_range_rule_from_rule_list,
+    _get_type_rule_from_rule_list,
     JSONSchema,
     NodeProcessor,
     JSONSchemaGenerator,
@@ -21,10 +24,6 @@ from schematic.schemas.json_schema_generator import (
     _create_array_property,
     _create_enum_property,
     _create_simple_property,
-    _get_property_data_from_validation_rules,
-    _get_ranges_from_range_rule,
-    _get_in_range_rule_from_rule_list,
-    _get_type_rule_from_rule_list,
 )
 from tests.utils import json_files_equal
 
@@ -56,6 +55,136 @@ def fixture_test_directory():
     yield test_folder
     rmtree(test_folder)
 
+@pytest.mark.parametrize(
+    "validation_rules, expected_type, expected_is_array, expected_min, expected_max",
+    [
+        # If there are no type validation rules the property_type is None
+        ([], None, False, None, None),
+        (["xxx"], None, False, None, None),
+        # If there is one type validation rule the property_type is set to the
+        #  JSON Schema equivalent of the validation rule
+        (["str"], "string", False, None, None),
+        (["bool"], "boolean", False, None, None),
+        # If there are any list type validation rules the property_type is set to "array"
+        (["list like"], None, True, None, None),
+        (["list strict"], None, True, None, None),
+        # If there are any list type validation rules and one type validation rule
+        #  the property_type is set to "array", and the item_type is set to the
+        #  JSON Schema equivalent of the validation rule
+        (["list like", "str"], "string", True, None, None),
+        # If there are any inRange rules the min and max will be set
+        (["inRange 0 1", "int"], "integer", False, 0, 1),
+        # If there are any inRange rules but no type rule, or a non-numeric type rule
+        #  the type will be set to number
+        (["inRange 0 1"], "number", False, 0, 1),
+        (["inRange 0 1", "str"], "number", False, 0, 1),
+    ],
+    ids = [
+        "No validation rules",
+        "No actual validation rules",
+        "String type rule",
+        "Boolean type rule",
+        "list like rule",
+        "list strict rule",
+        "list like and string type rules",
+        "inRange and integer type rules",
+        "inRange rule",
+        "inRange and string type rules",
+    ]
+)
+def test_property_data(
+    validation_rules: list[str],
+    expected_type: Optional[str],
+    expected_is_array: bool,
+    expected_min: Optional[float],
+    expected_max: Optional[float],
+) -> None:
+    """Tests for PropertyData class"""
+    result = PropertyData(validation_rules)
+    assert result.type == expected_type
+    assert result.is_array == expected_is_array
+    assert result.minimum == expected_min
+    assert result.maximum == expected_max
+
+
+@pytest.mark.parametrize(
+    "input_rule, expected_tuple",
+    [
+        ("", (None, None)),
+        ("inRange", (None, None)),
+        ("inRange x x", (None, None)),
+        ("inRange 0", (0, None)),
+        ("inRange 0 x", (0, None)),
+        ("inRange 0 1", (0, 1)),
+        ("inRange 0 1 x", (0, 1)),
+    ],
+)
+def test_get_ranges_from_range_rule(
+    input_rule: str,
+    expected_tuple: tuple[Union[str, None], Union[str, None]],
+) -> None:
+    """Test for _get_ranges_from_range_rule"""
+    result = _get_ranges_from_range_rule(input_rule)
+    assert result == expected_tuple
+
+
+@pytest.mark.parametrize(
+    "input_rules, expected_rule",
+    [
+        ([], None),
+        (["list strict"], None),
+        (["inRange 0 1"], "inRange 0 1"),
+        (["str error", "inRange 0 1"], "inRange 0 1"),
+    ],
+)
+def test_get_in_range_rule_from_rule_list(
+    input_rules: list[str],
+    expected_rule: Union[str, None],
+) -> None:
+    """Test for _get_in_range_rule_from_rule_list"""
+    result = _get_in_range_rule_from_rule_list(input_rules)
+    assert result == expected_rule
+
+
+@pytest.mark.parametrize(
+    "input_rules",
+    [(["inRange", "inRange"]), (["inRange 0", "inRange 0"])],
+)
+def test_get_in_range_rule_from_rule_list_exceptions(
+    input_rules: list[str],
+) -> None:
+    """Test for _get_in_range_rule_from_rule_list with exceptions"""
+    with pytest.raises(
+        ValueError, match="Found more than one inRange rule in validation rules"
+    ):
+        _get_in_range_rule_from_rule_list(input_rules)
+
+
+@pytest.mark.parametrize(
+    "input_rules, expected_rule",
+    [([], None), (["list strict"], None), (["str"], "str"), (["str error"], "str")],
+)
+def test_get_type_rule_from_rule_list(
+    input_rules: list[str],
+    expected_rule: Union[str, None],
+) -> None:
+    """Test for _get_type_rule_from_rule_list"""
+    result = _get_type_rule_from_rule_list(input_rules)
+    assert result == expected_rule
+
+
+@pytest.mark.parametrize(
+    "input_rules",
+    [(["str", "int"]), (["str", "str", "str"]), (["str", "str error", "str warning"])],
+)
+def test_get_type_rule_from_rule_list_exceptions(
+    input_rules: list[str],
+) -> None:
+    """Test for _get_type_rule_from_rule_list with exceptions"""
+    with pytest.raises(
+        ValueError, match="Found more than one type rule in validation rules"
+    ):
+        _get_type_rule_from_rule_list(input_rules)
 
 class TestNodeProcessor:
     """Tests for NodeProcessor class"""
@@ -522,7 +651,7 @@ def test_create_enum_array_property(
     "property_data, is_required, expected_schema, valid_values, invalid_values",
     [
         (
-            PropertyData(is_array=True),
+            PropertyData(["list"]),
             True,
             {
                 "name": {
@@ -535,7 +664,7 @@ def test_create_enum_array_property(
         ),
         # If is_required is False, "{'type': 'null'}" is added to the oneOf list
         (
-            PropertyData(is_array=True),
+            PropertyData(["list"]),
             False,
             {
                 "name": {
@@ -551,7 +680,7 @@ def test_create_enum_array_property(
         ),
         # If item_type is given, it is set in the schema
         (
-            PropertyData("string", is_array=True),
+            PropertyData(["list", "str"]),
             True,
             {
                 "name": {
@@ -566,7 +695,7 @@ def test_create_enum_array_property(
         ),
         # If property_data has range_min or range_max, they are set in the schema
         (
-            PropertyData("number", is_array=True, range_min=0, range_max=1),
+            PropertyData(["num", "list", "inRange 0 1"]),
             True,
             {
                 "name": {
@@ -685,7 +814,7 @@ def test_create_enum_property(
         (PropertyData(), False, {"name": {"description": "TBD"}}, [None, 1, ""], []),
         # If property_type is given, it is added to the schema
         (
-            PropertyData("string"),
+            PropertyData(["str"]),
             True,
             {"name": {"type": "string", "description": "TBD"}},
             [""],
@@ -694,7 +823,7 @@ def test_create_enum_property(
         # If property_type is given, and is_required is False,
         # type is set to given property_type and "null"
         (
-            PropertyData("string"),
+            PropertyData(["str"]),
             False,
             {
                 "name": {
@@ -718,7 +847,7 @@ def test_create_enum_property(
             [None],
         ),
         (
-            PropertyData(property_type="number", range_min=0, range_max=1),
+            PropertyData(["num", "inRange 0 1"]),
             True,
             {
                 "name": {
@@ -759,117 +888,3 @@ def test_create_simple_property(
     for value in invalid_values:
         with pytest.raises(ValidationError):
             validator.validate({"name": value})
-
-
-@pytest.mark.parametrize(
-    "validation_rules, expected_type",
-    [
-        # If there are no type validation rules the property_type is None
-        ([], PropertyData()),
-        (["xxx"], PropertyData()),
-        # If there is one type validation rule the property_type is set to the
-        #  JSON Schema equivalent of the validation rule
-        (["str"], PropertyData("string")),
-        (["bool"], PropertyData("boolean")),
-        # If there are any list type validation rules the property_type is set to "array"
-        (["list like"], PropertyData(is_array=True)),
-        (["list strict"], PropertyData(is_array=True)),
-        (["list::regex"], PropertyData(is_array=True)),
-        # If there are any list type validation rules and one type validation rule
-        #  the property_type is set to "array", and the item_type is set to the
-        #  JSON Schema equivalent of the validation rule
-        (["list::regex", "str"], PropertyData("string", is_array=True)),
-        # If there are any inRange rules the min and max will be set
-        (["inRange 0 1", "int"], PropertyData("integer", range_min=0, range_max=1)),
-        # If there are any inRange rules but no type rule, or a non-numeric type rule
-        #  the type will be set to number
-        (["inRange 0 1"], PropertyData("number", range_min=0, range_max=1)),
-        (["inRange 0 1", "str"], PropertyData("number", range_min=0, range_max=1)),
-    ],
-)
-def test_get_property_data_from_validation_rules(
-    validation_rules: list[str], expected_type: PropertyData
-) -> None:
-    """Test for _get_property_data_from_validation_rules"""
-    result = _get_property_data_from_validation_rules(validation_rules)
-    assert result == expected_type
-
-
-@pytest.mark.parametrize(
-    "input_rule, expected_tuple",
-    [
-        ("", (None, None)),
-        ("inRange", (None, None)),
-        ("inRange x x", (None, None)),
-        ("inRange 0", (0, None)),
-        ("inRange 0 x", (0, None)),
-        ("inRange 0 1", (0, 1)),
-        ("inRange 0 1 x", (0, 1)),
-    ],
-)
-def test_get_ranges_from_range_rule(
-    input_rule: str,
-    expected_tuple: tuple[Union[str, None], Union[str, None]],
-) -> None:
-    """Test for _get_ranges_from_range_rule"""
-    result = _get_ranges_from_range_rule(input_rule)
-    assert result == expected_tuple
-
-
-@pytest.mark.parametrize(
-    "input_rules, expected_rule",
-    [
-        ([], None),
-        (["list strict"], None),
-        (["inRange 0 1"], "inRange 0 1"),
-        (["str error", "inRange 0 1"], "inRange 0 1"),
-    ],
-)
-def test_get_in_range_rule_from_rule_list(
-    input_rules: list[str],
-    expected_rule: Union[str, None],
-) -> None:
-    """Test for _get_in_range_rule_from_rule_list"""
-    result = _get_in_range_rule_from_rule_list(input_rules)
-    assert result == expected_rule
-
-
-@pytest.mark.parametrize(
-    "input_rules",
-    [(["inRange", "inRange"]), (["inRange 0", "inRange 0"])],
-)
-def test_get_in_range_rule_from_rule_list_exceptions(
-    input_rules: list[str],
-) -> None:
-    """Test for _get_in_range_rule_from_rule_list with exceptions"""
-    with pytest.raises(
-        ValueError, match="Found more than one inRange rule in validation rules"
-    ):
-        _get_in_range_rule_from_rule_list(input_rules)
-
-
-@pytest.mark.parametrize(
-    "input_rules, expected_rule",
-    [([], None), (["list strict"], None), (["str"], "str"), (["str error"], "str")],
-)
-def test_get_type_rule_from_rule_list(
-    input_rules: list[str],
-    expected_rule: Union[str, None],
-) -> None:
-    """Test for _get_type_rule_from_rule_list"""
-    result = _get_type_rule_from_rule_list(input_rules)
-    assert result == expected_rule
-
-
-@pytest.mark.parametrize(
-    "input_rules",
-    [(["str", "int"]), (["str", "str", "str"]), (["str", "str error", "str warning"])],
-)
-def test_get_type_rule_from_rule_list_exceptions(
-    input_rules: list[str],
-) -> None:
-    """Test for _get_type_rule_from_rule_list with exceptions"""
-    with pytest.raises(
-        ValueError, match="Found more than one type rule in validation rules"
-    ):
-        _get_type_rule_from_rule_list(input_rules)
