@@ -78,16 +78,14 @@ def fixture_biospecimen_json_schema(
     js_generator: JSONSchemaGenerator,
 ):
     """This yields a Synapse JSON Schema uri"""
-    try:
-        schema = js_generator.create_json_schema(
-            "Biospecimen", schema_name="Biospecimen_validation", write_schema=False
-        )
-        schema_name = upload_schema_to_synapse(schema, synapse, schema_org, schema_version)
-        js = synapse.service("json_schema")
-        uri = f"{schema_org}-{schema_name}-{schema_version}"
-        yield uri
-    finally:
-        js.delete_json_schema(f"{schema_org}-{schema_name}")
+    schema = js_generator.create_json_schema(
+        "Biospecimen", schema_name="Biospecimen_validation", write_schema=False
+    )
+    schema_name = upload_schema_to_synapse(schema, synapse, schema_org, schema_version)
+    js = synapse.service("json_schema")
+    uri = f"{schema_org}-{schema_name}-{schema_version}"
+    yield uri
+    js.delete_json_schema(f"{schema_org}-{schema_name}")
 
 
 @pytest.fixture(name="bulk_rna_json_schema", scope="module")
