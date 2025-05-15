@@ -789,7 +789,8 @@ def _create_simple_property(
     """
     Creates a JSON Schema property
     If a property_type is given the type is added to the schema
-    If a property_type is not given and is_required is  "not: {type:null} is added
+    If a property_type is not given and is_required is  "not: {type:null}" is added
+      to the schema
 
     Arguments:
         name: What to name the object
