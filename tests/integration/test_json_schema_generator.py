@@ -307,5 +307,5 @@ def test_upload_and_validate_schemas_in_synapse(
     if not results["isValid"]:
         # THEN the results contain "allValidationMessages"
         assert "allValidationMessages" in results
-         # THEN the "allValidationMessages" match the expected messages
+        # THEN the "allValidationMessages" match the expected messages
         assert sorted(results["allValidationMessages"]) == messages
