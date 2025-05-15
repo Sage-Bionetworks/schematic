@@ -55,6 +55,7 @@ def fixture_test_directory():
     yield test_folder
     rmtree(test_folder)
 
+
 @pytest.mark.parametrize(
     "validation_rules, expected_type, expected_is_array, expected_min, expected_max",
     [
@@ -79,7 +80,7 @@ def fixture_test_directory():
         (["inRange 0 1"], "number", False, 0, 1),
         (["inRange 0 1", "str"], "number", False, 0, 1),
     ],
-    ids = [
+    ids=[
         "No validation rules",
         "No actual validation rules",
         "String type rule",
@@ -90,7 +91,7 @@ def fixture_test_directory():
         "inRange and integer type rules",
         "inRange rule",
         "inRange and string type rules",
-    ]
+    ],
 )
 def test_property_data(
     validation_rules: list[str],
@@ -105,6 +106,7 @@ def test_property_data(
     assert result.is_array == expected_is_array
     assert result.minimum == expected_min
     assert result.maximum == expected_max
+
 
 class TestJSONSchema:
     """Tests for JSONSchema"""
@@ -125,13 +127,13 @@ class TestJSONSchema:
         """Test the JSONSchema.as_json_schema_dict method"""
         schema = JSONSchema()
         assert schema.as_json_schema_dict() == {
-            '$id': '',
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'description': 'TBD',
-            'properties': {},
-            'required': [],
-            'title': '',
-            'type': 'object',
+            "$id": "",
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "description": "TBD",
+            "properties": {},
+            "required": [],
+            "title": "",
+            "type": "object",
         }
 
     def test_add_required_property(self) -> None:
@@ -145,10 +147,10 @@ class TestJSONSchema:
     def test_add_to_all_of_list(self) -> None:
         """Test the JSONSchema.add_to_all_of_list method"""
         schema = JSONSchema()
-        schema.add_to_all_of_list({"if":{}, "then": {}})
-        assert schema.all_of == [{"if":{}, "then": {}}]
-        schema.add_to_all_of_list({"if2":{}, "then2": {}})
-        assert schema.all_of == [{"if":{}, "then": {}}, {"if2":{}, "then2": {}}]
+        schema.add_to_all_of_list({"if": {}, "then": {}})
+        assert schema.all_of == [{"if": {}, "then": {}}]
+        schema.add_to_all_of_list({"if2": {}, "then2": {}})
+        assert schema.all_of == [{"if": {}, "then": {}}, {"if2": {}, "then2": {}}]
 
     def test_update_property(self) -> None:
         """Test the JSONSchema.update_property method"""
@@ -159,6 +161,7 @@ class TestJSONSchema:
         assert schema.properties == {"name1": "property2"}
         schema.update_property({"name3": "property3"})
         assert schema.properties == {"name1": "property2", "name3": "property3"}
+
 
 @pytest.mark.parametrize(
     "input_rule, expected_tuple",
@@ -238,6 +241,7 @@ def test_get_type_rule_from_rule_list_exceptions(
         ValueError, match="Found more than one type rule in validation rules"
     ):
         _get_type_rule_from_rule_list(input_rules)
+
 
 class TestNodeProcessor:
     """Tests for NodeProcessor class"""
