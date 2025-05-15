@@ -343,15 +343,19 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
         write_schema: bool = True,
     ) -> dict[str, Any]:
         """
-        Consolidated method that aims to gather dependencies and value constraints across terms
-        / nodes in a schema.org schema and store them in a jsonschema /JSON Schema schema.
+        Creates a JSONSchema dict for the datatype in the data model.
 
-        It does so for any given node in the schema.org schema (recursively) using the given
-          node as starting point in the following manner:
+        This uses the input graph starting at the node that corresponds to the input datatype.
+        Starting at the given node it will(recursively):
         1) Find all the nodes / terms this node depends on (which are required as
           "additional metadata" given this node is "required").
         2) Find all the allowable metadata values / nodes that can be assigned to a particular
           node (if such a constraint is specified on the schema).
+
+        Using the above data it will:
+        - Cerate properties for each attribute of the datatype.
+        - Create properties for attributes that are conditionally dependent on the datatypes attributes
+        - Create conditional dependencies linking attributes to their dependencies
 
         Arguments:
             datatype: the datatype to create the schema for.
