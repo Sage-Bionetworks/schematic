@@ -113,7 +113,9 @@ def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
     """
     in_range_rules = [rule for rule in rule_list if rule.startswith("inRange")]
     if len(in_range_rules) > 1:
-        raise ValueError("Found more than one inRange rule in validation rules")
+        raise ValueError(
+            "Found more than one inRange rule in validation rules: ", rule_list
+        )
     if len(in_range_rules) == 0:
         return None
     return in_range_rules[0]
