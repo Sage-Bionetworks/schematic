@@ -441,7 +441,7 @@ def test_validate_invalid_instances(
 
 
 @pytest.mark.parametrize(
-    "reverse_dependencies, range_domain_map",
+    "reverse_dependencies, valid_values_map",
     [
         # If the input node has no reverse dependencies, nothing gets added
         ({"property_name": []}, {}),
@@ -456,7 +456,7 @@ def test_validate_invalid_instances(
 )
 def test_set_conditional_dependencies_nothing_added(
     reverse_dependencies: dict[str, list[str]],
-    range_domain_map: dict[str, list[str]],
+    valid_values_map: dict[str, list[str]],
 ) -> None:
     """
     Tests for _set_conditional_dependencies
@@ -468,13 +468,13 @@ def test_set_conditional_dependencies_nothing_added(
         conditional_property="property_name",
         property_display_name="property_name",
         reverse_dependencies=reverse_dependencies,
-        range_domain_map=range_domain_map,
+        valid_values_map=valid_values_map,
     )
     assert json_schema == {"allOf": []}
 
 
 @pytest.mark.parametrize(
-    "reverse_dependencies, range_domain_map, expected_schema",
+    "reverse_dependencies, valid_values_map, expected_schema",
     [
         (
             {"property_name": ["enum1"]},
@@ -550,7 +550,7 @@ def test_set_conditional_dependencies_nothing_added(
 )
 def test_set_conditional_dependencies(
     reverse_dependencies: dict[str, list[str]],
-    range_domain_map: dict[str, list[str]],
+    valid_values_map: dict[str, list[str]],
     expected_schema: JSONSchema,
 ) -> None:
     """Tests for _set_conditional_dependencies"""
@@ -560,7 +560,7 @@ def test_set_conditional_dependencies(
         conditional_property="property_name",
         property_display_name="property_name",
         reverse_dependencies=reverse_dependencies,
-        range_domain_map=range_domain_map,
+        valid_values_map=valid_values_map,
     )
     assert json_schema == expected_schema
 
