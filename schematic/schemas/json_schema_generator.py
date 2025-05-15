@@ -202,14 +202,14 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
         """
         self.all_of.append(item)
 
-    def update_property(self, property: dict[str, Any]) -> None:
+    def update_property(self, property_dict: dict[str, Any]) -> None:
         """
         Updates the property dict
 
         Args:
-            property: The property dict to add to the properties dict
+            property_dict: The property dict to add to the properties dict
         """
-        self.properties.update(property)
+        self.properties.update(property_dict)
 
 
 
