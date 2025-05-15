@@ -47,6 +47,7 @@ class PropertyData:
       minimum: The minimum value of the property (if numeric) (inferred from validation_rules)
       maximum: The maximum value of the property (if numeric) (inferred from validation_rules)
     """
+
     validation_rules: list[str] = field(default_factory=list)
     type: Optional[str] = field(init=False)
     is_array: bool = field(init=False)
@@ -140,6 +141,7 @@ def _get_type_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
         return None
     return type_rules[0]
 
+
 @dataclass
 class JSONSchema:  # pylint: disable=too-many-instance-attributes
     """
@@ -156,6 +158,7 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
         required: A list of properties required by the schema.
         all_of: A list of conditions the schema must meet. This should be removed if empty.
     """
+
     schema_id: str = ""
     title: str = ""
     schema: str = "http://json-schema.org/draft-07/schema#"
@@ -233,6 +236,7 @@ class NodeProcessor:
             Some nodes will have valid_values (enums)
             This is a mapping {"valid_value" : [nodes_that_have_valid_value]}
     """
+
     root_dependencies: list[str]
     nodes_to_process: list[str] = field(init=False)
     current_node: Optional[str] = field(init=False)
@@ -815,4 +819,3 @@ def _create_simple_property(
         schema[name]["maximum"] = property_data.maximum
 
     return schema
-
