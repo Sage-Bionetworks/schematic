@@ -6,7 +6,7 @@ It also contains the classes Node Processor,PropertyData and JSONSchema which ar
 
 import logging
 import os
-from typing import Union, Any
+from typing import Union, Any, Optional
 from dataclasses import dataclass, field, asdict
 import networkx as nx  # type: ignore
 
@@ -32,13 +32,106 @@ TYPE_RULES = {
 
 @dataclass
 class PropertyData:
-    """A Dataclass representing data about a JSON Schema property from its validation rules"""
+    """
+    A Dataclass representing data about a JSON Schema property from its validation rules.
+    Currently Schematic infers certain data about the property from validation rules in
+     the data model.
+    The type is taken from type validation rules (see TYPE_RULES).
+    Whether or not its an array depends on if a list rule is present.
+    The maximum and minimum are taken from the inRange rule if present.
+    """
+    validation_rules: list[str] = field(default_factory=list)
+    type: Optional[str] = field(init=False)
+    is_array: bool = field(init=False)
+    minimum: Optional[float] = field(init=False)
+    maximum: Optional[float] = field(init=False)
 
-    property_type: Union[str, None] = None
-    is_array: bool = False
+    def __post_init__(self):
+        self.type = None
+        self.is_array = False
+        self.minimum = None
+        self.maximum = None
+
+        if self.validation_rules:
+            if rule_in_rule_list("list", self.validation_rules):
+                self.is_array = True
+
+            type_rule = _get_type_rule_from_rule_list(self.validation_rules)
+            if type_rule:
+                self.type = TYPE_RULES.get(type_rule)
+
+            range_rule = _get_in_range_rule_from_rule_list(self.validation_rules)
+            if range_rule:
+                if self.type not in ["number", "integer"]:
+                    self.type = "number"
+                self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
+
+
+def _get_ranges_from_range_rule(
+    rule: str,
+) -> tuple[Union[float, None], Union[float, None]]:
+    """
+    Returns the min and max from an inRange rule if they exist
+
+    Arguments:
+        rule: The inRange rule
+
+    Returns:
+        The min and max form the rule
+    """
     range_min: Union[float, None] = None
     range_max: Union[float, None] = None
+    parameters = rule.split(" ")
+    if len(parameters) > 1 and parameters[1].isnumeric():
+        range_min = float(parameters[1])
+    if len(parameters) > 2 and parameters[2].isnumeric():
+        range_max = float(parameters[2])
+    return (range_min, range_max)
 
+
+def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
+    """
+    Returns the inRange rule from a list of rules if there is only one
+    Returns None if there are no inRange rules
+
+    Arguments:
+        rule_list: A list of validation rules
+
+    Raises:
+        ValueError: When more than one inRange rule is found
+
+    Returns:
+        The inRange rule if one is found, or None
+    """
+    in_range_rules = [rule for rule in rule_list if rule.startswith("inRange")]
+    if len(in_range_rules) > 1:
+        raise ValueError("Found more than one inRange rule in validation rules")
+    if len(in_range_rules) == 0:
+        return None
+    return in_range_rules[0]
+
+
+def _get_type_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
+    """
+    Returns the type rule from a list of rules if there is only one
+    Returns None if there are no type rules
+
+    Arguments:
+        rule_list: A list of validation rules
+
+    Raises:
+        ValueError: When more than one type rule is found
+
+    Returns:
+        The type rule if one is found, or None
+    """
+    rule_list = [rule.split(" ")[0] for rule in rule_list]
+    type_rules = [rule for rule in rule_list if rule in TYPE_RULES]
+    if len(type_rules) > 1:
+        raise ValueError("Found more than one type rule in validation rules")
+    if len(type_rules) == 0:
+        return None
+    return type_rules[0]
 
 @dataclass
 class JSONSchema:  # pylint: disable=too-many-instance-attributes
@@ -445,7 +538,7 @@ def _set_property(  # pylint: disable=too-many-arguments
         is_required: Whether or not the property is required
         description: a description of the property
     """
-    property_data = _get_property_data_from_validation_rules(validation_rules)
+    property_data = PropertyData(validation_rules)
     if enum_list:
         if property_data.is_array:
             schema_property = _create_enum_array_property(
@@ -567,20 +660,20 @@ def _create_array_property(
 
     include_items = any(
         [
-            property_data.property_type,
-            property_data.range_min is not None,
-            property_data.range_max is not None,
+            property_data.type,
+            property_data.minimum is not None,
+            property_data.maximum is not None,
         ]
     )
 
     if include_items:
         array_dict["items"] = {}
-        if property_data.property_type:
-            array_dict["items"]["type"] = property_data.property_type
-        if property_data.range_min is not None:
-            array_dict["items"]["minimum"] = property_data.range_min
-        if property_data.range_max is not None:
-            array_dict["items"]["maximum"] = property_data.range_max
+        if property_data.type:
+            array_dict["items"]["type"] = property_data.type
+        if property_data.minimum is not None:
+            array_dict["items"]["minimum"] = property_data.minimum
+        if property_data.maximum is not None:
+            array_dict["items"]["maximum"] = property_data.maximum
 
     types = [array_dict]
     if not is_required:
@@ -630,122 +723,23 @@ def _create_simple_property(
     Returns:
         JSON object
     """
+    print(property_data.type)
     schema: dict[str, Any] = {name: {"description": description}}
 
-    if property_data.property_type and is_required:
-        schema[name]["type"] = property_data.property_type
-    elif property_data.property_type:
+    if property_data.type and is_required:
+        schema[name]["type"] = property_data.type
+    elif property_data.type:
         schema[name]["oneOf"] = [
-            {"type": property_data.property_type, "title": property_data.property_type},
+            {"type": property_data.type, "title": property_data.type},
             {"type": "null", "title": "null"},
         ]
     elif is_required:
         schema[name]["not"] = {"type": "null"}
 
-    if property_data.range_min is not None:
-        schema[name]["minimum"] = property_data.range_min
-    if property_data.range_max is not None:
-        schema[name]["maximum"] = property_data.range_max
+    if property_data.minimum is not None:
+        schema[name]["minimum"] = property_data.minimum
+    if property_data.maximum is not None:
+        schema[name]["maximum"] = property_data.maximum
 
     return schema
 
-
-def _get_property_data_from_validation_rules(
-    validation_rules: list[str],
-) -> PropertyData:
-    """
-    Returns data from validation rules in the form of a PropertyData dataclass
-
-    Args:
-        validation_rules: A list of validation rules
-
-    Returns:
-        PropertyData: validation rule data
-    """
-    property_type: Union[str, None] = None
-    is_array = False
-    range_min: Union[float, None] = None
-    range_max: Union[float, None] = None
-
-    if validation_rules:
-        if rule_in_rule_list("list", validation_rules):
-            is_array = True
-
-        type_rule = _get_type_rule_from_rule_list(validation_rules)
-        if type_rule:
-            property_type = TYPE_RULES.get(type_rule)
-
-        range_rule = _get_in_range_rule_from_rule_list(validation_rules)
-        if range_rule:
-            if property_type not in ["number", "integer"]:
-                property_type = "number"
-            range_min, range_max = _get_ranges_from_range_rule(range_rule)
-
-    return PropertyData(property_type, is_array, range_min, range_max)
-
-
-def _get_ranges_from_range_rule(
-    rule: str,
-) -> tuple[Union[float, None], Union[float, None]]:
-    """
-    Returns the min and max from an inRange rule if they exist
-
-    Arguments:
-        rule: The inRange rule
-
-    Returns:
-        The min and max form the rule
-    """
-    range_min: Union[float, None] = None
-    range_max: Union[float, None] = None
-    parameters = rule.split(" ")
-    if len(parameters) > 1 and parameters[1].isnumeric():
-        range_min = float(parameters[1])
-    if len(parameters) > 2 and parameters[2].isnumeric():
-        range_max = float(parameters[2])
-    return (range_min, range_max)
-
-
-def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
-    """
-    Returns the inRange rule from a list of rules if there is only one
-    Returns None if there are no inRange rules
-
-    Arguments:
-        rule_list: A list of validation rules
-
-    Raises:
-        ValueError: When more than one inRange rule is found
-
-    Returns:
-        The inRange rule if one is found, or None
-    """
-    in_range_rules = [rule for rule in rule_list if rule.startswith("inRange")]
-    if len(in_range_rules) > 1:
-        raise ValueError("Found more than one inRange rule in validation rules")
-    if len(in_range_rules) == 0:
-        return None
-    return in_range_rules[0]
-
-
-def _get_type_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
-    """
-    Returns the type rule from a list of rules if there is only one
-    Returns None if there are no type rules
-
-    Arguments:
-        rule_list: A list of validation rules
-
-    Raises:
-        ValueError: When more than one type rule is found
-
-    Returns:
-        The type rule if one is found, or None
-    """
-    rule_list = [rule.split(" ")[0] for rule in rule_list]
-    type_rules = [rule for rule in rule_list if rule in TYPE_RULES]
-    if len(type_rules) > 1:
-        raise ValueError("Found more than one type rule in validation rules")
-    if len(type_rules) == 0:
-        return None
-    return type_rules[0]
