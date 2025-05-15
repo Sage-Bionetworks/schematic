@@ -273,9 +273,9 @@ class TestNodeProcessor:
     def test_update_range_domain_map(self) -> None:
         """Test NodeProcessor.update_range_domain_map"""
         np = NodeProcessor(["node1"])
-        assert not np.range_domain_map
-        np.update_range_domain_map("node1", ["nodeA", "nodeB"])
-        assert np.range_domain_map == {"nodeA": ["node1"], "nodeB": ["node1"]}
+        assert not np.valid_values_map
+        np.update_valid_values_map("node1", ["value1", "value2"])
+        assert np.valid_values_map == {"value1": ["node1"], "value2": ["node1"]}
 
     def test_update_reverse_dependencies(self) -> None:
         """Test NodeProcessor.update_reverse_dependencies"""

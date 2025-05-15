@@ -212,21 +212,42 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
         self.properties.update(property_dict)
 
 
-
+@dataclass
 class NodeProcessor:
-    """Keeps track of needed information for processing a node in a graph"""
+    """
+    This is a helper class for JSONSchemaGenerator. It creates a JSON Schema for an input datatype.
+    This datatype is the source node. A graph(nx.MultiDiGraph) created from the data model
+    is processed for valid_values and reverse dependencies in order to create conditional
+    dependencies in the resulting JSON Schema. This class keeps track of the states needed as
+    the graph is processed.
 
-    def __init__(self, initial_nodes: list[str]) -> None:
+    Attributes:
+        root_dependencies: The nodes the source node depends on
+        nodes_to_process: The nodes that are left to be processed
+        current_node: The node that is being processed
+        processed_nodes: The nodes that have already been processed
+        reverse_dependencies:
+            Some nodes will have reverse dependencies (nodes that depend on them)
+            This is a mapping: {"node_name" : [reverse_dependencies]}
+        valid_values_map:
+            Some nodes will have valid_values (enums)
+            This is a mapping {"valid_value" : [nodes_that_have_valid_value]}
+    """
+    root_dependencies: list[str]
+    nodes_to_process: list[str] = field(init=False)
+    current_node: Optional[str] = field(init=False)
+    processed_nodes: list[str] = field(default_factory=list)
+    reverse_dependencies: dict[str, list[str]] = field(default_factory=dict)
+    valid_values_map: dict[str, list[str]] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
         """
-        Arguments:
-            initial_nodes: A list of nodes to start processing
+        The first nodes to process are the root dependencies.
+        This sets the current node as the first node in root dependencies.
         """
-        self.root_dependencies: list[str] = initial_nodes
+        print(self.root_dependencies)
         self.nodes_to_process = self.root_dependencies.copy()
-        self.current_node: Union[str, None] = self.nodes_to_process.pop(0)
-        self.processed_nodes: list[str] = []
-        self.reverse_dependencies: dict[str, list[str]] = {}
-        self.range_domain_map: dict[str, list[str]] = {}
+        self.current_node = self.nodes_to_process.pop(0)
 
     def move_to_next_node(self) -> None:
         """Removes the first node in nodes to process and sets it as current node"""
@@ -249,19 +270,19 @@ class NodeProcessor:
         """
         return self.current_node in self.processed_nodes
 
-    def update_range_domain_map(
-        self, node_display_name: str, node_range_display_names: list[str]
+    def update_valid_values_map(
+        self, node_display_name: str, valid_values_display_names: list[str]
     ) -> None:
-        """Updates the range domain map
+        """Updates the valid_values map
 
         Arguments:
             node_display_name: The display name of the node
-            node_range_display_names: The display names of the the nodes range
+            valid_values_display_names: The display names of the the nodes valid values
         """
-        for node in node_range_display_names:
-            if node not in self.range_domain_map:
-                self.range_domain_map[node] = []
-            self.range_domain_map[node].append(node_display_name)
+        for node in valid_values_display_names:
+            if node not in self.valid_values_map:
+                self.valid_values_map[node] = []
+            self.valid_values_map[node].append(node_display_name)
 
     def update_reverse_dependencies(
         self, node_display_name: str, node_dependencies_display_names: list[str]
@@ -401,8 +422,6 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
             self.rel_dict["displayName"]["node_label"]
         ]
 
-        node_processor.update_range_domain_map(node_processor.current_node, node_range)
-
         node_validation_rules = self.dmge.get_component_node_validation_rules(
             manifest_component=source_node, node_display_name=node_display_name
         )
@@ -416,6 +435,20 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
         node_description = self.dmge.get_node_comment(
             node_display_name=node_display_name
         )
+
+        # add process node as a conditional to its dependencies
+        node_dependencies_d = self.dmge.get_nodes_display_names(
+            node_list=node_dependencies
+        )
+        node_processor.update_reverse_dependencies(
+            node_display_name, node_dependencies_d
+        )
+        node_processor.update_valid_values_map(node_processor.current_node, node_range)
+
+        # add nodes found as dependencies and range of this processed node
+        # to the list of nodes to be processed
+        node_processor.update_nodes_to_process(sorted(node_range))
+        node_processor.update_nodes_to_process(sorted(node_dependencies))
 
         # Determine if current node is a property to set
         set_property = any(
@@ -433,7 +466,7 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
                     node_processor.current_node,
                     node_display_name,
                     node_processor.reverse_dependencies,
-                    node_processor.range_domain_map,
+                    node_processor.valid_values_map,
                 )
                 is_node_required = False
             _set_property(
@@ -445,18 +478,6 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
                 node_description,
             )
             node_processor.update_processed_nodes_with_current_node()
-
-        # add process node as a conditional to its dependencies
-        node_dependencies_d = self.dmge.get_nodes_display_names(
-            node_list=node_dependencies
-        )
-        node_processor.update_reverse_dependencies(
-            node_display_name, node_dependencies_d
-        )
-        # add nodes found as dependencies and range of this processed node
-        # to the list of nodes to be processed
-        node_processor.update_nodes_to_process(sorted(node_range))
-        node_processor.update_nodes_to_process(sorted(node_dependencies))
 
 
 def _write_data_model(
