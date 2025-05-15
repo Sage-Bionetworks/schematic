@@ -138,28 +138,45 @@ class TestJSONSchema:
 
     def test_add_required_property(self) -> None:
         """Test the JSONSchema.add_required_property method"""
+        # GIVEN a JSONSchema instance
         schema = JSONSchema()
+        # WHEN adding a required property
         schema.add_required_property("name1")
+        # THEN that property should be retrievable
         assert schema.required == ["name1"]
+        # WHEN adding a second required property
         schema.add_required_property("name2")
+        # THEN both properties should be retrievable
         assert schema.required == ["name1", "name2"]
 
     def test_add_to_all_of_list(self) -> None:
         """Test the JSONSchema.add_to_all_of_list method"""
+        # GIVEN a JSONSchema instance
         schema = JSONSchema()
+        # WHEN adding a dict to the all of list
         schema.add_to_all_of_list({"if": {}, "then": {}})
+        # THEN that dict should be retrievable
         assert schema.all_of == [{"if": {}, "then": {}}]
+        # WHEN adding a second dict
         schema.add_to_all_of_list({"if2": {}, "then2": {}})
+        # THEN both dicts should be retrievable
         assert schema.all_of == [{"if": {}, "then": {}}, {"if2": {}, "then2": {}}]
 
     def test_update_property(self) -> None:
         """Test the JSONSchema.update_property method"""
+        # GIVEN a JSONSchema instance
         schema = JSONSchema()
+        # WHEN updating the properties dict
         schema.update_property({"name1": "property"})
+        # THEN that dict should be retrievable
         assert schema.properties == {"name1": "property"}
+        # WHEN updating the properties with a key that exists
         schema.update_property({"name1": "property2"})
+        # THEN the updated dict should be retrievable
         assert schema.properties == {"name1": "property2"}
+        # WHEN updating the properties dict with a new key
         schema.update_property({"name3": "property3"})
+        # THEN the new key and old key should be retrievable
         assert schema.properties == {"name1": "property2", "name3": "property3"}
 
 
@@ -248,58 +265,92 @@ class TestNodeProcessor:
 
     def test_init(self) -> None:
         """Test NodeProcessor.__init__"""
+        # GIVEN a NodeProcessor instance with two nodes
         np = NodeProcessor(["node1", "node2"])
+        # THEN the current_node should be first node in the input list
         assert np.current_node == "node1"
+        # THEN nodes_to_process should be the rest of the nodes
         assert np.nodes_to_process == ["node2"]
+        # THEN root_dependencies should be the entire list
         assert np.root_dependencies == ["node1", "node2"]
 
     def test_move_to_next_node(self) -> None:
         """Test NodeProcessor.move_to_next_node"""
+        # GIVEN a NodeProcessor instance with two nodes
         np = NodeProcessor(["node1", "node2"])
+        # THEN the current_node should be first node in the input list
+        assert np.current_node == "node1"
+        # WHEN using move_to_next_node
         np.move_to_next_node()
+        # THEN the current_node should be second node in the input list
         assert np.current_node == "node2"
+        # THEN nodes_to_process should be empty
         assert np.nodes_to_process == []
 
     def test_are_nodes_remaining(self) -> None:
         """Test NodeProcessor.are_nodes_remaining"""
+        # GIVEN a NodeProcessor instance with one node
         np = NodeProcessor(["node1"])
+        # THEN there should be (1) nodes_remaining
         assert np.are_nodes_remaining()
+        # WHEN using move_to_next_node
         np.move_to_next_node()
+        # THEN there should not be nodes_remaining
         assert not np.are_nodes_remaining()
 
     def test_is_current_node_processed(self) -> None:
         """Test NodeProcessor.is_current_node_processed"""
+        # GIVEN a NodeProcessor instance with one node
         np = NodeProcessor(["node1"])
+        # THEN the current node should not have been processed yet.
         assert not np.is_current_node_processed()
+        # WHEN adding a the current node to the processed list
         np.processed_nodes += ["node1"]
+        # THEN the current node should be listed as processed.
         assert np.is_current_node_processed()
 
     def test_update_range_domain_map(self) -> None:
         """Test NodeProcessor.update_range_domain_map"""
+        # GIVEN a NodeProcessor instance
         np = NodeProcessor(["node1"])
+        # THEN the valid_values_map should be empty to start with
         assert not np.valid_values_map
+        # WHEN the map is updated with one node and two values
         np.update_valid_values_map("node1", ["value1", "value2"])
+        # THEN valid values map should have one entry for each valid value, with the node as the value
         assert np.valid_values_map == {"value1": ["node1"], "value2": ["node1"]}
 
     def test_update_reverse_dependencies(self) -> None:
         """Test NodeProcessor.update_reverse_dependencies"""
+        # GIVEN a NodeProcessor instance
         np = NodeProcessor(["node1"])
+        # THEN the reverse_dependencies should be empty to start with
         assert not np.reverse_dependencies
+        # WHEN the map is updated with one node and two reverse_dependencies
         np.update_reverse_dependencies("node1", ["nodeA", "nodeB"])
+        # THEN reverse_dependencies should have one entry for each valid value, with the node as the value
         assert np.reverse_dependencies == {"nodeA": ["node1"], "nodeB": ["node1"]}
 
     def test_update_nodes_to_process(self) -> None:
         """Test NodeProcessor.update_nodes_to_process"""
+        # GIVEN a NodeProcessor instance with one node
         np = NodeProcessor(["node1"])
+        # THEN the NodeProcessor should have no nodes in nodes_to_process
         assert np.nodes_to_process == []
+        # WHEN adding a node to nodes_to_process
         np.update_nodes_to_process(["node2"])
+        # THEN that node should be in nodes_to_process
         assert np.nodes_to_process == ["node2"]
 
     def test_update_processed_nodes_with_current_node(self) -> None:
         """Test NodeProcessor.update_processed_nodes_with_current_node"""
+        # GIVEN a NodeProcessor instance with one node
         np = NodeProcessor(["node1"])
+        # THEN the NodeProcessor should have no nodes in nodes_to_process
         assert not np.processed_nodes
+        # WHEN the node has been processed
         np.update_processed_nodes_with_current_node()
+        # THEN the node should eb listed as processed
         assert np.processed_nodes == ["node1"]
 
 
