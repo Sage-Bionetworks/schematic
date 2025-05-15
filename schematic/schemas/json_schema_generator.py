@@ -138,7 +138,9 @@ def _get_type_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
     rule_list = [rule.split(" ")[0] for rule in rule_list]
     type_rules = [rule for rule in rule_list if rule in TYPE_RULES]
     if len(type_rules) > 1:
-        raise ValueError("Found more than one type rule in validation rules")
+        raise ValueError(
+            "Found more than one type rule in validation rules: ", rule_list
+        )
     if len(type_rules) == 0:
         return None
     return type_rules[0]
