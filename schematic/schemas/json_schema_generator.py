@@ -474,12 +474,14 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
             # Determine if current node has conditional dependencies that need to be set
             if node_display_name in node_processor.reverse_dependencies:
                 _set_conditional_dependencies(
-                    json_schema,
-                    node_processor.current_node,
-                    node_display_name,
-                    node_processor.reverse_dependencies,
-                    node_processor.valid_values_map,
+                    json_schema=json_schema,
+                    conditional_property=node_processor.current_node,
+                    property_display_name=node_display_name,
+                    reverse_dependencies=node_processor.reverse_dependencies,
+                    valid_values_map=node_processor.valid_values_map,
                 )
+                # This is to ensure that all properties that are conditional dependencies are not
+                #   required, but only become required when the conditional dependency is met.
                 is_node_required = False
             _set_property(
                 json_schema,
@@ -738,30 +740,23 @@ def _create_array_property(
 
     array_dict: dict[str, Any] = {"type": "array", "title": "array"}
 
-    include_items = any(
-        [
-            property_data.type,
-            property_data.minimum is not None,
-            property_data.maximum is not None,
-        ]
-    )
+    items: dict[str, Any] = {}
+    if property_data.type:
+        items["type"] = property_data.type
+    if property_data.minimum is not None:
+        items["minimum"] = property_data.minimum
+    if property_data.maximum is not None:
+        items["maximum"] = property_data.maximum
 
-    if include_items:
-        array_dict["items"] = {}
-        if property_data.type:
-            array_dict["items"]["type"] = property_data.type
-        if property_data.minimum is not None:
-            array_dict["items"]["minimum"] = property_data.minimum
-        if property_data.maximum is not None:
-            array_dict["items"]["maximum"] = property_data.maximum
+    if items:
+        array_dict["items"] = items
 
     types = [array_dict]
     if not is_required:
-        types += [{"type": "null", "title": "null"}]
+        types.append({"type": "null", "title": "null"})
 
     schema = {name: {"oneOf": types, "description": description}}
     return schema
-
 
 def _create_enum_property(
     name: str, enum_list: list[str], is_required: bool, description: str
@@ -804,16 +799,16 @@ def _create_simple_property(
     Returns:
         JSON object
     """
-    print(property_data.type)
     schema: dict[str, Any] = {name: {"description": description}}
 
-    if property_data.type and is_required:
-        schema[name]["type"] = property_data.type
-    elif property_data.type:
-        schema[name]["oneOf"] = [
-            {"type": property_data.type, "title": property_data.type},
-            {"type": "null", "title": "null"},
-        ]
+    if property_data.type:
+        if is_required:
+            schema[name]["type"] = property_data.type
+        else:
+            schema[name]["oneOf"] = [
+                {"type": property_data.type, "title": property_data.type},
+                {"type": "null", "title": "null"},
+            ]
     elif is_required:
         schema[name]["not"] = {"type": "null"}
 
@@ -823,3 +818,4 @@ def _create_simple_property(
         schema[name]["maximum"] = property_data.maximum
 
     return schema
+
