@@ -34,13 +34,8 @@ from tests.utils import json_files_equal
 
 
 @pytest.fixture(name="js_generator")
-def fixture_js_generator() -> Generator[JSONSchemaGenerator, None, None]:
+def fixture_js_generator(metadata_model:MetadataModel) -> Generator[JSONSchemaGenerator, None, None]:
     """Yields a DataModelJSONSchema2 with the example data model"""
-    metadata_model = MetadataModel(
-        inputMModelLocation="tests/data/example.model.jsonld",
-        inputMModelLocationType="local",
-        data_model_labels="class_label",
-    )
     data_model_js = JSONSchemaGenerator(
         jsonld_path=metadata_model.inputMModelLocation,
         graph=metadata_model.graph_data_model,
