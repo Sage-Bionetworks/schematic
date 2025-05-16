@@ -442,11 +442,13 @@ def test_validate_invalid_instances(
     with pytest.raises(ValidationError):
         validator.validate(instance)
 
+
 def test_write_data_model_with_schema_path(test_directory: str) -> None:
     """Test for _write_data_model with the path provided."""
     schema_path = os.path.join(test_directory, "test_write_data_model1.json")
     _write_data_model(json_schema_dict={}, schema_path=schema_path)
     assert os.path.exists(schema_path)
+
 
 def test_write_data_model_with_name_and_jsonld_path(test_directory: str) -> None:
     """
@@ -454,9 +456,14 @@ def test_write_data_model_with_name_and_jsonld_path(test_directory: str) -> None
     The name of the file should be "<jsonld_path_prefix>.<name>.schema.json"
     """
     json_ld_path = os.path.join(test_directory, "fake_model.jsonld")
-    schema_path = os.path.join(test_directory, "fake_model.test_write_data_model2.schema.json")
-    _write_data_model(json_schema_dict={}, name="test_write_data_model2", jsonld_path=json_ld_path)
+    schema_path = os.path.join(
+        test_directory, "fake_model.test_write_data_model2.schema.json"
+    )
+    _write_data_model(
+        json_schema_dict={}, name="test_write_data_model2", jsonld_path=json_ld_path
+    )
     assert os.path.exists(schema_path)
+
 
 def test_write_data_model_exception() -> None:
     """
@@ -465,7 +472,6 @@ def test_write_data_model_exception() -> None:
     """
     with pytest.raises(ValueError):
         _write_data_model(json_schema_dict={})
-
 
 
 @pytest.mark.parametrize(
