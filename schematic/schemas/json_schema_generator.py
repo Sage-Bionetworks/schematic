@@ -354,7 +354,8 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
 
         Using the above data it will:
         - Cerate properties for each attribute of the datatype.
-        - Create properties for attributes that are conditionally dependent on the datatypes attributes
+        - Create properties for attributes that are conditionally
+            dependent on the datatypes attributes
         - Create conditional dependencies linking attributes to their dependencies
 
         Arguments:
