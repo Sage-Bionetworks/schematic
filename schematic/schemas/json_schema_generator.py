@@ -497,9 +497,9 @@ class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
 
 def _write_data_model(
     json_schema_dict: dict[str, Any],
-    schema_path: Union[str, None],
-    name: str,
-    jsonld_path: str,
+    schema_path: Optional[str] = None,
+    name: Optional[str] = None,
+    jsonld_path: Optional[str] = None
 ) -> None:
     """
     Creates the JSON Schema file
@@ -516,7 +516,7 @@ def _write_data_model(
     """
     if schema_path:
         json_schema_path = schema_path
-    if not schema_path:
+    elif name and jsonld_path:
         json_schema_path = get_json_schema_log_file_path(
             data_model_path=jsonld_path, source_node=name
         )
@@ -528,6 +528,8 @@ def _write_data_model(
             "The JSON schema file can be inspected by setting the following "
             "nested key in the configuration: (model > location)."
         )
+    else:
+        raise ValueError("Either schema_path or both name and jsonld_path must be provided.")
     export_json(json_doc=json_schema_dict, file_path=json_schema_path, indent=2)
 
 

@@ -18,6 +18,7 @@ from schematic.schemas.json_schema_generator import (
     JSONSchema,
     NodeProcessor,
     JSONSchemaGenerator,
+    _write_data_model,
     _set_conditional_dependencies,
     _set_property,
     _create_enum_array_property,
@@ -317,7 +318,8 @@ class TestNodeProcessor:
         assert not np.valid_values_map
         # WHEN the map is updated with one node and two values
         np.update_valid_values_map("node1", ["value1", "value2"])
-        # THEN valid values map should have one entry for each valid value, with the node as the value
+        # THEN valid values map should have one entry for each valid value,
+        #  with the node as the value
         assert np.valid_values_map == {"value1": ["node1"], "value2": ["node1"]}
 
     def test_update_reverse_dependencies(self) -> None:
@@ -328,7 +330,8 @@ class TestNodeProcessor:
         assert not np.reverse_dependencies
         # WHEN the map is updated with one node and two reverse_dependencies
         np.update_reverse_dependencies("node1", ["nodeA", "nodeB"])
-        # THEN reverse_dependencies should have one entry for each valid value, with the node as the value
+        # THEN reverse_dependencies should have one entry for each valid value,
+        #  with the node as the value
         assert np.reverse_dependencies == {"nodeA": ["node1"], "nodeB": ["node1"]}
 
     def test_update_nodes_to_process(self) -> None:
@@ -438,6 +441,31 @@ def test_validate_invalid_instances(
     validator = Draft7Validator(schema)
     with pytest.raises(ValidationError):
         validator.validate(instance)
+
+def test_write_data_model_with_schema_path(test_directory: str) -> None:
+    """Test for _write_data_model with the path provided."""
+    schema_path = os.path.join(test_directory, "test_write_data_model1.json")
+    _write_data_model(json_schema_dict={}, schema_path=schema_path)
+    assert os.path.exists(schema_path)
+
+def test_write_data_model_with_name_and_jsonld_path(test_directory: str) -> None:
+    """
+    Test for _write_data_model with a name and the data model path used to create it.
+    The name of the file should be "<jsonld_path_prefix>.<name>.schema.json"
+    """
+    json_ld_path = os.path.join(test_directory, "fake_model.jsonld")
+    schema_path = os.path.join(test_directory, "fake_model.test_write_data_model2.schema.json")
+    _write_data_model(json_schema_dict={}, name="test_write_data_model2", jsonld_path=json_ld_path)
+    assert os.path.exists(schema_path)
+
+def test_write_data_model_exception() -> None:
+    """
+    Test for _write_data_model where neither the path, the name, or JSONLD path are provided.
+    This should return a ValueError
+    """
+    with pytest.raises(ValueError):
+        _write_data_model(json_schema_dict={})
+
 
 
 @pytest.mark.parametrize(
