@@ -758,6 +758,7 @@ def _create_array_property(
     schema = {name: {"oneOf": types, "description": description}}
     return schema
 
+
 def _create_enum_property(
     name: str, enum_list: list[str], is_required: bool, description: str
 ) -> dict[str, Any]:
@@ -818,4 +819,3 @@ def _create_simple_property(
         schema[name]["maximum"] = property_data.maximum
 
     return schema
-
