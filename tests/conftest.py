@@ -277,6 +277,7 @@ def metadata_model(helpers, data_model_labels):
 
     return metadata_model
 
+
 @pytest.fixture(name="metadata_model", scope="function")
 def fixture_metadata_model(helpers: Helpers) -> DataModelGraphExplorer:
     """Fixture to instantiate a DataModelGraphExplorer object."""
