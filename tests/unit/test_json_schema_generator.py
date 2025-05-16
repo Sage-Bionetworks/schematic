@@ -377,7 +377,7 @@ def test_create_json_schema(
     expected_path = f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
     title = f"{datatype}_validation"
     js_generator.create_json_schema(datatype, title, test_path)
-    json_files_equal(test_path, expected_path)
+    assert json_files_equal(expected_path, test_path)
 
 
 @pytest.mark.parametrize(
