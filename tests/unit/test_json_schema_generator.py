@@ -48,7 +48,7 @@ def fixture_js_generator(
 @pytest.fixture(name="test_directory", scope="session")
 def fixture_test_directory():
     """Yields a directory for creating test jSON Schemas in"""
-    test_folder = "tests/data/test_jsonschemas"
+    test_folder = "tests/data/json_schema_generator_output"
     os.makedirs(test_folder, exist_ok=True)
     yield test_folder
     rmtree(test_folder)
