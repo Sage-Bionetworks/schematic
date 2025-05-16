@@ -499,7 +499,7 @@ def _write_data_model(
     json_schema_dict: dict[str, Any],
     schema_path: Optional[str] = None,
     name: Optional[str] = None,
-    jsonld_path: Optional[str] = None
+    jsonld_path: Optional[str] = None,
 ) -> None:
     """
     Creates the JSON Schema file
@@ -529,7 +529,9 @@ def _write_data_model(
             "nested key in the configuration: (model > location)."
         )
     else:
-        raise ValueError("Either schema_path or both name and jsonld_path must be provided.")
+        raise ValueError(
+            "Either schema_path or both name and jsonld_path must be provided."
+        )
     export_json(json_doc=json_schema_dict, file_path=json_schema_path, indent=2)
 
 
