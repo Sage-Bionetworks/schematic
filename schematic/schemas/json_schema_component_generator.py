@@ -9,7 +9,7 @@ import pandas as pd
 import click
 
 from schematic.models.metadata import MetadataModel
-from schematic.schemas.json_schema_generator import JSONSchemaGenerator
+from schematic.schemas.create_json_schema import create_json_schema
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.utils.io_utils import export_json
@@ -247,21 +247,18 @@ class JsonSchemaComponentGenerator:
         Raises:
             May raise errors if the component is not found in the data model graph.
         """
-        schema_name = self.component + "_validation"
-
         metadata_model = MetadataModel(
             inputMModelLocation=self.data_model_location,
             inputMModelLocationType="local",
             data_model_labels="class_label",
         )
-        json_schema_generator = JSONSchemaGenerator(
+        json_schema = create_json_schema(
+            dmge=self.dmge,
+            datatype=self.component,
+            schema_name=self.component + "_validation",
             jsonld_path=metadata_model.inputMModelLocation,
-            graph=metadata_model.graph_data_model,
         )
-
-        self.component_json_schema = json_schema_generator.create_json_schema(
-            datatype=self.component, schema_name=schema_name
-        )
+        self.component_json_schema = json_schema
 
         click.echo(f"Validation JSONschema generated for {self.component}.")
 
