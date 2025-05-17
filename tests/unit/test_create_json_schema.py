@@ -446,6 +446,7 @@ class TestGraphTraversalState:
         assert gts._nodes_to_process[4] == "NewNode"
 
 
+
 @pytest.mark.parametrize(
     "datatype",
     [

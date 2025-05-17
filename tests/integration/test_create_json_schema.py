@@ -27,6 +27,7 @@ SCHEMA_TEST_ORG = "dpetest"
 SCHEMA_TEST_VERSION = "0.0.1"
 
 
+
 @pytest.fixture(name="dmge", scope="module")
 def fixture_dmge() -> DataModelGraphExplorer:
     """
