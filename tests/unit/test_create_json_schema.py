@@ -9,15 +9,15 @@ import pytest
 from jsonschema import Draft7Validator
 from jsonschema.exceptions import ValidationError
 
-from schematic.models.metadata import MetadataModel
-from schematic.schemas.json_schema_generator import (
-    PropertyData,
+from schematic.schemas.data_model_graph import DataModelGraphExplorer
+from schematic.schemas.create_json_schema import (
     _get_ranges_from_range_rule,
     _get_in_range_rule_from_rule_list,
     _get_type_rule_from_rule_list,
     JSONSchema,
+    Node,
     NodeProcessor,
-    JSONSchemaGenerator,
+    create_json_schema,
     _write_data_model,
     _set_conditional_dependencies,
     _set_property,
@@ -33,20 +33,8 @@ from tests.utils import json_files_equal
 # pylint: disable=too-many-positional-arguments
 
 
-@pytest.fixture(name="js_generator")
-def fixture_js_generator(
-    metadata_model: MetadataModel,
-) -> Generator[JSONSchemaGenerator, None, None]:
-    """Yields a DataModelJSONSchema2 with the example data model"""
-    data_model_js = JSONSchemaGenerator(
-        jsonld_path=metadata_model.inputMModelLocation,
-        graph=metadata_model.graph_data_model,
-    )
-    yield data_model_js
-
-
 @pytest.fixture(name="test_directory", scope="session")
-def fixture_test_directory():
+def fixture_test_directory() -> Generator[str, None, None]:
     """Yields a directory for creating test jSON Schemas in"""
     test_folder = "tests/data/json_schema_generator_output"
     os.makedirs(test_folder, exist_ok=True)
@@ -91,15 +79,15 @@ def fixture_test_directory():
         "inRange and string type rules",
     ],
 )
-def test_property_data(
+def test_node(
     validation_rules: list[str],
     expected_type: Optional[str],
     expected_is_array: bool,
     expected_min: Optional[float],
     expected_max: Optional[float],
 ) -> None:
-    """Tests for PropertyData class"""
-    result = PropertyData(validation_rules)
+    """Tests for Node class"""
+    result = Node(validation_rules=validation_rules)
     assert result.type == expected_type
     assert result.is_array == expected_is_array
     assert result.minimum == expected_min
@@ -261,98 +249,107 @@ def test_get_type_rule_from_rule_list_exceptions(
 class TestNodeProcessor:
     """Tests for NodeProcessor class"""
 
-    def test_init(self) -> None:
+    def test_init(self, dmge: DataModelGraphExplorer) -> None:
         """Test NodeProcessor.__init__"""
-        # GIVEN a NodeProcessor instance with two nodes
-        np = NodeProcessor(["node1", "node2"])
-        # THEN the current_node should be first node in the input list
-        assert np.current_node == "node1"
-        # THEN nodes_to_process should be the rest of the nodes
-        assert np.nodes_to_process == ["node2"]
-        # THEN root_dependencies should be the entire list
-        assert np.root_dependencies == ["node1", "node2"]
+        # GIVEN a NodeProcessor instance with 5 nodes
+        np = NodeProcessor(dmge, "Patient")
+        # THEN the current_node, current_node_display_name, and first item in
+        #  root dependencies should be "Component"
+        assert np.current_node.name == "Component"
+        assert np.root_dependencies[0] == "Component"
+        assert np.current_node.display_name == "Component"
+        # THEN root_dependencies should bbe 5 items long, and nodes to process
+        #  should be the same minus "Component"
+        assert np.root_dependencies == [
+            'Component', 'Diagnosis', 'PatientID', 'Sex', 'YearofBirth'
+        ]
+        assert np.nodes_to_process == ['Diagnosis', 'PatientID', 'Sex', 'YearofBirth']
 
-    def test_move_to_next_node(self) -> None:
+    def test_move_to_next_node(self, dmge: DataModelGraphExplorer) -> None:
         """Test NodeProcessor.move_to_next_node"""
-        # GIVEN a NodeProcessor instance with two nodes
-        np = NodeProcessor(["node1", "node2"])
-        # THEN the current_node should be first node in the input list
-        assert np.current_node == "node1"
+        # GIVEN a NodeProcessor instance with 2 nodes
+        np = NodeProcessor(dmge, "Patient")
+        np.nodes_to_process = ["YearofBirth"]
+        # THEN the current_node should be "Component" and 1 node to process
+        assert np.current_node.name == "Component"
+        assert np.current_node.display_name == "Component"
+        assert len(np.nodes_to_process) == 1
         # WHEN using move_to_next_node
+        print(np.nodes_to_process)
         np.move_to_next_node()
-        # THEN the current_node should be second node in the input list
-        assert np.current_node == "node2"
-        # THEN nodes_to_process should be empty
-        assert np.nodes_to_process == []
+        print(np.nodes_to_process)
+        # THEN the current_node should now be YearofBirth and no nodes to process
+        assert np.current_node.name == "YearofBirth"
+        assert np.current_node.display_name == "Year of Birth"
+        assert len(np.nodes_to_process) == 0
 
-    def test_are_nodes_remaining(self) -> None:
+    def test_are_nodes_remaining(self, dmge: DataModelGraphExplorer) -> None:
         """Test NodeProcessor.are_nodes_remaining"""
-        # GIVEN a NodeProcessor instance with one node
-        np = NodeProcessor(["node1"])
-        # THEN there should be (1) nodes_remaining
+        # GIVEN a NodeProcessor instance with 1 nodes
+        np = NodeProcessor(dmge, "Patient")
+        np.nodes_to_process = []
+        # THEN there should be nodes_remaining
         assert np.are_nodes_remaining()
         # WHEN using move_to_next_node
         np.move_to_next_node()
         # THEN there should not be nodes_remaining
         assert not np.are_nodes_remaining()
 
-    def test_is_current_node_processed(self) -> None:
-        """Test NodeProcessor.is_current_node_processed"""
-        # GIVEN a NodeProcessor instance with one node
-        np = NodeProcessor(["node1"])
-        # THEN the current node should not have been processed yet.
-        assert not np.is_current_node_processed()
-        # WHEN adding a the current node to the processed list
-        np.processed_nodes += ["node1"]
-        # THEN the current node should be listed as processed.
-        assert np.is_current_node_processed()
-
-    def test_update_range_domain_map(self) -> None:
+    def test_update_range_domain_map(self, dmge: DataModelGraphExplorer) -> None:
         """Test NodeProcessor.update_range_domain_map"""
         # GIVEN a NodeProcessor instance
-        np = NodeProcessor(["node1"])
+        np = NodeProcessor(dmge, "Patient")
         # THEN the valid_values_map should be empty to start with
         assert not np.valid_values_map
         # WHEN the map is updated with one node and two values
-        np.update_valid_values_map("node1", ["value1", "value2"])
+        np.update_valid_values_map("Diagnosis", ["Healthy", "Cancer"])
         # THEN valid values map should have one entry for each valid value,
         #  with the node as the value
-        assert np.valid_values_map == {"value1": ["node1"], "value2": ["node1"]}
+        assert np.valid_values_map == {"Healthy": ["Diagnosis"], "Cancer": ["Diagnosis"]}
 
-    def test_update_reverse_dependencies(self) -> None:
+    def test_update_reverse_dependencies(self, dmge: DataModelGraphExplorer) -> None:
         """Test NodeProcessor.update_reverse_dependencies"""
         # GIVEN a NodeProcessor instance
-        np = NodeProcessor(["node1"])
+        np = NodeProcessor(dmge, "Patient")
         # THEN the reverse_dependencies should be empty to start with
         assert not np.reverse_dependencies
         # WHEN the map is updated with one node and two reverse_dependencies
-        np.update_reverse_dependencies("node1", ["nodeA", "nodeB"])
+        np.update_reverse_dependencies("Cancer", ["CancerType", "FamilyHistory"])
         # THEN reverse_dependencies should have one entry for each valid value,
         #  with the node as the value
-        assert np.reverse_dependencies == {"nodeA": ["node1"], "nodeB": ["node1"]}
+        assert np.reverse_dependencies == {"CancerType": ["Cancer"], "FamilyHistory": ["Cancer"]}
 
-    def test_update_nodes_to_process(self) -> None:
+    def test_update_nodes_to_process(self, dmge: DataModelGraphExplorer) -> None:
         """Test NodeProcessor.update_nodes_to_process"""
-        # GIVEN a NodeProcessor instance with one node
-        np = NodeProcessor(["node1"])
-        # THEN the NodeProcessor should have no nodes in nodes_to_process
-        assert np.nodes_to_process == []
+        # GIVEN a NodeProcessor instance with 5 nodes
+        np = NodeProcessor(dmge, "Patient")
+        # THEN the NodeProcessor should have 4 nodes in nodes_to_process
+        assert len(np.nodes_to_process) == 4
         # WHEN adding a node to nodes_to_process
-        np.update_nodes_to_process(["node2"])
-        # THEN that node should be in nodes_to_process
-        assert np.nodes_to_process == ["node2"]
+        np.update_nodes_to_process(["NewNode"])
+        # THEN that node should be in nodes_to_process as the last item
+        assert len(np.nodes_to_process) == 5
+        assert np.nodes_to_process[4] == "NewNode"
 
-    def test_update_processed_nodes_with_current_node(self) -> None:
+    def test_update_processed_nodes_with_current_node(self, dmge: DataModelGraphExplorer) -> None:
         """Test NodeProcessor.update_processed_nodes_with_current_node"""
-        # GIVEN a NodeProcessor instance with one node
-        np = NodeProcessor(["node1"])
-        # THEN the NodeProcessor should have no nodes in nodes_to_process
-        assert not np.processed_nodes
+        # GIVEN a NodeProcessor instance
+        np = NodeProcessor(dmge, "Patient")
         # WHEN the node has been processed
         np.update_processed_nodes_with_current_node()
-        # THEN the node should eb listed as processed
-        assert np.processed_nodes == ["node1"]
+        # THEN the node should be listed as processed
+        assert np.processed_nodes == ["Component"]
 
+    def test_is_current_node_processed(self, dmge: DataModelGraphExplorer) -> None:
+        """Test NodeProcessor.is_current_node_processed"""
+        # GIVEN a NodeProcessor instance
+        np = NodeProcessor(dmge, "Patient")
+        # THEN the current node should not have been processed yet.
+        assert not np.is_current_node_processed()
+        # WHEN adding a the current node to the processed list
+        np.update_processed_nodes_with_current_node()
+        # THEN the current node should be listed as processed.
+        assert np.is_current_node_processed()
 
 @pytest.mark.parametrize(
     "datatype",
@@ -366,14 +363,18 @@ class TestNodeProcessor:
     ],
 )
 def test_create_json_schema(
-    js_generator: JSONSchemaGenerator, datatype: str, test_directory: str
+    dmge: DataModelGraphExplorer, datatype: str, test_directory: str
 ) -> None:
     """Tests for JSONSchemaGenerator.create_json_schema"""
     test_file = f"test.{datatype}.schema.json"
     test_path = os.path.join(test_directory, test_file)
     expected_path = f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
-    title = f"{datatype}_validation"
-    js_generator.create_json_schema(datatype, title, test_path)
+    create_json_schema(
+        dmge=dmge,
+        datatype=datatype,
+        schema_name=f"{datatype}_validation",
+        schema_path=test_path
+    )
     assert json_files_equal(expected_path, test_path)
 
 
@@ -475,31 +476,34 @@ def test_write_data_model_exception() -> None:
     "reverse_dependencies, valid_values_map",
     [
         # If the input node has no reverse dependencies, nothing gets added
-        ({"property_name": []}, {}),
+        ({"Cancer Type": []}, {}),
         # If the input node has reverse dependencies,
         #  but none of them are in the range domain map, nothing gets added
-        ({"property_name": ["enum1"]}, {}),
+        ({"Cancer Type": ["Cancer"]}, {}),
         # If the input node has any reverse dependencies,
         #  and atleast one of them are in the range domain map,
         #  but the range domain map is empty for that node, nothing gets added
-        ({"property_name": ["enum1"]}, {"enum1": []}),
+        ({"Cancer Type": ["Cancer"]}, {"Cancer": []}),
     ],
 )
 def test_set_conditional_dependencies_nothing_added(
     reverse_dependencies: dict[str, list[str]],
     valid_values_map: dict[str, list[str]],
+    dmge: DataModelGraphExplorer,
 ) -> None:
     """
     Tests for _set_conditional_dependencies
       were the schema doesn't change
     """
     json_schema = {"allOf": []}
+    np = NodeProcessor(dmge, "Patient", ["CancerType"])
+    np.reverse_dependencies=reverse_dependencies
+    np.valid_values_map=valid_values_map
+    np.current_node.name="CancerType"
+    np.current_node.display_name="Cancer Type"
     _set_conditional_dependencies(
         json_schema=json_schema,
-        conditional_property="property_name",
-        property_display_name="property_name",
-        reverse_dependencies=reverse_dependencies,
-        valid_values_map=valid_values_map,
+        np=np
     )
     assert json_schema == {"allOf": []}
 
@@ -508,69 +512,69 @@ def test_set_conditional_dependencies_nothing_added(
     "reverse_dependencies, valid_values_map, expected_schema",
     [
         (
-            {"property_name": ["enum1"]},
-            {"enum1": ["rev_dep_property1"]},
+            {"Cancer Type": ["Cancer"]},
+            {"Cancer": ["Diagnosis"]},
             JSONSchema(
                 all_of=[
                     {
                         "if": {
-                            "properties": {"rev_dep_property1": {"enum": ["enum1"]}}
+                            "properties": {"Diagnosis": {"enum": ["Cancer"]}}
                         },
                         "then": {
-                            "properties": {"property_name": {"not": {"type": "null"}}},
-                            "required": ["property_name"],
+                            "properties": {"CancerType": {"not": {"type": "null"}}},
+                            "required": ["CancerType"],
                         },
                     }
                 ]
             ),
         ),
         (
-            {"property_name": ["enum1"]},
-            {"enum1": ["rev_dep_property1", "rev_dep_property2"]},
+            {"Cancer Type": ["Cancer"]},
+            {"Cancer": ["Diagnosis1", "Diagnosis2"]},
             JSONSchema(
                 all_of=[
                     {
                         "if": {
-                            "properties": {"rev_dep_property1": {"enum": ["enum1"]}}
+                            "properties": {"Diagnosis1": {"enum": ["Cancer"]}}
                         },
                         "then": {
-                            "properties": {"property_name": {"not": {"type": "null"}}},
-                            "required": ["property_name"],
+                            "properties": {"CancerType": {"not": {"type": "null"}}},
+                            "required": ["CancerType"],
                         },
                     },
                     {
                         "if": {
-                            "properties": {"rev_dep_property2": {"enum": ["enum1"]}}
+                            "properties": {"Diagnosis2": {"enum": ["Cancer"]}}
                         },
                         "then": {
-                            "properties": {"property_name": {"not": {"type": "null"}}},
-                            "required": ["property_name"],
+                            "properties": {"CancerType": {"not": {"type": "null"}}},
+                            "required": ["CancerType"],
                         },
                     },
                 ]
             ),
         ),
         (
-            {"property_name": ["enum1", "enum2"]},
-            {"enum1": ["rev_dep_property1"], "enum2": ["rev_dep_property2"]},
+            {"Cancer Type": ["Cancer1", "Cancer2"]},
+            {"Cancer1": ["Diagnosis1"], "Cancer2": ["Diagnosis2"]},
             JSONSchema(
                 all_of=[
                     {
                         "if": {
-                            "properties": {"rev_dep_property1": {"enum": ["enum1"]}}
+                            "properties": {"Diagnosis1": {"enum": ["Cancer1"]}}
                         },
                         "then": {
-                            "properties": {"property_name": {"not": {"type": "null"}}},
-                            "required": ["property_name"],
+                            "properties": {"CancerType": {"not": {"type": "null"}}},
+                            "required": ["CancerType"],
                         },
                     },
                     {
                         "if": {
-                            "properties": {"rev_dep_property2": {"enum": ["enum2"]}}
+                            "properties": {"Diagnosis2": {"enum": ["Cancer2"]}}
                         },
                         "then": {
-                            "properties": {"property_name": {"not": {"type": "null"}}},
-                            "required": ["property_name"],
+                            "properties": {"CancerType": {"not": {"type": "null"}}},
+                            "required": ["CancerType"],
                         },
                     },
                 ]
@@ -583,33 +587,33 @@ def test_set_conditional_dependencies(
     reverse_dependencies: dict[str, list[str]],
     valid_values_map: dict[str, list[str]],
     expected_schema: JSONSchema,
+    dmge: DataModelGraphExplorer
 ) -> None:
     """Tests for _set_conditional_dependencies"""
     json_schema = JSONSchema()
+    np = NodeProcessor(dmge, "Patient")
+    np.reverse_dependencies=reverse_dependencies
+    np.valid_values_map=valid_values_map
+    np.current_node.name="CancerType"
+    np.current_node.display_name="Cancer Type"
     _set_conditional_dependencies(
         json_schema=json_schema,
-        conditional_property="property_name",
-        property_display_name="property_name",
-        reverse_dependencies=reverse_dependencies,
-        valid_values_map=valid_values_map,
+        np=np
     )
     assert json_schema == expected_schema
 
 
 @pytest.mark.parametrize(
-    "schema, enum_list, validation_rules, is_required, expected_schema",
+    "node, expected_schema",
     [
         # enum_list is not empty, validation rules contain a list rule, is_required is True
         # The property should be an array with an enum
         # required list should have "property_name"
         (
-            JSONSchema(),
-            ["enum1"],
-            ["list"],
-            True,
+            Node(name="name", is_required=True, valid_value_display_names=["enum1"], validation_rules=["list"]),
             JSONSchema(
                 properties={
-                    "property_name": {
+                    "name": {
                         "description": "TBD",
                         "oneOf": [
                             {
@@ -620,20 +624,17 @@ def test_set_conditional_dependencies(
                         ],
                     }
                 },
-                required=["property_name"],
+                required=["name"],
             ),
         ),
         # enum_list is not empty, validation rules contain a list rule, is_required is False
         # The property should be an array with an enum
         # required list should be empty
         (
-            JSONSchema(),
-            ["enum1"],
-            ["list"],
-            False,
+            Node(name="name", valid_value_display_names=["enum1"], validation_rules=["list"]),
             JSONSchema(
                 properties={
-                    "property_name": {
+                    "name": {
                         "description": "TBD",
                         "oneOf": [
                             {
@@ -651,13 +652,10 @@ def test_set_conditional_dependencies(
         # enum_list is not empty, validation rules do not contain a list rule
         # The property should be an enum
         (
-            JSONSchema(),
-            ["enum1"],
-            [],
-            False,
+            Node(name="name", valid_value_display_names=["enum1"]),
             JSONSchema(
                 properties={
-                    "property_name": {
+                    "name": {
                         "description": "TBD",
                         "oneOf": [
                             {"enum": ["enum1"], "title": "enum"},
@@ -671,13 +669,10 @@ def test_set_conditional_dependencies(
         # enum_list is empty, validation rules do contain a list rule
         # The property should be an array
         (
-            JSONSchema(),
-            [],
-            ["list"],
-            False,
+            Node(name="name", validation_rules=["list"]),
             JSONSchema(
                 properties={
-                    "property_name": {
+                    "name": {
                         "oneOf": [
                             {"type": "array", "title": "array"},
                             {"type": "null", "title": "null"},
@@ -691,42 +686,29 @@ def test_set_conditional_dependencies(
         # enum_list is empty, validation rules do not contain a list rule
         # The property should be neither an array or enum
         (
-            JSONSchema(),
-            [],
-            [],
-            False,
+            Node(name="name"),
             JSONSchema(
-                properties={"property_name": {"description": "TBD"}},
+                properties={"name": {"description": "TBD"}},
                 required=[],
             ),
         ),
     ],
 )
 def test_set_property(
-    schema: JSONSchema,
-    enum_list: list[str],
+    node:Node,
     expected_schema: dict[str, Any],
-    validation_rules: list[str],
-    is_required: bool,
 ) -> None:
     """Tests for set_property"""
-    _set_property(
-        json_schema=schema,
-        name="property_name",
-        enum_list=enum_list,
-        validation_rules=validation_rules,
-        is_required=is_required,
-        description="TBD",
-    )
+    schema = JSONSchema()
+    _set_property(schema, node)
     assert schema == expected_schema
 
 
 @pytest.mark.parametrize(
-    "enum_list, is_required, expected_schema, valid_values, invalid_values",
+    "node, expected_schema, valid_values, invalid_values",
     [
         (
-            ["enum1"],
-            True,
+            Node(name="name", is_required=True, valid_value_display_names=["enum1"]),
             {
                 "name": {
                     "description": "TBD",
@@ -744,8 +726,7 @@ def test_set_property(
         ),
         # If is_required is False, "{'type': 'null'}" is added to the oneOf list
         (
-            ["enum1"],
-            False,
+             Node(name="name", valid_value_display_names=["enum1"]),
             {
                 "name": {
                     "description": "TBD",
@@ -766,16 +747,13 @@ def test_set_property(
     ids=["Required", "Not required"],
 )
 def test_create_enum_array_property(
-    enum_list: list[str],
-    is_required: bool,
+    node:Node,
     expected_schema: dict[str, Any],
     valid_values: list[Any],
     invalid_values: list[Any],
 ) -> None:
     """Test for _create_enum_array_property"""
-    schema = _create_enum_array_property(
-        name="name", enum_list=enum_list, is_required=is_required, description="TBD"
-    )
+    schema = _create_enum_array_property(node)
     assert schema == expected_schema
     full_schema = {"type": "object", "properties": schema, "required": []}
     validator = Draft7Validator(full_schema)
@@ -787,11 +765,10 @@ def test_create_enum_array_property(
 
 
 @pytest.mark.parametrize(
-    "property_data, is_required, expected_schema, valid_values, invalid_values",
+    "node, expected_schema, valid_values, invalid_values",
     [
         (
-            PropertyData(["list"]),
-            True,
+            Node(name="name", is_required=True),
             {
                 "name": {
                     "description": "TBD",
@@ -803,8 +780,7 @@ def test_create_enum_array_property(
         ),
         # If is_required is False, "{'type': 'null'}" is added to the oneOf list
         (
-            PropertyData(["list"]),
-            False,
+            Node(name="name"),
             {
                 "name": {
                     "oneOf": [
@@ -819,8 +795,7 @@ def test_create_enum_array_property(
         ),
         # If item_type is given, it is set in the schema
         (
-            PropertyData(["list", "str"]),
-            True,
+            Node(name="name", is_required=True, validation_rules=["list", "str"]),
             {
                 "name": {
                     "oneOf": [
@@ -834,8 +809,7 @@ def test_create_enum_array_property(
         ),
         # If property_data has range_min or range_max, they are set in the schema
         (
-            PropertyData(["num", "list", "inRange 0 1"]),
-            True,
+            Node(name="name", is_required=True, validation_rules=["num", "list", "inRange 0 1"]),
             {
                 "name": {
                     "description": "TBD",
@@ -860,19 +834,13 @@ def test_create_enum_array_property(
     ],
 )
 def test_create_array_property(
-    property_data: PropertyData,
-    is_required: bool,
+    node: Node,
     expected_schema: dict[str, Any],
     valid_values: list[Any],
     invalid_values: list[Any],
 ) -> None:
     """Test for _create_array_property"""
-    schema = _create_array_property(
-        name="name",
-        property_data=property_data,
-        is_required=is_required,
-        description="TBD",
-    )
+    schema = _create_array_property(node)
     assert schema == expected_schema
     full_schema = {"type": "object", "properties": schema, "required": []}
     validator = Draft7Validator(full_schema)
@@ -884,20 +852,18 @@ def test_create_array_property(
 
 
 @pytest.mark.parametrize(
-    "enum_list, is_required, expected_schema, valid_values, invalid_values",
+    "node, expected_schema, valid_values, invalid_values",
     [
         # Empty enum list
         (
-            [],
-            True,
+            Node(name="name", is_required=True),
             {"name": {"description": "TBD", "oneOf": [{"enum": [], "title": "enum"}]}},
             [],
             [1, "x", None],
         ),
         # If is_required is True, no type is added
         (
-            ["enum1"],
-            True,
+            Node(name="name", is_required=True, valid_value_display_names=["enum1"]),
             {
                 "name": {
                     "description": "TBD",
@@ -909,8 +875,7 @@ def test_create_array_property(
         ),
         # If is_required is False, "null" is added as a type
         (
-            ["enum1"],
-            False,
+            Node(name="name", valid_value_display_names=["enum1"]),
             {
                 "name": {
                     "description": "TBD",
@@ -927,16 +892,13 @@ def test_create_array_property(
     ids=["empty enum list", "is required==True", "is required==False"],
 )
 def test_create_enum_property(
-    enum_list: list[str],
-    is_required: bool,
+    node: Node,
     expected_schema: dict[str, Any],
     valid_values: list[Any],
     invalid_values: list[Any],
 ) -> None:
     """Test for _create_enum_property"""
-    schema = _create_enum_property(
-        enum_list=enum_list, name="name", is_required=is_required, description="TBD"
-    )
+    schema = _create_enum_property(node)
     assert schema == expected_schema
     full_schema = {"type": "object", "properties": schema, "required": []}
     validator = Draft7Validator(full_schema)
@@ -948,13 +910,17 @@ def test_create_enum_property(
 
 
 @pytest.mark.parametrize(
-    "property_data, is_required, expected_schema, valid_values, invalid_values",
+    "node, expected_schema, valid_values, invalid_values",
     [
-        (PropertyData(), False, {"name": {"description": "TBD"}}, [None, 1, ""], []),
+        (
+            Node(name="name"),
+            {"name": {"description": "TBD"}},
+            [None, 1, ""],
+            []
+        ),
         # If property_type is given, it is added to the schema
         (
-            PropertyData(["str"]),
-            True,
+            Node(name="name", is_required=True, validation_rules=["str"]),
             {"name": {"type": "string", "description": "TBD"}},
             [""],
             [1, None],
@@ -962,8 +928,7 @@ def test_create_enum_property(
         # If property_type is given, and is_required is False,
         # type is set to given property_type and "null"
         (
-            PropertyData(["str"]),
-            False,
+            Node(name="name", validation_rules=["str"]),
             {
                 "name": {
                     "description": "TBD",
@@ -979,15 +944,13 @@ def test_create_enum_property(
         # If is_required is True '"not": {"type":"null"}' is added to schema if
         # property_type is not given
         (
-            PropertyData(),
-            True,
+            Node(name="name", is_required=True),
             {"name": {"not": {"type": "null"}, "description": "TBD"}},
             ["x", 1],
             [None],
         ),
         (
-            PropertyData(["num", "inRange 0 1"]),
-            True,
+            Node(name="name", is_required=True, validation_rules=["num", "inRange 0 1"]),
             {
                 "name": {
                     "type": "number",
@@ -1009,16 +972,13 @@ def test_create_enum_property(
     ],
 )
 def test_create_simple_property(
-    property_data: PropertyData,
-    is_required: bool,
+    node: Node,
     expected_schema: dict[str, Any],
     valid_values: list[Any],
     invalid_values: list[Any],
 ) -> None:
     """Test for _create_simple_property"""
-    schema = _create_simple_property(
-        "name", property_data, is_required, description="TBD"
-    )
+    schema = _create_simple_property(node)
     assert schema == expected_schema
     full_schema = {"type": "object", "properties": schema, "required": []}
     validator = Draft7Validator(full_schema)

@@ -11,11 +11,12 @@ from synapseclient import Folder
 from synapseclient.client import Synapse
 import pytest
 
-from schematic.models.metadata import MetadataModel
-from schematic.schemas.json_schema_generator import (
-    JSONSchemaGenerator,
+from schematic.schemas.create_json_schema import (
+    create_json_schema,
 )
 from schematic.configuration.configuration import CONFIG
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_parser import DataModelParser
 
 
 @pytest.fixture(name="schema_org", scope="module")
@@ -32,21 +33,6 @@ def fixture_schema_version() -> Generator[str, None, None]:
     This the version to give all created test schemas
     """
     yield "0.0.1"
-
-
-@pytest.fixture(name="js_generator", scope="module")
-def fixture_js_generator() -> Generator[JSONSchemaGenerator, None, None]:
-    """Yields a JSONSchemaGenerator with the example data model"""
-    metadata_model = MetadataModel(
-        inputMModelLocation="tests/data/example.model.jsonld",
-        inputMModelLocationType="local",
-        data_model_labels="class_label",
-    )
-    js_generator = JSONSchemaGenerator(
-        jsonld_path=metadata_model.inputMModelLocation,
-        graph=metadata_model.graph_data_model,
-    )
-    yield js_generator
 
 
 @pytest.fixture(name="synapse", scope="module")
@@ -69,17 +55,37 @@ def fixture_synapse() -> Generator[Synapse, None, None]:
     syn.login(authToken=token, silent=True)
     return syn
 
+@pytest.fixture(name="dmge", scope="module")
+def fixture_dmge() -> Generator[DataModelGraphExplorer, None, None]:
+    """
+    This yields DataModelGraphExplorer instance.
+    This has a module scope.
+    This allows for it to an input to other module-scoped fixtures.
+    """
+    data_model_parser = DataModelParser(
+        path_to_data_model="tests/data/example.model.csv"
+    )
+    parsed_data_model = data_model_parser.parse_model()
+    data_model_graph = DataModelGraph(
+        parsed_data_model, data_model_labels="class_label"
+    )
+    graph_data_model = data_model_graph.graph
+    return DataModelGraphExplorer(graph_data_model)
+
 
 @pytest.fixture(name="biospecimen_json_schema", scope="module")
 def fixture_biospecimen_json_schema(
     synapse: Synapse,
     schema_org: str,
     schema_version: str,
-    js_generator: JSONSchemaGenerator,
+    dmge: DataModelGraphExplorer
 ):
     """This yields a Synapse JSON Schema uri"""
-    schema = js_generator.create_json_schema(
-        "Biospecimen", schema_name="Biospecimen_validation", write_schema=False
+    schema = create_json_schema(
+        dmge=dmge,
+        datatype="Biospecimen",
+        schema_name="Biospecimen_validation",
+        write_schema=False,
     )
     schema_name = upload_schema_to_synapse(schema, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
@@ -93,11 +99,12 @@ def fixture_bulk_rna_json_schema(
     synapse: Synapse,
     schema_org: str,
     schema_version: str,
-    js_generator: JSONSchemaGenerator,
+    dmge: DataModelGraphExplorer
 ):
     """This yields a Synapse JSON Schema uri"""
-    schema = js_generator.create_json_schema(
-        "BulkRNA-seqAssay",
+    schema = create_json_schema(
+        dmge=dmge,
+        datatype="BulkRNA-seqAssay",
         schema_name="BulkRNA-seqAssay_validation",
         write_schema=False,
     )
@@ -113,11 +120,14 @@ def fixture_mock_component_json_schema(
     synapse: Synapse,
     schema_org: str,
     schema_version: str,
-    js_generator: JSONSchemaGenerator,
+    dmge: DataModelGraphExplorer
 ):
     """This yields a Synapse JSON Schema uri"""
-    schema = js_generator.create_json_schema(
-        "MockComponent", schema_name="MockComponent_validation", write_schema=False
+    schema = create_json_schema(
+        dmge=dmge,
+        datatype="MockComponent",
+        schema_name="MockComponent_validation",
+        write_schema=False,
     )
     schema_name = upload_schema_to_synapse(schema, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
@@ -131,11 +141,14 @@ def fixture_mock_filename_json_schema(
     synapse: Synapse,
     schema_org: str,
     schema_version: str,
-    js_generator: JSONSchemaGenerator,
+    dmge: DataModelGraphExplorer
 ):
     """This yields a Synapse JSON Schema uri"""
-    schema = js_generator.create_json_schema(
-        "MockFilename", schema_name="MockFilename_validation", write_schema=False
+    schema = create_json_schema(
+        dmge=dmge,
+        datatype="MockFilename",
+        schema_name="MockFilename_validation",
+        write_schema=False,
     )
     schema_name = upload_schema_to_synapse(schema, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
@@ -149,11 +162,14 @@ def fixture_mock_rdb_json_schema(
     synapse: Synapse,
     schema_org: str,
     schema_version: str,
-    js_generator: JSONSchemaGenerator,
+    dmge: DataModelGraphExplorer
 ):
     """This yields a Synapse JSON Schema uri"""
-    schema = js_generator.create_json_schema(
-        "MockRDB", schema_name="MockRDB_validation", write_schema=False
+    schema = create_json_schema(
+        dmge=dmge,
+        datatype="MockRDB",
+        schema_name="MockRDB_validation",
+        write_schema=False,
     )
     schema_name = upload_schema_to_synapse(schema, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
@@ -167,11 +183,14 @@ def fixture_patient_json_schema(
     synapse: Synapse,
     schema_org: str,
     schema_version: str,
-    js_generator: JSONSchemaGenerator,
+    dmge: DataModelGraphExplorer
 ):
     """This yields a Synapse JSON Schema uri"""
-    schema = js_generator.create_json_schema(
-        "Patient", schema_name="Patient_validation", write_schema=False
+    schema = create_json_schema(
+        dmge=dmge,
+        datatype="Patient",
+        schema_name="Patient_validation",
+        write_schema=False,
     )
     schema_name = upload_schema_to_synapse(schema, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")

@@ -29,123 +29,6 @@ TYPE_RULES = {
     "bool": "boolean",
 }
 
-
-@dataclass
-class PropertyData:
-    """
-    A Dataclass representing data about a JSON Schema property from its validation rules.
-    Currently Schematic infers certain data about the property from validation rules in
-     the data model.
-    The type is taken from type validation rules (see TYPE_RULES).
-    Whether or not its an array depends on if a list rule is present.
-    The maximum and minimum are taken from the inRange rule if present.
-
-    Attributes:
-      validation_rules: A list of validation rules for a property
-      type: The type of the property (inferred from validation_rules)
-      is_array: Whether or not the property is an array (inferred from validation_rules)
-      minimum: The minimum value of the property (if numeric) (inferred from validation_rules)
-      maximum: The maximum value of the property (if numeric) (inferred from validation_rules)
-    """
-
-    validation_rules: list[str] = field(default_factory=list)
-    type: Optional[str] = field(init=False)
-    is_array: bool = field(init=False)
-    minimum: Optional[float] = field(init=False)
-    maximum: Optional[float] = field(init=False)
-
-    def __post_init__(self) -> None:
-        self.type = None
-        self.is_array = False
-        self.minimum = None
-        self.maximum = None
-
-        if self.validation_rules:
-            if rule_in_rule_list("list", self.validation_rules):
-                self.is_array = True
-
-            type_rule = _get_type_rule_from_rule_list(self.validation_rules)
-            if type_rule:
-                self.type = TYPE_RULES.get(type_rule)
-
-            range_rule = _get_in_range_rule_from_rule_list(self.validation_rules)
-            if range_rule:
-                if self.type not in ["number", "integer"]:
-                    self.type = "number"
-                self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
-
-
-def _get_ranges_from_range_rule(
-    rule: str,
-) -> tuple[Union[float, None], Union[float, None]]:
-    """
-    Returns the min and max from an inRange rule if they exist
-
-    Arguments:
-        rule: The inRange rule
-
-    Returns:
-        The min and max form the rule
-    """
-    range_min: Union[float, None] = None
-    range_max: Union[float, None] = None
-    parameters = rule.split(" ")
-    if len(parameters) > 1 and parameters[1].isnumeric():
-        range_min = float(parameters[1])
-    if len(parameters) > 2 and parameters[2].isnumeric():
-        range_max = float(parameters[2])
-    return (range_min, range_max)
-
-
-def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
-    """
-    Returns the inRange rule from a list of rules if there is only one
-    Returns None if there are no inRange rules
-
-    Arguments:
-        rule_list: A list of validation rules
-
-    Raises:
-        ValueError: When more than one inRange rule is found
-
-    Returns:
-        The inRange rule if one is found, or None
-    """
-    in_range_rules = [rule for rule in rule_list if rule.startswith("inRange")]
-    if len(in_range_rules) > 1:
-        raise ValueError(
-            "Found more than one inRange rule in validation rules: ", rule_list
-        )
-    if len(in_range_rules) == 0:
-        return None
-    return in_range_rules[0]
-
-
-def _get_type_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
-    """
-    Returns the type rule from a list of rules if there is only one
-    Returns None if there are no type rules
-
-    Arguments:
-        rule_list: A list of validation rules
-
-    Raises:
-        ValueError: When more than one type rule is found
-
-    Returns:
-        The type rule if one is found, or None
-    """
-    rule_list = [rule.split(" ")[0] for rule in rule_list]
-    type_rules = [rule for rule in rule_list if rule in TYPE_RULES]
-    if len(type_rules) > 1:
-        raise ValueError(
-            "Found more than one type rule in validation rules: ", rule_list
-        )
-    if len(type_rules) == 0:
-        return None
-    return type_rules[0]
-
-
 @dataclass
 class JSONSchema:  # pylint: disable=too-many-instance-attributes
     """
@@ -220,6 +103,128 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
 
 
 @dataclass
+class Node:
+    """
+    A Dataclass representing data about a JSON Schema property from its validation rules.
+    Currently Schematic infers certain data about the property from validation rules in
+     the data model.
+    The type is taken from type validation rules (see TYPE_RULES).
+    Whether or not its an array depends on if a list rule is present.
+    The maximum and minimum are taken from the inRange rule if present.
+
+    Attributes:
+      validation_rules: A list of validation rules for a property
+      type: The type of the property (inferred from validation_rules)
+      is_array: Whether or not the property is an array (inferred from validation_rules)
+      minimum: The minimum value of the property (if numeric) (inferred from validation_rules)
+      maximum: The maximum value of the property (if numeric) (inferred from validation_rules)
+    """
+    name: str = ""
+    display_name: str = ""
+    valid_values: list[str] = field(default_factory=list)
+    valid_value_display_names: list[str] = field(default_factory=list)
+    validation_rules: list[str] = field(default_factory=list)
+    is_required: bool = False
+    dependencies: list[str] = field(default_factory=list)
+    dependency_display_names: list[str] = field(default_factory=list)
+    description: str = "TBD"
+    type: Optional[str] = field(init=False)
+    is_array: bool = field(init=False)
+    minimum: Optional[float] = field(init=False)
+    maximum: Optional[float] = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.type = None
+        self.is_array = False
+        self.minimum = None
+        self.maximum = None
+
+        if self.validation_rules:
+            if rule_in_rule_list("list", self.validation_rules):
+                self.is_array = True
+
+            type_rule = _get_type_rule_from_rule_list(self.validation_rules)
+            if type_rule:
+                self.type = TYPE_RULES.get(type_rule)
+
+            range_rule = _get_in_range_rule_from_rule_list(self.validation_rules)
+            if range_rule:
+                if self.type not in ["number", "integer"]:
+                    self.type = "number"
+                self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
+
+def _get_ranges_from_range_rule(
+    rule: str,
+) -> tuple[Union[float, None], Union[float, None]]:
+    """
+    Returns the min and max from an inRange rule if they exist
+
+    Arguments:
+        rule: The inRange rule
+
+    Returns:
+        The min and max form the rule
+    """
+    range_min: Union[float, None] = None
+    range_max: Union[float, None] = None
+    parameters = rule.split(" ")
+    if len(parameters) > 1 and parameters[1].isnumeric():
+        range_min = float(parameters[1])
+    if len(parameters) > 2 and parameters[2].isnumeric():
+        range_max = float(parameters[2])
+    return (range_min, range_max)
+
+
+def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
+    """
+    Returns the inRange rule from a list of rules if there is only one
+    Returns None if there are no inRange rules
+
+    Arguments:
+        rule_list: A list of validation rules
+
+    Raises:
+        ValueError: When more than one inRange rule is found
+
+    Returns:
+        The inRange rule if one is found, or None
+    """
+    in_range_rules = [rule for rule in rule_list if rule.startswith("inRange")]
+    if len(in_range_rules) > 1:
+        raise ValueError(
+            "Found more than one inRange rule in validation rules: ", rule_list
+        )
+    if len(in_range_rules) == 0:
+        return None
+    return in_range_rules[0]
+
+
+def _get_type_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
+    """
+    Returns the type rule from a list of rules if there is only one
+    Returns None if there are no type rules
+
+    Arguments:
+        rule_list: A list of validation rules
+
+    Raises:
+        ValueError: When more than one type rule is found
+
+    Returns:
+        The type rule if one is found, or None
+    """
+    rule_list = [rule.split(" ")[0] for rule in rule_list]
+    type_rules = [rule for rule in rule_list if rule in TYPE_RULES]
+    if len(type_rules) > 1:
+        raise ValueError(
+            "Found more than one type rule in validation rules: ", rule_list
+        )
+    if len(type_rules) == 0:
+        return None
+    return type_rules[0]
+
+
+@dataclass
 class NodeProcessor:
     """
     This is a helper class for JSONSchemaGenerator. It creates a JSON Schema for an input datatype.
@@ -229,6 +234,7 @@ class NodeProcessor:
     the graph is processed.
 
     Attributes:
+        dmge: A DataModelGraphExplorer for the graph
         root_dependencies: The nodes the source node depends on
         nodes_to_process: The nodes that are left to be processed
         current_node: The node that is being processed
@@ -240,27 +246,79 @@ class NodeProcessor:
             Some nodes will have valid_values (enums)
             This is a mapping {"valid_value" : [nodes_that_have_valid_value]}
     """
-
-    root_dependencies: list[str]
+    dmge: DataModelGraphExplorer
+    source_node: str
+    root_dependencies: list[str] = field(init=False)
     nodes_to_process: list[str] = field(init=False)
-    current_node: Optional[str] = field(init=False)
+    current_node: Optional[Node] = field(init=False)
     processed_nodes: list[str] = field(default_factory=list)
     reverse_dependencies: dict[str, list[str]] = field(default_factory=dict)
     valid_values_map: dict[str, list[str]] = field(default_factory=dict)
+    dmr: DataModelRelationships = field(init=False)
+
 
     def __post_init__(self) -> None:
         """
         The first nodes to process are the root dependencies.
         This sets the current node as the first node in root dependencies.
         """
-        print(self.root_dependencies)
+        self.dmr = DataModelRelationships()
+        root_dependencies = sorted(self.dmge.get_adjacent_nodes_by_relationship(
+            node_label=self.source_node,
+            relationship=self.dmr.relationships_dictionary["requiresDependency"]["edge_key"],
+        ))
+        # If root_dependencies is empty it means that a class with name 'source_node' exists
+        # in the schema, but it is not a valid component
+        if not root_dependencies:
+            raise ValueError(f"'{self.source_node}' is not a valid datatype in the data model.")
+        self.root_dependencies = root_dependencies
         self.nodes_to_process = self.root_dependencies.copy()
-        self.current_node = self.nodes_to_process.pop(0)
+        self.current_node = None
+        self.move_to_next_node()
+
 
     def move_to_next_node(self) -> None:
         """Removes the first node in nodes to process and sets it as current node"""
         if self.nodes_to_process:
-            self.current_node = self.nodes_to_process.pop(0)
+            current_node = self.nodes_to_process.pop(0)
+            display_name = self._get_node_display_name(current_node)
+            valid_values=self._get_node_valid_values(current_node)
+            valid_value_display_names=self.dmge.get_nodes_display_names(valid_values)
+            validation_rules= self.dmge.get_component_node_validation_rules(
+                manifest_component=self.source_node, node_display_name=display_name
+            )
+            is_required = self.dmge.get_component_node_required(
+                manifest_component=self.source_node,
+                node_validation_rules=validation_rules,
+                node_display_name=display_name
+            )
+            dependencies = self.dmge.get_adjacent_nodes_by_relationship(
+                node_label=current_node,
+                relationship=self.dmr.relationships_dictionary["requiresDependency"]["edge_key"],
+            )
+            dependency_display_names = self.dmge.get_nodes_display_names(
+                node_list=dependencies
+            )
+            description = self.dmge.get_node_comment(node_display_name=display_name)
+            self.current_node = Node(
+                name=current_node,
+                display_name=display_name,
+                valid_values=valid_values,
+                valid_value_display_names=valid_value_display_names,
+                validation_rules=validation_rules,
+                is_required=is_required,
+                dependencies=dependencies,
+                dependency_display_names=dependency_display_names,
+                description=description
+            )
+            self.update_reverse_dependencies(
+                display_name, dependency_display_names
+            )
+            self.update_valid_values_map(
+                current_node, valid_values
+            )
+            self.update_nodes_to_process(sorted(valid_values))
+            self.update_nodes_to_process(sorted(dependencies))
         else:
             self.current_node = None
 
@@ -276,7 +334,7 @@ class NodeProcessor:
         Returns:
             Whether or not the current node has been processed yet
         """
-        return self.current_node in self.processed_nodes
+        return self.current_node.name in self.processed_nodes
 
     def update_valid_values_map(
         self, node_display_name: str, valid_values_display_names: list[str]
@@ -316,183 +374,115 @@ class NodeProcessor:
 
     def update_processed_nodes_with_current_node(self) -> None:
         """Adds the current node to the list of processed nodes"""
-        if self.current_node is None:
+        if self.current_node.name is None:
             raise ValueError("Current node is None")
-        self.processed_nodes.append(self.current_node)
+        self.processed_nodes.append(self.current_node.name)
 
-
-class JSONSchemaGenerator:  # pylint: disable=too-few-public-methods
-    "Data Model Json Schema"
-
-    def __init__(
-        self,
-        jsonld_path: str,
-        graph: nx.MultiDiGraph,
-    ) -> None:
-        self.jsonld_path = jsonld_path
-        self.graph = graph
-        self.dmge = DataModelGraphExplorer(self.graph)
-        self.dmr = DataModelRelationships()
-        self.rel_dict = self.dmr.relationships_dictionary
-
-    def create_json_schema(
-        self,
-        datatype: str,
-        schema_name: str,
-        schema_path: Union[str, None] = None,
-        write_schema: bool = True,
-    ) -> dict[str, Any]:
-        """
-        Creates a JSONSchema dict for the datatype in the data model.
-
-        This uses the input graph starting at the node that corresponds to the input datatype.
-        Starting at the given node it will(recursively):
-        1) Find all the nodes / terms this node depends on (which are required as
-          "additional metadata" given this node is "required").
-        2) Find all the allowable metadata values / nodes that can be assigned to a particular
-          node (if such a constraint is specified on the schema).
-
-        Using the above data it will:
-        - Cerate properties for each attribute of the datatype.
-        - Create properties for attributes that are conditionally
-            dependent on the datatypes attributes
-        - Create conditional dependencies linking attributes to their dependencies
-
-        Arguments:
-            datatype: the datatype to create the schema for.
-              Its node is where we can start recursive dependency traversal
-              (as mentioned above).
-            schema_name: Name assigned to JSON-LD schema (to uniquely identify it via URI
-              when it is hosted on the Internet).
-            schema_path: Where to save the JSON Schema file
-            write_schema: whether or not to write the schema as a json file
-
-        Returns:
-            JSON Schema as a dictionary.
-        """
-
-        # Gets the dependency nodes of the source node. These will be first nodes processed.
-        root_dependencies = self.dmge.get_adjacent_nodes_by_relationship(
-            node_label=datatype,
-            relationship=self.rel_dict["requiresDependency"]["edge_key"],
-        )
-        # if root_dependencies is empty it means that a class with name 'source_node' exists
-        # in the schema, but it is not a valid component
-        if not root_dependencies:
-            raise ValueError(f"'{datatype}' is not a valid component in the schema.")
-
-        node_processor = NodeProcessor(sorted(root_dependencies))
-
-        json_schema = JSONSchema(
-            schema_id="http://example.com/" + schema_name,
-            title=schema_name,
-            description=self.dmge.get_node_comment(node_label=datatype),
-        )
-
-        while node_processor.are_nodes_remaining():
-            if not node_processor.is_current_node_processed():
-                self._process_node(json_schema, datatype, node_processor)
-            node_processor.move_to_next_node()
-
-        logger.info("JSON schema successfully generated from schema.org schema!")
-
-        json_schema_dict = json_schema.as_json_schema_dict()
-
-        if write_schema:
-            _write_data_model(json_schema_dict, schema_path, datatype, self.jsonld_path)
-
-        return json_schema_dict
-
-    def _process_node(
-        self, json_schema: JSONSchema, source_node: str, node_processor: NodeProcessor
-    ) -> None:
-        """
-        Processes a node in the data model graph.
-        If it should be a property in the JSON Schema, that is set.
-        If it is a property with reverse dependencies, conditional properties are set.
-
-        Argument:
-            json_schema: The JSON Scheme where the node might be set as a property
-            source_node: The node that the JSON Schema is being created for
-            node_processor: A node processor for the source node
-        """
-        assert node_processor.current_node
-        node_range = self.dmge.get_adjacent_nodes_by_relationship(
-            node_label=node_processor.current_node,
-            relationship=self.rel_dict["rangeIncludes"]["edge_key"],
-        )
-
-        node_range_display_names = self.dmge.get_nodes_display_names(
-            node_list=node_range
-        )
-
-        node_dependencies = self.dmge.get_adjacent_nodes_by_relationship(
-            node_label=node_processor.current_node,
-            relationship=self.rel_dict["requiresDependency"]["edge_key"],
-        )
-
-        node_display_name: str = self.graph.nodes[node_processor.current_node][
-            self.rel_dict["displayName"]["node_label"]
-        ]
-
-        node_validation_rules = self.dmge.get_component_node_validation_rules(
-            manifest_component=source_node, node_display_name=node_display_name
-        )
-
-        is_node_required = self.dmge.get_component_node_required(
-            manifest_component=source_node,
-            node_validation_rules=node_validation_rules,
-            node_display_name=node_display_name,
-        )
-
-        node_description = self.dmge.get_node_comment(
-            node_display_name=node_display_name
-        )
-
-        # add process node as a conditional to its dependencies
-        node_dependencies_d = self.dmge.get_nodes_display_names(
-            node_list=node_dependencies
-        )
-        node_processor.update_reverse_dependencies(
-            node_display_name, node_dependencies_d
-        )
-        node_processor.update_valid_values_map(node_processor.current_node, node_range)
-
-        # add nodes found as dependencies and range of this processed node
-        # to the list of nodes to be processed
-        node_processor.update_nodes_to_process(sorted(node_range))
-        node_processor.update_nodes_to_process(sorted(node_dependencies))
-
-        # Determine if current node is a property to set
-        set_property = any(
+    def is_current_node_a_property(self) -> bool:
+        return any(
             [
-                node_display_name in node_processor.reverse_dependencies,
-                is_node_required,
-                node_processor.current_node in node_processor.root_dependencies,
+                self.current_node.display_name in self.reverse_dependencies,
+                self.current_node.is_required,
+                self.current_node.name in self.root_dependencies,
             ]
         )
-        if set_property:
-            # Determine if current node has conditional dependencies that need to be set
-            if node_display_name in node_processor.reverse_dependencies:
-                _set_conditional_dependencies(
-                    json_schema=json_schema,
-                    conditional_property=node_processor.current_node,
-                    property_display_name=node_display_name,
-                    reverse_dependencies=node_processor.reverse_dependencies,
-                    valid_values_map=node_processor.valid_values_map,
-                )
-                # This is to ensure that all properties that are conditional dependencies are not
-                #   required, but only become required when the conditional dependency is met.
-                is_node_required = False
-            _set_property(
-                json_schema,
-                node_processor.current_node,
-                node_range_display_names,
-                node_validation_rules,
-                is_node_required,
-                node_description,
-            )
-            node_processor.update_processed_nodes_with_current_node()
+
+    def is_current_node_in_reverse_dependencies(self) -> bool:
+        return self.current_node.display_name in self.reverse_dependencies
+
+    def _get_node_display_name(self, node:str) -> str:
+        node_list = self.dmge.get_nodes_display_names([node])
+        if not node_list:
+            raise ValueError("node missing form graph: ", node)
+        return node_list[0]
+
+    def _get_node_valid_values(self, node:str) -> list[str]:
+        return self.dmge.get_adjacent_nodes_by_relationship(
+            node_label=node,
+            relationship=self.dmr.relationships_dictionary["rangeIncludes"]["edge_key"],
+        )
+
+
+def create_json_schema(
+    dmge: DataModelGraphExplorer,
+    datatype: str,
+    schema_name: str,
+    write_schema: bool = True,
+    schema_path: Union[str, None] = None,
+    jsonld_path: Optional[str] = None
+) -> dict[str, Any]:
+    """
+    Creates a JSONSchema dict for the datatype in the data model.
+
+    This uses the input graph starting at the node that corresponds to the input datatype.
+    Starting at the given node it will(recursively):
+    1) Find all the nodes / terms this node depends on (which are required as
+        "additional metadata" given this node is "required").
+    2) Find all the allowable metadata values / nodes that can be assigned to a particular
+        node (if such a constraint is specified on the schema).
+
+    Using the above data it will:
+    - Cerate properties for each attribute of the datatype.
+    - Create properties for attributes that are conditionally
+        dependent on the datatypes attributes
+    - Create conditional dependencies linking attributes to their dependencies
+
+    Arguments:
+        datatype: the datatype to create the schema for.
+            Its node is where we can start recursive dependency traversal
+            (as mentioned above).
+        schema_name: Name assigned to JSON-LD schema (to uniquely identify it via URI
+            when it is hosted on the Internet).
+        schema_path: Where to save the JSON Schema file
+        write_schema: whether or not to write the schema as a json file
+
+    Returns:
+        JSON Schema as a dictionary.
+    """
+    node_processor = NodeProcessor(dmge, datatype)
+
+    json_schema = JSONSchema(
+        schema_id="http://example.com/" + schema_name,
+        title=schema_name,
+        description=dmge.get_node_comment(node_label=datatype),
+    )
+
+    while node_processor.are_nodes_remaining():
+        if not node_processor.is_current_node_processed():
+            _process_node(json_schema, node_processor)
+        node_processor.move_to_next_node()
+
+    logger.info("JSON schema successfully generated from schema.org schema!")
+
+    json_schema_dict = json_schema.as_json_schema_dict()
+
+    if write_schema:
+        _write_data_model(json_schema_dict, schema_path, datatype, jsonld_path)
+
+    return json_schema_dict
+
+def _process_node(json_schema: JSONSchema, node_processor: NodeProcessor) -> None:
+    """
+    Processes a node in the data model graph.
+    If it should be a property in the JSON Schema, that is set.
+    If it is a property with reverse dependencies, conditional properties are set.
+
+    Argument:
+        json_schema: The JSON Scheme where the node might be set as a property
+        source_node: The node that the JSON Schema is being created for
+        node_processor: A node processor for the source node
+    """
+    assert node_processor.current_node
+
+    if node_processor.is_current_node_a_property():
+        # Determine if current node has conditional dependencies that need to be set
+        if node_processor.is_current_node_in_reverse_dependencies():
+            _set_conditional_dependencies(json_schema=json_schema, np=node_processor)
+            # This is to ensure that all properties that are conditional dependencies are not
+            #   required, but only become required when the conditional dependency is met.
+            node_processor.current_node.is_required = False
+        _set_property(json_schema, node_processor.current_node)
+        node_processor.update_processed_nodes_with_current_node()
 
 
 def _write_data_model(
@@ -537,10 +527,7 @@ def _write_data_model(
 
 def _set_conditional_dependencies(
     json_schema: JSONSchema,
-    conditional_property: str,
-    property_display_name: str,
-    reverse_dependencies: dict[str, list[str]],
-    valid_values_map: dict[str, list[str]],
+    np:NodeProcessor,
 ) -> None:
     """
     This sets conditional requirements in the "allOf" keyword.
@@ -579,41 +566,25 @@ def _set_conditional_dependencies(
 
     Arguments:
         json_schema: The JSON Schema to add conditional dependencies to
-        conditional_property: The name of the node to add conditional dependencies for
-          In the above example this would be Cancer Type or Family History
-        property_display_name: the display name of the conditional property.
-        reverse_dependencies: A map of nodes and a list of their dependencies
-          In the above example this would be:
-          {'Family History': ['Cancer'], 'Cancer Type': ['Cancer']}
-        valid_values_map:
-          The keys are valid_values
-          The values are a list of nodes the valid value belongs to
-          In the above example {'Healthy': ['Diagnosis'], 'Cancer': ['Diagnosis']}
+        np: A NodeProcessor that is on the current node
     """
     # The enum is the specific value that triggers the conditional dependency.
-    # When the watched_property == enum, the conditional_property will become required
-    for enum in reverse_dependencies[property_display_name]:
-        if enum in valid_values_map:
-            properties = sorted(valid_values_map[enum])
+    # When the watched_property == enum, the conditional_property(current_node) will become required
+    for enum in np.reverse_dependencies[np.current_node.display_name]:
+        if enum in np.valid_values_map:
+            properties = sorted(np.valid_values_map[enum])
             for watched_property in properties:
                 conditional_schema = {
                     "if": {"properties": {watched_property: {"enum": [enum]}}},
                     "then": {
-                        "properties": {conditional_property: {"not": {"type": "null"}}},
-                        "required": [conditional_property],
+                        "properties": {np.current_node.name: {"not": {"type": "null"}}},
+                        "required": [np.current_node.name],
                     },
                 }
                 json_schema.add_to_all_of_list(conditional_schema)
 
 
-def _set_property(  # pylint: disable=too-many-arguments
-    json_schema: JSONSchema,
-    name: str,
-    enum_list: list[str],
-    validation_rules: list[str],
-    is_required: bool,
-    description: str,
-) -> None:
+def _set_property(json_schema: JSONSchema, node: Node) -> None:
     """
     Sets a property in the JSON schema. that is required by the schema
 
@@ -625,48 +596,25 @@ def _set_property(  # pylint: disable=too-many-arguments
         is_required: Whether or not the property is required
         description: a description of the property
     """
-    property_data = PropertyData(validation_rules)
-    if enum_list:
-        if property_data.is_array:
-            schema_property = _create_enum_array_property(
-                name=name,
-                enum_list=enum_list,
-                is_required=is_required,
-                description=description,
-            )
+    if node.valid_value_display_names:
+        if node.is_array:
+            schema_property = _create_enum_array_property(node)
         else:
-            schema_property = _create_enum_property(
-                name=name,
-                enum_list=enum_list,
-                is_required=is_required,
-                description=description,
-            )
+            schema_property = _create_enum_property(node)
 
     else:
-        if property_data.is_array:
-            schema_property = _create_array_property(
-                name=name,
-                property_data=property_data,
-                is_required=is_required,
-                description=description,
-            )
+        if node.is_array:
+            schema_property = _create_array_property(node)
         else:
-            schema_property = _create_simple_property(
-                name=name,
-                property_data=property_data,
-                is_required=is_required,
-                description=description,
-            )
+            schema_property = _create_simple_property(node)
 
     json_schema.update_property(schema_property)
 
-    if is_required:
-        json_schema.add_required_property(name)
+    if node.is_required:
+        json_schema.add_required_property(node.name)
 
 
-def _create_enum_array_property(
-    name: str, enum_list: list[str], is_required: bool, description: str
-) -> dict[str, Any]:
+def _create_enum_array_property(node: Node) -> dict[str, Any]:
     """
     Creates a JSON Schema array/enum
 
@@ -718,18 +666,16 @@ def _create_enum_array_property(
     Returns:
         JSON object
     """
-    types = [{"type": "array", "title": "array", "items": {"enum": sorted(enum_list)}}]
+    types = [{"type": "array", "title": "array", "items": {"enum": sorted(node.valid_value_display_names)}}]
 
-    if not is_required:
+    if not node.is_required:
         types += [{"type": "null", "title": "null"}]
 
-    schema = {name: {"oneOf": types, "description": description}}
+    schema = {node.name: {"oneOf": types, "description": node.description}}
     return schema  # type: ignore
 
 
-def _create_array_property(
-    name: str, property_data: PropertyData, is_required: bool, description: str
-) -> dict[str, Any]:
+def _create_array_property(node: Node) -> dict[str, Any]:
     """
     Creates a JSON Schema array
 
@@ -746,27 +692,25 @@ def _create_array_property(
     array_dict: dict[str, Any] = {"type": "array", "title": "array"}
 
     items: dict[str, Any] = {}
-    if property_data.type:
-        items["type"] = property_data.type
-    if property_data.minimum is not None:
-        items["minimum"] = property_data.minimum
-    if property_data.maximum is not None:
-        items["maximum"] = property_data.maximum
+    if node.type:
+        items["type"] = node.type
+    if node.minimum is not None:
+        items["minimum"] = node.minimum
+    if node.maximum is not None:
+        items["maximum"] = node.maximum
 
     if items:
         array_dict["items"] = items
 
     types = [array_dict]
-    if not is_required:
+    if not node.is_required:
         types.append({"type": "null", "title": "null"})
 
-    schema = {name: {"oneOf": types, "description": description}}
+    schema = {node.name: {"oneOf": types, "description": node.description}}
     return schema
 
 
-def _create_enum_property(
-    name: str, enum_list: list[str], is_required: bool, description: str
-) -> dict[str, Any]:
+def _create_enum_property(node: Node) -> dict[str, Any]:
     """
     Creates a JSON Schema enum
 
@@ -779,17 +723,15 @@ def _create_enum_property(
     Returns:
         JSON object
     """
-    schema: dict[str, Any] = {name: {"description": description}}
-    one_of_list: list[dict[str, Any]] = [{"enum": sorted(enum_list), "title": "enum"}]
-    if not is_required:
+    schema: dict[str, Any] = {node.name: {"description": node.description}}
+    one_of_list: list[dict[str, Any]] = [{"enum": sorted(node.valid_value_display_names), "title": "enum"}]
+    if not node.is_required:
         one_of_list += [{"type": "null", "title": "null"}]
-    schema[name]["oneOf"] = one_of_list
+    schema[node.name]["oneOf"] = one_of_list
     return schema
 
 
-def _create_simple_property(
-    name: str, property_data: PropertyData, is_required: bool, description: str
-) -> dict[str, Any]:
+def _create_simple_property(node: Node) -> dict[str, Any]:
     """
     Creates a JSON Schema property
     If a property_type is given the type is added to the schema
@@ -805,22 +747,22 @@ def _create_simple_property(
     Returns:
         JSON object
     """
-    schema: dict[str, Any] = {name: {"description": description}}
+    schema: dict[str, Any] = {node.name: {"description": node.description}}
 
-    if property_data.type:
-        if is_required:
-            schema[name]["type"] = property_data.type
+    if node.type:
+        if node.is_required:
+            schema[node.name]["type"] = node.type
         else:
-            schema[name]["oneOf"] = [
-                {"type": property_data.type, "title": property_data.type},
+            schema[node.name]["oneOf"] = [
+                {"type": node.type, "title": node.type},
                 {"type": "null", "title": "null"},
             ]
-    elif is_required:
-        schema[name]["not"] = {"type": "null"}
+    elif node.is_required:
+        schema[node.name]["not"] = {"type": "null"}
 
-    if property_data.minimum is not None:
-        schema[name]["minimum"] = property_data.minimum
-    if property_data.maximum is not None:
-        schema[name]["maximum"] = property_data.maximum
+    if node.minimum is not None:
+        schema[node.name]["minimum"] = node.minimum
+    if node.maximum is not None:
+        schema[node.name]["maximum"] = node.maximum
 
     return schema
