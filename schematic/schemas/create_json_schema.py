@@ -29,6 +29,7 @@ TYPE_RULES = {
     "bool": "boolean",
 }
 
+
 @dataclass
 class JSONSchema:  # pylint: disable=too-many-instance-attributes
     """
@@ -119,6 +120,7 @@ class Node:
       minimum: The minimum value of the property (if numeric) (inferred from validation_rules)
       maximum: The maximum value of the property (if numeric) (inferred from validation_rules)
     """
+
     name: str = ""
     display_name: str = ""
     valid_values: list[str] = field(default_factory=list)
@@ -152,6 +154,7 @@ class Node:
                 if self.type not in ["number", "integer"]:
                     self.type = "number"
                 self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
+
 
 def _get_ranges_from_range_rule(
     rule: str,
@@ -246,6 +249,7 @@ class NodeProcessor:
             Some nodes will have valid_values (enums)
             This is a mapping {"valid_value" : [nodes_that_have_valid_value]}
     """
+
     dmge: DataModelGraphExplorer
     source_node: str
     root_dependencies: list[str] = field(init=False)
@@ -256,45 +260,51 @@ class NodeProcessor:
     valid_values_map: dict[str, list[str]] = field(default_factory=dict)
     dmr: DataModelRelationships = field(init=False)
 
-
     def __post_init__(self) -> None:
         """
         The first nodes to process are the root dependencies.
         This sets the current node as the first node in root dependencies.
         """
         self.dmr = DataModelRelationships()
-        root_dependencies = sorted(self.dmge.get_adjacent_nodes_by_relationship(
-            node_label=self.source_node,
-            relationship=self.dmr.relationships_dictionary["requiresDependency"]["edge_key"],
-        ))
+        root_dependencies = sorted(
+            self.dmge.get_adjacent_nodes_by_relationship(
+                node_label=self.source_node,
+                relationship=self.dmr.relationships_dictionary["requiresDependency"][
+                    "edge_key"
+                ],
+            )
+        )
         # If root_dependencies is empty it means that a class with name 'source_node' exists
         # in the schema, but it is not a valid component
         if not root_dependencies:
-            raise ValueError(f"'{self.source_node}' is not a valid datatype in the data model.")
+            raise ValueError(
+                f"'{self.source_node}' is not a valid datatype in the data model."
+            )
         self.root_dependencies = root_dependencies
         self.nodes_to_process = self.root_dependencies.copy()
         self.current_node = None
         self.move_to_next_node()
-
 
     def move_to_next_node(self) -> None:
         """Removes the first node in nodes to process and sets it as current node"""
         if self.nodes_to_process:
             current_node = self.nodes_to_process.pop(0)
             display_name = self._get_node_display_name(current_node)
-            valid_values=self._get_node_valid_values(current_node)
-            valid_value_display_names=self.dmge.get_nodes_display_names(valid_values)
-            validation_rules= self.dmge.get_component_node_validation_rules(
+            valid_values = self._get_node_valid_values(current_node)
+            valid_value_display_names = self.dmge.get_nodes_display_names(valid_values)
+            validation_rules = self.dmge.get_component_node_validation_rules(
                 manifest_component=self.source_node, node_display_name=display_name
             )
             is_required = self.dmge.get_component_node_required(
                 manifest_component=self.source_node,
                 node_validation_rules=validation_rules,
-                node_display_name=display_name
+                node_display_name=display_name,
             )
             dependencies = self.dmge.get_adjacent_nodes_by_relationship(
                 node_label=current_node,
-                relationship=self.dmr.relationships_dictionary["requiresDependency"]["edge_key"],
+                relationship=self.dmr.relationships_dictionary["requiresDependency"][
+                    "edge_key"
+                ],
             )
             dependency_display_names = self.dmge.get_nodes_display_names(
                 node_list=dependencies
@@ -309,14 +319,10 @@ class NodeProcessor:
                 is_required=is_required,
                 dependencies=dependencies,
                 dependency_display_names=dependency_display_names,
-                description=description
+                description=description,
             )
-            self.update_reverse_dependencies(
-                display_name, dependency_display_names
-            )
-            self.update_valid_values_map(
-                current_node, valid_values
-            )
+            self.update_reverse_dependencies(display_name, dependency_display_names)
+            self.update_valid_values_map(current_node, valid_values)
             self.update_nodes_to_process(sorted(valid_values))
             self.update_nodes_to_process(sorted(dependencies))
         else:
@@ -390,13 +396,13 @@ class NodeProcessor:
     def is_current_node_in_reverse_dependencies(self) -> bool:
         return self.current_node.display_name in self.reverse_dependencies
 
-    def _get_node_display_name(self, node:str) -> str:
+    def _get_node_display_name(self, node: str) -> str:
         node_list = self.dmge.get_nodes_display_names([node])
         if not node_list:
             raise ValueError("node missing form graph: ", node)
         return node_list[0]
 
-    def _get_node_valid_values(self, node:str) -> list[str]:
+    def _get_node_valid_values(self, node: str) -> list[str]:
         return self.dmge.get_adjacent_nodes_by_relationship(
             node_label=node,
             relationship=self.dmr.relationships_dictionary["rangeIncludes"]["edge_key"],
@@ -409,7 +415,7 @@ def create_json_schema(
     schema_name: str,
     write_schema: bool = True,
     schema_path: Union[str, None] = None,
-    jsonld_path: Optional[str] = None
+    jsonld_path: Optional[str] = None,
 ) -> dict[str, Any]:
     """
     Creates a JSONSchema dict for the datatype in the data model.
@@ -460,6 +466,7 @@ def create_json_schema(
         _write_data_model(json_schema_dict, schema_path, datatype, jsonld_path)
 
     return json_schema_dict
+
 
 def _process_node(json_schema: JSONSchema, node_processor: NodeProcessor) -> None:
     """
@@ -527,7 +534,7 @@ def _write_data_model(
 
 def _set_conditional_dependencies(
     json_schema: JSONSchema,
-    np:NodeProcessor,
+    np: NodeProcessor,
 ) -> None:
     """
     This sets conditional requirements in the "allOf" keyword.
@@ -666,7 +673,13 @@ def _create_enum_array_property(node: Node) -> dict[str, Any]:
     Returns:
         JSON object
     """
-    types = [{"type": "array", "title": "array", "items": {"enum": sorted(node.valid_value_display_names)}}]
+    types = [
+        {
+            "type": "array",
+            "title": "array",
+            "items": {"enum": sorted(node.valid_value_display_names)},
+        }
+    ]
 
     if not node.is_required:
         types += [{"type": "null", "title": "null"}]
@@ -724,7 +737,9 @@ def _create_enum_property(node: Node) -> dict[str, Any]:
         JSON object
     """
     schema: dict[str, Any] = {node.name: {"description": node.description}}
-    one_of_list: list[dict[str, Any]] = [{"enum": sorted(node.valid_value_display_names), "title": "enum"}]
+    one_of_list: list[dict[str, Any]] = [
+        {"enum": sorted(node.valid_value_display_names), "title": "enum"}
+    ]
     if not node.is_required:
         one_of_list += [{"type": "null", "title": "null"}]
     schema[node.name]["oneOf"] = one_of_list

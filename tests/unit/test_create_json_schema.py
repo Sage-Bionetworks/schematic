@@ -261,9 +261,13 @@ class TestNodeProcessor:
         # THEN root_dependencies should bbe 5 items long, and nodes to process
         #  should be the same minus "Component"
         assert np.root_dependencies == [
-            'Component', 'Diagnosis', 'PatientID', 'Sex', 'YearofBirth'
+            "Component",
+            "Diagnosis",
+            "PatientID",
+            "Sex",
+            "YearofBirth",
         ]
-        assert np.nodes_to_process == ['Diagnosis', 'PatientID', 'Sex', 'YearofBirth']
+        assert np.nodes_to_process == ["Diagnosis", "PatientID", "Sex", "YearofBirth"]
 
     def test_move_to_next_node(self, dmge: DataModelGraphExplorer) -> None:
         """Test NodeProcessor.move_to_next_node"""
@@ -305,7 +309,10 @@ class TestNodeProcessor:
         np.update_valid_values_map("Diagnosis", ["Healthy", "Cancer"])
         # THEN valid values map should have one entry for each valid value,
         #  with the node as the value
-        assert np.valid_values_map == {"Healthy": ["Diagnosis"], "Cancer": ["Diagnosis"]}
+        assert np.valid_values_map == {
+            "Healthy": ["Diagnosis"],
+            "Cancer": ["Diagnosis"],
+        }
 
     def test_update_reverse_dependencies(self, dmge: DataModelGraphExplorer) -> None:
         """Test NodeProcessor.update_reverse_dependencies"""
@@ -317,7 +324,10 @@ class TestNodeProcessor:
         np.update_reverse_dependencies("Cancer", ["CancerType", "FamilyHistory"])
         # THEN reverse_dependencies should have one entry for each valid value,
         #  with the node as the value
-        assert np.reverse_dependencies == {"CancerType": ["Cancer"], "FamilyHistory": ["Cancer"]}
+        assert np.reverse_dependencies == {
+            "CancerType": ["Cancer"],
+            "FamilyHistory": ["Cancer"],
+        }
 
     def test_update_nodes_to_process(self, dmge: DataModelGraphExplorer) -> None:
         """Test NodeProcessor.update_nodes_to_process"""
@@ -331,7 +341,9 @@ class TestNodeProcessor:
         assert len(np.nodes_to_process) == 5
         assert np.nodes_to_process[4] == "NewNode"
 
-    def test_update_processed_nodes_with_current_node(self, dmge: DataModelGraphExplorer) -> None:
+    def test_update_processed_nodes_with_current_node(
+        self, dmge: DataModelGraphExplorer
+    ) -> None:
         """Test NodeProcessor.update_processed_nodes_with_current_node"""
         # GIVEN a NodeProcessor instance
         np = NodeProcessor(dmge, "Patient")
@@ -350,6 +362,7 @@ class TestNodeProcessor:
         np.update_processed_nodes_with_current_node()
         # THEN the current node should be listed as processed.
         assert np.is_current_node_processed()
+
 
 @pytest.mark.parametrize(
     "datatype",
@@ -373,7 +386,7 @@ def test_create_json_schema(
         dmge=dmge,
         datatype=datatype,
         schema_name=f"{datatype}_validation",
-        schema_path=test_path
+        schema_path=test_path,
     )
     assert json_files_equal(expected_path, test_path)
 
@@ -497,14 +510,11 @@ def test_set_conditional_dependencies_nothing_added(
     """
     json_schema = {"allOf": []}
     np = NodeProcessor(dmge, "Patient", ["CancerType"])
-    np.reverse_dependencies=reverse_dependencies
-    np.valid_values_map=valid_values_map
-    np.current_node.name="CancerType"
-    np.current_node.display_name="Cancer Type"
-    _set_conditional_dependencies(
-        json_schema=json_schema,
-        np=np
-    )
+    np.reverse_dependencies = reverse_dependencies
+    np.valid_values_map = valid_values_map
+    np.current_node.name = "CancerType"
+    np.current_node.display_name = "Cancer Type"
+    _set_conditional_dependencies(json_schema=json_schema, np=np)
     assert json_schema == {"allOf": []}
 
 
@@ -517,9 +527,7 @@ def test_set_conditional_dependencies_nothing_added(
             JSONSchema(
                 all_of=[
                     {
-                        "if": {
-                            "properties": {"Diagnosis": {"enum": ["Cancer"]}}
-                        },
+                        "if": {"properties": {"Diagnosis": {"enum": ["Cancer"]}}},
                         "then": {
                             "properties": {"CancerType": {"not": {"type": "null"}}},
                             "required": ["CancerType"],
@@ -534,18 +542,14 @@ def test_set_conditional_dependencies_nothing_added(
             JSONSchema(
                 all_of=[
                     {
-                        "if": {
-                            "properties": {"Diagnosis1": {"enum": ["Cancer"]}}
-                        },
+                        "if": {"properties": {"Diagnosis1": {"enum": ["Cancer"]}}},
                         "then": {
                             "properties": {"CancerType": {"not": {"type": "null"}}},
                             "required": ["CancerType"],
                         },
                     },
                     {
-                        "if": {
-                            "properties": {"Diagnosis2": {"enum": ["Cancer"]}}
-                        },
+                        "if": {"properties": {"Diagnosis2": {"enum": ["Cancer"]}}},
                         "then": {
                             "properties": {"CancerType": {"not": {"type": "null"}}},
                             "required": ["CancerType"],
@@ -560,18 +564,14 @@ def test_set_conditional_dependencies_nothing_added(
             JSONSchema(
                 all_of=[
                     {
-                        "if": {
-                            "properties": {"Diagnosis1": {"enum": ["Cancer1"]}}
-                        },
+                        "if": {"properties": {"Diagnosis1": {"enum": ["Cancer1"]}}},
                         "then": {
                             "properties": {"CancerType": {"not": {"type": "null"}}},
                             "required": ["CancerType"],
                         },
                     },
                     {
-                        "if": {
-                            "properties": {"Diagnosis2": {"enum": ["Cancer2"]}}
-                        },
+                        "if": {"properties": {"Diagnosis2": {"enum": ["Cancer2"]}}},
                         "then": {
                             "properties": {"CancerType": {"not": {"type": "null"}}},
                             "required": ["CancerType"],
@@ -587,19 +587,16 @@ def test_set_conditional_dependencies(
     reverse_dependencies: dict[str, list[str]],
     valid_values_map: dict[str, list[str]],
     expected_schema: JSONSchema,
-    dmge: DataModelGraphExplorer
+    dmge: DataModelGraphExplorer,
 ) -> None:
     """Tests for _set_conditional_dependencies"""
     json_schema = JSONSchema()
     np = NodeProcessor(dmge, "Patient")
-    np.reverse_dependencies=reverse_dependencies
-    np.valid_values_map=valid_values_map
-    np.current_node.name="CancerType"
-    np.current_node.display_name="Cancer Type"
-    _set_conditional_dependencies(
-        json_schema=json_schema,
-        np=np
-    )
+    np.reverse_dependencies = reverse_dependencies
+    np.valid_values_map = valid_values_map
+    np.current_node.name = "CancerType"
+    np.current_node.display_name = "Cancer Type"
+    _set_conditional_dependencies(json_schema=json_schema, np=np)
     assert json_schema == expected_schema
 
 
@@ -610,7 +607,12 @@ def test_set_conditional_dependencies(
         # The property should be an array with an enum
         # required list should have "property_name"
         (
-            Node(name="name", is_required=True, valid_value_display_names=["enum1"], validation_rules=["list"]),
+            Node(
+                name="name",
+                is_required=True,
+                valid_value_display_names=["enum1"],
+                validation_rules=["list"],
+            ),
             JSONSchema(
                 properties={
                     "name": {
@@ -631,7 +633,11 @@ def test_set_conditional_dependencies(
         # The property should be an array with an enum
         # required list should be empty
         (
-            Node(name="name", valid_value_display_names=["enum1"], validation_rules=["list"]),
+            Node(
+                name="name",
+                valid_value_display_names=["enum1"],
+                validation_rules=["list"],
+            ),
             JSONSchema(
                 properties={
                     "name": {
@@ -695,7 +701,7 @@ def test_set_conditional_dependencies(
     ],
 )
 def test_set_property(
-    node:Node,
+    node: Node,
     expected_schema: dict[str, Any],
 ) -> None:
     """Tests for set_property"""
@@ -726,7 +732,7 @@ def test_set_property(
         ),
         # If is_required is False, "{'type': 'null'}" is added to the oneOf list
         (
-             Node(name="name", valid_value_display_names=["enum1"]),
+            Node(name="name", valid_value_display_names=["enum1"]),
             {
                 "name": {
                     "description": "TBD",
@@ -747,7 +753,7 @@ def test_set_property(
     ids=["Required", "Not required"],
 )
 def test_create_enum_array_property(
-    node:Node,
+    node: Node,
     expected_schema: dict[str, Any],
     valid_values: list[Any],
     invalid_values: list[Any],
@@ -809,7 +815,11 @@ def test_create_enum_array_property(
         ),
         # If property_data has range_min or range_max, they are set in the schema
         (
-            Node(name="name", is_required=True, validation_rules=["num", "list", "inRange 0 1"]),
+            Node(
+                name="name",
+                is_required=True,
+                validation_rules=["num", "list", "inRange 0 1"],
+            ),
             {
                 "name": {
                     "description": "TBD",
@@ -912,12 +922,7 @@ def test_create_enum_property(
 @pytest.mark.parametrize(
     "node, expected_schema, valid_values, invalid_values",
     [
-        (
-            Node(name="name"),
-            {"name": {"description": "TBD"}},
-            [None, 1, ""],
-            []
-        ),
+        (Node(name="name"), {"name": {"description": "TBD"}}, [None, 1, ""], []),
         # If property_type is given, it is added to the schema
         (
             Node(name="name", is_required=True, validation_rules=["str"]),
@@ -950,7 +955,9 @@ def test_create_enum_property(
             [None],
         ),
         (
-            Node(name="name", is_required=True, validation_rules=["num", "inRange 0 1"]),
+            Node(
+                name="name", is_required=True, validation_rules=["num", "inRange 0 1"]
+            ),
             {
                 "name": {
                     "type": "number",
