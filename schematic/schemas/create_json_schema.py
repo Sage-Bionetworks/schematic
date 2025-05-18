@@ -495,6 +495,43 @@ class GraphTraversalState:  # pylint: disable=too-many-instance-attributes
         """
         self._nodes_to_process += nodes
 
+    def _get_node_dependencies(self, node: str):
+        return self.dmge.get_adjacent_nodes_by_relationship(
+            node_label=node,
+            relationship=self.dmr.relationships_dictionary["requiresDependency"][
+                "edge_key"
+            ],
+        )
+
+    def _create_node(self, node_name: str) -> Node:
+        display_name = self._get_node_display_name(node_name)
+        valid_values = self._get_node_valid_values(node_name)
+        valid_value_display_names = self.dmge.get_nodes_display_names(valid_values)
+        validation_rules = self.dmge.get_component_node_validation_rules(
+            manifest_component=self.source_node, node_display_name=display_name
+        )
+        is_required = self.dmge.get_component_node_required(
+            manifest_component=self.source_node,
+            node_validation_rules=validation_rules,
+            node_display_name=display_name,
+        )
+        dependencies = self._get_node_dependencies(node_name)
+        dependency_display_names = self.dmge.get_nodes_display_names(
+            node_list=dependencies
+        )
+        description = self.dmge.get_node_comment(node_display_name=display_name)
+        return Node(
+            name=node_name,
+            display_name=display_name,
+            valid_values=valid_values,
+            valid_value_display_names=valid_value_display_names,
+            validation_rules=validation_rules,
+            is_required=is_required,
+            dependencies=dependencies,
+            dependency_display_names=dependency_display_names,
+            description=description,
+        )
+
 
 def create_json_schema(  # pylint: disable=too-many-arguments
     dmge: DataModelGraphExplorer,
