@@ -504,7 +504,7 @@ def create_json_schema(
     Returns:
         JSON Schema as a dictionary.
     """
-    node_processor = GraphTraversalState(
+    graph_state = GraphTraversalState(
         dmge, datatype, use_node_display_names=use_node_display_names
     )
 
@@ -514,14 +514,14 @@ def create_json_schema(
         description=dmge.get_node_comment(node_label=datatype),
     )
 
-    while node_processor.are_nodes_remaining():
-        if not node_processor.is_current_node_processed():
+    while graph_state.are_nodes_remaining():
+        if not graph_state.is_current_node_processed():
             _process_node(
                 json_schema=json_schema,
-                node_processor=node_processor,
+                graph_state=graph_state,
                 use_node_display_names=use_node_display_names,
             )
-        node_processor.move_to_next_node()
+        graph_state.move_to_next_node()
 
     logger.info("JSON schema successfully generated from schema.org schema!")
 
@@ -535,7 +535,7 @@ def create_json_schema(
 
 def _process_node(
     json_schema: JSONSchema,
-    node_processor: GraphTraversalState,
+    graph_state: GraphTraversalState,
     use_node_display_names: bool = False,
 ) -> None:
     """
@@ -546,26 +546,26 @@ def _process_node(
     Argument:
         json_schema: The JSON Scheme where the node might be set as a property
         source_node: The node that the JSON Schema is being created for
-        node_processor: A node processor for the source node
+        graph_state: A node processor for the source node
     """
-    if node_processor.current_node is None:
+    if graph_state.current_node is None:
         raise ValueError("Node Processor contains no node.")
 
-    if node_processor.is_current_node_a_property():
+    if graph_state.is_current_node_a_property():
         # Determine if current node has conditional dependencies that need to be set
-        if node_processor.is_current_node_in_reverse_dependencies():
+        if graph_state.is_current_node_in_reverse_dependencies():
             _set_conditional_dependencies(
-                json_schema, node_processor, use_node_display_names
+                json_schema, graph_state, use_node_display_names
             )
             # This is to ensure that all properties that are conditional dependencies are not
             #   required, but only become required when the conditional dependency is met.
-            node_processor.current_node.is_required = False
+            graph_state.current_node.is_required = False
         _set_property(
             json_schema,
-            node_processor.current_node,
+            graph_state.current_node,
             use_node_display_names,
         )
-        node_processor.update_processed_nodes_with_current_node()
+        graph_state.update_processed_nodes_with_current_node()
 
 
 def _write_data_model(
@@ -609,7 +609,7 @@ def _write_data_model(
 
 
 def _set_conditional_dependencies(
-    json_schema: JSONSchema, np: GraphTraversalState, use_node_display_names: bool = False
+    json_schema: JSONSchema, graph_state: GraphTraversalState, use_node_display_names: bool = False
 ) -> None:
     """
     This sets conditional requirements in the "allOf" keyword.
@@ -650,15 +650,15 @@ def _set_conditional_dependencies(
         json_schema: The JSON Schema to add conditional dependencies to
         np: A GraphTraversalState that is on the current node
     """
-    if np.current_node is None:
+    if graph_state.current_node is None:
         raise ValueError("Node Processor contains no node.")
 
-    if np.use_node_display_names:
-        node_name = np.current_node.display_name
+    if graph_state.use_node_display_names:
+        node_name = graph_state.current_node.display_name
     else:
-        node_name = np.current_node.name
+        node_name = graph_state.current_node.name
 
-    conditional_properties = np.get_conditional_properties(use_node_display_names)
+    conditional_properties = graph_state.get_conditional_properties(use_node_display_names)
     for cp in conditional_properties:
         attribute, value = cp
         conditional_schema = {
