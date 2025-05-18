@@ -162,6 +162,7 @@ class Node:  # pylint: disable=too-many-instance-attributes
     is_array: bool = field(init=False)
     minimum: Optional[float] = field(init=False)
     maximum: Optional[float] = field(init=False)
+    _dmr: DataModelRelationships = field(init=False)
 
     def __post_init__(self) -> None:
         """
@@ -216,6 +217,31 @@ class Node:  # pylint: disable=too-many-instance-attributes
                         f"when using the inRange rule, but got: {self.type}"
                     )
                 self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
+
+    def get_node_valid_value_display_names(self) -> list[str]:
+        return sorted(self._dmge.get_nodes_display_names(self.valid_values))
+
+    def _get_node_display_name(self, node: str) -> str:
+        node_list = self._dmge.get_nodes_display_names([node])
+        if not node_list:
+            raise ValueError("node missing form graph: ", node)
+        return node_list[0]
+
+    def _get_node_valid_values(self, node: str) -> list[str]:
+        return self._dmge.get_adjacent_nodes_by_relationship(
+            node_label=node,
+            relationship=self._dmr.relationships_dictionary["rangeIncludes"][
+                "edge_key"
+            ],
+        )
+
+    def _get_node_dependencies(self, node: str):
+        return self._dmge.get_adjacent_nodes_by_relationship(
+            node_label=node,
+            relationship=self._dmr.relationships_dictionary["requiresDependency"][
+                "edge_key"
+            ],
+        )
 
 
 def _get_ranges_from_range_rule(
@@ -503,34 +529,11 @@ class GraphTraversalState:  # pylint: disable=too-many-instance-attributes
             ],
         )
 
-    def _create_node(self, node_name: str) -> Node:
-        display_name = self._get_node_display_name(node_name)
-        valid_values = self._get_node_valid_values(node_name)
-        valid_value_display_names = self.dmge.get_nodes_display_names(valid_values)
-        validation_rules = self.dmge.get_component_node_validation_rules(
-            manifest_component=self.source_node, node_display_name=display_name
-        )
-        is_required = self.dmge.get_component_node_required(
-            manifest_component=self.source_node,
-            node_validation_rules=validation_rules,
-            node_display_name=display_name,
-        )
-        dependencies = self._get_node_dependencies(node_name)
-        dependency_display_names = self.dmge.get_nodes_display_names(
-            node_list=dependencies
-        )
-        description = self.dmge.get_node_comment(node_display_name=display_name)
-        return Node(
-            name=node_name,
-            display_name=display_name,
-            valid_values=valid_values,
-            valid_value_display_names=valid_value_display_names,
-            validation_rules=validation_rules,
-            is_required=is_required,
-            dependencies=dependencies,
-            dependency_display_names=dependency_display_names,
-            description=description,
-        )
+    def _get_node_display_name(self, node: str) -> str:
+        node_list = self.dmge.get_nodes_display_names([node])
+        if not node_list:
+            raise ValueError("node missing form graph: ", node)
+        return node_list[0]
 
 
 def create_json_schema(  # pylint: disable=too-many-arguments
