@@ -120,39 +120,80 @@ class Node:
       maximum: The maximum value of the property (if numeric) (inferred from validation_rules)
     """
 
-    name: str = ""
-    display_name: str = ""
-    valid_values: list[str] = field(default_factory=list)
-    valid_value_display_names: list[str] = field(default_factory=list)
-    validation_rules: list[str] = field(default_factory=list)
-    is_required: bool = False
-    dependencies: list[str] = field(default_factory=list)
-    dependency_display_names: list[str] = field(default_factory=list)
-    description: str = "TBD"
+    name: str
+    _source_node: str
+    _dmge: DataModelGraphExplorer
+    display_name: str = field(init=False)
+    valid_values: list[str] = field(init=False)
+    is_required: bool = field(init=False)
+    dependencies: list[str] = field(init=False)
+    description: str = field(init=False)
     type: Optional[str] = field(init=False)
     is_array: bool = field(init=False)
     minimum: Optional[float] = field(init=False)
     maximum: Optional[float] = field(init=False)
+    _dmr: DataModelRelationships = field(init=False)
 
     def __post_init__(self) -> None:
+        self._dmr = DataModelRelationships()
+        self.display_name = self._get_node_display_name(self.name)
+        self.valid_values = self._get_node_valid_values(self.name)
+        validation_rules = self._dmge.get_component_node_validation_rules(
+            manifest_component=self._source_node, node_display_name=self.display_name
+        )
+        self.is_required = self._dmge.get_component_node_required(
+            manifest_component=self._source_node,
+            node_validation_rules=validation_rules,
+            node_display_name=self.display_name,
+        )
+        self.dependencies = self._get_node_dependencies(self.name)
+        self.description = self._dmge.get_node_comment(
+            node_display_name=self.display_name
+        )
+
         self.type = None
         self.is_array = False
         self.minimum = None
         self.maximum = None
 
-        if self.validation_rules:
-            if rule_in_rule_list("list", self.validation_rules):
+        if validation_rules:
+            if rule_in_rule_list("list", validation_rules):
                 self.is_array = True
 
-            type_rule = _get_type_rule_from_rule_list(self.validation_rules)
+            type_rule = _get_type_rule_from_rule_list(validation_rules)
             if type_rule:
                 self.type = TYPE_RULES.get(type_rule)
 
-            range_rule = _get_in_range_rule_from_rule_list(self.validation_rules)
+            range_rule = _get_in_range_rule_from_rule_list(validation_rules)
             if range_rule:
                 if self.type not in ["number", "integer"]:
                     self.type = "number"
                 self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
+
+    def get_node_valid_value_display_names(self) -> list[str]:
+        return sorted(self._dmge.get_nodes_display_names(self.valid_values))
+
+    def _get_node_display_name(self, node: str) -> str:
+        node_list = self._dmge.get_nodes_display_names([node])
+        if not node_list:
+            raise ValueError("node missing form graph: ", node)
+        return node_list[0]
+
+    def _get_node_valid_values(self, node: str) -> list[str]:
+        return self._dmge.get_adjacent_nodes_by_relationship(
+            node_label=node,
+            relationship=self._dmr.relationships_dictionary["rangeIncludes"][
+                "edge_key"
+            ],
+        )
+
+    def _get_node_dependencies(self, node: str):
+        return self._dmge.get_adjacent_nodes_by_relationship(
+            node_label=node,
+            relationship=self._dmr.relationships_dictionary["requiresDependency"][
+                "edge_key"
+            ],
+        )
 
 
 def _get_ranges_from_range_rule(
@@ -227,13 +268,10 @@ def _get_type_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
 
 
 @dataclass
-class NodeProcessor:
+class GraphTraversalState:
     """
-    This is a helper class for JSONSchemaGenerator. It creates a JSON Schema for an input datatype.
-    This datatype is the source node. A graph(nx.MultiDiGraph) created from the data model
-    is processed for valid_values and reverse dependencies in order to create conditional
-    dependencies in the resulting JSON Schema. This class keeps track of the states needed as
-    the graph is processed.
+    This is a helper class for create_json_schema. It keeps track of the state as the function
+    traverses a graph made from a data model.
 
     Attributes:
         dmge: A DataModelGraphExplorer for the graph
@@ -251,20 +289,23 @@ class NodeProcessor:
 
     dmge: DataModelGraphExplorer
     source_node: str
+    use_node_display_names: bool = False
     root_dependencies: list[str] = field(init=False)
     nodes_to_process: list[str] = field(init=False)
     current_node: Optional[Node] = field(init=False)
-    processed_nodes: list[str] = field(default_factory=list)
-    reverse_dependencies: dict[str, list[str]] = field(default_factory=dict)
-    valid_values_map: dict[str, list[str]] = field(default_factory=dict)
+    processed_nodes: list[str] = field(init=False)
+    reverse_dependencies: dict[str, list[str]] = field(init=False)
+    valid_values_map: dict[str, list[str]] = field(init=False)
     dmr: DataModelRelationships = field(init=False)
-    use_node_display_names: bool = False
 
     def __post_init__(self) -> None:
         """
         The first nodes to process are the root dependencies.
         This sets the current node as the first node in root dependencies.
         """
+        self.processed_nodes = []
+        self.reverse_dependencies = {}
+        self.valid_values_map = {}
         self.dmr = DataModelRelationships()
         root_dependencies = sorted(self._get_node_dependencies(self.source_node))
         if not root_dependencies:
@@ -281,23 +322,13 @@ class NodeProcessor:
         if self.nodes_to_process:
             node_name = self.nodes_to_process.pop(0)
             self.current_node = self._create_node(node_name)
-            if self.use_node_display_names:
-                self._update_valid_values_map(
-                    self.current_node.display_name,
-                    self.current_node.valid_value_display_names,
-                )
-                self._update_reverse_dependencies(
-                    self.current_node.display_name,
-                    self.current_node.dependency_display_names,
-                )
-            else:
-                self._update_valid_values_map(
-                    self.current_node.name, self.current_node.valid_values
-                )
-                self._update_reverse_dependencies(
-                    self.current_node.name,
-                    self.current_node.dependencies,
-                )
+            self._update_valid_values_map(
+                self.current_node.name, self.current_node.valid_values
+            )
+            self._update_reverse_dependencies(
+                self.current_node.name,
+                self.current_node.dependencies,
+            )
             self._update_nodes_to_process(sorted(self.current_node.valid_values))
             self._update_nodes_to_process(sorted(self.current_node.dependencies))
         else:
@@ -315,6 +346,8 @@ class NodeProcessor:
         Returns:
             Whether or not the current node has been processed yet
         """
+        if self.current_node is None:
+            raise ValueError("Current node is None")
         return self.current_node.name in self.processed_nodes
 
     def is_current_node_a_property(self) -> bool:
@@ -322,6 +355,8 @@ class NodeProcessor:
         Returns:
             Whether or not the current node is should be written as a property.
         """
+        if self.current_node is None:
+            raise ValueError("Current node is None")
         if self.use_node_display_names:
             node_name = self.current_node.display_name
         else:
@@ -340,25 +375,39 @@ class NodeProcessor:
         Returns:
             bool: Wether or no the current node is in the reverse dependencies
         """
-        if self.use_node_display_names:
-            node_name = self.current_node.display_name
-        else:
-            node_name = self.current_node.name
-        return node_name in self.reverse_dependencies
+        if self.current_node is None:
+            raise ValueError("Current node is None")
+        return self.current_node.name in self.reverse_dependencies
 
     def update_processed_nodes_with_current_node(self) -> None:
         """Adds the current node to the list of processed nodes"""
-        if self.current_node.name is None:
+        if self.current_node is None:
             raise ValueError("Current node is None")
         self.processed_nodes.append(self.current_node.name)
 
-    def get_conditional_properties(self, node_name: str) -> list[tuple[str, str]]:
+    def get_conditional_properties(
+        self, use_node_display_names: bool = False
+    ) -> list[tuple[str, str]]:
+        """Returns the conditional dependencies for the current node
+
+        Args:
+            use_node_display_names: If True the the attributes in the
+              conditional dependencies are return with their display names
+
+        Returns:
+            The watched_property, and the value for it that triggers the condition
+        """
+        if self.current_node is None:
+            raise ValueError("Current node is None")
         conditional_properties: list[tuple[str, str]] = []
-        for enum in self.reverse_dependencies[node_name]:
-            if enum in self.valid_values_map:
-                properties = sorted(self.valid_values_map[enum])
+        for value in self.reverse_dependencies[self.current_node.name]:
+            if value in self.valid_values_map:
+                properties = sorted(self.valid_values_map[value])
                 for watched_property in properties:
-                    conditional_properties.append((watched_property, enum))
+                    if use_node_display_names:
+                        watched_property = self._get_node_display_name(watched_property)
+                        value = self._get_node_display_name(value)
+                    conditional_properties.append((watched_property, value))
         return conditional_properties
 
     def _update_valid_values_map(
@@ -397,17 +446,8 @@ class NodeProcessor:
         """
         self.nodes_to_process += nodes
 
-    def _get_node_display_name(self, node: str) -> str:
-        node_list = self.dmge.get_nodes_display_names([node])
-        if not node_list:
-            raise ValueError("node missing form graph: ", node)
-        return node_list[0]
-
-    def _get_node_valid_values(self, node: str) -> list[str]:
-        return self.dmge.get_adjacent_nodes_by_relationship(
-            node_label=node,
-            relationship=self.dmr.relationships_dictionary["rangeIncludes"]["edge_key"],
-        )
+    def _create_node(self, node_name: str) -> Node:
+        return Node(name=node_name, _dmge=self.dmge, _source_node=self.source_node)
 
     def _get_node_dependencies(self, node: str):
         return self.dmge.get_adjacent_nodes_by_relationship(
@@ -417,34 +457,11 @@ class NodeProcessor:
             ],
         )
 
-    def _create_node(self, node_name: str) -> Node:
-        display_name = self._get_node_display_name(node_name)
-        valid_values = self._get_node_valid_values(node_name)
-        valid_value_display_names = self.dmge.get_nodes_display_names(valid_values)
-        validation_rules = self.dmge.get_component_node_validation_rules(
-            manifest_component=self.source_node, node_display_name=display_name
-        )
-        is_required = self.dmge.get_component_node_required(
-            manifest_component=self.source_node,
-            node_validation_rules=validation_rules,
-            node_display_name=display_name,
-        )
-        dependencies = self._get_node_dependencies(node_name)
-        dependency_display_names = self.dmge.get_nodes_display_names(
-            node_list=dependencies
-        )
-        description = self.dmge.get_node_comment(node_display_name=display_name)
-        return Node(
-            name=node_name,
-            display_name=display_name,
-            valid_values=valid_values,
-            valid_value_display_names=valid_value_display_names,
-            validation_rules=validation_rules,
-            is_required=is_required,
-            dependencies=dependencies,
-            dependency_display_names=dependency_display_names,
-            description=description,
-        )
+    def _get_node_display_name(self, node: str) -> str:
+        node_list = self.dmge.get_nodes_display_names([node])
+        if not node_list:
+            raise ValueError("node missing form graph: ", node)
+        return node_list[0]
 
 
 def create_json_schema(
@@ -473,18 +490,21 @@ def create_json_schema(
     - Create conditional dependencies linking attributes to their dependencies
 
     Arguments:
+        dmge: A DataModelGraphExplorer with the data model loaded
         datatype: the datatype to create the schema for.
             Its node is where we can start recursive dependency traversal
             (as mentioned above).
         schema_name: Name assigned to JSON-LD schema (to uniquely identify it via URI
             when it is hosted on the Internet).
-        schema_path: Where to save the JSON Schema file
         write_schema: whether or not to write the schema as a json file
+        schema_path: Where to save the JSON Schema file
+        jsonld_path: Used to name the file if the path isn't supplied
+        use_node_display_names: If the JSONSchema will be written using node display names
 
     Returns:
         JSON Schema as a dictionary.
     """
-    node_processor = NodeProcessor(
+    node_processor = GraphTraversalState(
         dmge, datatype, use_node_display_names=use_node_display_names
     )
 
@@ -496,7 +516,11 @@ def create_json_schema(
 
     while node_processor.are_nodes_remaining():
         if not node_processor.is_current_node_processed():
-            _process_node(json_schema, node_processor)
+            _process_node(
+                json_schema=json_schema,
+                node_processor=node_processor,
+                use_node_display_names=use_node_display_names,
+            )
         node_processor.move_to_next_node()
 
     logger.info("JSON schema successfully generated from schema.org schema!")
@@ -509,7 +533,11 @@ def create_json_schema(
     return json_schema_dict
 
 
-def _process_node(json_schema: JSONSchema, node_processor: NodeProcessor) -> None:
+def _process_node(
+    json_schema: JSONSchema,
+    node_processor: GraphTraversalState,
+    use_node_display_names: bool = False,
+) -> None:
     """
     Processes a node in the data model graph.
     If it should be a property in the JSON Schema, that is set.
@@ -520,19 +548,22 @@ def _process_node(json_schema: JSONSchema, node_processor: NodeProcessor) -> Non
         source_node: The node that the JSON Schema is being created for
         node_processor: A node processor for the source node
     """
-    assert node_processor.current_node
+    if node_processor.current_node is None:
+        raise ValueError("Node Processor contains no node.")
 
     if node_processor.is_current_node_a_property():
         # Determine if current node has conditional dependencies that need to be set
         if node_processor.is_current_node_in_reverse_dependencies():
-            _set_conditional_dependencies(json_schema=json_schema, np=node_processor)
+            _set_conditional_dependencies(
+                json_schema, node_processor, use_node_display_names
+            )
             # This is to ensure that all properties that are conditional dependencies are not
             #   required, but only become required when the conditional dependency is met.
             node_processor.current_node.is_required = False
         _set_property(
             json_schema,
             node_processor.current_node,
-            node_processor.use_node_display_names,
+            use_node_display_names,
         )
         node_processor.update_processed_nodes_with_current_node()
 
@@ -578,8 +609,7 @@ def _write_data_model(
 
 
 def _set_conditional_dependencies(
-    json_schema: JSONSchema,
-    np: NodeProcessor,
+    json_schema: JSONSchema, np: GraphTraversalState, use_node_display_names: bool = False
 ) -> None:
     """
     This sets conditional requirements in the "allOf" keyword.
@@ -618,14 +648,17 @@ def _set_conditional_dependencies(
 
     Arguments:
         json_schema: The JSON Schema to add conditional dependencies to
-        np: A NodeProcessor that is on the current node
+        np: A GraphTraversalState that is on the current node
     """
+    if np.current_node is None:
+        raise ValueError("Node Processor contains no node.")
+
     if np.use_node_display_names:
         node_name = np.current_node.display_name
     else:
         node_name = np.current_node.name
 
-    conditional_properties = np.get_conditional_properties(node_name)
+    conditional_properties = np.get_conditional_properties(use_node_display_names)
     for cp in conditional_properties:
         attribute, value = cp
         conditional_schema = {
@@ -657,7 +690,7 @@ def _set_property(
     else:
         node_name = node.name
 
-    if node.valid_value_display_names:
+    if node.valid_values:
         if node.is_array:
             schema = _create_enum_array_property(node)
         else:
@@ -704,7 +737,7 @@ def _create_enum_array_property(node: Node) -> dict[str, Any]:
         {
             "type": "array",
             "title": "array",
-            "items": {"enum": sorted(node.valid_value_display_names)},
+            "items": {"enum": node.get_node_valid_value_display_names()},
         }
     ]
 
@@ -778,7 +811,7 @@ def _create_enum_property(node: Node) -> dict[str, Any]:
     """
     schema: dict[str, Any] = {}
     one_of_list: list[dict[str, Any]] = [
-        {"enum": sorted(node.valid_value_display_names), "title": "enum"}
+        {"enum": node.get_node_valid_value_display_names(), "title": "enum"}
     ]
     if not node.is_required:
         one_of_list += [{"type": "null", "title": "null"}]
