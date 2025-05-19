@@ -187,6 +187,15 @@ def test_node(
         ("inRange 0 1", (0, 1)),
         ("inRange 0 1 x", (0, 1)),
     ],
+    ids = [
+        "No rules",
+        "inRange with no params",
+        "inRange with bad params",
+        "inRange with minimum",
+        "inRange with minimum, bad maximum",
+        "inRange with minimum, maximum",
+        "inRange with minimum, maximum, extra param"
+    ]
 )
 def test_get_ranges_from_range_rule(
     input_rule: str,
@@ -205,6 +214,12 @@ def test_get_ranges_from_range_rule(
         (["inRange 0 1"], "inRange 0 1"),
         (["str error", "inRange 0 1"], "inRange 0 1"),
     ],
+    ids =[
+        "No rules"
+        "List",
+        "inRange"
+        "str and inRange"
+    ]
 )
 def test_get_in_range_rule_from_rule_list(
     input_rules: list[str],
@@ -217,7 +232,13 @@ def test_get_in_range_rule_from_rule_list(
 
 @pytest.mark.parametrize(
     "input_rules",
-    [(["inRange", "inRange"]), (["inRange 0", "inRange 0"])],
+    [
+        (["inRange", "inRange"]), (["inRange 0", "inRange 0"])
+    ],
+    ids = [
+        "Multiple inRange rules",
+        "Multiple inRange rules with params"
+    ]
 )
 def test_get_in_range_rule_from_rule_list_exceptions(
     input_rules: list[str],
@@ -231,7 +252,15 @@ def test_get_in_range_rule_from_rule_list_exceptions(
 
 @pytest.mark.parametrize(
     "input_rules, expected_rule",
-    [([], None), (["list strict"], None), (["str"], "str"), (["str error"], "str")],
+    [
+        ([], None), (["list strict"], None), (["str"], "str"), (["str error"], "str")
+    ],
+    ids = [
+        "No rules",
+        "List",
+        "String"
+        "String with error param"
+    ]
 )
 def test_get_type_rule_from_rule_list(
     input_rules: list[str],
@@ -244,7 +273,14 @@ def test_get_type_rule_from_rule_list(
 
 @pytest.mark.parametrize(
     "input_rules",
-    [(["str", "int"]), (["str", "str", "str"]), (["str", "str error", "str warning"])],
+    [
+        (["str", "int"]), (["str", "str", "str"]), (["str", "str error", "str warning"])
+    ],
+    ids = [
+        "Multiple type rules",
+        "Repeated str rules",
+        "Repeated str rules with parameters"
+    ]
 )
 def test_get_type_rule_from_rule_list_exceptions(
     input_rules: list[str],
@@ -433,6 +469,14 @@ class TestGraphTraversalState:
         ("MockRDB"),
         ("Patient"),
     ],
+    ids = [
+        "Biospecimen",
+        "BulkRNA-seqAssay",
+        "MockComponent",
+        "MockFilename",
+        "MockRDB",
+        "Patient",
+    ]
 )
 def test_create_json_schema(
     dmge: DataModelGraphExplorer, datatype: str, test_directory: str
@@ -457,6 +501,7 @@ def test_create_json_schema(
         ("BulkRNA-seqAssay"),
         ("Patient"),
     ],
+    ids = ["BulkRNA-seqAssay", "Patient"]
 )
 def test_create_json_schema_with_display_names(
     dmge: DataModelGraphExplorer, datatype: str, test_directory: str
@@ -576,13 +621,13 @@ def test_write_data_model_exception() -> None:
         # If the input node has no reverse dependencies, nothing gets added
         ({"CancerType": []}, {}),
         # If the input node has reverse dependencies,
-        #  but none of them are in the range domain map, nothing gets added
+        #  but none of them are in the valid values map, nothing gets added
         ({"CancerType": ["Cancer"]}, {}),
-        # If the input node has any reverse dependencies,
-        #  and atleast one of them are in the range domain map,
-        #  but the range domain map is empty for that node, nothing gets added
-        ({"CancerType": ["Cancer"]}, {"Cancer": []}),
     ],
+    ids=[
+        "No reverse dependencies",
+        "No valid values",
+    ]
 )
 def test_set_conditional_dependencies_nothing_added(
     reverse_dependencies: dict[str, list[str]],
@@ -768,6 +813,13 @@ def test_set_conditional_dependencies(
             ),
         ),
     ],
+    ids = [
+        "Array, enum",
+        "Array, enum, not required",
+        "Enum",
+        "Array",
+        "String"
+    ]
 )
 def test_set_property(
     node_name: str, expected_schema: dict[str, Any], test_nodes: dict[str, Node]
