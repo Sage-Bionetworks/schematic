@@ -678,6 +678,10 @@ def test_write_data_model_exception() -> None:
         "No reverse dependencies",
         "No valid values",
     ],
+    ids=[
+        "No reverse dependencies",
+        "No valid values",
+    ]
 )
 def test_set_conditional_dependencies_nothing_added(
     reverse_dependencies: dict[str, list[str]],
