@@ -10,7 +10,6 @@ from typing import Union, Any, Optional
 from dataclasses import dataclass, field, asdict
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
-from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.schema_utils import get_json_schema_log_file_path
 from schematic.utils.validate_utils import rule_in_rule_list
 
@@ -132,10 +131,8 @@ class Node:  # pylint: disable=too-many-instance-attributes
     is_array: bool = field(init=False)
     minimum: Optional[float] = field(init=False)
     maximum: Optional[float] = field(init=False)
-    _dmr: DataModelRelationships = field(init=False)
 
     def __post_init__(self) -> None:
-        self._dmr = DataModelRelationships()
         self.display_name = self.dmge.get_nodes_display_names([self.name])[0]
         self.valid_values = sorted(self.dmge.get_node_range(node_label=self.name))
         validation_rules = self.dmge.get_component_node_validation_rules(
@@ -288,7 +285,6 @@ class GraphTraversalState:  # pylint: disable=too-many-instance-attributes
     _processed_nodes: list[str] = field(init=False)
     _reverse_dependencies: dict[str, list[str]] = field(init=False)
     _valid_values_map: dict[str, list[str]] = field(init=False)
-    _dmr: DataModelRelationships = field(init=False)
 
     def __post_init__(self) -> None:
         """
@@ -299,7 +295,6 @@ class GraphTraversalState:  # pylint: disable=too-many-instance-attributes
         self._processed_nodes = []
         self._reverse_dependencies = {}
         self._valid_values_map = {}
-        self._dmr = DataModelRelationships()
         root_dependencies = sorted(
             self.dmge.get_node_dependencies(
                 self.source_node, display_names=False, schema_ordered=False
