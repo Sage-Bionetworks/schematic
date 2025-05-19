@@ -1,11 +1,9 @@
 """Tests for JSON Schema generation"""
 
 from typing import Generator, Any
-import os
 import json
 import uuid
 from time import sleep
-import configparser
 
 from synapseclient import Folder
 from synapseclient.client import Synapse
@@ -14,7 +12,7 @@ import pytest
 from schematic.schemas.create_json_schema import (
     create_json_schema,
 )
-from schematic.configuration.configuration import CONFIG
+
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 
