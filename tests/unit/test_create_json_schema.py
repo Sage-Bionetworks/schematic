@@ -532,7 +532,6 @@ def test_create_json_schema_with_display_names(
         datatype=datatype,
         schema_name=f"{datatype}_validation",
         schema_path=test_path,
-        use_node_display_names=True,
     )
     assert json_files_equal(expected_path, test_path)
 

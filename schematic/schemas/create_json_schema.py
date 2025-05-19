@@ -219,28 +219,13 @@ class Node:  # pylint: disable=too-many-instance-attributes
                 self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
 
     def get_node_valid_value_display_names(self) -> list[str]:
-        return sorted(self._dmge.get_nodes_display_names(self.valid_values))
+        """Gets the display names for the current nodes valid values
 
-    def _get_node_display_name(self, node: str) -> str:
-        node_list = self._dmge.get_nodes_display_names([node])
-        if not node_list:
-            raise ValueError("node missing form graph: ", node)
-        return node_list[0]
-
-    def _get_node_valid_values(self, node: str) -> list[str]:
-        return self._dmge.get_adjacent_nodes_by_relationship(
-            node_label=node,
-            relationship=self._dmr.relationships_dictionary["rangeIncludes"][
-                "edge_key"
-            ],
-        )
-
-    def _get_node_dependencies(self, node: str):
-        return self._dmge.get_adjacent_nodes_by_relationship(
-            node_label=node,
-            relationship=self._dmr.relationships_dictionary["requiresDependency"][
-                "edge_key"
-            ],
+        Returns:
+            list[str]: valid values display names
+        """
+        return sorted(
+            self.dmge.get_node_range(node_label=self.name, display_names=True)
         )
 
 
@@ -429,6 +414,12 @@ class GraphTraversalState:  # pylint: disable=too-many-instance-attributes
                 self.current_node.name in self._root_dependencies,
             ]
         )
+
+    def update_processed_nodes_with_current_node(self) -> None:
+        """Adds the current node to the list of processed nodes"""
+        if self.current_node is None:
+            raise ValueError("Current node is None")
+        self._processed_nodes.append(self.current_node.name)
 
     def is_current_node_in_reverse_dependencies(self) -> bool:
         """
