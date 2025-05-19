@@ -257,6 +257,26 @@ def syn(syn_token) -> Synapse:
     syn.login(authToken=syn_token, silent=True)
     return syn
 
+@pytest.fixture(name="synapse_module_scope", scope="module")
+def fixture_synapse_module_scope() -> Generator[Synapse, None, None]:
+    """
+    This yields a Synapse instance that's been logged in.
+    This has a module scope.
+    The module scope is needed so that entity cleanup happens in the correct order.
+    This allows the schema entities created below to be created once at the beginning
+      of the module tests, and torn down at the end.
+    """
+    synapse_config_path = CONFIG.synapse_configuration_path
+    config_parser = configparser.ConfigParser()
+    config_parser.read(synapse_config_path)
+    if "SYNAPSE_ACCESS_TOKEN" in os.environ:
+        token = os.environ["SYNAPSE_ACCESS_TOKEN"]
+    else:
+        token = config_parser["authentication"]["authtoken"]
+    syn = Synapse()
+    syn.login(authToken=token, silent=True)
+    return syn
+
 
 @pytest.fixture(scope="session")
 def download_location() -> Generator[str, None, None]:
