@@ -84,6 +84,7 @@ def fixture_biospecimen_json_schema(
         datatype="Biospecimen",
         schema_name="Biospecimen_validation",
         write_schema=False,
+        use_property_display_names=False
     )
     schema_name = upload_schema_to_synapse(schema, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
@@ -102,6 +103,7 @@ def fixture_bulk_rna_json_schema(
         datatype="BulkRNA-seqAssay",
         schema_name="BulkRNA-seqAssay_validation",
         write_schema=False,
+        use_property_display_names=False
     )
     schema_name = upload_schema_to_synapse(schema, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
@@ -120,6 +122,7 @@ def fixture_mock_component_json_schema(
         datatype="MockComponent",
         schema_name="MockComponent_validation",
         write_schema=False,
+        use_property_display_names=False
     )
     schema_name = upload_schema_to_synapse(schema, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
@@ -138,6 +141,7 @@ def fixture_mock_filename_json_schema(
         datatype="MockFilename",
         schema_name="MockFilename_validation",
         write_schema=False,
+        use_property_display_names=False
     )
     schema_name = upload_schema_to_synapse(schema, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
@@ -156,6 +160,7 @@ def fixture_mock_rdb_json_schema(
         datatype="MockRDB",
         schema_name="MockRDB_validation",
         write_schema=False,
+        use_property_display_names=False
     )
     schema_name = upload_schema_to_synapse(schema, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")
@@ -174,6 +179,7 @@ def fixture_patient_json_schema(
         datatype="Patient",
         schema_name="Patient_validation",
         write_schema=False,
+        use_property_display_names=False
     )
     schema_name = upload_schema_to_synapse(schema, synapse, schema_org, schema_version)
     js = synapse.service("json_schema")

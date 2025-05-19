@@ -257,6 +257,7 @@ class JsonSchemaComponentGenerator:
             datatype=self.component,
             schema_name=self.component + "_validation",
             jsonld_path=metadata_model.inputMModelLocation,
+            use_property_display_names=False
         )
         self.component_json_schema = json_schema
 
