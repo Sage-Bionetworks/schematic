@@ -249,7 +249,7 @@ def test_upload_schemas_fixtures(schema_fixture: str, request) -> None:
     ids=[
         "Patient:valid #1",
         "Patient:valid #2",
-        "Patient:CancerType and FamilyHistory required when Diagnosis==Cancer",
+        "Patient:invalid; CancerType and FamilyHistory required when Diagnosis==Cancer",
     ],
 )
 def test_upload_and_validate_schemas_in_synapse(
