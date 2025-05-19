@@ -217,16 +217,6 @@ class Node:  # pylint: disable=too-many-instance-attributes
                     )
                 self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
 
-    def get_node_valid_value_display_names(self) -> list[str]:
-        """Gets the display names for the current nodes valid values
-
-        Returns:
-            list[str]: valid values display names
-        """
-        return sorted(
-            self.dmge.get_node_range(node_label=self.name, display_names=True)
-        )
-
 
 def _get_ranges_from_range_rule(
     rule: str,
@@ -413,12 +403,6 @@ class GraphTraversalState:  # pylint: disable=too-many-instance-attributes
                 self.current_node.name in self._root_dependencies,
             ]
         )
-
-    def update_processed_nodes_with_current_node(self) -> None:
-        """Adds the current node to the list of processed nodes"""
-        if self.current_node is None:
-            raise ValueError("Current node is None")
-        self._processed_nodes.append(self.current_node.name)
 
     def is_current_node_in_reverse_dependencies(self) -> bool:
         """
