@@ -162,7 +162,6 @@ class Node:  # pylint: disable=too-many-instance-attributes
     is_array: bool = field(init=False)
     minimum: Optional[float] = field(init=False)
     maximum: Optional[float] = field(init=False)
-    _dmr: DataModelRelationships = field(init=False)
 
     def __post_init__(self) -> None:
         """
