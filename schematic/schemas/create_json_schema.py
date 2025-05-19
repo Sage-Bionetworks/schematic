@@ -1,7 +1,9 @@
 """
-This module contains The JSONSchemaGenerator class, and its helper functions.
-It also contains the classes Node Processor,PropertyData and JSONSchema which are used internally
- by the JSONSchemaGenerator class.
+This module contains create_json_schema class, and its helper functions, and support classes.
+create_json_schema traverses a graph crated from the data model.
+The GraphTraversalState class keeps track of the status of this traversal
+The Node class gets all the information about a node in the graph needed to write a property
+The JSONSchema class is used to store all the data needed to write the final JSON Schema
 """
 
 import logging
@@ -104,19 +106,23 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
 @dataclass
 class Node:  # pylint: disable=too-many-instance-attributes
     """
-    A Dataclass representing data about a JSON Schema property from its validation rules.
-    Currently Schematic infers certain data about the property from validation rules in
-     the data model.
-    The type is taken from type validation rules (see TYPE_RULES).
-    Whether or not its an array depends on if a list rule is present.
-    The maximum and minimum are taken from the inRange rule if present.
+    A Dataclass representing data about a node in a data model in graph form
+    A DataModelGraphExplorer is used to infer most of the fields from the name of the node
 
     Attributes:
-      validation_rules: A list of validation rules for a property
-      type: The type of the property (inferred from validation_rules)
-      is_array: Whether or not the property is an array (inferred from validation_rules)
-      minimum: The minimum value of the property (if numeric) (inferred from validation_rules)
-      maximum: The maximum value of the property (if numeric) (inferred from validation_rules)
+        name: The name of the node
+        source_node: The name of the node where the graph traversal started
+        dmge: A DataModelGraphExplorer with the data model loaded
+        display_name: The display name of the node
+        valid_values: The valid values of the node if any
+        valid_value_display_names: The display names of the valid values of the node if any
+        is_required: Whether or not this node is required
+        dependencies: This nodes dependencies
+        description: This nodes description, gotten from the comment in the data model
+        type: The type of the property (inferred from validation_rules)
+        is_array: Whether or not the property is an array (inferred from validation_rules)
+        minimum: The minimum value of the property (if numeric) (inferred from validation_rules)
+        maximum: The maximum value of the property (if numeric) (inferred from validation_rules)
     """
 
     name: str
@@ -124,6 +130,7 @@ class Node:  # pylint: disable=too-many-instance-attributes
     dmge: DataModelGraphExplorer
     display_name: str = field(init=False)
     valid_values: list[str] = field(init=False)
+    valid_value_display_names: list[str] = field(init=False)
     is_required: bool = field(init=False)
     dependencies: list[str] = field(init=False)
     description: str = field(init=False)
@@ -133,8 +140,18 @@ class Node:  # pylint: disable=too-many-instance-attributes
     maximum: Optional[float] = field(init=False)
 
     def __post_init__(self) -> None:
+        """
+        Uses the dmge to fill in most of the fields of the dataclass
+
+        Raises:
+            ValueError: If the type is not numeric, and there is an
+              inRange rule in the validation rules
+        """
         self.display_name = self.dmge.get_nodes_display_names([self.name])[0]
         self.valid_values = sorted(self.dmge.get_node_range(node_label=self.name))
+        self.valid_value_display_names = sorted(
+            self.dmge.get_node_range(node_label=self.name, display_names=True)
+        )
         validation_rules = self.dmge.get_component_node_validation_rules(
             manifest_component=self.source_node, node_display_name=self.display_name
         )
@@ -175,20 +192,10 @@ class Node:  # pylint: disable=too-many-instance-attributes
                     self.type = "number"
                 self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
 
-    def get_node_valid_value_display_names(self) -> list[str]:
-        """Gets the display names for the current nodes valid values
-
-        Returns:
-            list[str]: valid values display names
-        """
-        return sorted(
-            self.dmge.get_node_range(node_label=self.name, display_names=True)
-        )
-
 
 def _get_ranges_from_range_rule(
     rule: str,
-) -> tuple[Union[float, None], Union[float, None]]:
+) -> tuple[Optional[float], Optional[float]]:
     """
     Returns the min and max from an inRange rule if they exist
 
@@ -196,7 +203,7 @@ def _get_ranges_from_range_rule(
         rule: The inRange rule
 
     Returns:
-        The min and max form the rule
+        The min and max from the rule
     """
     range_min: Union[float, None] = None
     range_max: Union[float, None] = None
@@ -208,7 +215,7 @@ def _get_ranges_from_range_rule(
     return (range_min, range_max)
 
 
-def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
+def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
     """
     Returns the inRange rule from a list of rules if there is only one
     Returns None if there are no inRange rules
@@ -232,7 +239,7 @@ def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
     return in_range_rules[0]
 
 
-def _get_type_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
+def _get_type_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
     """
     Returns the type rule from a list of rules if there is only one
     Returns None if there are no type rules
@@ -265,14 +272,15 @@ class GraphTraversalState:  # pylint: disable=too-many-instance-attributes
 
     Attributes:
         dmge: A DataModelGraphExplorer for the graph
-        root_dependencies: The nodes the source node depends on
-        nodes_to_process: The nodes that are left to be processed
+        source_node: The name of the node where the graph traversal started
         current_node: The node that is being processed
-        processed_nodes: The nodes that have already been processed
-        reverse_dependencies:
+        _root_dependencies: The nodes the source node depends on
+        _nodes_to_process: The nodes that are left to be processed
+        _processed_nodes: The nodes that have already been processed
+        _reverse_dependencies:
             Some nodes will have reverse dependencies (nodes that depend on them)
             This is a mapping: {"node_name" : [reverse_dependencies]}
-        valid_values_map:
+        _valid_values_map:
             Some nodes will have valid_values (enums)
             This is a mapping {"valid_value" : [nodes_that_have_valid_value]}
     """
@@ -329,6 +337,8 @@ class GraphTraversalState:  # pylint: disable=too-many-instance-attributes
 
     def are_nodes_remaining(self) -> bool:
         """
+        Determines if there are any nodes left to process
+
         Returns:
             Whether or not there are any nodes left to process
         """
@@ -336,6 +346,11 @@ class GraphTraversalState:  # pylint: disable=too-many-instance-attributes
 
     def is_current_node_processed(self) -> bool:
         """
+        Determines if  the current node has been processed yet
+
+        Raises:
+            ValueError: If there is no current node
+
         Returns:
             Whether or not the current node has been processed yet
         """
@@ -345,8 +360,13 @@ class GraphTraversalState:  # pylint: disable=too-many-instance-attributes
 
     def is_current_node_a_property(self) -> bool:
         """
-        Arguments:
-            use_display_names
+        Determines if the current node should be written as a property
+
+        Raises:
+            ValueError: If there is no current node
+
+        Returns:
+            Whether or not the current node should be written as a property
         """
         if self.current_node is None:
             raise ValueError("Current node is None")
@@ -359,27 +379,40 @@ class GraphTraversalState:  # pylint: disable=too-many-instance-attributes
             ]
         )
 
-    def update_processed_nodes_with_current_node(self) -> None:
-        """Adds the current node to the list of processed nodes"""
-        if self.current_node is None:
-            raise ValueError("Current node is None")
-        self._processed_nodes.append(self.current_node.name)
-
     def is_current_node_in_reverse_dependencies(self) -> bool:
         """
+        Determines if the current node is in the reverse dependencies
+
+        Raises:
+            ValueError: If there is no current node
+
         Returns:
-            bool: Wether or no the current node is in the reverse dependencies
+            Whether or not the current node is in the reverse dependencies
         """
         if self.current_node is None:
             raise ValueError("Current node is None")
         return self.current_node.name in self._reverse_dependencies
+
+    def update_processed_nodes_with_current_node(self) -> None:
+        """
+        Adds the current node to the list of processed nodes
+
+        Raises:
+            ValueError: If there is no current node
+        """
+        if self.current_node is None:
+            raise ValueError("Current node is None")
+        self._processed_nodes.append(self.current_node.name)
 
     def get_conditional_properties(
         self, use_node_display_names: bool = True
     ) -> list[tuple[str, str]]:
         """Returns the conditional dependencies for the current node
 
-        Args:
+        Raises:
+            ValueError: If there is no current node
+
+        Arguments:
             use_node_display_names: If True the the attributes in the
               conditional dependencies are return with their display names
 
@@ -453,9 +486,8 @@ def create_json_schema(  # pylint: disable=too-many-arguments
 
     This uses the input graph starting at the node that corresponds to the input datatype.
     Starting at the given node it will(recursively):
-    1) Find all the nodes / terms this node depends on (which are required as
-        "additional metadata" given this node is "required").
-    2) Find all the allowable metadata values / nodes that can be assigned to a particular
+    1. Find all the nodes this node depends on
+    2. Find all the allowable metadata values / nodes that can be assigned to a particular
         node (if such a constraint is specified on the schema).
 
     Using the above data it will:
@@ -731,7 +763,7 @@ def _create_enum_array_property(
         JSON object
     """
     if use_valid_value_display_names:
-        valid_values = node.get_node_valid_value_display_names()
+        valid_values = node.valid_value_display_names
     else:
         valid_values = node.valid_values
     types = [
@@ -813,7 +845,7 @@ def _create_enum_property(
         JSON object
     """
     if use_valid_value_display_names:
-        valid_values = node.get_node_valid_value_display_names()
+        valid_values = node.valid_value_display_names
     else:
         valid_values = node.valid_values
     schema: dict[str, Any] = {}

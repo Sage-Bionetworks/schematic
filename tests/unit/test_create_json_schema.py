@@ -69,41 +69,6 @@ def fixture_test_nodes(
     return nodes
 
 
-@pytest.mark.parametrize(
-    "node_name, expected_type, expected_is_array, expected_min, expected_max",
-    [
-        # If there are no type validation rules the property_type is None
-        ("CheckNone", None, False, None, None),
-        # If there is one type validation rule the property_type is set to the
-        #  JSON Schema equivalent of the validation rule
-        ("CheckString", "string", False, None, None),
-        # If there are any list type validation rules the property_type is set to "array"
-        ("CheckList", None, True, None, None),
-        # If there are any list type validation rules and one type validation rule
-        #  the property_type is set to "array", and the item_type is set to the
-        #  JSON Schema equivalent of the validation rule
-        ("CheckListString", "string", True, None, None),
-        # If there are any inRange rules the min and max will be set
-        ("CheckRange", "number", False, 50, 100),
-    ],
-    ids=["CheckNone", "CheckString", "CheckList", "CheckListString", "CheckRange"],
-)
-def test_node(
-    node_name: str,
-    expected_type: Optional[str],
-    expected_is_array: bool,
-    expected_min: Optional[float],
-    expected_max: Optional[float],
-    dmge: DataModelGraphExplorer,
-) -> None:
-    """Tests for Node class"""
-    result = Node(node_name, "MockComponent", dmge)
-    assert result.type == expected_type
-    assert result.is_array == expected_is_array
-    assert result.minimum == expected_min
-    assert result.maximum == expected_max
-
-
 class TestJSONSchema:
     """Tests for JSONSchema"""
 
@@ -174,6 +139,41 @@ class TestJSONSchema:
         schema.update_property({"name3": "property3"})
         # THEN the new key and old key should be retrievable
         assert schema.properties == {"name1": "property2", "name3": "property3"}
+
+
+@pytest.mark.parametrize(
+    "node_name, expected_type, expected_is_array, expected_min, expected_max",
+    [
+        # If there are no type validation rules the type is None
+        ("CheckNone", None, False, None, None),
+        # If there is one type validation rule the type is set to the
+        #  JSON Schema equivalent of the validation rule
+        ("CheckString", "string", False, None, None),
+        # If there are any list type validation rules then is_array is set to True
+        ("CheckList", None, True, None, None),
+        # If there are any list type validation rules and one type validation rule
+        #  then is_array is set to True, and the type is set to the
+        #  JSON Schema equivalent of the validation rule
+        ("CheckListString", "string", True, None, None),
+        # If there is an inRange rule the min and max will be set
+        ("CheckRange", "number", False, 50, 100),
+    ],
+    ids=["CheckNone", "CheckString", "CheckList", "CheckListString", "CheckRange"],
+)
+def test_node(
+    node_name: str,
+    expected_type: Optional[str],
+    expected_is_array: bool,
+    expected_min: Optional[float],
+    expected_max: Optional[float],
+    dmge: DataModelGraphExplorer,
+) -> None:
+    """Tests for Node class"""
+    node = Node(node_name, "MockComponent", dmge)
+    assert node.type == expected_type
+    assert node.is_array == expected_is_array
+    assert node.minimum == expected_min
+    assert node.maximum == expected_max
 
 
 @pytest.mark.parametrize(
@@ -268,8 +268,10 @@ class TestGraphTraversalState:
         assert gts.current_node.name == "Component"
         assert gts._root_dependencies[0] == "Component"
         assert gts.current_node.display_name == "Component"
-        # THEN root_dependencies should bbe 5 items long, and nodes to process
-        #  should be the same minus "Component"
+        # THEN
+        #  - root_dependencies should be 5 items long
+        #  - nodes to process should be the same minus "Component"
+        #  - _processed_nodes, _reverse_dependencies, and _valid_values_map should be empty
         assert gts._root_dependencies == [
             "Component",
             "Diagnosis",
@@ -278,26 +280,29 @@ class TestGraphTraversalState:
             "YearofBirth",
         ]
         assert gts._nodes_to_process == ["Diagnosis", "PatientID", "Sex", "YearofBirth"]
+        assert not gts._processed_nodes
+        assert not gts._reverse_dependencies
+        assert not gts._valid_values_map
 
     def test_move_to_next_node(self, dmge: DataModelGraphExplorer) -> None:
         """Test GraphTraversalState.move_to_next_node"""
         # GIVEN a GraphTraversalState instance with 2 nodes
         gts = GraphTraversalState(dmge, "Patient")
         gts._nodes_to_process = ["YearofBirth"]
-        # THEN the current_node should be "Component" and 1 node to process
+        # THEN the current_node should be "Component" and node to process has 1 node
         assert gts.current_node.name == "Component"
         assert gts.current_node.display_name == "Component"
-        assert len(gts._nodes_to_process) == 1
+        assert gts._nodes_to_process == ["YearofBirth"]
         # WHEN using move_to_next_node
         gts.move_to_next_node()
         # THEN the current_node should now be YearofBirth and no nodes to process
         assert gts.current_node.name == "YearofBirth"
         assert gts.current_node.display_name == "Year of Birth"
-        assert len(gts._nodes_to_process) == 0
+        assert not gts._nodes_to_process
 
     def test_are_nodes_remaining(self, dmge: DataModelGraphExplorer) -> None:
         """Test GraphTraversalState.are_nodes_remaining"""
-        # GIVEN a GraphTraversalState instance with 1 nodes
+        # GIVEN a GraphTraversalState instance with 1 node
         gts = GraphTraversalState(dmge, "Patient")
         gts._nodes_to_process = []
         # THEN there should be nodes_remaining
@@ -307,8 +312,76 @@ class TestGraphTraversalState:
         # THEN there should not be nodes_remaining
         assert not gts.are_nodes_remaining()
 
-    def test_update_range_domain_map(self, dmge: DataModelGraphExplorer) -> None:
-        """Test GraphTraversalState._update_range_domain_map"""
+    def test_is_current_node_processed(self, dmge: DataModelGraphExplorer) -> None:
+        """Test GraphTraversalState.is_current_node_processed"""
+        # GIVEN a GraphTraversalState instance
+        gts = GraphTraversalState(dmge, "Patient")
+        # THEN the current node should not have been processed yet.
+        assert not gts.is_current_node_processed()
+        # WHEN adding a the current node to the processed list
+        gts.update_processed_nodes_with_current_node()
+        # THEN the current node should be listed as processed.
+        assert gts.is_current_node_processed()
+
+    def test_is_current_node_a_property(self, dmge: DataModelGraphExplorer) -> None:
+        """Test GraphTraversalState.is_current_node_a_property"""
+        # GIVEN a GraphTraversalState instance where the first node is Component and second is Male
+        gts = GraphTraversalState(dmge, "Patient")
+        gts._nodes_to_process = ["Male"]
+        # THEN the current node should be a property
+        assert gts.is_current_node_a_property()
+        # WHEN using move_to_next_node
+        gts.move_to_next_node()
+        # THEN the current node should not be a property, as the Male node is a valid value
+        assert not gts.is_current_node_a_property()
+
+    def test_is_current_node_in_reverse_dependencies(
+        self, dmge: DataModelGraphExplorer
+    ) -> None:
+        """Test GraphTraversalState.is_current_node_in_reverse_dependencies"""
+        # GIVEN a GraphTraversalState instance where
+        # - the first node is Component
+        # - the second node is FamilyHistory
+        # - FamilyHistory has a reverse dependency of Cancer
+        gts = GraphTraversalState(dmge, "Patient")
+        gts._nodes_to_process = ["FamilyHistory"]
+        gts._reverse_dependencies = {"FamilyHistory": ["Cancer"]}
+        # THEN the current should not have reverse dependencies
+        assert not gts.is_current_node_in_reverse_dependencies()
+        # WHEN using move_to_next_node
+        gts.move_to_next_node()
+        # THEN the current node should have reverse dependencies
+        assert gts.is_current_node_in_reverse_dependencies()
+
+    def test_update_processed_nodes_with_current_node(
+        self, dmge: DataModelGraphExplorer
+    ) -> None:
+        """Test GraphTraversalState.update_processed_nodes_with_current_node"""
+        # GIVEN a GraphTraversalState instance
+        gts = GraphTraversalState(dmge, "Patient")
+        # WHEN the node has been processed
+        gts.update_processed_nodes_with_current_node()
+        # THEN the node should be listed as processed
+        assert gts._processed_nodes == ["Component"]
+
+    def test_get_conditional_properties(self, dmge: DataModelGraphExplorer) -> None:
+        """Test GraphTraversalState.get_conditional_properties"""
+        # GIVEN a GraphTraversalState instance where
+        # - the first node is Component
+        # - the second node is FamilyHistory
+        # - FamilyHistory has a reverse dependency of Cancer
+        # - Cancer is a valid value of Diagnosis
+        gts = GraphTraversalState(dmge, "Patient")
+        gts._nodes_to_process = ["FamilyHistory"]
+        gts._reverse_dependencies = {"FamilyHistory": ["Cancer"]}
+        gts._valid_values_map = {"Cancer": ["Diagnosis"]}
+        # WHEN using move_to_next_node
+        gts.move_to_next_node()
+        # THEN the current node should have conditional properties
+        assert gts.get_conditional_properties() == [("Diagnosis", "Cancer")]
+
+    def test_update_valid_values_map(self, dmge: DataModelGraphExplorer) -> None:
+        """Test GraphTraversalState._update_valid_values_map"""
         # GIVEN a GraphTraversalState instance
         gts = GraphTraversalState(dmge, "Patient")
         # THEN the valid_values_map should be empty to start with
@@ -348,28 +421,6 @@ class TestGraphTraversalState:
         # THEN that node should be in nodes_to_process as the last item
         assert len(gts._nodes_to_process) == 5
         assert gts._nodes_to_process[4] == "NewNode"
-
-    def test_update_processed_nodes_with_current_node(
-        self, dmge: DataModelGraphExplorer
-    ) -> None:
-        """Test GraphTraversalState.update_processed_nodes_with_current_node"""
-        # GIVEN a GraphTraversalState instance
-        gts = GraphTraversalState(dmge, "Patient")
-        # WHEN the node has been processed
-        gts.update_processed_nodes_with_current_node()
-        # THEN the node should be listed as processed
-        assert gts._processed_nodes == ["Component"]
-
-    def test_is_current_node_processed(self, dmge: DataModelGraphExplorer) -> None:
-        """Test GraphTraversalState.is_current_node_processed"""
-        # GIVEN a GraphTraversalState instance
-        gts = GraphTraversalState(dmge, "Patient")
-        # THEN the current node should not have been processed yet.
-        assert not gts.is_current_node_processed()
-        # WHEN adding a the current node to the processed list
-        gts.update_processed_nodes_with_current_node()
-        # THEN the current node should be listed as processed.
-        assert gts.is_current_node_processed()
 
 
 @pytest.mark.parametrize(
