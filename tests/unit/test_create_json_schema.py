@@ -266,40 +266,40 @@ class TestGraphTraversalState:
         # THEN the current_node, current_node_display_name, and first item in
         #  root dependencies should be "Component"
         assert gts.current_node.name == "Component"
-        assert gts.root_dependencies[0] == "Component"
+        assert gts._root_dependencies[0] == "Component"
         assert gts.current_node.display_name == "Component"
         # THEN root_dependencies should bbe 5 items long, and nodes to process
         #  should be the same minus "Component"
-        assert gts.root_dependencies == [
+        assert gts._root_dependencies == [
             "Component",
             "Diagnosis",
             "PatientID",
             "Sex",
             "YearofBirth",
         ]
-        assert gts.nodes_to_process == ["Diagnosis", "PatientID", "Sex", "YearofBirth"]
+        assert gts._nodes_to_process == ["Diagnosis", "PatientID", "Sex", "YearofBirth"]
 
     def test_move_to_next_node(self, dmge: DataModelGraphExplorer) -> None:
         """Test GraphTraversalState.move_to_next_node"""
         # GIVEN a GraphTraversalState instance with 2 nodes
         gts = GraphTraversalState(dmge, "Patient")
-        gts.nodes_to_process = ["YearofBirth"]
+        gts._nodes_to_process = ["YearofBirth"]
         # THEN the current_node should be "Component" and 1 node to process
         assert gts.current_node.name == "Component"
         assert gts.current_node.display_name == "Component"
-        assert len(gts.nodes_to_process) == 1
+        assert len(gts._nodes_to_process) == 1
         # WHEN using move_to_next_node
         gts.move_to_next_node()
         # THEN the current_node should now be YearofBirth and no nodes to process
         assert gts.current_node.name == "YearofBirth"
         assert gts.current_node.display_name == "Year of Birth"
-        assert len(gts.nodes_to_process) == 0
+        assert len(gts._nodes_to_process) == 0
 
     def test_are_nodes_remaining(self, dmge: DataModelGraphExplorer) -> None:
         """Test GraphTraversalState.are_nodes_remaining"""
         # GIVEN a GraphTraversalState instance with 1 nodes
         gts = GraphTraversalState(dmge, "Patient")
-        gts.nodes_to_process = []
+        gts._nodes_to_process = []
         # THEN there should be nodes_remaining
         assert gts.are_nodes_remaining()
         # WHEN using move_to_next_node
@@ -312,12 +312,12 @@ class TestGraphTraversalState:
         # GIVEN a GraphTraversalState instance
         gts = GraphTraversalState(dmge, "Patient")
         # THEN the valid_values_map should be empty to start with
-        assert not gts.valid_values_map
+        assert not gts._valid_values_map
         # WHEN the map is updated with one node and two values
         gts._update_valid_values_map("Diagnosis", ["Healthy", "Cancer"])
         # THEN valid values map should have one entry for each valid value,
         #  with the node as the value
-        assert gts.valid_values_map == {
+        assert gts._valid_values_map == {
             "Healthy": ["Diagnosis"],
             "Cancer": ["Diagnosis"],
         }
@@ -327,12 +327,12 @@ class TestGraphTraversalState:
         # GIVEN a GraphTraversalState instance
         gts = GraphTraversalState(dmge, "Patient")
         # THEN the reverse_dependencies should be empty to start with
-        assert not gts.reverse_dependencies
+        assert not gts._reverse_dependencies
         # WHEN the map is updated with one node and two reverse_dependencies
         gts._update_reverse_dependencies("Cancer", ["CancerType", "FamilyHistory"])
         # THEN reverse_dependencies should have one entry for each valid value,
         #  with the node as the value
-        assert gts.reverse_dependencies == {
+        assert gts._reverse_dependencies == {
             "CancerType": ["Cancer"],
             "FamilyHistory": ["Cancer"],
         }
@@ -342,12 +342,12 @@ class TestGraphTraversalState:
         # GIVEN a GraphTraversalState instance with 5 nodes
         gts = GraphTraversalState(dmge, "Patient")
         # THEN the GraphTraversalState should have 4 nodes in nodes_to_process
-        assert len(gts.nodes_to_process) == 4
+        assert len(gts._nodes_to_process) == 4
         # WHEN adding a node to nodes_to_process
         gts._update_nodes_to_process(["NewNode"])
         # THEN that node should be in nodes_to_process as the last item
-        assert len(gts.nodes_to_process) == 5
-        assert gts.nodes_to_process[4] == "NewNode"
+        assert len(gts._nodes_to_process) == 5
+        assert gts._nodes_to_process[4] == "NewNode"
 
     def test_update_processed_nodes_with_current_node(
         self, dmge: DataModelGraphExplorer
@@ -358,7 +358,7 @@ class TestGraphTraversalState:
         # WHEN the node has been processed
         gts.update_processed_nodes_with_current_node()
         # THEN the node should be listed as processed
-        assert gts.processed_nodes == ["Component"]
+        assert gts._processed_nodes == ["Component"]
 
     def test_is_current_node_processed(self, dmge: DataModelGraphExplorer) -> None:
         """Test GraphTraversalState.is_current_node_processed"""
@@ -395,6 +395,7 @@ def test_create_json_schema(
         datatype=datatype,
         schema_name=f"{datatype}_validation",
         schema_path=test_path,
+        use_property_display_names=False,
     )
     assert json_files_equal(expected_path, test_path)
 
@@ -420,7 +421,6 @@ def test_create_json_schema_with_display_names(
         datatype=datatype,
         schema_name=f"{datatype}_validation",
         schema_path=test_path,
-        use_node_display_names=True,
     )
     assert json_files_equal(expected_path, test_path)
 
@@ -543,12 +543,14 @@ def test_set_conditional_dependencies_nothing_added(
       were the schema doesn't change
     """
     json_schema = {"allOf": []}
-    np = GraphTraversalState(dmge, "Patient", ["CancerType"])
-    np.reverse_dependencies = reverse_dependencies
-    np.valid_values_map = valid_values_map
-    np.current_node.name = "CancerType"
-    np.current_node.display_name = "Cancer Type"
-    _set_conditional_dependencies(json_schema=json_schema, np=np)
+    gts = GraphTraversalState(dmge, "Patient")
+    gts._reverse_dependencies = reverse_dependencies
+    gts._valid_values_map = valid_values_map
+    gts.current_node.name = "CancerType"
+    gts.current_node.display_name = "Cancer Type"
+    _set_conditional_dependencies(
+        json_schema=json_schema, graph_state=gts, use_property_display_names=False
+    )
     assert json_schema == {"allOf": []}
 
 
@@ -625,12 +627,14 @@ def test_set_conditional_dependencies(
 ) -> None:
     """Tests for _set_conditional_dependencies"""
     json_schema = JSONSchema()
-    np = GraphTraversalState(dmge, "Patient")
-    np.reverse_dependencies = reverse_dependencies
-    np.valid_values_map = valid_values_map
-    np.current_node.name = "CancerType"
-    np.current_node.display_name = "Cancer Type"
-    _set_conditional_dependencies(json_schema=json_schema, np=np)
+    gts = GraphTraversalState(dmge, "Patient")
+    gts._reverse_dependencies = reverse_dependencies
+    gts._valid_values_map = valid_values_map
+    gts.current_node.name = "CancerType"
+    gts.current_node.display_name = "Cancer Type"
+    _set_conditional_dependencies(
+        json_schema=json_schema, graph_state=gts, use_property_display_names=False
+    )
     assert json_schema == expected_schema
 
 
@@ -719,7 +723,7 @@ def test_set_property(
 ) -> None:
     """Tests for set_property"""
     schema = JSONSchema()
-    _set_property(schema, test_nodes[node_name])
+    _set_property(schema, test_nodes[node_name], use_property_display_names=False)
     assert schema == expected_schema
 
 

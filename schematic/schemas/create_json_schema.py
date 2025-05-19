@@ -103,7 +103,7 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
 
 
 @dataclass
-class Node:
+class Node:  # pylint: disable=too-many-instance-attributes
     """
     A Dataclass representing data about a JSON Schema property from its validation rules.
     Currently Schematic infers certain data about the property from validation rules in
@@ -121,8 +121,8 @@ class Node:
     """
 
     name: str
-    _source_node: str
-    _dmge: DataModelGraphExplorer
+    source_node: str
+    dmge: DataModelGraphExplorer
     display_name: str = field(init=False)
     valid_values: list[str] = field(init=False)
     is_required: bool = field(init=False)
@@ -136,18 +136,22 @@ class Node:
 
     def __post_init__(self) -> None:
         self._dmr = DataModelRelationships()
-        self.display_name = self._get_node_display_name(self.name)
-        self.valid_values = self._get_node_valid_values(self.name)
-        validation_rules = self._dmge.get_component_node_validation_rules(
-            manifest_component=self._source_node, node_display_name=self.display_name
+        self.display_name = self.dmge.get_nodes_display_names([self.name])[0]
+        self.valid_values = sorted(self.dmge.get_node_range(node_label=self.name))
+        validation_rules = self.dmge.get_component_node_validation_rules(
+            manifest_component=self.source_node, node_display_name=self.display_name
         )
-        self.is_required = self._dmge.get_component_node_required(
-            manifest_component=self._source_node,
+        self.is_required = self.dmge.get_component_node_required(
+            manifest_component=self.source_node,
             node_validation_rules=validation_rules,
             node_display_name=self.display_name,
         )
-        self.dependencies = self._get_node_dependencies(self.name)
-        self.description = self._dmge.get_node_comment(
+        self.dependencies = sorted(
+            self.dmge.get_node_dependencies(
+                self.name, display_names=False, schema_ordered=False
+            )
+        )
+        self.description = self.dmge.get_node_comment(
             node_display_name=self.display_name
         )
 
@@ -166,33 +170,22 @@ class Node:
 
             range_rule = _get_in_range_rule_from_rule_list(validation_rules)
             if range_rule:
-                if self.type not in ["number", "integer"]:
+                if self.type not in ["number", "integer", None]:
+                    raise ValueError(
+                        "Validation rules bust be either 'int' or 'num' when using the inRange rule"
+                    )
+                if self.type is None:
                     self.type = "number"
                 self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
 
     def get_node_valid_value_display_names(self) -> list[str]:
-        return sorted(self._dmge.get_nodes_display_names(self.valid_values))
+        """Gets the display names for the current nodes valid values
 
-    def _get_node_display_name(self, node: str) -> str:
-        node_list = self._dmge.get_nodes_display_names([node])
-        if not node_list:
-            raise ValueError("node missing form graph: ", node)
-        return node_list[0]
-
-    def _get_node_valid_values(self, node: str) -> list[str]:
-        return self._dmge.get_adjacent_nodes_by_relationship(
-            node_label=node,
-            relationship=self._dmr.relationships_dictionary["rangeIncludes"][
-                "edge_key"
-            ],
-        )
-
-    def _get_node_dependencies(self, node: str):
-        return self._dmge.get_adjacent_nodes_by_relationship(
-            node_label=node,
-            relationship=self._dmr.relationships_dictionary["requiresDependency"][
-                "edge_key"
-            ],
+        Returns:
+            list[str]: valid values display names
+        """
+        return sorted(
+            self.dmge.get_node_range(node_label=self.name, display_names=True)
         )
 
 
@@ -268,7 +261,7 @@ def _get_type_rule_from_rule_list(rule_list: list[str]) -> Union[str, None]:
 
 
 @dataclass
-class GraphTraversalState:
+class GraphTraversalState:  # pylint: disable=too-many-instance-attributes
     """
     This is a helper class for create_json_schema. It keeps track of the state as the function
     traverses a graph made from a data model.
@@ -289,39 +282,44 @@ class GraphTraversalState:
 
     dmge: DataModelGraphExplorer
     source_node: str
-    use_node_display_names: bool = False
-    root_dependencies: list[str] = field(init=False)
-    nodes_to_process: list[str] = field(init=False)
     current_node: Optional[Node] = field(init=False)
-    processed_nodes: list[str] = field(init=False)
-    reverse_dependencies: dict[str, list[str]] = field(init=False)
-    valid_values_map: dict[str, list[str]] = field(init=False)
-    dmr: DataModelRelationships = field(init=False)
+    _root_dependencies: list[str] = field(init=False)
+    _nodes_to_process: list[str] = field(init=False)
+    _processed_nodes: list[str] = field(init=False)
+    _reverse_dependencies: dict[str, list[str]] = field(init=False)
+    _valid_values_map: dict[str, list[str]] = field(init=False)
+    _dmr: DataModelRelationships = field(init=False)
 
     def __post_init__(self) -> None:
         """
         The first nodes to process are the root dependencies.
         This sets the current node as the first node in root dependencies.
         """
-        self.processed_nodes = []
-        self.reverse_dependencies = {}
-        self.valid_values_map = {}
-        self.dmr = DataModelRelationships()
-        root_dependencies = sorted(self._get_node_dependencies(self.source_node))
+        self.current_node = None
+        self._processed_nodes = []
+        self._reverse_dependencies = {}
+        self._valid_values_map = {}
+        self._dmr = DataModelRelationships()
+        root_dependencies = sorted(
+            self.dmge.get_node_dependencies(
+                self.source_node, display_names=False, schema_ordered=False
+            )
+        )
         if not root_dependencies:
             raise ValueError(
                 f"'{self.source_node}' is not a valid datatype in the data model."
             )
-        self.root_dependencies = root_dependencies
-        self.nodes_to_process = self.root_dependencies.copy()
-        self.current_node = None
+        self._root_dependencies = root_dependencies
+        self._nodes_to_process = self._root_dependencies.copy()
         self.move_to_next_node()
 
     def move_to_next_node(self) -> None:
         """Removes the first node in nodes to process and sets it as current node"""
-        if self.nodes_to_process:
-            node_name = self.nodes_to_process.pop(0)
-            self.current_node = self._create_node(node_name)
+        if self._nodes_to_process:
+            node_name = self._nodes_to_process.pop(0)
+            self.current_node = Node(
+                name=node_name, dmge=self.dmge, source_node=self.source_node
+            )
             self._update_valid_values_map(
                 self.current_node.name, self.current_node.valid_values
             )
@@ -348,27 +346,29 @@ class GraphTraversalState:
         """
         if self.current_node is None:
             raise ValueError("Current node is None")
-        return self.current_node.name in self.processed_nodes
+        return self.current_node.name in self._processed_nodes
 
     def is_current_node_a_property(self) -> bool:
         """
-        Returns:
-            Whether or not the current node is should be written as a property.
+        Arguments:
+            use_display_names
         """
         if self.current_node is None:
             raise ValueError("Current node is None")
-        if self.use_node_display_names:
-            node_name = self.current_node.display_name
-        else:
-            node_name = self.current_node.name
 
         return any(
             [
-                node_name in self.reverse_dependencies,
+                self.current_node.name in self._reverse_dependencies,
                 self.current_node.is_required,
-                self.current_node.name in self.root_dependencies,
+                self.current_node.name in self._root_dependencies,
             ]
         )
+
+    def update_processed_nodes_with_current_node(self) -> None:
+        """Adds the current node to the list of processed nodes"""
+        if self.current_node is None:
+            raise ValueError("Current node is None")
+        self._processed_nodes.append(self.current_node.name)
 
     def is_current_node_in_reverse_dependencies(self) -> bool:
         """
@@ -377,16 +377,10 @@ class GraphTraversalState:
         """
         if self.current_node is None:
             raise ValueError("Current node is None")
-        return self.current_node.name in self.reverse_dependencies
-
-    def update_processed_nodes_with_current_node(self) -> None:
-        """Adds the current node to the list of processed nodes"""
-        if self.current_node is None:
-            raise ValueError("Current node is None")
-        self.processed_nodes.append(self.current_node.name)
+        return self.current_node.name in self._reverse_dependencies
 
     def get_conditional_properties(
-        self, use_node_display_names: bool = False
+        self, use_node_display_names: bool = True
     ) -> list[tuple[str, str]]:
         """Returns the conditional dependencies for the current node
 
@@ -400,13 +394,15 @@ class GraphTraversalState:
         if self.current_node is None:
             raise ValueError("Current node is None")
         conditional_properties: list[tuple[str, str]] = []
-        for value in self.reverse_dependencies[self.current_node.name]:
-            if value in self.valid_values_map:
-                properties = sorted(self.valid_values_map[value])
+        for value in self._reverse_dependencies[self.current_node.name]:
+            if value in self._valid_values_map:
+                properties = sorted(self._valid_values_map[value])
                 for watched_property in properties:
                     if use_node_display_names:
-                        watched_property = self._get_node_display_name(watched_property)
-                        value = self._get_node_display_name(value)
+                        watched_property = self.dmge.get_nodes_display_names(
+                            [watched_property]
+                        )[0]
+                        value = self.dmge.get_nodes_display_names([value])[0]
                     conditional_properties.append((watched_property, value))
         return conditional_properties
 
@@ -420,9 +416,9 @@ class GraphTraversalState:
             valid_values_display_names: The display names of the the nodes valid values
         """
         for node in valid_values_display_names:
-            if node not in self.valid_values_map:
-                self.valid_values_map[node] = []
-            self.valid_values_map[node].append(node_display_name)
+            if node not in self._valid_values_map:
+                self._valid_values_map[node] = []
+            self._valid_values_map[node].append(node_display_name)
 
     def _update_reverse_dependencies(
         self, node_display_name: str, node_dependencies_display_names: list[str]
@@ -434,9 +430,9 @@ class GraphTraversalState:
             node_dependencies_display_names: the display names of the reverse dependencies
         """
         for dep in node_dependencies_display_names:
-            if dep not in self.reverse_dependencies:
-                self.reverse_dependencies[dep] = []
-            self.reverse_dependencies[dep].append(node_display_name)
+            if dep not in self._reverse_dependencies:
+                self._reverse_dependencies[dep] = []
+            self._reverse_dependencies[dep].append(node_display_name)
 
     def _update_nodes_to_process(self, nodes: list[str]) -> None:
         """Updates the nodes to process with the input nodes
@@ -444,34 +440,18 @@ class GraphTraversalState:
         Arguments:
             nodes: Nodes to add
         """
-        self.nodes_to_process += nodes
-
-    def _create_node(self, node_name: str) -> Node:
-        return Node(name=node_name, _dmge=self.dmge, _source_node=self.source_node)
-
-    def _get_node_dependencies(self, node: str):
-        return self.dmge.get_adjacent_nodes_by_relationship(
-            node_label=node,
-            relationship=self.dmr.relationships_dictionary["requiresDependency"][
-                "edge_key"
-            ],
-        )
-
-    def _get_node_display_name(self, node: str) -> str:
-        node_list = self.dmge.get_nodes_display_names([node])
-        if not node_list:
-            raise ValueError("node missing form graph: ", node)
-        return node_list[0]
+        self._nodes_to_process += nodes
 
 
-def create_json_schema(
+def create_json_schema(  # pylint: disable=too-many-arguments
     dmge: DataModelGraphExplorer,
     datatype: str,
     schema_name: str,
     write_schema: bool = True,
     schema_path: Union[str, None] = None,
     jsonld_path: Optional[str] = None,
-    use_node_display_names: bool = False,
+    use_property_display_names: bool = True,
+    use_valid_value_display_names: bool = True,
 ) -> dict[str, Any]:
     """
     Creates a JSONSchema dict for the datatype in the data model.
@@ -499,14 +479,15 @@ def create_json_schema(
         write_schema: whether or not to write the schema as a json file
         schema_path: Where to save the JSON Schema file
         jsonld_path: Used to name the file if the path isn't supplied
-        use_node_display_names: If the JSONSchema will be written using node display names
+        use_property_display_names: If True, the properties in the JSONSchema
+          will be written using node display names
+        use_valid_value_display_names: If True, the valid_values in the JSONSchema
+          will be written using node display names
 
     Returns:
         JSON Schema as a dictionary.
     """
-    graph_state = GraphTraversalState(
-        dmge, datatype, use_node_display_names=use_node_display_names
-    )
+    graph_state = GraphTraversalState(dmge, datatype)
 
     json_schema = JSONSchema(
         schema_id="http://example.com/" + schema_name,
@@ -519,7 +500,8 @@ def create_json_schema(
             _process_node(
                 json_schema=json_schema,
                 graph_state=graph_state,
-                use_node_display_names=use_node_display_names,
+                use_property_display_names=use_property_display_names,
+                use_valid_value_display_names=use_valid_value_display_names,
             )
         graph_state.move_to_next_node()
 
@@ -536,7 +518,8 @@ def create_json_schema(
 def _process_node(
     json_schema: JSONSchema,
     graph_state: GraphTraversalState,
-    use_node_display_names: bool = False,
+    use_property_display_names: bool = True,
+    use_valid_value_display_names: bool = True,
 ) -> None:
     """
     Processes a node in the data model graph.
@@ -545,8 +528,11 @@ def _process_node(
 
     Argument:
         json_schema: The JSON Scheme where the node might be set as a property
-        source_node: The node that the JSON Schema is being created for
-        graph_state: A node processor for the source node
+        graph_state: The instance tracking the current state of the graph
+        use_property_display_names: If True, the properties in the JSONSchema
+          will be written using node display names
+        use_valid_value_display_names: If True, the valid_values in the JSONSchema
+          will be written using node display names
     """
     if graph_state.current_node is None:
         raise ValueError("Node Processor contains no node.")
@@ -555,15 +541,18 @@ def _process_node(
         # Determine if current node has conditional dependencies that need to be set
         if graph_state.is_current_node_in_reverse_dependencies():
             _set_conditional_dependencies(
-                json_schema, graph_state, use_node_display_names
+                json_schema=json_schema,
+                graph_state=graph_state,
+                use_property_display_names=use_property_display_names,
             )
             # This is to ensure that all properties that are conditional dependencies are not
             #   required, but only become required when the conditional dependency is met.
             graph_state.current_node.is_required = False
         _set_property(
-            json_schema,
-            graph_state.current_node,
-            use_node_display_names,
+            json_schema=json_schema,
+            node=graph_state.current_node,
+            use_property_display_names=use_property_display_names,
+            use_valid_value_display_names=use_valid_value_display_names,
         )
         graph_state.update_processed_nodes_with_current_node()
 
@@ -609,7 +598,9 @@ def _write_data_model(
 
 
 def _set_conditional_dependencies(
-    json_schema: JSONSchema, graph_state: GraphTraversalState, use_node_display_names: bool = False
+    json_schema: JSONSchema,
+    graph_state: GraphTraversalState,
+    use_property_display_names: bool = True,
 ) -> None:
     """
     This sets conditional requirements in the "allOf" keyword.
@@ -647,20 +638,24 @@ def _set_conditional_dependencies(
          }
 
     Arguments:
-        json_schema: The JSON Schema to add conditional dependencies to
-        np: A GraphTraversalState that is on the current node
+        json_schema: The JSON Scheme where the node might be set as a property
+        graph_state: The instance tracking the current state of the graph
+        use_property_display_names: If True, the properties in the JSONSchema
+          will be written using node display names
     """
     if graph_state.current_node is None:
         raise ValueError("Node Processor contains no node.")
 
-    if graph_state.use_node_display_names:
+    if use_property_display_names:
         node_name = graph_state.current_node.display_name
     else:
         node_name = graph_state.current_node.name
 
-    conditional_properties = graph_state.get_conditional_properties(use_node_display_names)
-    for cp in conditional_properties:
-        attribute, value = cp
+    conditional_properties = graph_state.get_conditional_properties(
+        use_property_display_names
+    )
+    for prop in conditional_properties:
+        attribute, value = prop
         conditional_schema = {
             "if": {"properties": {attribute: {"enum": [value]}}},
             "then": {
@@ -672,29 +667,32 @@ def _set_conditional_dependencies(
 
 
 def _set_property(
-    json_schema: JSONSchema, node: Node, use_node_display_names: bool = False
+    json_schema: JSONSchema,
+    node: Node,
+    use_property_display_names: bool = True,
+    use_valid_value_display_names: bool = True,
 ) -> None:
     """
     Sets a property in the JSON schema. that is required by the schema
 
     Arguments:
-        json_schema: The JSON Schema to modify
-        name: The name of the property in the JSON Schema to set
-        enum_list: A list of enums(valid values) for this property
-        validation_rules: The validation rules for the property
-        is_required: Whether or not the property is required
-        description: a description of the property
+        json_schema: The JSON Scheme where the node might be set as a property
+        graph_state: The node the write the property for
+        use_property_display_names: If True, the properties in the JSONSchema
+          will be written using node display names
+        use_valid_value_display_names: If True, the valid_values in the JSONSchema
+          will be written using node display names
     """
-    if use_node_display_names:
+    if use_property_display_names:
         node_name = node.display_name
     else:
         node_name = node.name
 
     if node.valid_values:
         if node.is_array:
-            schema = _create_enum_array_property(node)
+            schema = _create_enum_array_property(node, use_valid_value_display_names)
         else:
-            schema = _create_enum_property(node)
+            schema = _create_enum_property(node, use_valid_value_display_names)
 
     else:
         if node.is_array:
@@ -711,7 +709,9 @@ def _set_property(
         json_schema.add_required_property(node_name)
 
 
-def _create_enum_array_property(node: Node) -> dict[str, Any]:
+def _create_enum_array_property(
+    node: Node, use_valid_value_display_names: bool = True
+) -> dict[str, Any]:
     """
     Creates a JSON Schema property array with enum items
 
@@ -729,15 +729,21 @@ def _create_enum_array_property(node: Node) -> dict[str, Any]:
 
     Arguments:
         node: The node to make the property of
+        use_valid_value_display_names: If True, the valid_values in the JSONSchema
+          will be written using node display names
 
     Returns:
         JSON object
     """
+    if use_valid_value_display_names:
+        valid_values = node.get_node_valid_value_display_names()
+    else:
+        valid_values = node.valid_values
     types = [
         {
             "type": "array",
             "title": "array",
-            "items": {"enum": node.get_node_valid_value_display_names()},
+            "items": {"enum": valid_values},
         }
     ]
 
@@ -791,7 +797,9 @@ def _create_array_property(node: Node) -> dict[str, Any]:
     return schema
 
 
-def _create_enum_property(node: Node) -> dict[str, Any]:
+def _create_enum_property(
+    node: Node, use_valid_value_display_names: bool = True
+) -> dict[str, Any]:
     """
     Creates a JSON Schema property enum
 
@@ -809,10 +817,12 @@ def _create_enum_property(node: Node) -> dict[str, Any]:
     Returns:
         JSON object
     """
+    if use_valid_value_display_names:
+        valid_values = node.get_node_valid_value_display_names()
+    else:
+        valid_values = node.valid_values
     schema: dict[str, Any] = {}
-    one_of_list: list[dict[str, Any]] = [
-        {"enum": node.get_node_valid_value_display_names(), "title": "enum"}
-    ]
+    one_of_list: list[dict[str, Any]] = [{"enum": valid_values, "title": "enum"}]
     if not node.is_required:
         one_of_list += [{"type": "null", "title": "null"}]
     schema["oneOf"] = one_of_list
