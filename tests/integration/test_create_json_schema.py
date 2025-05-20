@@ -57,7 +57,7 @@ def fixture_biospecimen_json_schema(
     schema_org: str,
     schema_version: str,
     dmge: DataModelGraphExplorer,
-    request
+    request,
 ):
     """This creates a JSON Schema, uploads it to Synapse, then returns the uri"""
     js = synapse_module_scope.service("json_schema")
@@ -75,6 +75,7 @@ def fixture_biospecimen_json_schema(
 
     def delete_schema():
         js.delete_json_schema(f"{schema_org}-{schema_name}")
+
     request.addfinalizer(delete_schema)
 
     uri = f"{schema_org}-{schema_name}-{schema_version}"
@@ -87,7 +88,7 @@ def fixture_bulk_rna_json_schema(
     schema_org: str,
     schema_version: str,
     dmge: DataModelGraphExplorer,
-    request
+    request,
 ):
     """This creates a JSON Schema, uploads it to Synapse, then returns the uri"""
     js = synapse_module_scope.service("json_schema")
@@ -105,6 +106,7 @@ def fixture_bulk_rna_json_schema(
 
     def delete_schema():
         js.delete_json_schema(f"{schema_org}-{schema_name}")
+
     request.addfinalizer(delete_schema)
 
     uri = f"{schema_org}-{schema_name}-{schema_version}"
@@ -117,7 +119,7 @@ def fixture_mock_component_json_schema(
     schema_org: str,
     schema_version: str,
     dmge: DataModelGraphExplorer,
-    request
+    request,
 ):
     """This creates a JSON Schema, uploads it to Synapse, then returns the uri"""
     js = synapse_module_scope.service("json_schema")
@@ -135,6 +137,7 @@ def fixture_mock_component_json_schema(
 
     def delete_schema():
         js.delete_json_schema(f"{schema_org}-{schema_name}")
+
     request.addfinalizer(delete_schema)
 
     uri = f"{schema_org}-{schema_name}-{schema_version}"
@@ -147,7 +150,7 @@ def fixture_mock_filename_json_schema(
     schema_org: str,
     schema_version: str,
     dmge: DataModelGraphExplorer,
-    request
+    request,
 ):
     """This creates a JSON Schema, uploads it to Synapse, then returns the uri"""
     js = synapse_module_scope.service("json_schema")
@@ -165,6 +168,7 @@ def fixture_mock_filename_json_schema(
 
     def delete_schema():
         js.delete_json_schema(f"{schema_org}-{schema_name}")
+
     request.addfinalizer(delete_schema)
 
     uri = f"{schema_org}-{schema_name}-{schema_version}"
@@ -177,7 +181,7 @@ def fixture_mock_rdb_json_schema(
     schema_org: str,
     schema_version: str,
     dmge: DataModelGraphExplorer,
-    request
+    request,
 ):
     """This creates a JSON Schema, uploads it to Synapse, then returns the uri"""
     js = synapse_module_scope.service("json_schema")
@@ -195,6 +199,7 @@ def fixture_mock_rdb_json_schema(
 
     def delete_schema():
         js.delete_json_schema(f"{schema_org}-{schema_name}")
+
     request.addfinalizer(delete_schema)
 
     uri = f"{schema_org}-{schema_name}-{schema_version}"
@@ -207,7 +212,7 @@ def fixture_patient_json_schema(
     schema_org: str,
     schema_version: str,
     dmge: DataModelGraphExplorer,
-    request
+    request,
 ):
     """This creates a JSON Schema, uploads it to Synapse, then returns the uri"""
     js = synapse_module_scope.service("json_schema")
@@ -225,6 +230,7 @@ def fixture_patient_json_schema(
 
     def delete_schema():
         js.delete_json_schema(f"{schema_org}-{schema_name}")
+
     request.addfinalizer(delete_schema)
 
     uri = f"{schema_org}-{schema_name}-{schema_version}"
@@ -242,6 +248,7 @@ def fixture_synapse_folder(syn: Synapse, request):
     def delete_folder():
         js.unbind_json_schema(folder.id)
         syn.delete(folder.id)
+
     request.addfinalizer(delete_folder)
 
     return folder.id
