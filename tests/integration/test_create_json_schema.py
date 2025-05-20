@@ -53,7 +53,10 @@ def fixture_dmge() -> Generator[DataModelGraphExplorer, None, None]:
 
 @pytest.fixture(name="biospecimen_json_schema", scope="module")
 def fixture_biospecimen_json_schema(
-    synapse_module_scope: Synapse, schema_org: str, schema_version: str, dmge: DataModelGraphExplorer
+    synapse_module_scope: Synapse,
+    schema_org: str,
+    schema_version: str,
+    dmge: DataModelGraphExplorer,
 ):
     """This yields a Synapse JSON Schema uri"""
     schema = create_json_schema(
@@ -63,7 +66,9 @@ def fixture_biospecimen_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(schema, synapse_module_scope, schema_org, schema_version)
+    schema_name = upload_schema_to_synapse(
+        schema, synapse_module_scope, schema_org, schema_version
+    )
     js = synapse_module_scope.service("json_schema")
     uri = f"{schema_org}-{schema_name}-{schema_version}"
     yield uri
@@ -72,7 +77,10 @@ def fixture_biospecimen_json_schema(
 
 @pytest.fixture(name="bulk_rna_json_schema", scope="module")
 def fixture_bulk_rna_json_schema(
-    synapse_module_scope: Synapse, schema_org: str, schema_version: str, dmge: DataModelGraphExplorer
+    synapse_module_scope: Synapse,
+    schema_org: str,
+    schema_version: str,
+    dmge: DataModelGraphExplorer,
 ):
     """This yields a Synapse JSON Schema uri"""
     schema = create_json_schema(
@@ -82,7 +90,9 @@ def fixture_bulk_rna_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(schema, synapse_module_scope, schema_org, schema_version)
+    schema_name = upload_schema_to_synapse(
+        schema, synapse_module_scope, schema_org, schema_version
+    )
     js = synapse_module_scope.service("json_schema")
     uri = f"{schema_org}-{schema_name}-{schema_version}"
     yield uri
@@ -91,7 +101,10 @@ def fixture_bulk_rna_json_schema(
 
 @pytest.fixture(name="mock_component_json_schema", scope="module")
 def fixture_mock_component_json_schema(
-    synapse_module_scope: Synapse, schema_org: str, schema_version: str, dmge: DataModelGraphExplorer
+    synapse_module_scope: Synapse,
+    schema_org: str,
+    schema_version: str,
+    dmge: DataModelGraphExplorer,
 ):
     """This yields a Synapse JSON Schema uri"""
     schema = create_json_schema(
@@ -101,7 +114,9 @@ def fixture_mock_component_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(schema, synapse_module_scope, schema_org, schema_version)
+    schema_name = upload_schema_to_synapse(
+        schema, synapse_module_scope, schema_org, schema_version
+    )
     js = synapse_module_scope.service("json_schema")
     uri = f"{schema_org}-{schema_name}-{schema_version}"
     yield uri
@@ -110,7 +125,10 @@ def fixture_mock_component_json_schema(
 
 @pytest.fixture(name="mock_filename_json_schema", scope="module")
 def fixture_mock_filename_json_schema(
-    synapse_module_scope: Synapse, schema_org: str, schema_version: str, dmge: DataModelGraphExplorer
+    synapse_module_scope: Synapse,
+    schema_org: str,
+    schema_version: str,
+    dmge: DataModelGraphExplorer,
 ):
     """This yields a Synapse JSON Schema uri"""
     schema = create_json_schema(
@@ -120,7 +138,9 @@ def fixture_mock_filename_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(schema, synapse_module_scope, schema_org, schema_version)
+    schema_name = upload_schema_to_synapse(
+        schema, synapse_module_scope, schema_org, schema_version
+    )
     js = synapse_module_scope.service("json_schema")
     uri = f"{schema_org}-{schema_name}-{schema_version}"
     yield uri
@@ -129,7 +149,10 @@ def fixture_mock_filename_json_schema(
 
 @pytest.fixture(name="mock_rdb_json_schema", scope="module")
 def fixture_mock_rdb_json_schema(
-    synapse_module_scope: Synapse, schema_org: str, schema_version: str, dmge: DataModelGraphExplorer
+    synapse_module_scope: Synapse,
+    schema_org: str,
+    schema_version: str,
+    dmge: DataModelGraphExplorer,
 ):
     """This yields a Synapse JSON Schema uri"""
     schema = create_json_schema(
@@ -139,7 +162,9 @@ def fixture_mock_rdb_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(schema, synapse_module_scope, schema_org, schema_version)
+    schema_name = upload_schema_to_synapse(
+        schema, synapse_module_scope, schema_org, schema_version
+    )
     js = synapse_module_scope.service("json_schema")
     uri = f"{schema_org}-{schema_name}-{schema_version}"
     yield uri
@@ -148,7 +173,10 @@ def fixture_mock_rdb_json_schema(
 
 @pytest.fixture(name="patient_json_schema", scope="module")
 def fixture_patient_json_schema(
-    synapse_module_scope: Synapse, schema_org: str, schema_version: str, dmge: DataModelGraphExplorer
+    synapse_module_scope: Synapse,
+    schema_org: str,
+    schema_version: str,
+    dmge: DataModelGraphExplorer,
 ):
     """This yields a Synapse JSON Schema uri"""
     schema = create_json_schema(
@@ -158,7 +186,9 @@ def fixture_patient_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(schema, synapse_module_scope, schema_org, schema_version)
+    schema_name = upload_schema_to_synapse(
+        schema, synapse_module_scope, schema_org, schema_version
+    )
     js = synapse_module_scope.service("json_schema")
     uri = f"{schema_org}-{schema_name}-{schema_version}"
     yield uri

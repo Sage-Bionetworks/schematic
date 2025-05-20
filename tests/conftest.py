@@ -257,6 +257,7 @@ def syn(syn_token) -> Synapse:
     syn.login(authToken=syn_token, silent=True)
     return syn
 
+
 @pytest.fixture(name="synapse_module_scope", scope="module")
 def fixture_synapse_module_scope() -> Generator[Synapse, None, None]:
     """
