@@ -34,12 +34,16 @@ from tests.utils import json_files_equal
 
 
 @pytest.fixture(name="test_directory", scope="session")
-def fixture_test_directory() -> Generator[str, None, None]:
+def fixture_test_directory(request) -> Generator[str, None, None]:
     """Yields a directory for creating test jSON Schemas in"""
     test_folder = "tests/data/json_schema_generator_output"
+
+    def delete_folder():
+        rmtree(test_folder)
+
+    request.addfinalizer(delete_folder)
     os.makedirs(test_folder, exist_ok=True)
-    yield test_folder
-    rmtree(test_folder)
+    return test_folder
 
 
 @pytest.fixture(name="test_nodes")
