@@ -35,7 +35,7 @@ from tests.utils import json_files_equal
 
 
 @pytest.fixture(name="test_directory", scope="session")
-def fixture_test_directory(request) ->str:
+def fixture_test_directory(request) -> str:
     """Returns a directory for creating test jSON Schemas in"""
     test_folder = f"tests/data/create_json_schema_{str(uuid.uuid4())}"
 

@@ -187,9 +187,11 @@ class Node:  # pylint: disable=too-many-instance-attributes
             range_rule = _get_in_range_rule_from_rule_list(validation_rules)
             if range_rule:
                 if self.type not in ["number", "integer", None]:
-                    raise ValueError(
-                        f"Validation rules must be either 'int' or 'num' when using the inRange rule not: {type_rule}"
+                    msg = (
+                        "Validation rules must be either 'int' or 'num' when "
+                        f"using the inRange rule not: {type_rule}"
                     )
+                    raise ValueError(msg)
                 if self.type is None:
                     self.type = "number"
                 self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
@@ -622,9 +624,7 @@ def _write_data_model(
             "Either schema_path or both name and jsonld_path must be provided."
         )
     export_json(json_doc=json_schema_dict, file_path=json_schema_path, indent=2)
-    logger.info(
-        f"The JSON schema has been saved at {json_schema_path}"
-    )
+    logger.info(f"The JSON schema has been saved at {json_schema_path}")
 
 
 def _set_conditional_dependencies(
