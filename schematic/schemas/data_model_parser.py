@@ -549,10 +549,9 @@ class DataModelJSONLDParser:
             ValueError: If the value isn't in the list of allowed values
         """
         allowed_values = self.dmr.get_allowed_values(relationship)
-        if allowed_values:
-            if value not in allowed_values:
-                msg = f"For entry: '{entry_id}', '{value}' not in allowed values: {allowed_values}"
-                raise ValueError(msg)
+        if allowed_values and value not in allowed_values:
+            msg = f"For entry: '{entry_id}', '{value}' not in allowed values: {allowed_values}"
+            raise ValueError(msg)
 
     @tracer.start_as_current_span("Schemas::DataModelJSONLDParser::parse_jsonld_model")
     def parse_jsonld_model(
