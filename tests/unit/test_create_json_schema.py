@@ -164,7 +164,7 @@ class TestJSONSchema:
     ],
     ids=["CheckNone", "CheckString", "CheckList", "CheckListString", "CheckRange"],
 )
-def test_node(
+def test_node_init(
     node_name: str,
     expected_type: Optional[str],
     expected_is_array: bool,
