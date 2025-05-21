@@ -537,7 +537,9 @@ class DataModelJSONLDParser:
                         )
         return attr_rel_dictionary
 
-    def _check_allowed_values(self, entry_id: str, value: Any, relationship: str) -> None:
+    def _check_allowed_values(
+        self, entry_id: str, value: Any, relationship: str
+    ) -> None:
         """Checks that the entry is in the allowed values if they exist for the relationship
 
         Args:
