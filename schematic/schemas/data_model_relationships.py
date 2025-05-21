@@ -249,7 +249,7 @@ class DataModelRelationships:
 
         return rel_headers_dict
 
-    def get_allowed_values(self, relationship: str) -> Optional[list]:
+    def get_allowed_values(self, relationship: str) -> Optional[list[Any]]:
         """Gets the allowed values for the relationship
 
         Args:
