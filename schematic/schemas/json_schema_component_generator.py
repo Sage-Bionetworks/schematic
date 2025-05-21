@@ -20,7 +20,7 @@ class JsonSchemaGeneratorDirector:
     Directs the generation of JSON schemas for one or more components from a specified data model.
 
     Attributes:
-        data_model_location (str): Path or URL to the data model file.
+        data_model_source (str): Path or URL to the data model file.
         parsed_model (dict): Parsed representation of the data model.
         components (list[str]): List of component names to generate schemas for.
         output_directory (Path): Directory where generated JSON schema files will be saved.
@@ -28,7 +28,7 @@ class JsonSchemaGeneratorDirector:
 
     def __init__(
         self,
-        data_model_location: str,
+        data_model_source: str,
         components: Optional[list[str]] = None,
         output_directory: Optional[str] = None,
     ):
@@ -36,17 +36,17 @@ class JsonSchemaGeneratorDirector:
         Initialize the JsonSchemaGeneratorDirector with data model location, components, and output directory.
 
         Args:
-            data_model_location (str): Path or URL to the data model JSON-LD file.
+            data_model_source (str): Path or URL to the data model JSON-LD file.
             components (Optional[list[str]]): List of component names. If None, components will be gathered automatically from the data model.
             output_directory (Optional[str]): Directory where JSON schema files will be saved. Defaults to a subdirectory named 'component_jsonschemas' in the current working directory.
 
         Attributes Updated:
-            self.data_model_location
+            self.data_model_source
             self.parsed_model
             self.components
             self.output_directory
         """
-        self.data_model_location = data_model_location
+        self.data_model_source = data_model_source
         self.parsed_model = self._parse_model()
         self.components = components if components else self.gather_components()
 
@@ -117,7 +117,7 @@ class JsonSchemaGeneratorDirector:
             self.parsed_model
         """
 
-        data_model_parser = DataModelParser(self.data_model_location)
+        data_model_parser = DataModelParser(self.data_model_source)
 
         return data_model_parser.parse_model()
 
@@ -137,7 +137,7 @@ class JsonSchemaGeneratorDirector:
 
         # Direct the generation of the jsonschema for a single component
         generator = JsonSchemaComponentGenerator(
-            data_model_location=self.data_model_location,
+            data_model_source=self.data_model_source,
             component=component,
             output_directory=self.output_directory,
             parsed_model=self.parsed_model,
@@ -154,7 +154,7 @@ class JsonSchemaComponentGenerator:
     Responsible for generating the JSON schema for a specific component and writing it to a file.
 
     Attributes:
-        data_model_location (str): Path or URL to the data model.
+        data_model_source (str): Path or URL to the data model.
         parsed_model (dict): Parsed representation of the data model.
         dmge (DataModelGraphExplorer): Graph explorer for navigating the data model.
         component (str): The class label of the target component.
@@ -164,7 +164,7 @@ class JsonSchemaComponentGenerator:
 
     def __init__(
         self,
-        data_model_location: str,
+        data_model_source: str,
         component: str,
         output_directory: Path,
         parsed_model: dict[str, Any],
@@ -173,20 +173,20 @@ class JsonSchemaComponentGenerator:
         Initialize the JsonSchemaComponentGenerator.
 
         Args:
-            data_model_location (str): Path or URL to the data model JSON-LD file.
+            data_model_source (str): Path or URL to the data model JSON-LD file.
             component (str): Component name (class label or display name).
             output_directory (Path): Output directory for saving the JSON schema file.
             parsed_model (dict[str, Any]): The parsed model dictionary.
 
         Attributes Updated:
-            self.data_model_location
+            self.data_model_source
             self.parsed_model
             self.dmge
             self.component
             self.output_path
             self.component_json_schema
         """
-        self.data_model_location = data_model_location
+        self.data_model_source = data_model_source
         self.parsed_model = parsed_model
         self.dmge = self._get_data_model_graph_explorer()
 
@@ -211,7 +211,7 @@ class JsonSchemaComponentGenerator:
         """
 
         stripped_component = self.component.replace(" ", "")
-        data_model_basename = Path(self.data_model_location).stem
+        data_model_basename = Path(self.data_model_source).stem
         return Path(
             output_directory,
             data_model_basename,
@@ -248,7 +248,7 @@ class JsonSchemaComponentGenerator:
             May raise errors if the component is not found in the data model graph.
         """
         metadata_model = MetadataModel(
-            inputMModelLocation=self.data_model_location,
+            inputMModelLocation=self.data_model_source,
             inputMModelLocationType="local",
             data_model_labels="class_label",
         )
