@@ -1,8 +1,9 @@
 """Tests for JSON Schema generation"""
 
-from typing import Generator, Any, Union, Optional
+from typing import Any, Union, Optional
 import os
 import json
+import uuid
 from shutil import rmtree
 
 import pytest
@@ -34,9 +35,9 @@ from tests.utils import json_files_equal
 
 
 @pytest.fixture(name="test_directory", scope="session")
-def fixture_test_directory(request) -> Generator[str, None, None]:
-    """Yields a directory for creating test jSON Schemas in"""
-    test_folder = "tests/data/json_schema_generator_output"
+def fixture_test_directory(request) -> str:
+    """Returns a directory for creating test jSON Schemas in"""
+    test_folder = f"tests/data/create_json_schema_{str(uuid.uuid4())}"
 
     def delete_folder():
         rmtree(test_folder)
@@ -49,7 +50,7 @@ def fixture_test_directory(request) -> Generator[str, None, None]:
 @pytest.fixture(name="test_nodes")
 def fixture_test_nodes(
     dmge: DataModelGraphExplorer,
-) -> Generator[dict[str, Node], None, None]:
+) -> dict[str, Node]:
     """Yields dict of Nodes"""
     node_tuples = [
         ("CheckNone", "MockComponent"),
