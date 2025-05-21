@@ -42,6 +42,11 @@ class TestSchemaCli:
         ["test/jsonschema_output/", None],
         ids=["output directory specified", "no output directory specified"],
     )
+    @pytest.mark.parametrize(
+        "data_model_labels",
+        ["class_label", "display_label"],
+        ids=["class_label", "display_label"],
+    )
     def test_json_schema_generation(
         self,
         runner: CliRunner,
@@ -50,6 +55,7 @@ class TestSchemaCli:
         data_model_source: str,
         output_directory: str,
         data_type: str,
+        data_model_labels: str,
     ):
         if data_model_source.startswith("example"):
             data_model_source = helpers.get_data_path(data_model_source)
@@ -66,6 +72,8 @@ class TestSchemaCli:
                 output_directory,
                 "--data_type",
                 data_type,
+                "--data_model_labels",
+                data_model_labels,
             ],
         )
         assert result.exit_code == 0

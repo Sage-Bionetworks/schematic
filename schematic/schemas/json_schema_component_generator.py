@@ -13,6 +13,7 @@ from schematic.schemas.create_json_schema import create_json_schema
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.utils.io_utils import export_json
+from schematic.utils.schema_utils import DisplayLabelType
 
 
 class JsonSchemaGeneratorDirector:
@@ -57,6 +58,7 @@ class JsonSchemaGeneratorDirector:
 
     def generate_jsonschema(
         self,
+        data_model_labels: DisplayLabelType = "class_label",
     ) -> list[dict[str, Any]]:
         """
         Generate JSON schemas for all specified components.
@@ -67,7 +69,7 @@ class JsonSchemaGeneratorDirector:
         json_schemas = []
 
         for component in self.components:
-            json_schemas.append(self._generate_jsonschema(component))
+            json_schemas.append(self._generate_jsonschema(component, data_model_labels))
 
         return json_schemas
 
@@ -121,7 +123,9 @@ class JsonSchemaGeneratorDirector:
 
         return data_model_parser.parse_model()
 
-    def _generate_jsonschema(self, component: str) -> dict[str, Any]:
+    def _generate_jsonschema(
+        self, component: str, data_model_labels: DisplayLabelType
+    ) -> dict[str, Any]:
         """
         Generate the JSON schema for a single specified component.
 
@@ -143,7 +147,7 @@ class JsonSchemaGeneratorDirector:
             parsed_model=self.parsed_model,
         )
 
-        generator.get_component_json_schema()
+        generator.get_component_json_schema(data_model_labels=data_model_labels)
         generator.write_json_schema_to_file()
 
         return generator.component_json_schema
@@ -237,6 +241,7 @@ class JsonSchemaComponentGenerator:
 
     def get_component_json_schema(
         self,
+        data_model_labels: DisplayLabelType = "class_label",
     ) -> None:
         """
         Generate JSON schema for the specified component.
@@ -250,14 +255,18 @@ class JsonSchemaComponentGenerator:
         metadata_model = MetadataModel(
             inputMModelLocation=self.data_model_source,
             inputMModelLocationType="local",
-            data_model_labels="class_label",
+            data_model_labels=data_model_labels,
         )
+
+        use_display_names = data_model_labels == "display_label"
+
         json_schema = create_json_schema(
             dmge=self.dmge,
             datatype=self.component,
             schema_name=self.component + "_validation",
             jsonld_path=metadata_model.inputMModelLocation,
-            use_property_display_names=False,
+            use_property_display_names=use_display_names,
+            use_valid_value_display_names=use_display_names,
         )
         self.component_json_schema = json_schema
 

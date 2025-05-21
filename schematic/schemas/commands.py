@@ -194,7 +194,10 @@ def convert(
     help=query_dict(schema_commands, ("schema", "convert", "data_model_labels")),
 )
 def generate_jsonschema(
-    data_model_source: str, output_directory: str, data_type: Optional[list[str]]
+    data_model_source: str,
+    output_directory: str,
+    data_type: Optional[list[str]],
+    data_model_labels: DisplayLabelType,
 ) -> None:
     """
     Command to generate jsonschema files for validation for component(s) of the data model.

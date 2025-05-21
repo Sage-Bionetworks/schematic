@@ -235,6 +235,7 @@ schema_commands = {
                 "Specify the component (data type) from the data model that is to be used."
                 "Not providing a data type here will generate jsonschema files for all components in the data model."
             ),
+            "data_model_labels": DATA_MODEL_LABELS_HELP,
         },
     }
 }
