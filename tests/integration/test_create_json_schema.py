@@ -1,6 +1,6 @@
 """Tests for JSON Schema generation"""
 
-from typing import Generator, Any
+from typing import Any
 import json
 import uuid
 from time import sleep
