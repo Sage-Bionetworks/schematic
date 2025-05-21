@@ -156,20 +156,22 @@
     },
     "CheckRegexFormat": {
       "description": "TBD",
-      "not": {
-        "type": "null"
-      }
+      "pattern": "^[a-f]",
+      "type": "string"
     },
     "CheckRegexInteger": {
       "description": "TBD",
-      "not": {
-        "type": "null"
-      }
+      "pattern": "^\\d+$",
+      "type": "string"
     },
     "CheckRegexList": {
       "description": "TBD",
       "oneOf": [
         {
+          "items": {
+            "pattern": "^[a-f]",
+            "type": "string"
+          },
           "title": "array",
           "type": "array"
         }
@@ -179,6 +181,10 @@
       "description": "TBD",
       "oneOf": [
         {
+          "items": {
+            "pattern": "^[a-f]",
+            "type": "string"
+          },
           "title": "array",
           "type": "array"
         }
@@ -188,6 +194,10 @@
       "description": "TBD",
       "oneOf": [
         {
+          "items": {
+            "pattern": "^[a-f]",
+            "type": "string"
+          },
           "title": "array",
           "type": "array"
         }
@@ -195,9 +205,8 @@
     },
     "CheckRegexSingle": {
       "description": "TBD",
-      "not": {
-        "type": "null"
-      }
+      "pattern": "[a-f]",
+      "type": "string"
     },
     "CheckString": {
       "description": "TBD",

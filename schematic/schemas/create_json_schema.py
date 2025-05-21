@@ -173,6 +173,7 @@ class Node:  # pylint: disable=too-many-instance-attributes
         self.is_array = False
         self.minimum = None
         self.maximum = None
+        self.pattern = None
 
         if validation_rules:
             if rule_in_rule_list("list", validation_rules):
@@ -182,7 +183,11 @@ class Node:  # pylint: disable=too-many-instance-attributes
             if type_rule:
                 self.type = TYPE_RULES.get(type_rule)
 
+            regex_rule = _get_regex_rule_from_rule_list(validation_rules)
             range_rule = _get_in_range_rule_from_rule_list(validation_rules)
+            if range_rule and regex_rule:
+                raise ValueError("regex and inRange rules are incompatible: ", validation_rules)
+
             if range_rule:
                 if self.type not in ["number", "integer", None]:
                     raise ValueError(
@@ -191,6 +196,15 @@ class Node:  # pylint: disable=too-many-instance-attributes
                 if self.type is None:
                     self.type = "number"
                 self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
+
+            if regex_rule:
+                if self.type not in ["string", None]:
+                    raise ValueError(
+                        "Validation rules bust be 'string' when using the regex rule"
+                    )
+                if self.type is None:
+                    self.type = "string"
+                self.pattern = _get_pattern_from_regex_rule(regex_rule)
 
 
 def _get_ranges_from_range_rule(
@@ -213,6 +227,58 @@ def _get_ranges_from_range_rule(
     if len(parameters) > 2 and parameters[2].isnumeric():
         range_max = float(parameters[2])
     return (range_min, range_max)
+
+def _get_pattern_from_regex_rule(rule: str) -> Optional[str]:
+    """Gets the pattern from the regex rule
+
+    Arguments:
+        rule: The full regex rule
+
+    Raises:
+        ValueError: If the module and pattern parameter are missing
+
+    Returns:
+        The pattern if the module is search or match, or None if not
+    """
+    parameters = rule.split(" ")
+    if len(parameters) == 1:
+        raise ValueError("Module and pattern parameters missing from regex rule :", rule)
+    if len(parameters) == 2:
+        raise ValueError("Pattern parameter missing from regex rule :", rule)
+    module = parameters[1]
+    pattern = parameters[2]
+    # Do not translate other modules
+    if module not in ["search", "match"]:
+        pattern = None
+    else:
+        # Match is just search but only at the beginning of the string
+        if module == "match" and not pattern.startswith("^"):
+            pattern = f"^{pattern}"
+    return pattern
+
+
+def _get_regex_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
+    """
+    Returns the regex rule from a list of rules if there is only one
+    Returns None if there are no inRange rules
+
+    Arguments:
+        rule_list: A list of validation rules
+
+    Raises:
+        ValueError: When more than one regex rule is found
+
+    Returns:
+        The regex rule if one is found, or None
+    """
+    regex_rules = [rule for rule in rule_list if rule.startswith("regex")]
+    if len(regex_rules) > 1:
+        raise ValueError(
+            "Found more than one regex rule in validation rules: ", rule_list
+        )
+    if len(regex_rules) == 0:
+        return None
+    return regex_rules[0]
 
 
 def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
@@ -808,10 +874,7 @@ def _create_array_property(node: Node) -> dict[str, Any]:
     items: dict[str, Any] = {}
     if node.type:
         items["type"] = node.type
-    if node.minimum is not None:
-        items["minimum"] = node.minimum
-    if node.maximum is not None:
-        items["maximum"] = node.maximum
+        _set_type_specific_keywords(items, node)
 
     if items:
         array_dict["items"] = items
@@ -887,9 +950,14 @@ def _create_simple_property(node: Node) -> dict[str, Any]:
     elif node.is_required:
         schema["not"] = {"type": "null"}
 
+    _set_type_specific_keywords(schema, node)
+
+    return schema
+
+def _set_type_specific_keywords(schema: dict[str, Any], node:Node) -> None:
     if node.minimum is not None:
         schema["minimum"] = node.minimum
     if node.maximum is not None:
         schema["maximum"] = node.maximum
-
-    return schema
+    if node.pattern is not None:
+        schema["pattern"] = node.pattern
