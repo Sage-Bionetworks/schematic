@@ -25,7 +25,7 @@ def data_model_jsonld(helpers):
 class TestSchemaCli:
     # TODO: change url target to develop branch
     @pytest.mark.parametrize(
-        "data_model_location",
+        "data_model_source",
         [
             "example.model.jsonld",
             "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/f49215d5a7968ceffde855907fa0128a309768fb/tests/data/example.model.jsonld",
@@ -47,12 +47,12 @@ class TestSchemaCli:
         runner: CliRunner,
         helpers: Helpers,
         config: Configuration,
-        data_model_location: str,
+        data_model_source: str,
         output_directory: str,
         data_type: str,
     ):
-        if data_model_location.startswith("example"):
-            data_model_location = helpers.get_data_path(data_model_location)
+        if data_model_source.startswith("example"):
+            data_model_source = helpers.get_data_path(data_model_source)
 
         config.load_config("config_example.yml")
 
@@ -60,8 +60,8 @@ class TestSchemaCli:
             schema,
             [
                 "generate-jsonschema",
-                "--data_model_location",
-                data_model_location,
+                "--data_model_source",
+                data_model_source,
                 "--output_directory",
                 output_directory,
                 "--data_type",

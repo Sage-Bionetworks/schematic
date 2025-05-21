@@ -225,7 +225,7 @@ schema_commands = {
             "short_help": (
                 "Generate one or more JSON Schema files for a data type or all data types from the data model."
             ),
-            "data_model_location": (
+            "data_model_source": (
                 "Path to the data model file or url to the raw jsonld data model."
             ),
             "output_directory": (
