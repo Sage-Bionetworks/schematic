@@ -186,7 +186,7 @@ class Node:  # pylint: disable=too-many-instance-attributes
             if range_rule:
                 if self.type not in ["number", "integer", None]:
                     raise ValueError(
-                        "Validation rules bust be either 'int' or 'num' when using the inRange rule"
+                        f"Validation rules must be either 'int' or 'num' when using the inRange rule not: {type_rule}"
                     )
                 if self.type is None:
                     self.type = "number"
