@@ -12,8 +12,9 @@ from jsonschema.exceptions import ValidationError
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.create_json_schema import (
     _get_ranges_from_range_rule,
-    _get_in_range_rule_from_rule_list,
+    _get_pattern_from_regex_rule,
     _get_type_rule_from_rule_list,
+    _get_rule_from_rule_list,
     JSONSchema,
     Node,
     GraphTraversalState,
@@ -25,6 +26,7 @@ from schematic.schemas.create_json_schema import (
     _create_array_property,
     _create_enum_property,
     _create_simple_property,
+    _set_type_specific_keywords,
 )
 from tests.utils import json_files_equal
 
@@ -55,6 +57,7 @@ def fixture_test_nodes(
         ("CheckNone", "MockComponent"),
         ("CheckNoneNotRequired", "MockComponent"),
         ("CheckString", "MockComponent"),
+        ("CheckRegexSingle", "MockComponent"),
         ("CheckStringNotRequired", "MockComponent"),
         ("CheckEnum", "MockComponent"),
         ("CheckEnumNotRequired", "MockComponent"),
@@ -211,42 +214,74 @@ def test_get_ranges_from_range_rule(
 
 
 @pytest.mark.parametrize(
-    "input_rules, expected_rule",
+    "input_rule, expected_pattern",
     [
-        ([], None),
-        (["list strict"], None),
-        (["inRange 0 1"], "inRange 0 1"),
-        (["str error", "inRange 0 1"], "inRange 0 1"),
+        ("", None),
+        ("regex search [a-f]", "[a-f]"),
+        ("regex match [a-f]", "^[a-f]"),
+        ("regex match ^[a-f]", "^[a-f]"),
+        ("regex split ^[a-f]", None),
     ],
     ids=[
-        "No rules",
-        "List",
-        "inRange",
-        "str and inRange",
+        "No rules, None returned",
+        "Search module, Pattern returned",
+        "Match module, Pattern returned with carrot added",
+        "Match module, Pattern returned with no carrot added",
+        "Unallowed module, None returned",
     ],
 )
-def test_get_in_range_rule_from_rule_list(
+def test_get_pattern_from_regex_rule(
+    input_rule: str,
+    expected_pattern: Optional[str],
+) -> None:
+    """Test for _get_pattern_from_regex_rule"""
+    result = _get_pattern_from_regex_rule(input_rule)
+    assert result == expected_pattern
+
+
+@pytest.mark.parametrize(
+    "rule_name, input_rules, expected_rule",
+    [
+        ("inRange", [], None),
+        ("inRange", ["regex match [a-f]"], None),
+        ("inRange", ["inRange 0 1"], "inRange 0 1"),
+        ("inRange", ["str error", "inRange 0 1"], "inRange 0 1"),
+        ("regex", ["inRange 0 1"], None),
+        ("regex", ["regex match [a-f]"], "regex match [a-f]"),
+    ],
+    ids=[
+        "inRange: No rules",
+        "inRange: No inRange rules",
+        "inRange: Rule present",
+        "inRange: Rule present, multiple rules",
+        "regex: No regex rules",
+        "regex: Rule present",
+    ],
+)
+def test_get_rule_from_rule_list(
+    rule_name: str,
     input_rules: list[str],
     expected_rule: Union[str, None],
 ) -> None:
-    """Test for _get_in_range_rule_from_rule_list"""
-    result = _get_in_range_rule_from_rule_list(input_rules)
+    """Test for _get_rule_from_rule_list"""
+    result = _get_rule_from_rule_list(rule_name, input_rules)
     assert result == expected_rule
 
 
 @pytest.mark.parametrize(
-    "input_rules",
-    [(["inRange", "inRange"]), (["inRange 0", "inRange 0"])],
+    "rule_name, input_rules",
+    [("inRange", ["inRange", "inRange"]), ("inRange", ["inRange 0", "inRange 0"])],
     ids=["Multiple inRange rules", "Multiple inRange rules with params"],
 )
-def test_get_in_range_rule_from_rule_list_exceptions(
+def test_get_rule_from_rule_list_exceptions(
+    rule_name: str,
     input_rules: list[str],
 ) -> None:
-    """Test for _get_in_range_rule_from_rule_list with exceptions"""
+    """Test for __get_rule_from_rule_list with exceptions"""
     with pytest.raises(
-        ValueError, match="Found more than one inRange rule in validation rules"
+        ValueError, match="Found more than one 'inRange' rule in validation rules"
     ):
-        _get_in_range_rule_from_rule_list(input_rules)
+        _get_rule_from_rule_list(rule_name, input_rules)
 
 
 @pytest.mark.parametrize(
@@ -1055,3 +1090,27 @@ def test_create_simple_property(
     for value in invalid_values:
         with pytest.raises(ValidationError):
             validator.validate({"name": value})
+
+
+@pytest.mark.parametrize(
+    "node_name, expected_schema",
+    [
+        ("CheckNone", {}),
+        ("CheckRange", {"minimum": 50, "maximum": 100}),
+        ("CheckRegexSingle", {"pattern": "[a-f]"}),
+    ],
+    ids=[
+        "CheckNone",
+        "CheckRange",
+        "CheckRegexSingle",
+    ],
+)
+def test_set_type_specific_keywords(
+    node_name: str,
+    expected_schema: dict[str, Any],
+    test_nodes: dict[str, Node],
+) -> None:
+    """Test for _set_type_specific_keywords"""
+    schema = {}
+    _set_type_specific_keywords(schema, test_nodes[node_name])
+    assert schema == expected_schema

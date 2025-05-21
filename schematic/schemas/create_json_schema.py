@@ -180,13 +180,17 @@ class Node:  # pylint: disable=too-many-instance-attributes
                 self.is_array = True
 
             type_rule = _get_type_rule_from_rule_list(validation_rules)
+            print(self.name)
+            print(type_rule)
             if type_rule:
                 self.type = TYPE_RULES.get(type_rule)
 
-            regex_rule = _get_regex_rule_from_rule_list(validation_rules)
-            range_rule = _get_in_range_rule_from_rule_list(validation_rules)
+            regex_rule = _get_rule_from_rule_list("regex", validation_rules)
+            range_rule = _get_rule_from_rule_list("inRange", validation_rules)
             if range_rule and regex_rule:
-                raise ValueError("regex and inRange rules are incompatible: ", validation_rules)
+                raise ValueError(
+                    "regex and inRange rules are incompatible: ", validation_rules
+                )
 
             if range_rule:
                 if self.type not in ["number", "integer", None]:
@@ -228,81 +232,30 @@ def _get_ranges_from_range_rule(
         range_max = float(parameters[2])
     return (range_min, range_max)
 
+
 def _get_pattern_from_regex_rule(rule: str) -> Optional[str]:
     """Gets the pattern from the regex rule
 
     Arguments:
         rule: The full regex rule
 
-    Raises:
-        ValueError: If the module and pattern parameter are missing
-
     Returns:
-        The pattern if the module is search or match, or None if not
+        If the module parameter is search or match, and the pattern parameter exists
+          the pattern is returned
+        Otherwise None
     """
     parameters = rule.split(" ")
-    if len(parameters) == 1:
-        raise ValueError("Module and pattern parameters missing from regex rule :", rule)
-    if len(parameters) == 2:
-        raise ValueError("Pattern parameter missing from regex rule :", rule)
+    if len(parameters) < 3:
+        return None
     module = parameters[1]
     pattern = parameters[2]
     # Do not translate other modules
     if module not in ["search", "match"]:
-        pattern = None
-    else:
-        # Match is just search but only at the beginning of the string
-        if module == "match" and not pattern.startswith("^"):
-            pattern = f"^{pattern}"
+        return None
+    # Match is just search but only at the beginning of the string
+    if module == "match" and not pattern.startswith("^"):
+        return f"^{pattern}"
     return pattern
-
-
-def _get_regex_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
-    """
-    Returns the regex rule from a list of rules if there is only one
-    Returns None if there are no inRange rules
-
-    Arguments:
-        rule_list: A list of validation rules
-
-    Raises:
-        ValueError: When more than one regex rule is found
-
-    Returns:
-        The regex rule if one is found, or None
-    """
-    regex_rules = [rule for rule in rule_list if rule.startswith("regex")]
-    if len(regex_rules) > 1:
-        raise ValueError(
-            "Found more than one regex rule in validation rules: ", rule_list
-        )
-    if len(regex_rules) == 0:
-        return None
-    return regex_rules[0]
-
-
-def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
-    """
-    Returns the inRange rule from a list of rules if there is only one
-    Returns None if there are no inRange rules
-
-    Arguments:
-        rule_list: A list of validation rules
-
-    Raises:
-        ValueError: When more than one inRange rule is found
-
-    Returns:
-        The inRange rule if one is found, or None
-    """
-    in_range_rules = [rule for rule in rule_list if rule.startswith("inRange")]
-    if len(in_range_rules) > 1:
-        raise ValueError(
-            "Found more than one inRange rule in validation rules: ", rule_list
-        )
-    if len(in_range_rules) == 0:
-        return None
-    return in_range_rules[0]
 
 
 def _get_type_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
@@ -320,14 +273,37 @@ def _get_type_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
         The type rule if one is found, or None
     """
     rule_list = [rule.split(" ")[0] for rule in rule_list]
-    type_rules = [rule for rule in rule_list if rule in TYPE_RULES]
-    if len(type_rules) > 1:
+    rule_list = [rule for rule in rule_list if rule in TYPE_RULES]
+    if len(rule_list) > 1:
         raise ValueError(
             "Found more than one type rule in validation rules: ", rule_list
         )
-    if len(type_rules) == 0:
+    if len(rule_list) == 0:
         return None
-    return type_rules[0]
+    return rule_list[0]
+
+
+def _get_rule_from_rule_list(rule_name: str, rule_list: list[str]) -> Optional[str]:
+    """
+    Returns the a rule from a list of rules if there is only one
+    Returns None if there are no inRange rules
+
+    Arguments:
+        rule_list: A list of validation rules
+
+    Raises:
+        ValueError: When more than one inRange rule is found
+
+    Returns:
+        The inRange rule if one is found, or None
+    """
+    rule_list = [rule for rule in rule_list if rule.startswith(rule_name)]
+    if len(rule_list) > 1:
+        msg = f"Found more than one '{rule_name}' rule in validation rules: {rule_list}"
+        raise ValueError(msg)
+    if len(rule_list) == 0:
+        return None
+    return rule_list[0]
 
 
 @dataclass
@@ -954,7 +930,14 @@ def _create_simple_property(node: Node) -> dict[str, Any]:
 
     return schema
 
-def _set_type_specific_keywords(schema: dict[str, Any], node:Node) -> None:
+
+def _set_type_specific_keywords(schema: dict[str, Any], node: Node) -> None:
+    """Sets JSON Schema keywords that are allowed if type has been set
+
+    Arguments:
+        schema: The schema to set keywords on
+        node (Node): The node the corresponds to the property which is being set in the JSON Schema
+    """
     if node.minimum is not None:
         schema["minimum"] = node.minimum
     if node.maximum is not None:
