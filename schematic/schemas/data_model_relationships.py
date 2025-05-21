@@ -16,7 +16,7 @@ class DataModelRelationships:
     def __init__(self) -> None:
         self.relationships_dictionary = self.define_data_model_relationships()
 
-    def define_data_model_relationships(self) -> dict[str, dict[str, Any]]:
+    def define_data_model_relationships(self) -> dict:
         """Define the relationships and their attributes so they can be accessed
           through other classes.
         The key is how it the relationship will be referenced througout Schematic.
@@ -55,7 +55,7 @@ class DataModelRelationships:
         TODO:
             - Use class inheritance to set up
         """
-        map_data_model_relationships: dict[str, dict[str, Any]] = {
+        map_data_model_relationships = {
             "displayName": {
                 "jsonld_key": "sms:displayName",
                 "csv_header": "Attribute",
