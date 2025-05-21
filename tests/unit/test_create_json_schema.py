@@ -34,8 +34,8 @@ from tests.utils import json_files_equal
 
 
 @pytest.fixture(name="test_directory", scope="session")
-def fixture_test_directory(request) -> Generator[str, None, None]:
-    """Yields a directory for creating test jSON Schemas in"""
+def fixture_test_directory(request) ->str:
+    """Returns a directory for creating test jSON Schemas in"""
     test_folder = "tests/data/json_schema_generator_output"
 
     def delete_folder():
@@ -49,7 +49,7 @@ def fixture_test_directory(request) -> Generator[str, None, None]:
 @pytest.fixture(name="test_nodes")
 def fixture_test_nodes(
     dmge: DataModelGraphExplorer,
-) -> Generator[dict[str, Node], None, None]:
+) -> dict[str, Node]:
     """Yields dict of Nodes"""
     node_tuples = [
         ("CheckNone", "MockComponent"),

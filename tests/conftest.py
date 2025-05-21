@@ -259,9 +259,9 @@ def syn(syn_token) -> Synapse:
 
 
 @pytest.fixture(name="synapse_module_scope", scope="module")
-def fixture_synapse_module_scope() -> Generator[Synapse, None, None]:
+def fixture_synapse_module_scope() -> Synapse:
     """
-    This yields a Synapse instance that's been logged in.
+    This returns a Synapse instance that's been logged in.
     This has a module scope.
     The module scope is needed so that entity cleanup happens in the correct order.
     This allows the schema entities created below to be created once at the beginning
@@ -274,9 +274,9 @@ def fixture_synapse_module_scope() -> Generator[Synapse, None, None]:
         token = os.environ["SYNAPSE_ACCESS_TOKEN"]
     else:
         token = config_parser["authentication"]["authtoken"]
-    syn = Synapse()
-    syn.login(authToken=token, silent=True)
-    return syn
+    synapse = Synapse()
+    synapse.login(authToken=token, silent=True)
+    return synapse
 
 
 @pytest.fixture(scope="session")
