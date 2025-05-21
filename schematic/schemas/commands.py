@@ -209,4 +209,4 @@ def generate_jsonschema(
         components=data_type,
     )
 
-    generator.generate_jsonschema()
+    generator.generate_jsonschema(data_model_labels=data_model_labels)
