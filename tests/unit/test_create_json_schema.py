@@ -1,6 +1,6 @@
 """Tests for JSON Schema generation"""
 
-from typing import Generator, Any, Union, Optional
+from typing import Generator, Any, Optional
 import os
 import json
 from shutil import rmtree
@@ -149,23 +149,27 @@ class TestJSONSchema:
 
 
 @pytest.mark.parametrize(
-    "node_name, expected_type, expected_is_array, expected_min, expected_max",
+    "node_name, expected_type, expected_is_array, expected_min, expected_max, expected_pattern",
     [
         # If there are no type validation rules the type is None
-        ("CheckNone", None, False, None, None),
+        ("CheckNone", None, False, None, None, None),
         # If there is one type validation rule the type is set to the
         #  JSON Schema equivalent of the validation rule
-        ("CheckString", "string", False, None, None),
+        ("CheckString", "string", False, None, None, None),
         # If there are any list type validation rules then is_array is set to True
-        ("CheckList", None, True, None, None),
+        ("CheckList", None, True, None, None, None),
         # If there are any list type validation rules and one type validation rule
         #  then is_array is set to True, and the type is set to the
         #  JSON Schema equivalent of the validation rule
-        ("CheckListString", "string", True, None, None),
+        ("CheckListString", "string", True, None, None, None),
         # If there is an inRange rule the min and max will be set
-        ("CheckRange", "number", False, 50, 100),
+        ("CheckRange", "number", False, 50, 100, None),
+        #
+        ("CheckRegexSingle", "string", False, None, None, "[a-f]"),
     ],
-    ids=["CheckNone", "CheckString", "CheckList", "CheckListString", "CheckRange"],
+    ids=[
+        "CheckNone", "CheckString", "CheckList", "CheckListString", "CheckRange", "CheckRegexSingle"
+    ],
 )
 def test_node(
     node_name: str,
@@ -173,14 +177,16 @@ def test_node(
     expected_is_array: bool,
     expected_min: Optional[float],
     expected_max: Optional[float],
-    dmge: DataModelGraphExplorer,
+    expected_pattern: Optional[str],
+    test_nodes: dict[str, Node],
 ) -> None:
     """Tests for Node class"""
-    node = Node(node_name, "MockComponent", dmge)
+    node =  test_nodes[node_name]
     assert node.type == expected_type
     assert node.is_array == expected_is_array
     assert node.minimum == expected_min
     assert node.maximum == expected_max
+    assert node.pattern == expected_pattern
 
 
 @pytest.mark.parametrize(
@@ -206,7 +212,7 @@ def test_node(
 )
 def test_get_range_from_in_range_rule(
     input_rule: str,
-    expected_tuple: tuple[Union[str, None], Union[str, None]],
+    expected_tuple: tuple[Optional[str], Optional[str]],
 ) -> None:
     """Test for _get_range_from_in_range_rule"""
     result = _get_range_from_in_range_rule(input_rule)
@@ -261,7 +267,7 @@ def test_get_pattern_from_regex_rule(
 def test_get_rule_from_rule_list(
     rule_name: str,
     input_rules: list[str],
-    expected_rule: Union[str, None],
+    expected_rule: Optional[str],
 ) -> None:
     """Test for _get_rule_from_rule_list"""
     result = _get_rule_from_rule_list(rule_name, input_rules)
@@ -291,7 +297,7 @@ def test_get_rule_from_rule_list_exceptions(
 )
 def test_get_type_rule_from_rule_list(
     input_rules: list[str],
-    expected_rule: Union[str, None],
+    expected_rule: Optional[str],
 ) -> None:
     """Test for _get_type_rule_from_rule_list"""
     result = _get_type_rule_from_rule_list(input_rules)
