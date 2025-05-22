@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
+from typing import Optional
 
 from schematic.configuration.configuration import Configuration
 from schematic.schemas.commands import schema
@@ -44,8 +45,8 @@ class TestSchemaCli:
     )
     @pytest.mark.parametrize(
         "data_model_labels",
-        ["class_label", "display_label"],
-        ids=["class_label", "display_label"],
+        ["class_label", "display_label", None],
+        ids=["class_label", "display_label", "no label specified"],
     )
     def test_json_schema_generation(
         self,
@@ -55,7 +56,7 @@ class TestSchemaCli:
         data_model_source: str,
         output_directory: str,
         data_type: str,
-        data_model_labels: str,
+        data_model_labels: Optional[str],
     ):
         if data_model_source.startswith("example"):
             data_model_source = helpers.get_data_path(data_model_source)
