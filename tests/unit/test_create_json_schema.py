@@ -472,7 +472,7 @@ class TestGraphTraversalState:
         "Patient",
     ],
 )
-def test_create_json_schema(
+def test_create_json_schema_with_class_label(
     dmge: DataModelGraphExplorer, datatype: str, test_directory: str
 ) -> None:
     """Tests for JSONSchemaGenerator.create_json_schema"""
