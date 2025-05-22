@@ -729,6 +729,7 @@ def _set_property(
             schema = _create_simple_property(node)
 
     schema["description"] = node.description
+    schema["title"] = node.display_name
     schema_property = {node_name: schema}
 
     json_schema.update_property(schema_property)

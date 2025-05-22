@@ -735,6 +735,7 @@ def test_set_conditional_dependencies(
                 properties={
                     "CheckListEnum": {
                         "description": "TBD",
+                        "title": "Check List Enum",
                         "oneOf": [
                             {
                                 "type": "array",
@@ -754,6 +755,7 @@ def test_set_conditional_dependencies(
                 properties={
                     "CheckListEnumNotRequired": {
                         "description": "TBD",
+                        "title": "Check List Enum Not Required",
                         "oneOf": [
                             {
                                 "type": "array",
@@ -774,6 +776,7 @@ def test_set_conditional_dependencies(
                 properties={
                     "CheckEnum": {
                         "description": "TBD",
+                        "title": "Check Enum",
                         "oneOf": [{"enum": ["ab", "cd", "ef", "gh"], "title": "enum"}],
                     }
                 },
@@ -790,6 +793,7 @@ def test_set_conditional_dependencies(
                             {"type": "array", "title": "array"},
                         ],
                         "description": "TBD",
+                        "title": "Check List",
                     }
                 },
                 required=["CheckList"],
@@ -799,7 +803,13 @@ def test_set_conditional_dependencies(
         (
             "CheckString",
             JSONSchema(
-                properties={"CheckString": {"description": "TBD", "type": "string"}},
+                properties={
+                    "CheckString": {
+                        "description": "TBD",
+                        "title": "Check String",
+                        "type": "string",
+                    }
+                },
                 required=["CheckString"],
             ),
         ),
