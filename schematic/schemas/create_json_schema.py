@@ -71,7 +71,7 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
         }
         for old_word, new_word in keywords_to_change.items():
             json_schema_dict[new_word] = json_schema_dict.pop(old_word)
-        if len(self.all_of) == 0:
+        if not self.all_of:
             json_schema_dict.pop("allOf")
         return json_schema_dict
 
