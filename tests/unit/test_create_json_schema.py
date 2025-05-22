@@ -136,17 +136,13 @@ class TestJSONSchema:
         # GIVEN a JSONSchema instance
         schema = JSONSchema()
         # WHEN updating the properties dict
-        schema.update_property({"name1": "property"})
+        schema.update_property({"name1": "property1"})
         # THEN that dict should be retrievable
-        assert schema.properties == {"name1": "property"}
-        # WHEN updating the properties with a key that exists
-        schema.update_property({"name1": "property2"})
-        # THEN the updated dict should be retrievable
-        assert schema.properties == {"name1": "property2"}
+        assert schema.properties == {"name1": "property1"}
         # WHEN updating the properties dict with a new key
-        schema.update_property({"name3": "property3"})
+        schema.update_property({"name2": "property2"})
         # THEN the new key and old key should be retrievable
-        assert schema.properties == {"name1": "property2", "name3": "property3"}
+        assert schema.properties == {"name1": "property1", "name2": "property2"}
 
 
 @pytest.mark.parametrize(

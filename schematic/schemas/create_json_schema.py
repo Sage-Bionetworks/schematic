@@ -79,7 +79,7 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
         """
         Adds a property to the required list
 
-        Args:
+        Arguments:
             name: The name of the property
         """
         self.required.append(name)
@@ -88,7 +88,7 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
         """
         Adds a property to the all_of list
 
-        Args:
+        Arguments:
             item: The item to add to the all_of list
         """
         self.all_of.append(item)
@@ -97,9 +97,27 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
         """
         Updates the property dict
 
-        Args:
+        Raises:
+            ValueError: If the property dict has more than one key
+            ValueError: If the property dict is empty
+            ValueError: if the property dict key match a property that already exists
+
+        Arguments:
             property_dict: The property dict to add to the properties dict
         """
+        keys = list(property_dict.keys())
+        if len(keys) > 1:
+            raise ValueError(
+                f"Attempting to add property dict with more than one key: {property_dict}"
+            )
+        if len(keys) == 0:
+            raise ValueError(
+                f"Attempting to add empty property dict: {property_dict}"
+            )
+        if keys[0] in self.properties:
+            raise ValueError(
+                f"Attempting to add property that already exists: {property_dict}"
+            )
         self.properties.update(property_dict)
 
 
@@ -184,14 +202,13 @@ class Node:  # pylint: disable=too-many-instance-attributes
 
             range_rule = _get_in_range_rule_from_rule_list(validation_rules)
             if range_rule:
-                if self.type not in ["number", "integer", None]:
-                    msg = (
-                        "Validation rules must be either 'int' or 'num' when "
-                        f"using the inRange rule not: {type_rule}"
-                    )
-                    raise ValueError(msg)
                 if self.type is None:
                     self.type = "number"
+                elif self.type not in ["number", "integer"]:
+                    raise ValueError(
+                        "Validation type must be either 'number' or 'integer' "
+                        f"when using the inRange rule, but got: {self.type}"
+                    )
                 self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
 
 
