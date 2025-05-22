@@ -1,4 +1,11 @@
-"""Tests for JSON Schema generation"""
+"""
+This tests the function create_json_schema.
+This includes:
+- creating the schema
+- uploading to Synapse
+- binding the schema to a Synapse Folder
+ -validation annotations on the folder
+"""
 
 from typing import Any
 import json

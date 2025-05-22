@@ -1,4 +1,7 @@
-"""Tests for JSON Schema generation"""
+"""
+This contains unit test for the crate_json_schema function, and its helper classes and functions.
+The helper classes tested are JSONSchema, Node, GraphTraversalState,
+"""
 
 from typing import Any, Union, Optional
 import os
