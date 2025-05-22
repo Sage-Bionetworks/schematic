@@ -164,7 +164,7 @@ class TestJSONSchema:
         ("CheckListString", "string", True, None, None, None),
         # If there is an inRange rule the min and max will be set
         ("CheckRange", "number", False, 50, 100, None),
-        #
+        # If there is a regex rule, then the pattern should be set
         ("CheckRegexSingle", "string", False, None, None, "[a-f]"),
     ],
     ids=[
