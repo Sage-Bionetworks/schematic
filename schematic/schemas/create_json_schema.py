@@ -17,8 +17,6 @@ from schematic.utils.validate_utils import rule_in_rule_list
 
 from schematic.utils.io_utils import export_json
 
-# pylint: disable=logging-fstring-interpolation
-
 
 logger = logging.getLogger(__name__)
 
@@ -518,7 +516,7 @@ def create_json_schema(  # pylint: disable=too-many-arguments
     Returns:
         JSON Schema as a dictionary.
     """
-    logger.info(f"Starting to create JSON Schema for {datatype}")
+    logger.info("Starting to create JSON Schema for %s", datatype)
     graph_state = GraphTraversalState(dmge, datatype)
 
     json_schema = JSONSchema(
@@ -537,7 +535,7 @@ def create_json_schema(  # pylint: disable=too-many-arguments
             )
         graph_state.move_to_next_node()
 
-    logger.info(f"JSON schema successfully created for {datatype}")
+    logger.info("JSON schema successfully created for %s", datatype)
 
     json_schema_dict = json_schema.as_json_schema_dict()
 
@@ -568,7 +566,7 @@ def _process_node(
     """
     if graph_state.current_node is None:
         raise ValueError("Node Processor contains no node.")
-    logger.info(f"Processing node {graph_state.current_node.name}")
+    logger.info("Processing node %s", graph_state.current_node.name)
 
     if graph_state.is_current_node_a_property():
         # Determine if current node has conditional dependencies that need to be set
@@ -588,7 +586,7 @@ def _process_node(
             use_valid_value_display_names=use_valid_value_display_names,
         )
         graph_state.update_processed_nodes_with_current_node()
-        logger.info(f"Property set in JSON Schema for {graph_state.current_node.name}")
+        logger.info("Property set in JSON Schema for %s", graph_state.current_node.name)
 
 
 def _write_data_model(
@@ -624,7 +622,7 @@ def _write_data_model(
             "Either schema_path or both name and jsonld_path must be provided."
         )
     export_json(json_doc=json_schema_dict, file_path=json_schema_path, indent=2)
-    logger.info(f"The JSON schema has been saved at {json_schema_path}")
+    logger.info("The JSON schema has been saved at %s", json_schema_path)
 
 
 def _set_conditional_dependencies(
