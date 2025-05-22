@@ -153,9 +153,14 @@ jobs:
           LOGGING_EXPORT_FORMAT: ${{ vars.LOGGING_EXPORT_FORMAT }}
           TRACING_SERVICE_NAME: ${{ vars.TRACING_SERVICE_NAME }}
           LOGGING_SERVICE_NAME: ${{ vars.LOGGING_SERVICE_NAME }}
+
         run: >
-          poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
+          poetry run pytest pytest tests/integration/test_manifest_validation.py --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
           -m "single_process_execution" --reruns 4 --ignore=tests/unit
+
+        #run: >
+        #  poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
+        #  -m "single_process_execution" --reruns 4 --ignore=tests/unit
 
 
       - name: Upload pytest test results
