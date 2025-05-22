@@ -11,7 +11,7 @@ from jsonschema.exceptions import ValidationError
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.create_json_schema import (
-    _get_ranges_from_range_rule,
+    _get_range_from_in_range_rule,
     _get_pattern_from_regex_rule,
     _get_type_rule_from_rule_list,
     _get_rule_from_rule_list,
@@ -204,12 +204,12 @@ def test_node(
         "inRange with minimum, maximum, extra param",
     ],
 )
-def test_get_ranges_from_range_rule(
+def test_get_range_from_in_range_rule(
     input_rule: str,
     expected_tuple: tuple[Union[str, None], Union[str, None]],
 ) -> None:
-    """Test for _get_ranges_from_range_rule"""
-    result = _get_ranges_from_range_rule(input_rule)
+    """Test for _get_range_from_in_range_rule"""
+    result = _get_range_from_in_range_rule(input_rule)
     assert result == expected_tuple
 
 

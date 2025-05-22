@@ -8,7 +8,7 @@ The JSONSchema class is used to store all the data needed to write the final JSO
 
 import logging
 import os
-from typing import Union, Any, Optional
+from typing import Any, Optional
 from dataclasses import dataclass, field, asdict
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
@@ -123,6 +123,7 @@ class Node:  # pylint: disable=too-many-instance-attributes
         is_array: Whether or not the property is an array (inferred from validation_rules)
         minimum: The minimum value of the property (if numeric) (inferred from validation_rules)
         maximum: The maximum value of the property (if numeric) (inferred from validation_rules)
+        pattern: The regex pattern of the property
     """
 
     name: str
@@ -138,6 +139,7 @@ class Node:  # pylint: disable=too-many-instance-attributes
     is_array: bool = field(init=False)
     minimum: Optional[float] = field(init=False)
     maximum: Optional[float] = field(init=False)
+    pattern: Optional[str] = field(init=False)
 
     def __post_init__(self) -> None:
         """
@@ -180,8 +182,6 @@ class Node:  # pylint: disable=too-many-instance-attributes
                 self.is_array = True
 
             type_rule = _get_type_rule_from_rule_list(validation_rules)
-            print(self.name)
-            print(type_rule)
             if type_rule:
                 self.type = TYPE_RULES.get(type_rule)
 
@@ -199,7 +199,7 @@ class Node:  # pylint: disable=too-many-instance-attributes
                     )
                 if self.type is None:
                     self.type = "number"
-                self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
+                self.minimum, self.maximum = _get_range_from_in_range_rule(range_rule)
 
             if regex_rule:
                 if self.type not in ["string", None]:
@@ -211,7 +211,7 @@ class Node:  # pylint: disable=too-many-instance-attributes
                 self.pattern = _get_pattern_from_regex_rule(regex_rule)
 
 
-def _get_ranges_from_range_rule(
+def _get_range_from_in_range_rule(
     rule: str,
 ) -> tuple[Optional[float], Optional[float]]:
     """
@@ -223,8 +223,8 @@ def _get_ranges_from_range_rule(
     Returns:
         The min and max from the rule
     """
-    range_min: Union[float, None] = None
-    range_max: Union[float, None] = None
+    range_min: Optional[float] = None
+    range_max: Optional[float] = None
     parameters = rule.split(" ")
     if len(parameters) > 1 and parameters[1].isnumeric():
         range_min = float(parameters[1])
@@ -292,10 +292,10 @@ def _get_rule_from_rule_list(rule_name: str, rule_list: list[str]) -> Optional[s
         rule_list: A list of validation rules
 
     Raises:
-        ValueError: When more than one inRange rule is found
+        ValueError: When more than one of the rule is found
 
     Returns:
-        The inRange rule if one is found, or None
+        The rule if one is found, otherwise None is returned
     """
     rule_list = [rule for rule in rule_list if rule.startswith(rule_name)]
     if len(rule_list) > 1:
@@ -518,7 +518,7 @@ def create_json_schema(  # pylint: disable=too-many-arguments
     datatype: str,
     schema_name: str,
     write_schema: bool = True,
-    schema_path: Union[str, None] = None,
+    schema_path: Optional[str] = None,
     jsonld_path: Optional[str] = None,
     use_property_display_names: bool = True,
     use_valid_value_display_names: bool = True,
