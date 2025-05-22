@@ -160,7 +160,7 @@ jobs:
 
         #run: >
         #  poetry run pytest --durations=0 --cov-append --cov-report=term --cov-report=html:htmlcov --cov-report=xml:coverage.xml --cov=schematic/
-        #  -m "single_process_execution" --reruns 4 --ignore=tests/unit
+        #  -m  "single_process_execution" --reruns 4 --ignore=tests/unit
 
 
       - name: Upload pytest test results
