@@ -55,24 +55,24 @@ def fixture_test_nodes(
     dmge: DataModelGraphExplorer,
 ) -> dict[str, Node]:
     """Yields dict of Nodes"""
-    node_tuples = [
-        ("CheckNone", "MockComponent"),
-        ("CheckNoneNotRequired", "MockComponent"),
-        ("CheckString", "MockComponent"),
-        ("CheckStringNotRequired", "MockComponent"),
-        ("CheckEnum", "MockComponent"),
-        ("CheckEnumNotRequired", "MockComponent"),
-        ("CheckRange", "MockComponent"),
-        ("CheckList", "MockComponent"),
-        ("CheckListEnum", "MockComponent"),
-        ("CheckListEnumNotRequired", "MockComponent"),
-        ("CheckListString", "MockComponent"),
-        ("CheckListInRange", "MockComponent"),
-        ("CheckListNotRequired", "MockComponent"),
+    nodes = [
+        "NoRules",
+        "NoRulesNotRequired",
+        "String",
+        "StringNotRequired",
+        "Enum",
+        "EnumNotRequired",
+        "Range",
+        "List",
+        "ListNotRequired",
+        "ListEnum",
+        "ListEnumNotRequired",
+        "ListString",
+        "ListInRange",
     ]
     nodes = {
-        node_name: Node(node_name, source_node, dmge)
-        for node_name, source_node in node_tuples
+        node: Node(node, "JSONSchemaComponent", dmge)
+        for node in nodes
     }
     return nodes
 
@@ -149,20 +149,20 @@ class TestJSONSchema:
     "node_name, expected_type, expected_is_array, expected_min, expected_max",
     [
         # If there are no type validation rules the type is None
-        ("CheckNone", None, False, None, None),
+        ("NoRules", None, False, None, None),
         # If there is one type validation rule the type is set to the
         #  JSON Schema equivalent of the validation rule
-        ("CheckString", "string", False, None, None),
+        ("String", "string", False, None, None),
         # If there are any list type validation rules then is_array is set to True
-        ("CheckList", None, True, None, None),
+        ("List", None, True, None, None),
         # If there are any list type validation rules and one type validation rule
         #  then is_array is set to True, and the type is set to the
         #  JSON Schema equivalent of the validation rule
-        ("CheckListString", "string", True, None, None),
+        ("ListString", "string", True, None, None),
         # If there is an inRange rule the min and max will be set
-        ("CheckRange", "number", False, 50, 100),
+        ("Range", "number", False, 50, 100),
     ],
-    ids=["CheckNone", "CheckString", "CheckList", "CheckListString", "CheckRange"],
+    ids=["None", "String", "List", "ListString", "Range"],
 )
 def test_node_init(
     node_name: str,
@@ -729,10 +729,10 @@ def test_set_conditional_dependencies(
     [
         # Array with an enum
         (
-            "CheckListEnum",
+            "ListEnum",
             JSONSchema(
                 properties={
-                    "CheckListEnum": {
+                    "ListEnum": {
                         "description": "TBD",
                         "oneOf": [
                             {
@@ -743,15 +743,15 @@ def test_set_conditional_dependencies(
                         ],
                     }
                 },
-                required=["CheckListEnum"],
+                required=["ListEnum"],
             ),
         ),
         # Array with an enum, required list should be empty
         (
-            "CheckListEnumNotRequired",
+            "ListEnumNotRequired",
             JSONSchema(
                 properties={
-                    "CheckListEnumNotRequired": {
+                    "ListEnumNotRequired": {
                         "description": "TBD",
                         "oneOf": [
                             {
@@ -768,38 +768,38 @@ def test_set_conditional_dependencies(
         ),
         # Enum, not array
         (
-            "CheckEnum",
+            "Enum",
             JSONSchema(
                 properties={
-                    "CheckEnum": {
+                    "Enum": {
                         "description": "TBD",
                         "oneOf": [{"enum": ["ab", "cd", "ef", "gh"], "title": "enum"}],
                     }
                 },
-                required=["CheckEnum"],
+                required=["Enum"],
             ),
         ),
         #  Array not enum
         (
-            "CheckList",
+            "List",
             JSONSchema(
                 properties={
-                    "CheckList": {
+                    "List": {
                         "oneOf": [
                             {"type": "array", "title": "array"},
                         ],
                         "description": "TBD",
                     }
                 },
-                required=["CheckList"],
+                required=["List"],
             ),
         ),
         # Not array or enum
         (
-            "CheckString",
+            "String",
             JSONSchema(
-                properties={"CheckString": {"description": "TBD", "type": "string"}},
-                required=["CheckString"],
+                properties={"String": {"description": "TBD", "type": "string"}},
+                required=["String"],
             ),
         ),
     ],
@@ -818,7 +818,7 @@ def test_set_property(
     "node_name, expected_schema, valid_values, invalid_values",
     [
         (
-            "CheckListEnum",
+            "ListEnum",
             {
                 "oneOf": [
                     {
@@ -833,7 +833,7 @@ def test_set_property(
         ),
         # If is_required is False, "{'type': 'null'}" is added to the oneOf list
         (
-            "CheckListEnumNotRequired",
+            "ListEnumNotRequired",
             {
                 "oneOf": [
                     {
@@ -873,14 +873,14 @@ def test_create_enum_array_property(
     "node_name, expected_schema, valid_values, invalid_values",
     [
         (
-            "CheckList",
+            "List",
             {"oneOf": [{"type": "array", "title": "array"}]},
             [[], [None], ["x"]],
             ["x", None],
         ),
         # If is_required is False, "{'type': 'null'}" is added to the oneOf list
         (
-            "CheckListNotRequired",
+            "ListNotRequired",
             {
                 "oneOf": [
                     {"type": "array", "title": "array"},
@@ -892,7 +892,7 @@ def test_create_enum_array_property(
         ),
         # If item_type is given, it is set in the schema
         (
-            "CheckListString",
+            "ListString",
             {
                 "oneOf": [
                     {"type": "array", "title": "array", "items": {"type": "string"}}
@@ -903,7 +903,7 @@ def test_create_enum_array_property(
         ),
         # If property_data has range_min or range_max, they are set in the schema
         (
-            "CheckListInRange",
+            "ListInRange",
             {
                 "oneOf": [
                     {
@@ -948,14 +948,14 @@ def test_create_array_property(
     [
         # If is_required is True, no type is added
         (
-            "CheckEnum",
+            "Enum",
             {"oneOf": [{"enum": ["ab", "cd", "ef", "gh"], "title": "enum"}]},
             ["ab"],
             [1, "x", None],
         ),
         # If is_required is False, "null" is added as a type
         (
-            "CheckEnumNotRequired",
+            "EnumNotRequired",
             {
                 "oneOf": [
                     {"enum": ["ab", "cd", "ef", "gh"], "title": "enum"},
@@ -990,10 +990,10 @@ def test_create_enum_property(
 @pytest.mark.parametrize(
     "node_name, expected_schema, valid_values, invalid_values",
     [
-        ("CheckNoneNotRequired", {}, [None, 1, ""], []),
+        ("NoRulesNotRequired", {}, [None, 1, ""], []),
         # If property_type is given, it is added to the schema
         (
-            "CheckString",
+            "String",
             {"type": "string"},
             [""],
             [1, None],
@@ -1001,7 +1001,7 @@ def test_create_enum_property(
         # If property_type is given, and is_required is False,
         # type is set to given property_type and "null"
         (
-            "CheckStringNotRequired",
+            "StringNotRequired",
             {
                 "oneOf": [
                     {"type": "string", "title": "string"},
@@ -1014,13 +1014,13 @@ def test_create_enum_property(
         # If is_required is True '"not": {"type":"null"}' is added to schema if
         # property_type is not given
         (
-            "CheckNone",
+            "NoRules",
             {"not": {"type": "null"}},
             ["x", 1],
             [None],
         ),
         (
-            "CheckRange",
+            "Range",
             {
                 "type": "number",
                 "minimum": 50,

@@ -20,20 +20,12 @@ CSV/TSV,,,Genome Build,,FALSE,ValidValue,,,
 Genome Build,,"GRCh37, GRCh38, GRCm38, GRCm39",,,TRUE,DataProperty,,,
 Genome FASTA,,,,,TRUE,DataProperty,,,
 MockComponent,Component to hold mock attributes for testing all validation rules,,"Component, Check List, Check List Enum, Check List Like, Check List Like Enum, Check List Strict, Check List Enum Strict, Check Regex List, Check Regex List Like, Check Regex List Strict, Check Regex Single, Check Regex Format, Check Regex Integer, Check Num, Check Float, Check Int, Check String, Check URL,Check Match at Least, Check Match at Least values, Check Match Exactly, Check Match Exactly values, Check Match None, Check Match None values, Check Recommended, Check Ages, Check Unique, Check Range, Check Date, Check NA",,FALSE,DataType,,,
-Check None,,,,,TRUE,DataProperty,,,
-Check None Not Required,,,,,FALSE,DataProperty,,,
-Check Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,
-Check Enum Not Required,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,
 Check List,,,,,TRUE,DataProperty,,,list
-Check List String,,,,,TRUE,DataProperty,,,list::str
-Check List InRange,,,,,TRUE,DataProperty,,,list::inRange 50 100
 Check List Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list
 Check List Like,,,,,TRUE,DataProperty,,,list like
 Check List Like Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list like
 Check List Strict,,,,,TRUE,DataProperty,,,list strict
 Check List Enum Strict,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list strict
-Check List Not Required,,,,,FALSE,DataProperty,,,list
-Check List Enum Not Required,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,list
 Check Regex List,,,,,TRUE,DataProperty,,,list::regex match [a-f]
 Check Regex List Strict,,,,,TRUE,DataProperty,,,list strict::regex match [a-f]
 Check Regex List Like,,,,,TRUE,DataProperty,,,list like::regex match [a-f]
@@ -44,7 +36,6 @@ Check Num,,,,,TRUE,DataProperty,,,num error
 Check Float,,,,,TRUE,DataProperty,,,float error
 Check Int,,,,,TRUE,DataProperty,,,int error
 Check String,,,,,TRUE,DataProperty,,,str error
-Check String Not Required,,,,,FALSE,DataProperty,,,str error
 Check URL,,,,,TRUE,DataProperty,,,url
 Check Match at Least,,,,,TRUE,DataProperty,,,matchAtLeastOne Patient.PatientID set
 Check Match Exactly,,,,,TRUE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly set
@@ -62,3 +53,21 @@ MockRDB,,,"Component, MockRDB_id, SourceManifest",,FALSE,DataType,,,
 MockRDB_id,,,,,TRUE,DataProperty,,,int
 SourceManifest,,,,,TRUE,DataProperty,,,
 MockFilename,,,"Component, Filename",,FALSE,DataType,,,
+JSONSchemaComponent,Component to hold attributes for testing JSON Schemas,,"Component, No Rules, No Rules Not Required, Enum, Enum Not Required, List String, List String, List InRange, List Not Required, List Enum Not Required, String Not Required, ",,FALSE,DataType,,,
+No Rules,,,,,TRUE,DataProperty,,,
+No Rules Not Required,,,,,FALSE,DataProperty,,,
+String,,,,,TRUE,DataProperty,,,str error
+String Not Required,,,,,FALSE,DataProperty,,,str error
+Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,
+Enum Not Required,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,
+Range,,,,,TRUE,DataProperty,,,inRange 50 100
+List,,,,,TRUE,DataProperty,,,list
+List Not Required,,,,,FALSE,DataProperty,,,list
+List Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list
+List Enum Not Required,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,list
+List String,,,,,TRUE,DataProperty,,,list::str
+List InRange,,,,,TRUE,DataProperty,,,list::inRange 50 100
+
+
+
+
