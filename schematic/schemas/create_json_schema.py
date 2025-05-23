@@ -735,18 +735,18 @@ def _set_property(
 
     if node.valid_values:
         if node.is_array:
-            schema = _create_enum_array_property(node, use_valid_value_display_names)
+            prop = _create_enum_array_property(node, use_valid_value_display_names)
         else:
-            schema = _create_enum_property(node, use_valid_value_display_names)
+            prop = _create_enum_property(node, use_valid_value_display_names)
 
     else:
         if node.is_array:
-            schema = _create_array_property(node)
+            prop = _create_array_property(node)
         else:
-            schema = _create_simple_property(node)
+            prop = _create_simple_property(node)
 
-    schema["description"] = node.description
-    schema_property = {node_name: schema}
+    prop["description"] = node.description
+    schema_property = {node_name: prop}
 
     json_schema.update_property(schema_property)
 
@@ -754,9 +754,12 @@ def _set_property(
         json_schema.add_required_property(node_name)
 
 
+
+Items =  dict[str, Union[str, float, list[str]]]
+Property = dict[str, Union[str, float, list, dict]]
 def _create_enum_array_property(
     node: Node, use_valid_value_display_names: bool = True
-) -> dict[str, Any]:
+) -> Property:
     """
     Creates a JSON Schema property array with enum items
 
@@ -784,22 +787,23 @@ def _create_enum_array_property(
         valid_values = node.valid_value_display_names
     else:
         valid_values = node.valid_values
+    items:Items = {"enum": valid_values}
     types = [
         {
             "type": "array",
             "title": "array",
-            "items": {"enum": valid_values},
+            "items": items,
         }
     ]
 
     if not node.is_required:
         types += [{"type": "null", "title": "null"}]
 
-    schema = {"oneOf": types}
-    return schema  # type: ignore
+    enum_array_property:Property = {"oneOf": types}
+    return enum_array_property  # type: ignore
 
-
-def _create_array_property(node: Node) -> dict[str, Any]:
+TypeDict = dict[str, Union[str, Items]]
+def _create_array_property(node: Node) -> Property:
     """
     Creates a JSON Schema property array
 
@@ -821,9 +825,9 @@ def _create_array_property(node: Node) -> dict[str, Any]:
         JSON object
     """
 
-    array_dict: dict[str, Any] = {"type": "array", "title": "array"}
 
-    items: dict[str, Any] = {}
+
+    items: Items = {}
     if node.type:
         items["type"] = node.type
     if node.minimum is not None:
@@ -831,20 +835,22 @@ def _create_array_property(node: Node) -> dict[str, Any]:
     if node.maximum is not None:
         items["maximum"] = node.maximum
 
+    array_type_dict:TypeDict = {"type": "array", "title": "array"}
+    null_type_dict:TypeDict = {"type": "null", "title": "null"}
+
     if items:
-        array_dict["items"] = items
+        array_type_dict["items"] = items
 
-    types = [array_dict]
+    types = [array_type_dict]
     if not node.is_required:
-        types.append({"type": "null", "title": "null"})
+        types.append(null_type_dict)
 
-    schema = {"oneOf": types}
-    return schema
-
+    array_property:Property = {"oneOf": types}
+    return array_property
 
 def _create_enum_property(
     node: Node, use_valid_value_display_names: bool = True
-) -> dict[str, Any]:
+) -> Property:
     """
     Creates a JSON Schema property enum
 
@@ -866,15 +872,16 @@ def _create_enum_property(
         valid_values = node.valid_value_display_names
     else:
         valid_values = node.valid_values
-    schema: dict[str, Any] = {}
-    one_of_list: list[dict[str, Any]] = [{"enum": valid_values, "title": "enum"}]
+
+    enum_property: Property = {}
+    one_of_list = [{"enum": valid_values, "title": "enum"}]
     if not node.is_required:
         one_of_list += [{"type": "null", "title": "null"}]
-    schema["oneOf"] = one_of_list
-    return schema
+    enum_property["oneOf"] = one_of_list
 
+    return enum_property
 
-def _create_simple_property(node: Node) -> dict[str, Any]:
+def _create_simple_property(node: Node) -> Property:
     """
     Creates a JSON Schema property
 
@@ -892,22 +899,22 @@ def _create_simple_property(node: Node) -> dict[str, Any]:
     Returns:
         JSON object
     """
-    schema: dict[str, Any] = {}
+    prop: Property = {}
 
     if node.type:
         if node.is_required:
-            schema["type"] = node.type
+            prop["type"] = node.type
         else:
-            schema["oneOf"] = [
+            prop["oneOf"] = [
                 {"type": node.type, "title": node.type},
                 {"type": "null", "title": "null"},
             ]
     elif node.is_required:
-        schema["not"] = {"type": "null"}
+        prop["not"] = {"type": "null"}
 
     if node.minimum is not None:
-        schema["minimum"] = node.minimum
+        prop["minimum"] = node.minimum
     if node.maximum is not None:
-        schema["maximum"] = node.maximum
+        prop["maximum"] = node.maximum
 
-    return schema
+    return prop
