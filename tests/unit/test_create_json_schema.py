@@ -451,6 +451,7 @@ class TestGraphTraversalState:
     [
         ("Biospecimen"),
         ("BulkRNA-seqAssay"),
+        ("JSONSchemaComponent"),
         ("MockComponent"),
         ("MockFilename"),
         ("MockRDB"),
@@ -459,6 +460,7 @@ class TestGraphTraversalState:
     ids=[
         "Biospecimen",
         "BulkRNA-seqAssay",
+        "JSONSchemaComponent",
         "MockComponent",
         "MockFilename",
         "MockRDB",

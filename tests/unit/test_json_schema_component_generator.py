@@ -73,6 +73,7 @@ class TestJsonSchemaGeneratorDirector:
                     "MockComponent",
                     "MockRDB",
                     "MockFilename",
+                    "JSONSchemaComponent"
                 ],
             ),
         ],
