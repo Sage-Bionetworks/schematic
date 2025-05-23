@@ -67,7 +67,3 @@ List Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list
 List Enum Not Required,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,list
 List String,,,,,TRUE,DataProperty,,,list::str
 List InRange,,,,,TRUE,DataProperty,,,list::inRange 50 100
-
-
-
-

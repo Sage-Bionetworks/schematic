@@ -26,6 +26,7 @@ from schematic.schemas.data_model_parser import DataModelParser
 SCHEMA_TEST_ORG = "dpetest"
 SCHEMA_TEST_VERSION = "0.0.1"
 
+
 @pytest.fixture(name="dmge", scope="module")
 def fixture_dmge() -> DataModelGraphExplorer:
     """
@@ -114,9 +115,7 @@ def fixture_mock_component_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(
-        schema, synapse_module_scope
-    )
+    schema_name = upload_schema_to_synapse(schema, synapse_module_scope)
 
     def delete_schema():
         js.delete_json_schema(f"{SCHEMA_TEST_ORG}-{schema_name}")
@@ -143,9 +142,7 @@ def fixture_mock_filename_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(
-        schema, synapse_module_scope
-    )
+    schema_name = upload_schema_to_synapse(schema, synapse_module_scope)
 
     def delete_schema():
         js.delete_json_schema(f"{SCHEMA_TEST_ORG}-{schema_name}")
@@ -172,9 +169,7 @@ def fixture_mock_rdb_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(
-        schema, synapse_module_scope
-    )
+    schema_name = upload_schema_to_synapse(schema, synapse_module_scope)
 
     def delete_schema():
         js.delete_json_schema(f"{SCHEMA_TEST_ORG}-{schema_name}")
@@ -202,7 +197,8 @@ def fixture_patient_json_schema(
         use_property_display_names=False,
     )
     schema_name = upload_schema_to_synapse(
-        schema, synapse_module_scope,
+        schema,
+        synapse_module_scope,
     )
 
     def delete_schema():
@@ -231,9 +227,7 @@ def fixture_synapse_folder(syn: Synapse, request) -> str:
     return folder.id
 
 
-def upload_schema_to_synapse(
-    schema: dict[str, Any], syn: Synapse
-) -> str:
+def upload_schema_to_synapse(schema: dict[str, Any], syn: Synapse) -> str:
     """Uploads a JSON Schema file to Synapse
 
     Arguments:

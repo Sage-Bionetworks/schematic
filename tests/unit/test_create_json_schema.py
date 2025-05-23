@@ -70,10 +70,7 @@ def fixture_test_nodes(
         "ListString",
         "ListInRange",
     ]
-    nodes = {
-        node: Node(node, "JSONSchemaComponent", dmge)
-        for node in nodes
-    }
+    nodes = {node: Node(node, "JSONSchemaComponent", dmge) for node in nodes}
     return nodes
 
 

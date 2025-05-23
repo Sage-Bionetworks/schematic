@@ -26,6 +26,8 @@ def request_headers(syn_token: str) -> Dict[str, str]:
     """Simple bearer token header for requests"""
     headers = {"Authorization": "Bearer " + syn_token}
     return headers
+
+
 @pytest.mark.single_process_execution
 class TestManifestSubmission:
     def validate_submitted_manifest_file(

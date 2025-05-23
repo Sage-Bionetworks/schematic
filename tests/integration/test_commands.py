@@ -139,6 +139,7 @@ class TestValidateCommand:
         #   is not included in the test
         assert result.output.split("\n")[4].startswith("error: 'Random' is not one of")
 
+
 @pytest.mark.single_process_execution
 class TestManifestCommand:
     """Tests the schematic/manifest/commands validate manifest command"""
