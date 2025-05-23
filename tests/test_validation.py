@@ -34,7 +34,7 @@ def get_rule_combinations():
         else:
             continue
 
-
+@pytest.mark.single_process_execution
 class TestManifestValidation:
     @pytest.mark.parametrize(
         ("model_name", "manifest_name", "root_node"),
