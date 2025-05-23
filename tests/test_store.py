@@ -1139,6 +1139,7 @@ class TestDatasetFileView:
         assert_frame_equal(table, expected_metadata)
 
 
+@pytest.mark.single_process_execution
 @pytest.mark.table_operations
 class TestTableOperations:
     @pytest.mark.slow_test
