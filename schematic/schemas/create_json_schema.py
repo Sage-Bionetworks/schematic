@@ -29,6 +29,12 @@ TYPE_RULES = {
     "bool": "boolean",
 }
 
+# Complex types
+Items = dict[str, Union[str, float, list[str]]]
+Property = dict[str, Union[str, float, list, dict]]
+TypeDict = dict[str, Union[str, Items]]
+AllOf = dict[str, Any]
+
 
 @dataclass
 class JSONSchema:  # pylint: disable=too-many-instance-attributes
@@ -52,11 +58,13 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
     schema: str = "http://json-schema.org/draft-07/schema#"
     type: str = "object"
     description: str = "TBD"
-    properties: dict[str, Any] = field(default_factory=dict)
+    properties: dict[str, Property] = field(default_factory=dict)
     required: list[str] = field(default_factory=list)
-    all_of: list[dict[str, Any]] = field(default_factory=list)
+    all_of: list[AllOf] = field(default_factory=list)
 
-    def as_json_schema_dict(self) -> dict[str, Any]:
+    def as_json_schema_dict(
+        self,
+    ) -> dict[str, Union[str, dict[str, Property], list[str], list[AllOf]]]:
         """
         Returns class as a JSON Schema dictionary, with proper keywords
 
@@ -84,7 +92,7 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
         """
         self.required.append(name)
 
-    def add_to_all_of_list(self, item: dict[str, Any]) -> None:
+    def add_to_all_of_list(self, item: AllOf) -> None:
         """
         Adds a property to the all_of list
 
@@ -93,7 +101,7 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
         """
         self.all_of.append(item)
 
-    def update_property(self, property_dict: dict[str, Any]) -> None:
+    def update_property(self, property_dict: dict[str, Property]) -> None:
         """
         Updates the property dict
 
@@ -111,9 +119,7 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
                 f"Attempting to add property dict with more than one key: {property_dict}"
             )
         if len(keys) == 0:
-            raise ValueError(
-                f"Attempting to add empty property dict: {property_dict}"
-            )
+            raise ValueError(f"Attempting to add empty property dict: {property_dict}")
         if keys[0] in self.properties:
             raise ValueError(
                 f"Attempting to add property that already exists: {property_dict}"
@@ -754,9 +760,6 @@ def _set_property(
         json_schema.add_required_property(node_name)
 
 
-
-Items =  dict[str, Union[str, float, list[str]]]
-Property = dict[str, Union[str, float, list, dict]]
 def _create_enum_array_property(
     node: Node, use_valid_value_display_names: bool = True
 ) -> Property:
@@ -787,7 +790,7 @@ def _create_enum_array_property(
         valid_values = node.valid_value_display_names
     else:
         valid_values = node.valid_values
-    items:Items = {"enum": valid_values}
+    items: Items = {"enum": valid_values}
     types = [
         {
             "type": "array",
@@ -799,10 +802,10 @@ def _create_enum_array_property(
     if not node.is_required:
         types += [{"type": "null", "title": "null"}]
 
-    enum_array_property:Property = {"oneOf": types}
+    enum_array_property: Property = {"oneOf": types}
     return enum_array_property  # type: ignore
 
-TypeDict = dict[str, Union[str, Items]]
+
 def _create_array_property(node: Node) -> Property:
     """
     Creates a JSON Schema property array
@@ -825,8 +828,6 @@ def _create_array_property(node: Node) -> Property:
         JSON object
     """
 
-
-
     items: Items = {}
     if node.type:
         items["type"] = node.type
@@ -835,8 +836,8 @@ def _create_array_property(node: Node) -> Property:
     if node.maximum is not None:
         items["maximum"] = node.maximum
 
-    array_type_dict:TypeDict = {"type": "array", "title": "array"}
-    null_type_dict:TypeDict = {"type": "null", "title": "null"}
+    array_type_dict: TypeDict = {"type": "array", "title": "array"}
+    null_type_dict: TypeDict = {"type": "null", "title": "null"}
 
     if items:
         array_type_dict["items"] = items
@@ -845,8 +846,9 @@ def _create_array_property(node: Node) -> Property:
     if not node.is_required:
         types.append(null_type_dict)
 
-    array_property:Property = {"oneOf": types}
+    array_property: Property = {"oneOf": types}
     return array_property
+
 
 def _create_enum_property(
     node: Node, use_valid_value_display_names: bool = True
@@ -880,6 +882,7 @@ def _create_enum_property(
     enum_property["oneOf"] = one_of_list
 
     return enum_property
+
 
 def _create_simple_property(node: Node) -> Property:
     """
