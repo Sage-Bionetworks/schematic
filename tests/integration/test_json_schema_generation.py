@@ -22,6 +22,7 @@ def data_model_jsonld(helpers):
     yield data_model_jsonld
 
 
+@pytest.mark.single_process_execution
 class TestSchemaCli:
     # TODO: change url target to develop branch
     @pytest.mark.parametrize(
