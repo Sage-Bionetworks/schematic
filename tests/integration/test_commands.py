@@ -26,6 +26,7 @@ def fixture_runner() -> CliRunner:
     """Fixture for invoking command-line interfaces."""
     return CliRunner()
 
+
 @pytest.mark.single_process_execution
 class TestSubmitCommand:
     """
