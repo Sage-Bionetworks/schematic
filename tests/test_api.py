@@ -596,6 +596,7 @@ class TestDataModelGraphExplorerOperation:
                 assert "TissueStatus" in response_dt
 
 
+@pytest.mark.single_process_execution
 @pytest.mark.schematic_api
 class TestManifestOperation:
     def ifExcelExists(self, response, file_name) -> None:
