@@ -1007,7 +1007,7 @@ class TestSynapseStorage:
         )
         assert dataset_clause == expected_clause
 
-
+@pytest.mark.single_process_execution
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
         assert dataset_fileview.datasetId == dataset_id
@@ -1467,7 +1467,7 @@ class TestDownloadManifest:
                 in caplog.text
             )
 
-
+@pytest.mark.single_process_execution
 class TestManifestUpload:
     """Test manifest upload"""
 
