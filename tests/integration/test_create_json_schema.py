@@ -246,7 +246,6 @@ def upload_schema_to_synapse(schema: dict[str, Any], syn: Synapse) -> str:
     return schema_name
 
 
-
 @pytest.mark.parametrize(
     "schema_fixture",
     [
@@ -264,7 +263,6 @@ def test_upload_schemas_fixtures(schema_fixture: str, request) -> None:
     This tests that each test schema can be uploaded successfully.
     """
     request.getfixturevalue(schema_fixture)
-
 
 
 @pytest.mark.parametrize(
