@@ -50,7 +50,6 @@ def file_instance() -> File:
     )
 
 
-@pytest.mark.single_process_execution
 class TestMetadataModel:
     """Test suite for verifying the submission and annotation of file-based manifests."""
 
