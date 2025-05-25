@@ -23,6 +23,7 @@ def request_headers(syn_token: str) -> Dict[str, str]:
     return headers
 
 
+@pytest.mark.single_process_execution
 class TestManifestValidation:
     @pytest.mark.local_or_remote_api
     @pytest.mark.parametrize(

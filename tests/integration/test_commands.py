@@ -72,6 +72,7 @@ class TestSubmitCommand:
         ) in result.output
 
 
+@pytest.mark.single_process_execution
 class TestValidateCommand:
     """Tests the schematic/models/commands validate command"""
 
@@ -1305,6 +1306,7 @@ class TestManifestCommand:
                 assert sheet1[f"{columns[col]}1"].fill.start_color.index == GRAY
 
 
+@pytest.mark.single_process_execution
 class TestDownloadManifest:
     """Tests the command line interface for downloading a manifest"""
 

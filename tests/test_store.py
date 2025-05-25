@@ -141,12 +141,14 @@ def raise_final_error(retry_state):
     return retry_state.outcome.result()
 
 
+@pytest.mark.single_process_execution
 class TestBaseStorage:
     def test_init(self):
         with pytest.raises(NotImplementedError):
             BaseStorage()
 
 
+@pytest.mark.single_process_execution
 class TestSynapseStorage:
     "Tests the SynapseStorage class"
 
@@ -175,7 +177,6 @@ class TestSynapseStorage:
         assert synapse_client.cache.cache_root_dir == "test_cache_dir"
         shutil.rmtree("test_cache_dir")
 
-    @pytest.mark.single_process_execution
     @pytest.mark.parametrize(
         "project_scope,columns,where_clauses,expected,expected_new_query",
         [
@@ -356,7 +357,6 @@ class TestSynapseStorage:
             # assert that the correct number of files were found
             assert len(files_and_Ids["entityId"]) == 2
 
-    @pytest.mark.single_process_execution
     @pytest.mark.parametrize(
         "test_annotations, dataset_id, manifest_record_type, temporary_file_copy",
         [
@@ -1384,6 +1384,7 @@ class TestTableOperations:
         assert table_query["SourceManifest"][3] == "Manifest2"
 
 
+@pytest.mark.single_process_execution
 class TestDownloadManifest:
     @pytest.mark.parametrize(
         "datasetFileView",

@@ -155,6 +155,7 @@ def request_invalid_headers() -> Dict[str, str]:
     return headers
 
 
+@pytest.mark.single_process_execution
 @pytest.mark.schematic_api
 class TestSynapseStorage:
     def test_invalid_authentication(
