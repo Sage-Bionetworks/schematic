@@ -246,6 +246,7 @@ def upload_schema_to_synapse(schema: dict[str, Any], syn: Synapse) -> str:
     return schema_name
 
 
+@pytest.mark.single_process_execution
 @pytest.mark.parametrize(
     "schema_fixture",
     [
@@ -265,6 +266,7 @@ def test_upload_schemas_fixtures(schema_fixture: str, request) -> None:
     request.getfixturevalue(schema_fixture)
 
 
+@pytest.mark.single_process_execution
 @pytest.mark.parametrize(
     "instance_path, is_valid, messages, schema_fixture",
     [
