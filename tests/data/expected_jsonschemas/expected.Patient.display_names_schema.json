@@ -14,14 +14,14 @@
       },
       "then": {
         "properties": {
-          "CancerType": {
+          "Cancer Type": {
             "not": {
               "type": "null"
             }
           }
         },
         "required": [
-          "CancerType"
+          "Cancer Type"
         ]
       }
     },
@@ -37,21 +37,21 @@
       },
       "then": {
         "properties": {
-          "FamilyHistory": {
+          "Family History": {
             "not": {
               "type": "null"
             }
           }
         },
         "required": [
-          "FamilyHistory"
+          "Family History"
         ]
       }
     }
   ],
   "description": "TBD",
   "properties": {
-    "CancerType": {
+    "Cancer Type": {
       "description": "TBD",
       "oneOf": [
         {
@@ -88,7 +88,7 @@
         }
       ]
     },
-    "FamilyHistory": {
+    "Family History": {
       "description": "TBD",
       "oneOf": [
         {
@@ -110,7 +110,7 @@
         }
       ]
     },
-    "PatientID": {
+    "Patient ID": {
       "description": "TBD",
       "not": {
         "type": "null"
@@ -129,14 +129,14 @@
         }
       ]
     },
-    "YearofBirth": {
+    "Year of Birth": {
       "description": "TBD"
     }
   },
   "required": [
     "Component",
     "Diagnosis",
-    "PatientID",
+    "Patient ID",
     "Sex"
   ],
   "title": "Patient_validation",

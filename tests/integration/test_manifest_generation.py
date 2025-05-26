@@ -21,6 +21,7 @@ GRAY = "FFE0E0E0"  # Header cell
 WHITE = "00000000"  # Optional cell
 
 
+@pytest.mark.local_only
 class TestManifestGeneration:
     @pytest.mark.manual_verification_required
     @pytest.mark.local_or_remote_api

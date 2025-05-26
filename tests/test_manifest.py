@@ -124,6 +124,7 @@ def app():
     yield app
 
 
+@pytest.mark.single_process_execution
 class TestManifestGenerator:
     def test_init(self, helpers):
         path_to_data_model = helpers.get_data_path("example.model.jsonld")

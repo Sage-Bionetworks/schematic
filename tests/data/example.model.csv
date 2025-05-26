@@ -53,3 +53,17 @@ MockRDB,,,"Component, MockRDB_id, SourceManifest",,FALSE,DataType,,,
 MockRDB_id,,,,,TRUE,DataProperty,,,int
 SourceManifest,,,,,TRUE,DataProperty,,,
 MockFilename,,,"Component, Filename",,FALSE,DataType,,,
+JSONSchemaComponent,Component to hold attributes for testing JSON Schemas,,"Component, No Rules, No Rules Not Required, Enum, Enum Not Required, List String, List String, List InRange, List Not Required, List Enum Not Required, String Not Required, ",,FALSE,DataType,,,
+No Rules,,,,,TRUE,DataProperty,,,
+No Rules Not Required,,,,,FALSE,DataProperty,,,
+String,,,,,TRUE,DataProperty,,,str error
+String Not Required,,,,,FALSE,DataProperty,,,str error
+Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,
+Enum Not Required,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,
+Range,,,,,TRUE,DataProperty,,,inRange 50 100
+List,,,,,TRUE,DataProperty,,,list
+List Not Required,,,,,FALSE,DataProperty,,,list
+List Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list
+List Enum Not Required,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,list
+List String,,,,,TRUE,DataProperty,,,list::str
+List InRange,,,,,TRUE,DataProperty,,,list::inRange 50 100

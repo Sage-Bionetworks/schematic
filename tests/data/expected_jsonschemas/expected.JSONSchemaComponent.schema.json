@@ -1,0 +1,136 @@
+{
+  "$id": "http://example.com/JSONSchemaComponent_validation",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Component to hold attributes for testing JSON Schemas",
+  "properties": {
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "Enum": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "ab",
+            "cd",
+            "ef",
+            "gh"
+          ],
+          "title": "enum"
+        }
+      ]
+    },
+    "EnumNotRequired": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "ab",
+            "cd",
+            "ef",
+            "gh"
+          ],
+          "title": "enum"
+        },
+        {
+          "title": "null",
+          "type": "null"
+        }
+      ]
+    },
+    "ListEnumNotRequired": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "items": {
+            "enum": [
+              "ab",
+              "cd",
+              "ef",
+              "gh"
+            ]
+          },
+          "title": "array",
+          "type": "array"
+        },
+        {
+          "title": "null",
+          "type": "null"
+        }
+      ]
+    },
+    "ListInRange": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "items": {
+            "maximum": 100.0,
+            "minimum": 50.0,
+            "type": "number"
+          },
+          "title": "array",
+          "type": "array"
+        }
+      ]
+    },
+    "ListNotRequired": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "title": "array",
+          "type": "array"
+        },
+        {
+          "title": "null",
+          "type": "null"
+        }
+      ]
+    },
+    "ListString": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "title": "array",
+          "type": "array"
+        }
+      ]
+    },
+    "NoRules": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      }
+    },
+    "NoRulesNotRequired": {
+      "description": "TBD"
+    },
+    "StringNotRequired": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "title": "string",
+          "type": "string"
+        },
+        {
+          "title": "null",
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "Component",
+    "Enum",
+    "ListInRange",
+    "ListString",
+    "NoRules"
+  ],
+  "title": "JSONSchemaComponent_validation",
+  "type": "object"
+}

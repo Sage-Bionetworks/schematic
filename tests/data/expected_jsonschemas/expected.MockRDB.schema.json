@@ -5,21 +5,16 @@
   "properties": {
     "Component": {
       "description": "TBD",
-      "minLength": 1,
       "not": {
         "type": "null"
       }
     },
-    "MockRDB_id": {
+    "MockRDBId": {
       "description": "TBD",
-      "minLength": 1,
-      "not": {
-        "type": "null"
-      }
+      "type": "integer"
     },
     "SourceManifest": {
       "description": "TBD",
-      "minLength": 1,
       "not": {
         "type": "null"
       }
@@ -27,7 +22,7 @@
   },
   "required": [
     "Component",
-    "MockRDB_id",
+    "MockRDBId",
     "SourceManifest"
   ],
   "title": "MockRDB_validation",

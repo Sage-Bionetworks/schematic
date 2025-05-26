@@ -15,6 +15,7 @@ from schematic.utils.general import SYN_ID_REGEX
 from schematic.utils.validate_utils import comma_separated_list_regex
 
 
+@pytest.mark.single_process_execution
 class TestStoreSynapse:
     @pytest.mark.parametrize("hideBlanks", [True, False])
     @pytest.mark.parametrize(

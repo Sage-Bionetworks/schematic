@@ -5,39 +5,41 @@
   "properties": {
     "Component": {
       "description": "TBD",
-      "minLength": 1,
       "not": {
         "type": "null"
       }
     },
-    "Patient ID": {
+    "PatientID": {
       "description": "TBD",
-      "minLength": 1,
       "not": {
         "type": "null"
       }
     },
-    "Sample ID": {
+    "SampleID": {
       "description": "TBD",
-      "minLength": 1,
       "not": {
         "type": "null"
       }
     },
-    "Tissue Status": {
+    "TissueStatus": {
       "description": "TBD",
-      "enum": [
-        "Malignant",
-        "None",
-        "Healthy"
+      "oneOf": [
+        {
+          "enum": [
+            "Healthy",
+            "Malignant",
+            "None"
+          ],
+          "title": "enum"
+        }
       ]
     }
   },
   "required": [
-    "Sample ID",
     "Component",
-    "Patient ID",
-    "Tissue Status"
+    "PatientID",
+    "SampleID",
+    "TissueStatus"
   ],
   "title": "Biospecimen_validation",
   "type": "object"

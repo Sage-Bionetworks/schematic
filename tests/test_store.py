@@ -141,12 +141,14 @@ def raise_final_error(retry_state):
     return retry_state.outcome.result()
 
 
+@pytest.mark.single_process_execution
 class TestBaseStorage:
     def test_init(self):
         with pytest.raises(NotImplementedError):
             BaseStorage()
 
 
+@pytest.mark.single_process_execution
 class TestSynapseStorage:
     "Tests the SynapseStorage class"
 
@@ -1006,6 +1008,7 @@ class TestSynapseStorage:
         assert dataset_clause == expected_clause
 
 
+@pytest.mark.single_process_execution
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
         assert dataset_fileview.datasetId == dataset_id
@@ -1137,6 +1140,7 @@ class TestDatasetFileView:
         assert_frame_equal(table, expected_metadata)
 
 
+@pytest.mark.single_process_execution
 @pytest.mark.table_operations
 class TestTableOperations:
     @pytest.mark.slow_test
@@ -1380,6 +1384,7 @@ class TestTableOperations:
         assert table_query["SourceManifest"][3] == "Manifest2"
 
 
+@pytest.mark.single_process_execution
 class TestDownloadManifest:
     @pytest.mark.parametrize(
         "datasetFileView",
@@ -1465,6 +1470,7 @@ class TestDownloadManifest:
             )
 
 
+@pytest.mark.single_process_execution
 class TestManifestUpload:
     """Test manifest upload"""
 
