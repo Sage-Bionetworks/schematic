@@ -481,7 +481,6 @@ class TestGraphTraversalState:
         assert gts._nodes_to_process[4] == "NewNode"
 
 
-
 @pytest.mark.parametrize(
     "datatype",
     [
@@ -681,7 +680,7 @@ def test_write_data_model_exception() -> None:
     ids=[
         "No reverse dependencies",
         "No valid values",
-    ]
+    ],
 )
 def test_set_conditional_dependencies_nothing_added(
     reverse_dependencies: dict[str, list[str]],
