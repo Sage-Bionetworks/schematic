@@ -5,7 +5,7 @@
     {
       "if": {
         "properties": {
-          "FileFormat": {
+          "File Format": {
             "enum": [
               "BAM"
             ]
@@ -14,21 +14,21 @@
       },
       "then": {
         "properties": {
-          "GenomeBuild": {
+          "Genome Build": {
             "not": {
               "type": "null"
             }
           }
         },
         "required": [
-          "GenomeBuild"
+          "Genome Build"
         ]
       }
     },
     {
       "if": {
         "properties": {
-          "FileFormat": {
+          "File Format": {
             "enum": [
               "CRAM"
             ]
@@ -37,21 +37,21 @@
       },
       "then": {
         "properties": {
-          "GenomeBuild": {
+          "Genome Build": {
             "not": {
               "type": "null"
             }
           }
         },
         "required": [
-          "GenomeBuild"
+          "Genome Build"
         ]
       }
     },
     {
       "if": {
         "properties": {
-          "FileFormat": {
+          "File Format": {
             "enum": [
               "CSV/TSV"
             ]
@@ -60,21 +60,21 @@
       },
       "then": {
         "properties": {
-          "GenomeBuild": {
+          "Genome Build": {
             "not": {
               "type": "null"
             }
           }
         },
         "required": [
-          "GenomeBuild"
+          "Genome Build"
         ]
       }
     },
     {
       "if": {
         "properties": {
-          "FileFormat": {
+          "File Format": {
             "enum": [
               "CRAM"
             ]
@@ -83,14 +83,14 @@
       },
       "then": {
         "properties": {
-          "GenomeFASTA": {
+          "Genome FASTA": {
             "not": {
               "type": "null"
             }
           }
         },
         "required": [
-          "GenomeFASTA"
+          "Genome FASTA"
         ]
       }
     }
@@ -103,7 +103,7 @@
         "type": "null"
       }
     },
-    "FileFormat": {
+    "File Format": {
       "description": "TBD",
       "oneOf": [
         {
@@ -123,7 +123,7 @@
         "type": "null"
       }
     },
-    "GenomeBuild": {
+    "Genome Build": {
       "description": "TBD",
       "oneOf": [
         {
@@ -141,10 +141,10 @@
         }
       ]
     },
-    "GenomeFASTA": {
+    "Genome FASTA": {
       "description": "TBD"
     },
-    "SampleID": {
+    "Sample ID": {
       "description": "TBD",
       "not": {
         "type": "null"
@@ -153,9 +153,9 @@
   },
   "required": [
     "Component",
-    "FileFormat",
+    "File Format",
     "Filename",
-    "SampleID"
+    "Sample ID"
   ],
   "title": "BulkRNA-seqAssay_validation",
   "type": "object"
