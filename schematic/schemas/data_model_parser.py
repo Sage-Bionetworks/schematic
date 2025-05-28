@@ -18,6 +18,8 @@ tracer = trace.get_tracer("Schematic")
 
 
 class AllowedValuesMixin:
+    dmr: DataModelRelationships
+
     def _check_allowed_values(
         self, entry_id: str, value: Any, relationship: str
     ) -> None:
