@@ -7,7 +7,8 @@
       "description": "TBD",
       "not": {
         "type": "null"
-      }
+      },
+      "title": "Component"
     },
     "Enum": {
       "description": "TBD",
@@ -21,7 +22,8 @@
           ],
           "title": "enum"
         }
-      ]
+      ],
+      "title": "Enum"
     },
     "EnumNotRequired": {
       "description": "TBD",
@@ -39,7 +41,8 @@
           "title": "null",
           "type": "null"
         }
-      ]
+      ],
+      "title": "Enum Not Required"
     },
     "ListEnumNotRequired": {
       "description": "TBD",
@@ -60,7 +63,8 @@
           "title": "null",
           "type": "null"
         }
-      ]
+      ],
+      "title": "List Enum Not Required"
     },
     "ListInRange": {
       "description": "TBD",
@@ -74,7 +78,8 @@
           "title": "array",
           "type": "array"
         }
-      ]
+      ],
+      "title": "List InRange"
     },
     "ListNotRequired": {
       "description": "TBD",
@@ -87,7 +92,8 @@
           "title": "null",
           "type": "null"
         }
-      ]
+      ],
+      "title": "List Not Required"
     },
     "ListString": {
       "description": "TBD",
@@ -99,16 +105,19 @@
           "title": "array",
           "type": "array"
         }
-      ]
+      ],
+      "title": "List String"
     },
     "NoRules": {
       "description": "TBD",
       "not": {
         "type": "null"
-      }
+      },
+      "title": "No Rules"
     },
     "NoRulesNotRequired": {
-      "description": "TBD"
+      "description": "TBD",
+      "title": "No Rules Not Required"
     },
     "StringNotRequired": {
       "description": "TBD",
@@ -121,7 +130,8 @@
           "title": "null",
           "type": "null"
         }
-      ]
+      ],
+      "title": "String Not Required"
     }
   },
   "required": [
