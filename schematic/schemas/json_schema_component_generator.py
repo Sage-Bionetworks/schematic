@@ -12,6 +12,7 @@ from schematic.schemas.create_json_schema import create_json_schema
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.utils.io_utils import export_json
+from schematic.utils.schema_utils import parsed_model_as_dataframe
 
 
 class JsonSchemaGeneratorDirector:
@@ -82,7 +83,7 @@ class JsonSchemaGeneratorDirector:
 
         # To represent each attribute of the nested model dictionary as a column in a dataframe,
         # it must be unpacked and the index reset
-        attrs = DataModelParser.parsed_model_as_dataframe(self.parsed_model)
+        attrs = parsed_model_as_dataframe(self.parsed_model)
 
         # Get a series of boolean values that can be used to identify which attributes (rows) have 'Component' in the DependsOn column
         string_depends_on = attrs.DependsOn
