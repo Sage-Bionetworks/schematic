@@ -17,6 +17,26 @@ logger = logging.getLogger("Schemas")
 tracer = trace.get_tracer("Schematic")
 
 
+class AllowedValuesMixin:
+    def _check_allowed_values(
+        self, entry_id: str, value: Any, relationship: str
+    ) -> None:
+        """Checks that the entry is in the allowed values if they exist for the relationship
+
+        Args:
+            entry_id: The id of the entry
+            value: The value to check
+            relationship (str): The name of the relationship to check for allowed values
+
+        Raises:
+            ValueError: If the value isn't in the list of allowed values
+        """
+        allowed_values = self.dmr.get_allowed_values(relationship)
+        if allowed_values and value not in allowed_values:
+            msg = f"For entry: '{entry_id}', '{value}' not in allowed values: {allowed_values}"
+            raise ValueError(msg)
+
+
 class DataModelParser:
     """
     This class takes in a path to a data model and will convert it to an
@@ -120,7 +140,7 @@ class DataModelParser:
         return model_dict
 
 
-class DataModelCSVParser:
+class DataModelCSVParser(AllowedValuesMixin):
     """DataModelCSVParser"""
 
     def __init__(self) -> None:
@@ -256,7 +276,7 @@ class DataModelCSVParser:
         return model_dict
 
 
-class DataModelJSONLDParser:
+class DataModelJSONLDParser(AllowedValuesMixin):
     """DataModelJSONLDParser"""
 
     def __init__(
@@ -536,24 +556,6 @@ class DataModelJSONLDParser:
                             {rel_key: parsed_rel_entry}
                         )
         return attr_rel_dictionary
-
-    def _check_allowed_values(
-        self, entry_id: str, value: Any, relationship: str
-    ) -> None:
-        """Checks that the entry is in the allowed values if they exist for the relationship
-
-        Args:
-            entry_id: The id of the entry
-            value: The value to check
-            relationship (str): The name of the relationship to check for allowed values
-
-        Raises:
-            ValueError: If the value isn't in the list of allowed values
-        """
-        allowed_values = self.dmr.get_allowed_values(relationship)
-        if allowed_values and value not in allowed_values:
-            msg = f"For entry: '{entry_id}', '{value}' not in allowed values: {allowed_values}"
-            raise ValueError(msg)
 
     @tracer.start_as_current_span("Schemas::DataModelJSONLDParser::parse_jsonld_model")
     def parse_jsonld_model(
