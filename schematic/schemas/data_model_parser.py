@@ -146,31 +146,6 @@ class DataModelParser:
             )
         return model_dict
 
-    @staticmethod
-    def parsed_model_as_dataframe(
-        parsed_model: dict[str, dict[str, Any]]
-    ) -> pd.DataFrame:
-        """Convert parsed model dictionary to an unpacked pandas DataFrame.
-        Args:
-            parsed_model: dict, parsed data model dictionary.
-        Returns:
-            pd.DataFrame, DataFrame representation of the parsed model.
-        """
-
-        # Convert the parsed model dictionary to a DataFrame
-        unpacked_model_dict = {}
-
-        for top_key, nested_dict in parsed_model.items():
-            for nested_key, value in nested_dict.items():
-                unpacked_model_dict[top_key, nested_key] = value
-
-        df = pd.DataFrame.from_dict(
-            unpacked_model_dict,
-            orient="index",
-        ).reset_index(drop=True)
-
-        return df
-
 
 class DataModelCSVParser(AllowedValuesMixin):
     """DataModelCSVParser"""

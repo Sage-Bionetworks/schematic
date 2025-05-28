@@ -6,7 +6,8 @@ import json
 import logging
 import os
 import string
-from typing import Literal, Optional, Union
+from typing import Literal, Optional, Union, Any
+import pandas as pd
 
 import inflection
 
@@ -499,3 +500,26 @@ def get_json_schema_log_file_path(data_model_path: str, source_node: str) -> str
         prefix = prefix_root
     json_schema_log_file_path = f"{prefix}.{source_node}.schema.json"
     return json_schema_log_file_path
+
+
+def parsed_model_as_dataframe(parsed_model: dict[str, dict[str, Any]]) -> pd.DataFrame:
+    """Convert parsed model dictionary to an unpacked pandas DataFrame.
+    Args:
+        parsed_model: dict, parsed data model dictionary.
+    Returns:
+        pd.DataFrame, DataFrame representation of the parsed model.
+    """
+
+    # Convert the parsed model dictionary to a DataFrame
+    unpacked_model_dict = {}
+
+    for top_key, nested_dict in parsed_model.items():
+        for nested_key, value in nested_dict.items():
+            unpacked_model_dict[top_key, nested_key] = value
+
+    df = pd.DataFrame.from_dict(
+        unpacked_model_dict,
+        orient="index",
+    ).reset_index(drop=True)
+
+    return df
