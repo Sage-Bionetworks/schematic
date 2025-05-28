@@ -5,7 +5,6 @@
 import os
 from pathlib import Path
 from typing import Any, Optional
-import pandas as pd
 import click
 
 from schematic.models.metadata import MetadataModel

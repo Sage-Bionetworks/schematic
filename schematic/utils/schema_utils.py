@@ -517,9 +517,9 @@ def parsed_model_as_dataframe(parsed_model: dict[str, dict[str, Any]]) -> pd.Dat
         for nested_key, value in nested_dict.items():
             unpacked_model_dict[top_key, nested_key] = value
 
-    df = pd.DataFrame.from_dict(
+    model_dataframe = pd.DataFrame.from_dict(
         unpacked_model_dict,
         orient="index",
     ).reset_index(drop=True)
 
-    return df
+    return model_dataframe
