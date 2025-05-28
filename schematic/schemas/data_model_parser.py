@@ -18,6 +18,11 @@ tracer = trace.get_tracer("Schematic")
 
 
 class AllowedValuesMixin:
+    """
+    Mixin class to provide functionality for checking allowed values in data model relationships.
+    """
+
+    # pylint: disable=too-few-public-methods
     dmr: DataModelRelationships
 
     def _check_allowed_values(
