@@ -245,7 +245,8 @@ class DataModelCSVParser:
             attr (dict): The attribute dictionary.
 
         Returns:
-            dict: A dictionary containing the parsed column type information if present else an empty dict
+            dict: A dictionary containing the parsed column type information if present
+            else an empty dict
         """
         column_type = attr.get("columnType")
 
