@@ -1,4 +1,4 @@
-Attribute,Description,Valid Values,DependsOn,Properties,Required,Parent,DependsOn Component,Source,Validation Rules,ColumnType
+Attribute,Description,Valid Values,DependsOn,Properties,Required,Parent,DependsOn Component,Source,Validation Rules,columnType
 Component,,,,,TRUE,,,,,
 Patient,,,"Patient ID, Sex, Year of Birth, Diagnosis, Component",,FALSE,DataType,,,,
 Patient ID,,,,,TRUE,DataProperty,,,#Patient unique warning^^#Biospecimen unique error,
@@ -67,15 +67,13 @@ List Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list,
 List Enum Not Required,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,list,
 List String,,,,,TRUE,DataProperty,,,list::str,
 List InRange,,,,,TRUE,DataProperty,,,list::inRange 50 100,
-TypeDefinitionComponent,Component to check type specification,"Component, String type, String type caps, Int type, Int type caps, Num type, Num type caps, String list type, String list type caps, Nan type, Missing type, Boolean type, Boolean type caps",,,FALSE,DataType,,,,
+TypeDefinitionComponent,Component to check type specification,"Component, String type, String type caps, Int type, Int type caps, Num type, Num type caps, Nan type, Missing type, Boolean type, Boolean type caps",,,FALSE,DataType,,,,
 String type,,,,,TRUE,DataProperty,,,,string
 String type caps,,,,,TRUE,DataProperty,,,,STRING
 Int type,,,,,TRUE,DataProperty,,,,integer
 Int type caps,,,,,TRUE,DataProperty,,,,INTEGER
 Num type,,,,,TRUE,DataProperty,,,,number
 Num type caps,,,,,TRUE,DataProperty,,,,NUMBER
-String list type,,,,,TRUE,DataProperty,,,,string_list
-String list type caps,,,,,TRUE,DataProperty,,,,STRING_LIST
 Nan type,,,,,TRUE,DataProperty,,,,nan
 Missing type,,,,,TRUE,DataProperty,,,,
 Boolean type,,,,,TRUE,DataProperty,,,,boolean
