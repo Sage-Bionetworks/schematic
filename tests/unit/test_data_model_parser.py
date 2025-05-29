@@ -1,11 +1,14 @@
 """Unit tests for DataModelParser"""
 from typing import Any
 import pytest
+from pytest_mock import MockerFixture
+
 from schematic.schemas.data_model_parser import (
     DataModelParser,
     DataModelJSONLDParser,
     DataModelCSVParser,
 )
+from schematic.utils.schema_utils import parsed_model_as_dataframe
 
 # pylint: disable=protected-access
 
@@ -74,8 +77,6 @@ class TestDataModelCSVParser:
             "Int type caps": "integer",
             "Num type": "number",
             "Num type caps": "number",
-            "String list type": "string_list",
-            "String list type caps": "string_list",
             "Nan type": None,
             "Missing type": None,
             "Boolean type": "boolean",
@@ -95,15 +96,14 @@ class TestDataModelCSVParser:
             if not expected_type:
                 # If the expected type is None, we expect the column type to be missing
                 assert (
-                    "ColumnType" not in result[expected_attribute]["Relationships"]
-                ), f"Expected no column type for '{expected_attribute}', but got '{result[expected_attribute]['Relationships'].get('ColumnType')}'"
+                    "columnType" not in result[expected_attribute]
+                ), f"Expected no column type for '{expected_attribute}', but got '{result[expected_attribute].get('columnType')}'"
                 continue
 
             # AND the column type of each attribute should match the expected type if a column type is specified
             assert (
-                result[expected_attribute]["Relationships"]["ColumnType"]
-                == expected_type
-            ), f"Expected column type for '{expected_attribute}' to be '{expected_type}', but got '{result[expected_attribute]['Relationships']['ColumnType']}'"
+                result[expected_attribute]["columnType"] == expected_type
+            ), f"Expected column type for '{expected_attribute}' to be '{expected_type}', but got '{result[expected_attribute]['columnType']}'"
 
     def test_parse_csv_model_without_column_type(
         self,
@@ -115,14 +115,17 @@ class TestDataModelCSVParser:
         # WHEN the data model is parsed
         result = parser.parse_csv_model(path_to_data_model=path_to_data_model)
 
-        unpacked_model_df = DataModelParser.parsed_model_as_dataframe(result)
+        # AND unpacked
+        unpacked_model_df = parsed_model_as_dataframe(result)
 
+        # THEN the model should not have a 'columnType' column
         assert (
-            "ColumnType" not in unpacked_model_df.columns
-        ), "Expected no 'ColumnType' column in the unpacked model DataFrame."
+            "columnType" not in unpacked_model_df.columns
+        ), "Expected no 'columnType' column in the unpacked model DataFrame."
 
     def test_parse_csv_model_with_invalid_type(
         self,
+        mocker: MockerFixture,
     ) -> None:
         """
         Tests DataModelCSVParser.parse_csv_model with an invalid column type
@@ -134,6 +137,11 @@ class TestDataModelCSVParser:
             "tests/data/example.model.column_type_component.invalid.csv"
         )
 
+        allowed_values_spy = mocker.spy(DataModelCSVParser, "_check_allowed_values")
+
         # WHEN the data model is parsed, THEN it should raise a ValueError
         with pytest.raises(ValueError):
             parser.parse_csv_model(path_to_data_model=path_to_data_model)
+
+        # AND the _check_allowed_values method should have raised the error
+        assert isinstance(allowed_values_spy.spy_exception, ValueError)
