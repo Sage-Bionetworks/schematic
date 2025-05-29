@@ -495,20 +495,6 @@ class GraphTraversalState:  # pylint: disable=too-many-instance-attributes
         """
         self._nodes_to_process += nodes
 
-    def _get_node_dependencies(self, node: str):
-        return self.dmge.get_adjacent_nodes_by_relationship(
-            node_label=node,
-            relationship=self.dmr.relationships_dictionary["requiresDependency"][
-                "edge_key"
-            ],
-        )
-
-    def _get_node_display_name(self, node: str) -> str:
-        node_list = self.dmge.get_nodes_display_names([node])
-        if not node_list:
-            raise ValueError("node missing form graph: ", node)
-        return node_list[0]
-
 
 def create_json_schema(  # pylint: disable=too-many-arguments
     dmge: DataModelGraphExplorer,
