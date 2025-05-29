@@ -27,4 +27,4 @@ class TestSchemaUtils:
         # THEN the result should be a DataFrame
         assert isinstance(df, pd.DataFrame)
         # AND the keys (attributes) of the dict should be the rows of the DataFrame
-        assert list(df.index) == list(result.keys())
+        assert list(df.Attribute) == list(result.keys())
