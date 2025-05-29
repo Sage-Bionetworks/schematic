@@ -144,5 +144,9 @@ class TestDataModelCSVParser:
             parser.parse_csv_model(path_to_data_model=path_to_data_model)
 
         # AND the _check_allowed_values method should have raised the error
-        assert allowed_values_spy.spy_exception is not None
-        assert isinstance(allowed_values_spy.spy_exception, ValueError)
+        assert (
+            allowed_values_spy.spy_exception is not None
+        ), "Expected _check_allowed_values to raise an exception"
+        assert isinstance(
+            allowed_values_spy.spy_exception, ValueError
+        ), "Expected _check_allowed_values to raise a ValueError"
