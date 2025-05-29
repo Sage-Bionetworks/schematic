@@ -254,6 +254,7 @@ class DataModelCSVParser:
             return {}
 
         # column types should be case agnostic and valid
+        column_type: str  # mypy compains about None types not having a .strip() method but by this point they will always be a string
         column_type = column_type.strip().lower()
         self._check_allowed_values(
             entry_id=attr["Source"], value=column_type, relationship="columnType"
