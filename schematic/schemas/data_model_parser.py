@@ -255,9 +255,7 @@ class DataModelCSVParser:
             return {}
 
         # column types should be case agnostic and valid
-
-        # mypy error ignored due to handling of null values above
-        column_type = column_type.strip().lower()  # type: ignore
+        column_type = str(column_type).strip().lower()
 
         self._check_allowed_values(
             entry_id=attr["Source"], value=column_type, relationship="columnType"
