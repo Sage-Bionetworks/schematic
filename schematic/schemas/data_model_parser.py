@@ -258,7 +258,10 @@ class DataModelCSVParser:
         column_type = str(column_type).strip().lower()
 
         self._check_allowed_values(
-            entry_id=attr["Source"], value=column_type, relationship="columnType"
+            self.dmr,
+            entry_id=attr["Source"],
+            value=column_type,
+            relationship="columnType",
         )
 
         return {"columnType": column_type}
