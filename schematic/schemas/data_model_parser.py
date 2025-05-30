@@ -257,7 +257,7 @@ class DataModelCSVParser:
         # column types should be case agnostic and valid
         column_type = str(column_type).strip().lower()
 
-        self._check_allowed_values(
+        check_allowed_values(
             self.dmr,
             entry_id=attr["Source"],
             value=column_type,
