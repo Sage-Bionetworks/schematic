@@ -62,6 +62,7 @@ class TestDataModelJsonLdParser:
             expected_type = expected_column_types[attribute]
             assert test_type == expected_type
 
+
 class TestDataModelCSVParser:
     """Unit tests for DataModelCSVParser"""
 
