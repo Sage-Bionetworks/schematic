@@ -8,7 +8,8 @@ from schematic.schemas.data_model_parser import (
     DataModelJSONLDParser,
     DataModelCSVParser,
 )
-from schematic.utils.schema_utils import parsed_model_as_dataframe
+from schematic.utils import schema_utils
+from schematic.utils.schema_utils import parsed_model_as_dataframe, check_allowed_values
 
 # pylint: disable=protected-access
 
@@ -137,16 +138,16 @@ class TestDataModelCSVParser:
             "tests/data/example.model.column_type_component.invalid.csv"
         )
 
-        allowed_values_spy = mocker.spy(DataModelCSVParser, "_check_allowed_values")
+        allowed_values_spy = mocker.spy(schema_utils, "check_allowed_values")
 
         # WHEN the data model is parsed, THEN it should raise a ValueError
         with pytest.raises(ValueError):
             parser.parse_csv_model(path_to_data_model=path_to_data_model)
 
-        # AND the _check_allowed_values method should have raised the error
+        # AND the check_allowed_values method should have raised the error
         assert (
             allowed_values_spy.spy_exception is not None
-        ), "Expected _check_allowed_values to raise an exception"
+        ), "Expected check_allowed_values to raise an exception"
         assert isinstance(
             allowed_values_spy.spy_exception, ValueError
-        ), "Expected _check_allowed_values to raise a ValueError"
+        ), "Expected check_allowed_values to raise a ValueError"
