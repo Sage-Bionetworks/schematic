@@ -457,7 +457,10 @@ class DataModelJSONLDParser:
                             model_jsonld=model_jsonld,
                         )
                         check_allowed_values(
-                            entry_id=entry["@id"], value=rel_entry, relationship=rel_key
+                            self.dmr,
+                            entry_id=entry["@id"],
+                            value=rel_entry,
+                            relationship=rel_key,
                         )
                         rel_csv_header = rel_vals["csv_header"]
                         if rel_key == "domainIncludes":
