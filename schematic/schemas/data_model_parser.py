@@ -10,7 +10,7 @@ from opentelemetry import trace
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.df_utils import load_df
 from schematic.utils.io_utils import load_json
-from schematic.utils.schema_utils import attr_dict_template
+from schematic.utils.schema_utils import attr_dict_template, check_allowed_values
 
 logger = logging.getLogger("Schemas")
 
@@ -456,8 +456,11 @@ class DataModelJSONLDParser:
                             id_jsonld_key=id_jsonld_key,
                             model_jsonld=model_jsonld,
                         )
-                        self._check_allowed_values(
-                            entry_id=entry["@id"], value=rel_entry, relationship=rel_key
+                        check_allowed_values(
+                            self.dmr,
+                            entry_id=entry["@id"],
+                            value=rel_entry,
+                            relationship=rel_key,
                         )
                         rel_csv_header = rel_vals["csv_header"]
                         if rel_key == "domainIncludes":
@@ -536,24 +539,6 @@ class DataModelJSONLDParser:
                             {rel_key: parsed_rel_entry}
                         )
         return attr_rel_dictionary
-
-    def _check_allowed_values(
-        self, entry_id: str, value: Any, relationship: str
-    ) -> None:
-        """Checks that the entry is in the allowed values if they exist for the relationship
-
-        Args:
-            entry_id: The id of the entry
-            value: The value to check
-            relationship (str): The name of the relationship to check for allowed values
-
-        Raises:
-            ValueError: If the value isn't in the list of allowed values
-        """
-        allowed_values = self.dmr.get_allowed_values(relationship)
-        if allowed_values and value not in allowed_values:
-            msg = f"For entry: '{entry_id}', '{value}' not in allowed values: {allowed_values}"
-            raise ValueError(msg)
 
     @tracer.start_as_current_span("Schemas::DataModelJSONLDParser::parse_jsonld_model")
     def parse_jsonld_model(
