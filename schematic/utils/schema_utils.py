@@ -6,10 +6,13 @@ import json
 import logging
 import os
 import string
-from typing import Literal, Optional, Union, Any
+from typing import Literal, Optional, Union, Any, TYPE_CHECKING
 import pandas as pd
 
 import inflection
+
+if TYPE_CHECKING:
+    from schematic.schemas.data_model_relationships import DataModelRelationships
 
 logger = logging.getLogger(__name__)
 
@@ -525,7 +528,9 @@ def parsed_model_as_dataframe(parsed_model: dict[str, dict[str, Any]]) -> pd.Dat
     return model_dataframe
 
 
-def check_allowed_values(dmr, entry_id: str, value: Any, relationship: str) -> None:
+def check_allowed_values(
+    dmr: "DataModelRelationships", entry_id: str, value: Any, relationship: str
+) -> None:
     """Checks that the entry is in the allowed values if they exist for the relationship
 
     Args:
