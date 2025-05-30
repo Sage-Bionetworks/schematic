@@ -3,13 +3,15 @@ from typing import Any
 import pytest
 from pytest_mock import MockerFixture
 
+from schematic.schemas import data_model_parser
 from schematic.schemas.data_model_parser import (
     DataModelParser,
     DataModelJSONLDParser,
     DataModelCSVParser,
+    check_allowed_values,
 )
 from schematic.utils import schema_utils
-from schematic.utils.schema_utils import parsed_model_as_dataframe, check_allowed_values
+from schematic.utils.schema_utils import parsed_model_as_dataframe
 
 # pylint: disable=protected-access
 
@@ -138,7 +140,7 @@ class TestDataModelCSVParser:
             "tests/data/example.model.column_type_component.invalid.csv"
         )
 
-        allowed_values_spy = mocker.spy(schema_utils, "check_allowed_values")
+        allowed_values_spy = mocker.spy(data_model_parser, "check_allowed_values")
 
         # WHEN the data model is parsed, THEN it should raise a ValueError
         with pytest.raises(ValueError):
