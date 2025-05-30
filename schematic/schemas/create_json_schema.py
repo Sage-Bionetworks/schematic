@@ -8,7 +8,7 @@ The JSONSchema class is used to store all the data needed to write the final JSO
 
 import logging
 import os
-from typing import Any, Optional
+from typing import Union, Any, Optional
 from dataclasses import dataclass, field, asdict
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
@@ -28,6 +28,12 @@ TYPE_RULES = {
     "int": "integer",
     "bool": "boolean",
 }
+
+# Complex types
+Items = dict[str, Union[str, float, list[str]]]
+Property = dict[str, Union[str, float, list, dict]]
+TypeDict = dict[str, Union[str, Items]]
+AllOf = dict[str, Any]
 
 
 @dataclass
@@ -52,11 +58,13 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
     schema: str = "http://json-schema.org/draft-07/schema#"
     type: str = "object"
     description: str = "TBD"
-    properties: dict[str, Any] = field(default_factory=dict)
+    properties: dict[str, Property] = field(default_factory=dict)
     required: list[str] = field(default_factory=list)
-    all_of: list[dict[str, Any]] = field(default_factory=list)
+    all_of: list[AllOf] = field(default_factory=list)
 
-    def as_json_schema_dict(self) -> dict[str, Any]:
+    def as_json_schema_dict(
+        self,
+    ) -> dict[str, Union[str, dict[str, Property], list[str], list[AllOf]]]:
         """
         Returns class as a JSON Schema dictionary, with proper keywords
 
@@ -71,7 +79,7 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
         }
         for old_word, new_word in keywords_to_change.items():
             json_schema_dict[new_word] = json_schema_dict.pop(old_word)
-        if len(self.all_of) == 0:
+        if not self.all_of:
             json_schema_dict.pop("allOf")
         return json_schema_dict
 
@@ -79,27 +87,43 @@ class JSONSchema:  # pylint: disable=too-many-instance-attributes
         """
         Adds a property to the required list
 
-        Args:
+        Arguments:
             name: The name of the property
         """
         self.required.append(name)
 
-    def add_to_all_of_list(self, item: dict[str, Any]) -> None:
+    def add_to_all_of_list(self, item: AllOf) -> None:
         """
         Adds a property to the all_of list
 
-        Args:
+        Arguments:
             item: The item to add to the all_of list
         """
         self.all_of.append(item)
 
-    def update_property(self, property_dict: dict[str, Any]) -> None:
+    def update_property(self, property_dict: dict[str, Property]) -> None:
         """
         Updates the property dict
 
-        Args:
+        Raises:
+            ValueError: If the property dict has more than one key
+            ValueError: If the property dict is empty
+            ValueError: if the property dict key match a property that already exists
+
+        Arguments:
             property_dict: The property dict to add to the properties dict
         """
+        keys = list(property_dict.keys())
+        if len(keys) > 1:
+            raise ValueError(
+                f"Attempting to add property dict with more than one key: {property_dict}"
+            )
+        if len(keys) == 0:
+            raise ValueError(f"Attempting to add empty property dict: {property_dict}")
+        if keys[0] in self.properties:
+            raise ValueError(
+                f"Attempting to add property that already exists: {property_dict}"
+            )
         self.properties.update(property_dict)
 
 
@@ -574,7 +598,7 @@ def create_json_schema(  # pylint: disable=too-many-arguments
             )
         graph_state.move_to_next_node()
 
-    logger.info("JSON schema successfully generated from schema.org schema!")
+    logger.info("JSON schema successfully created for %s", datatype)
 
     json_schema_dict = json_schema.as_json_schema_dict()
 
@@ -605,6 +629,7 @@ def _process_node(
     """
     if graph_state.current_node is None:
         raise ValueError("Node Processor contains no node.")
+    logger.info("Processing node %s", graph_state.current_node.name)
 
     if graph_state.is_current_node_a_property():
         # Determine if current node has conditional dependencies that need to be set
@@ -624,6 +649,7 @@ def _process_node(
             use_valid_value_display_names=use_valid_value_display_names,
         )
         graph_state.update_processed_nodes_with_current_node()
+        logger.info("Property set in JSON Schema for %s", graph_state.current_node.name)
 
 
 def _write_data_model(
@@ -664,6 +690,7 @@ def _write_data_model(
             "Either schema_path or both name and jsonld_path must be provided."
         )
     export_json(json_doc=json_schema_dict, file_path=json_schema_path, indent=2)
+    logger.info("The JSON schema has been saved at %s", json_schema_path)
 
 
 def _set_conditional_dependencies(
@@ -759,18 +786,18 @@ def _set_property(
 
     if node.valid_values:
         if node.is_array:
-            schema = _create_enum_array_property(node, use_valid_value_display_names)
+            prop = _create_enum_array_property(node, use_valid_value_display_names)
         else:
-            schema = _create_enum_property(node, use_valid_value_display_names)
+            prop = _create_enum_property(node, use_valid_value_display_names)
 
     else:
         if node.is_array:
-            schema = _create_array_property(node)
+            prop = _create_array_property(node)
         else:
-            schema = _create_simple_property(node)
+            prop = _create_simple_property(node)
 
-    schema["description"] = node.description
-    schema_property = {node_name: schema}
+    prop["description"] = node.description
+    schema_property = {node_name: prop}
 
     json_schema.update_property(schema_property)
 
@@ -780,7 +807,7 @@ def _set_property(
 
 def _create_enum_array_property(
     node: Node, use_valid_value_display_names: bool = True
-) -> dict[str, Any]:
+) -> Property:
     """
     Creates a JSON Schema property array with enum items
 
@@ -808,22 +835,23 @@ def _create_enum_array_property(
         valid_values = node.valid_value_display_names
     else:
         valid_values = node.valid_values
+    items: Items = {"enum": valid_values}
     types = [
         {
             "type": "array",
             "title": "array",
-            "items": {"enum": valid_values},
+            "items": items,
         }
     ]
 
     if not node.is_required:
         types += [{"type": "null", "title": "null"}]
 
-    schema = {"oneOf": types}
-    return schema  # type: ignore
+    enum_array_property: Property = {"oneOf": types}
+    return enum_array_property  # type: ignore
 
 
-def _create_array_property(node: Node) -> dict[str, Any]:
+def _create_array_property(node: Node) -> Property:
     """
     Creates a JSON Schema property array
 
@@ -845,27 +873,28 @@ def _create_array_property(node: Node) -> dict[str, Any]:
         JSON object
     """
 
-    array_dict: dict[str, Any] = {"type": "array", "title": "array"}
-
-    items: dict[str, Any] = {}
+    items: Items = {}
     if node.type:
         items["type"] = node.type
         _set_type_specific_keywords(items, node)
 
+    array_type_dict: TypeDict = {"type": "array", "title": "array"}
+    null_type_dict: TypeDict = {"type": "null", "title": "null"}
+
     if items:
-        array_dict["items"] = items
+        array_type_dict["items"] = items
 
-    types = [array_dict]
+    types = [array_type_dict]
     if not node.is_required:
-        types.append({"type": "null", "title": "null"})
+        types.append(null_type_dict)
 
-    schema = {"oneOf": types}
-    return schema
+    array_property: Property = {"oneOf": types}
+    return array_property
 
 
 def _create_enum_property(
     node: Node, use_valid_value_display_names: bool = True
-) -> dict[str, Any]:
+) -> Property:
     """
     Creates a JSON Schema property enum
 
@@ -887,15 +916,17 @@ def _create_enum_property(
         valid_values = node.valid_value_display_names
     else:
         valid_values = node.valid_values
-    schema: dict[str, Any] = {}
-    one_of_list: list[dict[str, Any]] = [{"enum": valid_values, "title": "enum"}]
+
+    enum_property: Property = {}
+    one_of_list = [{"enum": valid_values, "title": "enum"}]
     if not node.is_required:
         one_of_list += [{"type": "null", "title": "null"}]
-    schema["oneOf"] = one_of_list
-    return schema
+    enum_property["oneOf"] = one_of_list
+
+    return enum_property
 
 
-def _create_simple_property(node: Node) -> dict[str, Any]:
+def _create_simple_property(node: Node) -> Property:
     """
     Creates a JSON Schema property
 
@@ -913,22 +944,22 @@ def _create_simple_property(node: Node) -> dict[str, Any]:
     Returns:
         JSON object
     """
-    schema: dict[str, Any] = {}
+    prop: Property = {}
 
     if node.type:
         if node.is_required:
-            schema["type"] = node.type
+            prop["type"] = node.type
         else:
-            schema["oneOf"] = [
+            prop["oneOf"] = [
                 {"type": node.type, "title": node.type},
                 {"type": "null", "title": "null"},
             ]
     elif node.is_required:
-        schema["not"] = {"type": "null"}
+        prop["not"] = {"type": "null"}
 
-    _set_type_specific_keywords(schema, node)
+    _set_type_specific_keywords(prop, node)
 
-    return schema
+    return prop
 
 
 def _set_type_specific_keywords(schema: dict[str, Any], node: Node) -> None:

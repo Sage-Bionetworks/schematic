@@ -1,6 +1,13 @@
-"""Tests for JSON Schema generation"""
+"""
+This tests the function create_json_schema.
+This includes:
+- creating the schema
+- uploading to Synapse
+- binding the schema to a Synapse Folder
+ -validation annotations on the folder
+"""
 
-from typing import Generator, Any
+from typing import Any
 import json
 import uuid
 from time import sleep
@@ -16,27 +23,14 @@ from schematic.schemas.create_json_schema import (
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 
-
-@pytest.fixture(name="schema_org", scope="module")
-def fixture_schema_org() -> Generator[str, None, None]:
-    """
-    This yields the Synapse org the test Schemas will be created at
-    """
-    yield "dpetest"
-
-
-@pytest.fixture(name="schema_version", scope="module")
-def fixture_schema_version() -> Generator[str, None, None]:
-    """
-    This the version to give all created test schemas
-    """
-    yield "0.0.1"
+SCHEMA_TEST_ORG = "dpetest"
+SCHEMA_TEST_VERSION = "0.0.1"
 
 
 @pytest.fixture(name="dmge", scope="module")
-def fixture_dmge() -> Generator[DataModelGraphExplorer, None, None]:
+def fixture_dmge() -> DataModelGraphExplorer:
     """
-    This yields DataModelGraphExplorer instance.
+    This returns a DataModelGraphExplorer instance, using the example data model.
     This has a module scope.
     This allows for it to an input to other module-scoped fixtures.
     """
@@ -54,11 +48,9 @@ def fixture_dmge() -> Generator[DataModelGraphExplorer, None, None]:
 @pytest.fixture(name="biospecimen_json_schema", scope="module")
 def fixture_biospecimen_json_schema(
     synapse_module_scope: Synapse,
-    schema_org: str,
-    schema_version: str,
     dmge: DataModelGraphExplorer,
     request,
-):
+) -> str:
     """This creates a JSON Schema, uploads it to Synapse, then returns the uri"""
     js = synapse_module_scope.service("json_schema")
 
@@ -69,27 +61,23 @@ def fixture_biospecimen_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(
-        schema, synapse_module_scope, schema_org, schema_version
-    )
+    schema_name = upload_schema_to_synapse(schema, synapse_module_scope)
 
     def delete_schema():
-        js.delete_json_schema(f"{schema_org}-{schema_name}")
+        js.delete_json_schema(f"{SCHEMA_TEST_ORG}-{schema_name}")
 
     request.addfinalizer(delete_schema)
 
-    uri = f"{schema_org}-{schema_name}-{schema_version}"
+    uri = f"{SCHEMA_TEST_ORG}-{schema_name}-{SCHEMA_TEST_VERSION}"
     return uri
 
 
 @pytest.fixture(name="bulk_rna_json_schema", scope="module")
 def fixture_bulk_rna_json_schema(
     synapse_module_scope: Synapse,
-    schema_org: str,
-    schema_version: str,
     dmge: DataModelGraphExplorer,
     request,
-):
+) -> str:
     """This creates a JSON Schema, uploads it to Synapse, then returns the uri"""
     js = synapse_module_scope.service("json_schema")
 
@@ -100,27 +88,23 @@ def fixture_bulk_rna_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(
-        schema, synapse_module_scope, schema_org, schema_version
-    )
+    schema_name = upload_schema_to_synapse(schema, synapse_module_scope)
 
     def delete_schema():
-        js.delete_json_schema(f"{schema_org}-{schema_name}")
+        js.delete_json_schema(f"{SCHEMA_TEST_ORG}-{schema_name}")
 
     request.addfinalizer(delete_schema)
 
-    uri = f"{schema_org}-{schema_name}-{schema_version}"
+    uri = f"{SCHEMA_TEST_ORG}-{schema_name}-{SCHEMA_TEST_VERSION}"
     return uri
 
 
 @pytest.fixture(name="mock_component_json_schema", scope="module")
 def fixture_mock_component_json_schema(
     synapse_module_scope: Synapse,
-    schema_org: str,
-    schema_version: str,
     dmge: DataModelGraphExplorer,
     request,
-):
+) -> str:
     """This creates a JSON Schema, uploads it to Synapse, then returns the uri"""
     js = synapse_module_scope.service("json_schema")
 
@@ -131,27 +115,23 @@ def fixture_mock_component_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(
-        schema, synapse_module_scope, schema_org, schema_version
-    )
+    schema_name = upload_schema_to_synapse(schema, synapse_module_scope)
 
     def delete_schema():
-        js.delete_json_schema(f"{schema_org}-{schema_name}")
+        js.delete_json_schema(f"{SCHEMA_TEST_ORG}-{schema_name}")
 
     request.addfinalizer(delete_schema)
 
-    uri = f"{schema_org}-{schema_name}-{schema_version}"
+    uri = f"{SCHEMA_TEST_ORG}-{schema_name}-{SCHEMA_TEST_VERSION}"
     return uri
 
 
 @pytest.fixture(name="mock_filename_json_schema", scope="module")
 def fixture_mock_filename_json_schema(
     synapse_module_scope: Synapse,
-    schema_org: str,
-    schema_version: str,
     dmge: DataModelGraphExplorer,
     request,
-):
+) -> str:
     """This creates a JSON Schema, uploads it to Synapse, then returns the uri"""
     js = synapse_module_scope.service("json_schema")
 
@@ -162,27 +142,23 @@ def fixture_mock_filename_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(
-        schema, synapse_module_scope, schema_org, schema_version
-    )
+    schema_name = upload_schema_to_synapse(schema, synapse_module_scope)
 
     def delete_schema():
-        js.delete_json_schema(f"{schema_org}-{schema_name}")
+        js.delete_json_schema(f"{SCHEMA_TEST_ORG}-{schema_name}")
 
     request.addfinalizer(delete_schema)
 
-    uri = f"{schema_org}-{schema_name}-{schema_version}"
+    uri = f"{SCHEMA_TEST_ORG}-{schema_name}-{SCHEMA_TEST_VERSION}"
     return uri
 
 
 @pytest.fixture(name="mock_rdb_json_schema", scope="module")
 def fixture_mock_rdb_json_schema(
     synapse_module_scope: Synapse,
-    schema_org: str,
-    schema_version: str,
     dmge: DataModelGraphExplorer,
     request,
-):
+) -> str:
     """This creates a JSON Schema, uploads it to Synapse, then returns the uri"""
     js = synapse_module_scope.service("json_schema")
 
@@ -193,27 +169,23 @@ def fixture_mock_rdb_json_schema(
         write_schema=False,
         use_property_display_names=False,
     )
-    schema_name = upload_schema_to_synapse(
-        schema, synapse_module_scope, schema_org, schema_version
-    )
+    schema_name = upload_schema_to_synapse(schema, synapse_module_scope)
 
     def delete_schema():
-        js.delete_json_schema(f"{schema_org}-{schema_name}")
+        js.delete_json_schema(f"{SCHEMA_TEST_ORG}-{schema_name}")
 
     request.addfinalizer(delete_schema)
 
-    uri = f"{schema_org}-{schema_name}-{schema_version}"
+    uri = f"{SCHEMA_TEST_ORG}-{schema_name}-{SCHEMA_TEST_VERSION}"
     return uri
 
 
 @pytest.fixture(name="patient_json_schema", scope="module")
 def fixture_patient_json_schema(
     synapse_module_scope: Synapse,
-    schema_org: str,
-    schema_version: str,
     dmge: DataModelGraphExplorer,
     request,
-):
+) -> str:
     """This creates a JSON Schema, uploads it to Synapse, then returns the uri"""
     js = synapse_module_scope.service("json_schema")
 
@@ -225,20 +197,21 @@ def fixture_patient_json_schema(
         use_property_display_names=False,
     )
     schema_name = upload_schema_to_synapse(
-        schema, synapse_module_scope, schema_org, schema_version
+        schema,
+        synapse_module_scope,
     )
 
     def delete_schema():
-        js.delete_json_schema(f"{schema_org}-{schema_name}")
+        js.delete_json_schema(f"{SCHEMA_TEST_ORG}-{schema_name}")
 
     request.addfinalizer(delete_schema)
 
-    uri = f"{schema_org}-{schema_name}-{schema_version}"
+    uri = f"{SCHEMA_TEST_ORG}-{schema_name}-{SCHEMA_TEST_VERSION}"
     return uri
 
 
 @pytest.fixture(name="synapse_folder", scope="function")
-def fixture_synapse_folder(syn: Synapse, request):
+def fixture_synapse_folder(syn: Synapse, request) -> str:
     """This returns a Synapse id for a created Synapse folder"""
     js = syn.service("json_schema")
     folder_name = f"test_json_schema_validation_{str(uuid.uuid4())}"
@@ -254,16 +227,12 @@ def fixture_synapse_folder(syn: Synapse, request):
     return folder.id
 
 
-def upload_schema_to_synapse(
-    schema: dict[str, Any], syn: Synapse, schema_org: str, version: str
-) -> str:
+def upload_schema_to_synapse(schema: dict[str, Any], syn: Synapse) -> str:
     """Uploads a JSON Schema file to Synapse
 
     Arguments:
         schema: The schema to upload
         syn: A Synapse instance that's been logged in
-        schema_org: The name of the org to store the schema at
-        version: the version to give to the schema
 
     Returns:
         The name of the Schema in synapse
@@ -272,11 +241,12 @@ def upload_schema_to_synapse(
     schema_id = "".join(i for i in str(uuid.uuid4()) if i.isalpha())
     schema_name = f"test.schematic.{schema_id}"
     js = syn.service("json_schema")
-    org = js.JsonSchemaOrganization(schema_org)
-    org.create_json_schema(schema, schema_name, version)
+    org = js.JsonSchemaOrganization(SCHEMA_TEST_ORG)
+    org.create_json_schema(schema, schema_name, SCHEMA_TEST_VERSION)
     return schema_name
 
 
+@pytest.mark.single_process_execution
 @pytest.mark.parametrize(
     "schema_fixture",
     [
@@ -296,6 +266,7 @@ def test_upload_schemas_fixtures(schema_fixture: str, request) -> None:
     request.getfixturevalue(schema_fixture)
 
 
+@pytest.mark.single_process_execution
 @pytest.mark.parametrize(
     "instance_path, is_valid, messages, schema_fixture",
     [
@@ -351,7 +322,7 @@ def test_upload_and_validate_schemas_in_synapse(
     # WHEN binding the schema to a folder
     js.bind_json_schema(test_schema_uri, synapse_folder)
 
-    # WHEN annotating the folder with a JSON instance of the datatype
+    # AND annotating the folder with a JSON instance of the datatype
     existing_annotations = syn.get_annotations(synapse_folder)
     with open(instance_path, encoding="utf-8") as instance_file:
         instance = json.load(instance_file)
@@ -359,13 +330,13 @@ def test_upload_and_validate_schemas_in_synapse(
     syn.set_annotations(annotations=existing_annotations)
     sleep(4)
 
-    # WHEN validating the annotation against the schema
+    # AND validating the annotation against the schema
     results = js.validate(synapse_folder)
     # THEN the annotations were valid
     assert results["isValid"] == is_valid
     # OR THEN the annotations were invalid
     if not results["isValid"]:
-        # THEN the results contain "allValidationMessages"
+        # AND the results contain "allValidationMessages"
         assert "allValidationMessages" in results
-        # THEN the "allValidationMessages" match the expected messages
+        # AND the "allValidationMessages" match the expected messages
         assert sorted(results["allValidationMessages"]) == messages
