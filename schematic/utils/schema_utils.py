@@ -534,6 +534,7 @@ def check_allowed_values(
     """Checks that the entry is in the allowed values if they exist for the relationship
 
     Args:
+        dmr: DataModelRelationships, the data model relationships object
         entry_id: The id of the entry
         value: The value to check
         relationship (str): The name of the relationship to check for allowed values
