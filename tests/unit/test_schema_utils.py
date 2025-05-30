@@ -1,7 +1,9 @@
 import pandas as pd
+import pytest
+from typing import Any
 
 from schematic.schemas.data_model_parser import DataModelParser
-from schematic.utils.schema_utils import parsed_model_as_dataframe
+from schematic.utils.schema_utils import parsed_model_as_dataframe, check_allowed_values
 from schematic.schemas.data_model_relationships import DataModelRelationships
 
 
@@ -28,3 +30,15 @@ class TestSchemaUtils:
         assert isinstance(df, pd.DataFrame)
         # AND the keys (attributes) of the dict should be the rows of the DataFrame
         assert list(df.Attribute) == list(result.keys())
+
+    @pytest.mark.parametrize(
+        "value, relationship",
+        [
+            ("string", "columnType"),
+            ("boolean", "columnType"),
+            ("integer", "columnType"),
+        ],
+    )
+    def test__check_allowed_values(self, value: Any, relationship: str) -> None:
+        """Tests for check_allowed_values util function"""
+        check_allowed_values(entry_id="id", value=value, relationship=relationship)

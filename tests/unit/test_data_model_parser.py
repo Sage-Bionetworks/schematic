@@ -53,21 +53,6 @@ class TestDataModelJsonLdParser:
             assert test_type == expected_type
 
     @pytest.mark.parametrize(
-        "value, relationship",
-        [
-            ("string", "columnType"),
-            ("boolean", "columnType"),
-            ("integer", "columnType"),
-        ],
-    )
-    def test__check_allowed_values(self, value: Any, relationship: str) -> None:
-        """Tests for DataModelJSONLDParser.check_allowed_values"""
-        parser = DataModelJSONLDParser()
-        parser._check_allowed_values(
-            entry_id="id", value=value, relationship=relationship
-        )
-
-    @pytest.mark.parametrize(
         "value, relationship, message",
         [
             (
