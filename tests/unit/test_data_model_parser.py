@@ -51,25 +51,3 @@ class TestDataModelJsonLdParser:
             test_type = result[attribute]["Relationships"]["ColumnType"]
             expected_type = expected_column_types[attribute]
             assert test_type == expected_type
-
-    @pytest.mark.parametrize(
-        "value, relationship, message",
-        [
-            (
-                "not_allowed",
-                "columnType",
-                "For entry: 'id', 'not_allowed' not in allowed values",
-            ),
-            (1, "columnType", "For entry: 'id', '1' not in allowed values"),
-            (None, "columnType", "For entry: 'id', 'None' not in allowed values"),
-        ],
-    )
-    def test_check_allowed_values_exceptions(
-        self, value: Any, relationship: str, message: str
-    ) -> None:
-        """Tests for DataModelJSONLDParser.check_allowed_values with exceptions"""
-        parser = DataModelJSONLDParser()
-        with pytest.raises(ValueError, match=message):
-            parser._check_allowed_values(
-                entry_id="id", value=value, relationship=relationship
-            )

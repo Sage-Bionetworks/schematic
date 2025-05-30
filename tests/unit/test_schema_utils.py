@@ -45,3 +45,25 @@ class TestSchemaUtils:
         check_allowed_values(
             dmr=dmr, entry_id="id", value=value, relationship=relationship
         )
+
+    @pytest.mark.parametrize(
+        "value, relationship, message",
+        [
+            (
+                "not_allowed",
+                "columnType",
+                "For entry: 'id', 'not_allowed' not in allowed values",
+            ),
+            (1, "columnType", "For entry: 'id', '1' not in allowed values"),
+            (None, "columnType", "For entry: 'id', 'None' not in allowed values"),
+        ],
+    )
+    def test_check_allowed_values_exceptions(
+        self, value: Any, relationship: str, message: str
+    ) -> None:
+        """Tests for check_allowed_values with exceptions"""
+        dmr = DataModelRelationships()
+        with pytest.raises(ValueError, match=message):
+            check_allowed_values(
+                dmr=dmr, entry_id="id", value=value, relationship=relationship
+            )
