@@ -41,4 +41,7 @@ class TestSchemaUtils:
     )
     def test__check_allowed_values(self, value: Any, relationship: str) -> None:
         """Tests for check_allowed_values util function"""
-        check_allowed_values(entry_id="id", value=value, relationship=relationship)
+        dmr = DataModelRelationships()
+        check_allowed_values(
+            dmr=dmr, entry_id="id", value=value, relationship=relationship
+        )
