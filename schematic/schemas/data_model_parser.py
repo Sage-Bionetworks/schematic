@@ -10,38 +10,11 @@ from opentelemetry import trace
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.df_utils import load_df
 from schematic.utils.io_utils import load_json
-from schematic.utils.schema_utils import attr_dict_template
+from schematic.utils.schema_utils import attr_dict_template, check_allowed_values
 
 logger = logging.getLogger("Schemas")
 
 tracer = trace.get_tracer("Schematic")
-
-
-class AllowedValuesMixin:
-    """
-    Mixin class to provide functionality for checking allowed values in data model relationships.
-    """
-
-    # pylint: disable=too-few-public-methods
-    dmr: DataModelRelationships
-
-    def _check_allowed_values(
-        self, entry_id: str, value: Any, relationship: str
-    ) -> None:
-        """Checks that the entry is in the allowed values if they exist for the relationship
-
-        Args:
-            entry_id: The id of the entry
-            value: The value to check
-            relationship (str): The name of the relationship to check for allowed values
-
-        Raises:
-            ValueError: If the value isn't in the list of allowed values
-        """
-        allowed_values = self.dmr.get_allowed_values(relationship)
-        if allowed_values and value not in allowed_values:
-            msg = f"For entry: '{entry_id}', '{value}' not in allowed values: {allowed_values}"
-            raise ValueError(msg)
 
 
 class DataModelParser:
@@ -147,7 +120,7 @@ class DataModelParser:
         return model_dict
 
 
-class DataModelCSVParser(AllowedValuesMixin):
+class DataModelCSVParser:
     """DataModelCSVParser"""
 
     def __init__(self) -> None:
@@ -283,7 +256,7 @@ class DataModelCSVParser(AllowedValuesMixin):
         return model_dict
 
 
-class DataModelJSONLDParser(AllowedValuesMixin):
+class DataModelJSONLDParser:
     """DataModelJSONLDParser"""
 
     def __init__(
@@ -483,7 +456,7 @@ class DataModelJSONLDParser(AllowedValuesMixin):
                             id_jsonld_key=id_jsonld_key,
                             model_jsonld=model_jsonld,
                         )
-                        self._check_allowed_values(
+                        check_allowed_values(
                             entry_id=entry["@id"], value=rel_entry, relationship=rel_key
                         )
                         rel_csv_header = rel_vals["csv_header"]

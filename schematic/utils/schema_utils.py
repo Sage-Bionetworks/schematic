@@ -10,6 +10,7 @@ from typing import Literal, Optional, Union, Any
 import pandas as pd
 
 import inflection
+from schematic.schemas.data_model_relationships import DataModelRelationships
 
 logger = logging.getLogger(__name__)
 
@@ -523,3 +524,20 @@ def parsed_model_as_dataframe(parsed_model: dict[str, dict[str, Any]]) -> pd.Dat
     ).reset_index(drop=True)
 
     return model_dataframe
+
+
+def check_allowed_values(entry_id: str, value: Any, relationship: str) -> None:
+    """Checks that the entry is in the allowed values if they exist for the relationship
+
+    Args:
+        entry_id: The id of the entry
+        value: The value to check
+        relationship (str): The name of the relationship to check for allowed values
+
+    Raises:
+        ValueError: If the value isn't in the list of allowed values
+    """
+    allowed_values = DataModelRelationships().get_allowed_values(relationship)
+    if allowed_values and value not in allowed_values:
+        msg = f"For entry: '{entry_id}', '{value}' not in allowed values: {allowed_values}"
+        raise ValueError(msg)
