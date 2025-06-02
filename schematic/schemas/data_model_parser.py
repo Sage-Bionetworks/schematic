@@ -489,7 +489,9 @@ class DataModelJSONLDParser:
                             model_jsonld=model_jsonld,
                         )
                         if "@id" not in entry:
-                            raise ValueError("Datatype in JSON-LD missing `@id`: ", entry)
+                            raise ValueError(
+                                "Datatype in JSON-LD missing `@id`: ", entry
+                            )
                         check_allowed_values(
                             self.dmr,
                             entry_id=entry["@id"],
