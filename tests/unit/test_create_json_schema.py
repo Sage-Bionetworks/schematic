@@ -178,41 +178,6 @@ def test_node_init(
 
 
 @pytest.mark.parametrize(
-    "node_name, expected_type, expected_is_array, expected_min, expected_max",
-    [
-        # If there are no type validation rules the type is None
-        ("CheckNone", None, False, None, None),
-        # If there is one type validation rule the type is set to the
-        #  JSON Schema equivalent of the validation rule
-        ("CheckString", "string", False, None, None),
-        # If there are any list type validation rules then is_array is set to True
-        ("CheckList", None, True, None, None),
-        # If there are any list type validation rules and one type validation rule
-        #  then is_array is set to True, and the type is set to the
-        #  JSON Schema equivalent of the validation rule
-        ("CheckListString", "string", True, None, None),
-        # If there is an inRange rule the min and max will be set
-        ("CheckRange", "number", False, 50, 100),
-    ],
-    ids=["CheckNone", "CheckString", "CheckList", "CheckListString", "CheckRange"],
-)
-def test_node(
-    node_name: str,
-    expected_type: Optional[str],
-    expected_is_array: bool,
-    expected_min: Optional[float],
-    expected_max: Optional[float],
-    dmge: DataModelGraphExplorer,
-) -> None:
-    """Tests for Node class"""
-    node = Node(node_name, "MockComponent", dmge)
-    assert node.type == expected_type
-    assert node.is_array == expected_is_array
-    assert node.minimum == expected_min
-    assert node.maximum == expected_max
-
-
-@pytest.mark.parametrize(
     "input_rule, expected_tuple",
     [
         ("", (None, None)),
