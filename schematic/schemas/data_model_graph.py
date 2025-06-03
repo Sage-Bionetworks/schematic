@@ -162,7 +162,6 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         """
         self.graph = graph  # At this point the graph is expected to be fully formed.
         self.dmr = DataModelRelationships()
-        self.rel_dict = self.dmr.relationships_dictionary
 
     def find_properties(self) -> set[str]:
         """
@@ -175,7 +174,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         """
         properties_list: list[str] = []
         for node_1, _, rel in self.graph.edges:
-            if rel == self.rel_dict["domainIncludes"]["edge_key"]:
+            if rel == self.dmr.get_relationship_value("domainIncludes", "edge_key"):
                 properties_list.append(node_1)
         properties_set = set(properties_list)
         return properties_set
@@ -210,7 +209,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         for node_1, node_2, rel in self.graph.edges:
             if (
                 node_1 == node_label
-                and rel == self.rel_dict["rangeIncludes"]["edge_key"]
+                and rel == self.dmr.get_relationship_value("rangeIncludes", "edge_key")
             ):
                 valid_values.append(node_2)
         valid_values = list(set(valid_values))
@@ -274,7 +273,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
                 if not node_display_name:
                     assert node_label is not None
                     node_display_name = self.graph.nodes[node_label][
-                        self.rel_dict["displayName"]["node_label"]
+                        self.dmr.get_relationship_value("displayName", "node_label")
                     ]
                 error_str = " ".join(
                     [
@@ -349,7 +348,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             reversed(
                 self.get_descendants_by_edge_type(
                     source_component,
-                    self.rel_dict["requiresComponent"]["edge_key"],
+                    self.dmr.get_relationship_value("requiresComponent", "edge_key"),
                     ordered=True,
                 )
             )
@@ -379,7 +378,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
         # get the subgraph induced on required component nodes
         req_components_graph = self.get_subgraph_by_edge_type(
-            self.rel_dict["requiresComponent"]["edge_key"],
+            self.dmr.get_relationship_value("requiresComponent", "edge_key"),
         ).subgraph(req_components)
 
         return req_components_graph
@@ -527,10 +526,10 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
                 f"Cannot find node: {source_node_label} in the graph, please check entry."
             )
 
-        edge_key = self.rel_dict[key]["edge_key"]
+        edge_key = self.dmr.get_relationship_value(key, "edge_key")
 
         # Handle out edges
-        if self.rel_dict[key]["jsonld_direction"] == "out":
+        if self.dmr.get_relationship_value(key, "jsonld_direction") == "out":
             # use out edges
 
             original_edge_weights_dict = {
@@ -593,7 +592,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             return ""
 
         node_definition = self.graph.nodes[node_label][
-            self.rel_dict["comment"]["node_label"]
+            self.dmr.get_relationship_value("comment", "node_label")
         ]
         return node_definition
 
@@ -621,13 +620,13 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         if schema_ordered:
             # get dependencies in the same order in which they are defined in the schema
             required_dependencies = self.get_ordered_entry(
-                key=self.rel_dict["requiresDependency"]["edge_key"],
+                key=self.dmr.get_relationship_value("requiresDependency", "edge_key"),
                 source_node_label=source_node,
             )
         else:
             required_dependencies = self.get_adjacent_nodes_by_relationship(
                 node_label=source_node,
-                relationship=self.rel_dict["requiresDependency"]["edge_key"],
+                relationship=self.dmr.get_relationship_value("requiresDependency", "edge_key"),
             )
 
         if display_names:
@@ -636,7 +635,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
             for req in required_dependencies:
                 dependencies_display_names.append(
-                    self.graph.nodes[req][self.rel_dict["displayName"]["node_label"]]
+                    self.graph.nodes[req][self.dmr.get_relationship_value("displayName", "node_label")]
                 )
 
             return dependencies_display_names
@@ -667,7 +666,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             List of display names.
         """
         node_list_display_names = [
-            self.graph.nodes[node][self.rel_dict["displayName"]["node_label"]]
+            self.graph.nodes[node][self.dmr.get_relationship_value("displayName", "node_label")]
             for node in node_list
         ]
 
@@ -760,7 +759,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             False: If the given node is not a "required" (i.e., an "optional") node.
         """
         node_label = self._get_node_label(node_label, node_display_name)
-        rel_node_label = self.rel_dict["required"]["node_label"]
+        rel_node_label = self.dmr.get_relationship_value("required", "node_label")
         node_required = self.graph.nodes[node_label][rel_node_label]
         return node_required
 
@@ -823,7 +822,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         """
         node_label = self._get_node_label(node_label, node_display_name)
         return self.get_adjacent_nodes_by_relationship(
-            node_label=node_label, relationship=self.rel_dict["subClassOf"]["edge_key"]
+            node_label=node_label, relationship=self.dmr.get_relationship_value("subClassOf", "edge_key")
         )
 
     def find_child_classes(self, schema_class: str) -> list:
