@@ -21,13 +21,13 @@ class DataModelRelationships:
     def define_data_model_relationships(self) -> dict:
         """Define the relationships and their attributes so they can be accessed
           through other classes.
-        The key is how it the relationship will be referenced througout Schematic.
+        The key is how it the relationship will be referenced throughout Schematic.
         Note: Though we could use other keys to determine which keys define nodes and edges,
-            edge_rel is used as an explicit definition, for easier code readablity.
+            edge_rel is used as an explicit definition, for easier code readability.
         key:
             jsonld_key: Name for relationship in the JSONLD.
                         Include in all sub-dictionaries.
-            csv_header: Str, name for this relationshp in the CSV data model.
+            csv_header: Str, name for this relationship in the CSV data model.
                         Enter None if not part of the CSV data model.
             node_label: Name for relationship in the graph representation of the data model.
                         Do not include this key for edge relationships.

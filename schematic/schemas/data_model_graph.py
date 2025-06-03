@@ -244,10 +244,10 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         node_display_name: Optional[str] = None,
     ) -> bool:
         """Check if a node is required taking into account the manifest component it is defined in
-        (requirements can be set in validaiton rule as well as required column)
+        (requirements can be set in validation rule as well as required column)
         Args:
             manifest_component: str, manifest component display name that the node belongs to.
-            node_validation_rules: list[str], valdation rules for a given node and component.
+            node_validation_rules: list[str], validation rules for a given node and component.
             node_label: str, Label of the node you would want to get the comment for.
             node_display_name: str, node display name for the node being queried.
         Returns:
@@ -263,7 +263,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
                 node_display_name=node_display_name,
             )
 
-        # Check if the valdation rule specifies that the node is required for this particular
+        # Check if the validation rule specifies that the node is required for this particular
         # component.
         if rule_in_rule_list("required", node_validation_rules):
             node_required = True
@@ -290,7 +290,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
                 logger.error(error_str)
         else:
-            # If requirements are not being set in the validaiton rule, then just pull the
+            # If requirements are not being set in the validation rule, then just pull the
             # standard node requirements from the model
             node_required = self.get_node_required(
                 node_label=node_label, node_display_name=node_display_name
@@ -303,7 +303,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         node_label: Optional[str] = None,
         node_display_name: Optional[str] = None,
     ) -> list:
-        """Get valdation rules for a given node and component.
+        """Get validation rules for a given node and component.
         Args:
             manifest_component: str, manifest component display name that the node belongs to.
             node_label: str, Label of the node you would want to get the comment for.
@@ -396,7 +396,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
           type of edge / relationship type.
 
         Args:
-            source_node: The node whose descendants need to be retreived.
+            source_node: The node whose descendants need to be retrieved.
             relationship: Edge / link relationship type with possible values same as in above docs.
             connected:
               If True, we need to ensure that all descendant nodes are reachable from the source
@@ -406,7 +406,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             ordered:
               If True, the list of descendants will be topologically ordered.
               If False, the list has no particular order (depends on the order in which the
-                descendats were traversed in the subgraph).
+                descendants were traversed in the subgraph).
 
         Returns:
             List of nodes that are descendants from a particular node (sorted / unsorted)
@@ -481,7 +481,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         node: str,
         relationship: str,
     ) -> list[tuple[str, str]]:
-        """Get a list of out-edges of a node where the edges match a specifc type of relationship.
+        """Get a list of out-edges of a node where the edges match a specific type of relationship.
 
         i.e., the edges connecting a node to its neighbors are of relationship type -- "parentOf"
           (set of edges to children / sub-class nodes).
@@ -531,7 +531,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
         # Handle out edges
         if self.rel_dict[key]["jsonld_direction"] == "out":
-            # use outedges
+            # use out edges
 
             original_edge_weights_dict = {
                 attached_node: self.graph[source_node][attached_node][edge_key][
@@ -544,7 +544,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             }
         # Handle in edges
         else:
-            # use inedges
+            # use in edges
             original_edge_weights_dict = {
                 attached_node: self.graph[attached_node][source_node][edge_key][
                     "weight"
@@ -844,7 +844,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         Returns:
             properties, list: List of properties associate with a given schema class.
         Raises:
-            KeyError: Key error is raised if the provded schema_class is not in the graph
+            KeyError: Key error is raised if the provided schema_class is not in the graph
         """
 
         if not self.is_class_in_schema(schema_class):
@@ -909,7 +909,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         """Create a sub-schema graph
         Args:
             source, str: source node label to start graph
-            direction, str: direction to create the vizualization, choose from "up", "down", "both"
+            direction, str: direction to create the visualization, choose from "up", "down", "both"
             size, float: max height and width of the graph, if one value provided it is used for
               both.
         Returns:
