@@ -965,16 +965,30 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             node_label: The label of the node to get the type from
             node_display_name: The display name of the node to get the type from
 
+        Returns:
+            The column type of the node if it has one, otherwise None
+        """
+        node_label = self._get_node_label(node_label, node_display_name)
+        rel_node_label = self.dmr.get_relationship_value("columnType", "node_label")
+        return self.graph.nodes[node_label][rel_node_label]
+
+    def _get_node_label(
+        self, node_label: Optional[str] = None, node_display_name: Optional[str] = None
+    ) -> str:
+        """Returns the node label depending on the type of input
+
+        Args:
+            node_label: The label of the node to get the type from
+            node_display_name: The display name of the node to get the type from
+
         Raises:
             ValueError: If neither node_label or node_display_name is provided
 
         Returns:
-            The column type of the node if it hs one, otherwise None
+            The node label
         """
         if not node_label:
             if not node_display_name:
                 raise ValueError("must provide either node_label or node_display_name")
             node_label = self.get_node_label(node_display_name)
-
-        rel_node_label = self.rel_dict["columnType"]["node_label"]
-        return self.graph.nodes[node_label][rel_node_label]
+        return node_label

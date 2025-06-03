@@ -251,23 +251,46 @@ class DataModelRelationships:
 
         return rel_headers_dict
 
+    def get_relationship_value(
+        self, relationship: str, value: str, none_if_missing: bool = False
+    ) -> Any:
+        """Returns a value from the relationship dictionary
+
+        Args:
+            relationship: The name of the relationship, the key in the top level relationship dict
+            value: The name of the value to get, the key dict of the relationship itself
+            none_if_missing: What happens if the value isn't a key in the relationship
+              If True returns None
+              If False an exception is raised
+
+        Raises:
+            ValueError: If the relationship doesn't exists
+            ValueError: If the value isn't in the relationship and none_if_missing is False
+
+        Returns:
+            The value
+        """
+        if relationship not in self.relationships_dictionary:
+            raise ValueError(f"Relationship: '{relationship}' not in dictionary")
+        if value not in self.relationships_dictionary[relationship]:
+            if not none_if_missing:
+                raise ValueError(
+                    f"Value: '{value}' not in relationship dictionary: '{relationship}'"
+                )
+            return None
+        return self.relationships_dictionary[relationship][value]
+
     def get_allowed_values(self, relationship: str) -> Optional[list[Any]]:
         """Gets the allowed values for the relationship
 
-        Args:
+        Arguments:
             relationship: The name of the relationship
-
-        Raises:
-            ValueError: If the relationship doesn't exist
-            AssertionError: If the allowed values aren't a list
 
         Returns:
              A list of allowed values if they exist, otherwise None
         """
-        if relationship not in self.relationships_dictionary:
-            raise ValueError(f"Relationship: '{relationship}' not in dictionary")
-        allowed_values = self.relationships_dictionary[relationship].get(
-            "allowed_values"
+        allowed_values = self.get_relationship_value(
+            relationship, "allowed_values", none_if_missing=True
         )
         assert isinstance(allowed_values, list) or allowed_values is None
         return allowed_values

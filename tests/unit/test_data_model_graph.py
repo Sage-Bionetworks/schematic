@@ -10,7 +10,7 @@ from tests.conftest import Helpers
 DATA_MODEL_DICT = {"example.model.csv": "CSV", "example.model.jsonld": "JSONLD"}
 
 
-@pytest.fixture(name="column_type_dmge", scope="module")
+@pytest.fixture(name="column_type_dmge_jsonld", scope="module")
 def fixture_column_type_dmge() -> DataModelGraphExplorer:
     """Returns a DataModelGraphExplorer using the example data model with columnType attributes"""
     data_model_parser = DataModelParser(
@@ -113,11 +113,11 @@ class TestDataModelGraphExplorer:
         self,
         node_label: str,
         expected_type: Optional[JSONSchemaType],
-        column_type_dmge: DataModelGraphExplorer,
+        column_type_dmge_jsonld: DataModelGraphExplorer,
     ) -> None:
         """Tests for DataModelGraphExplorer.get_node_column_type using node label"""
         assert (
-            column_type_dmge.get_node_column_type(node_label=node_label)
+            column_type_dmge_jsonld.get_node_column_type(node_label=node_label)
             == expected_type
         )
 
@@ -134,10 +134,12 @@ class TestDataModelGraphExplorer:
         self,
         node_display_name: str,
         expected_type: Optional[JSONSchemaType],
-        column_type_dmge: DataModelGraphExplorer,
+        column_type_dmge_jsonld: DataModelGraphExplorer,
     ) -> None:
         """Tests for DataModelGraphExplorer.get_node_column_type using node display name"""
         assert (
-            column_type_dmge.get_node_column_type(node_display_name=node_display_name)
+            column_type_dmge_jsonld.get_node_column_type(
+                node_display_name=node_display_name
+            )
             == expected_type
         )
