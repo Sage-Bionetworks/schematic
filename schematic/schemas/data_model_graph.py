@@ -975,7 +975,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
     def _get_node_label(
         self, node_label: Optional[str] = None, node_display_name: Optional[str] = None
     ) -> str:
-        """Returns the node label depending on the type of input
+        """Returns the node label if given otherwise gets the node label from the display name
 
         Args:
             node_label: The label of the node to get the type from

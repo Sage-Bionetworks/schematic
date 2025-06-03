@@ -264,7 +264,7 @@ class DataModelRelationships:
               If False an exception is raised
 
         Raises:
-            ValueError: If the relationship doesn't exists
+            ValueError: If the relationship doesn't exist
             ValueError: If the value isn't in the relationship and none_if_missing is False
 
         Returns:
