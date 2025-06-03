@@ -6,9 +6,13 @@ import json
 import logging
 import os
 import string
-from typing import Literal, Optional, Union
+from typing import Literal, Optional, Union, Any, TYPE_CHECKING
+import pandas as pd
 
 import inflection
+
+if TYPE_CHECKING:
+    from schematic.schemas.data_model_relationships import DataModelRelationships
 
 logger = logging.getLogger(__name__)
 
@@ -499,3 +503,46 @@ def get_json_schema_log_file_path(data_model_path: str, source_node: str) -> str
         prefix = prefix_root
     json_schema_log_file_path = f"{prefix}.{source_node}.schema.json"
     return json_schema_log_file_path
+
+
+def parsed_model_as_dataframe(parsed_model: dict[str, dict[str, Any]]) -> pd.DataFrame:
+    """Convert parsed model dictionary to an unpacked pandas DataFrame.
+    Args:
+        parsed_model: dict, parsed data model dictionary.
+    Returns:
+        pd.DataFrame, DataFrame representation of the parsed model.
+    """
+
+    # Convert the parsed model dictionary to a DataFrame
+    unpacked_model_dict = {}
+
+    for top_key, nested_dict in parsed_model.items():
+        for nested_key, value in nested_dict.items():
+            unpacked_model_dict[top_key, nested_key] = value
+
+    model_dataframe = pd.DataFrame.from_dict(
+        unpacked_model_dict,
+        orient="index",
+    ).reset_index(drop=True)
+
+    return model_dataframe
+
+
+def check_allowed_values(
+    dmr: "DataModelRelationships", entry_id: str, value: Any, relationship: str
+) -> None:
+    """Checks that the entry is in the allowed values if they exist for the relationship
+
+    Args:
+        dmr: DataModelRelationships, the data model relationships object
+        entry_id: The id of the entry
+        value: The value to check
+        relationship (str): The name of the relationship to check for allowed values
+
+    Raises:
+        ValueError: If the value isn't in the list of allowed values
+    """
+    allowed_values = dmr.get_allowed_values(relationship)
+    if allowed_values and value not in allowed_values:
+        msg = f"For entry: '{entry_id}', '{value}' not in allowed values: {allowed_values}"
+        raise ValueError(msg)

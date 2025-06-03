@@ -1,5 +1,7 @@
 """Data Model Relationships"""
 
+from typing import Optional, Any
+
 from schematic.utils.schema_utils import (
     convert_bool_to_str,
     get_attribute_display_name_from_label,
@@ -46,6 +48,7 @@ class DataModelRelationships:
                     }
                 If adding new functions to node_dict will
                     need to modify data_model_nodes.generate_node_dict in
+            allowed_values: A list of values the entry must be  one of
             edge_dir: str, 'in'/'out' is the edge an in or out edge. Define for edge relationships
             jsonld_dir: str, 'in'/out is the direction in or out in the JSONLD.
 
@@ -188,6 +191,16 @@ class DataModelRelationships:
                     "standard": get_label_from_display_name,
                 },
             },
+            "columnType": {
+                "jsonld_key": "sms:columnType",
+                "csv_header": "ColumnType",
+                "node_label": "columnType",
+                "type": str,
+                "required_header": False,
+                "edge_rel": False,
+                "node_attr_dict": {"default": None},
+                "allowed_values": ["string", "integer", "number", "boolean"],
+            },
         }
 
         return map_data_model_relationships
@@ -235,3 +248,24 @@ class DataModelRelationships:
                 raise ValueError(f"Did not provide a 'edge_rel' for relationship {rel}")
 
         return rel_headers_dict
+
+    def get_allowed_values(self, relationship: str) -> Optional[list[Any]]:
+        """Gets the allowed values for the relationship
+
+        Args:
+            relationship: The name of the relationship
+
+        Raises:
+            ValueError: If the relationship doesn't exist
+            AssertionError: If the allowed values aren't a list
+
+        Returns:
+             A list of allowed values if they exist, otherwise None
+        """
+        if relationship not in self.relationships_dictionary:
+            raise ValueError(f"Relationship: '{relationship}' not in dictionary")
+        allowed_values = self.relationships_dictionary[relationship].get(
+            "allowed_values"
+        )
+        assert isinstance(allowed_values, list) or allowed_values is None
+        return allowed_values

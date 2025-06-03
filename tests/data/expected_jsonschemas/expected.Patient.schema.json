@@ -68,13 +68,15 @@
           "title": "null",
           "type": "null"
         }
-      ]
+      ],
+      "title": "Cancer Type"
     },
     "Component": {
       "description": "TBD",
       "not": {
         "type": "null"
-      }
+      },
+      "title": "Component"
     },
     "Diagnosis": {
       "description": "TBD",
@@ -86,7 +88,8 @@
           ],
           "title": "enum"
         }
-      ]
+      ],
+      "title": "Diagnosis"
     },
     "FamilyHistory": {
       "description": "TBD",
@@ -108,13 +111,15 @@
           "title": "null",
           "type": "null"
         }
-      ]
+      ],
+      "title": "Family History"
     },
     "PatientID": {
       "description": "TBD",
       "not": {
         "type": "null"
-      }
+      },
+      "title": "Patient ID"
     },
     "Sex": {
       "description": "TBD",
@@ -127,10 +132,12 @@
           ],
           "title": "enum"
         }
-      ]
+      ],
+      "title": "Sex"
     },
     "YearofBirth": {
-      "description": "TBD"
+      "description": "TBD",
+      "title": "Year of Birth"
     }
   },
   "required": [

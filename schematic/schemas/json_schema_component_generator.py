@@ -5,7 +5,6 @@
 import os
 from pathlib import Path
 from typing import Any, Optional
-import pandas as pd
 import click
 
 from schematic.models.metadata import MetadataModel
@@ -13,7 +12,7 @@ from schematic.schemas.create_json_schema import create_json_schema
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.utils.io_utils import export_json
-from schematic.utils.schema_utils import DisplayLabelType
+from schematic.utils.schema_utils import parsed_model_as_dataframe, DisplayLabelType
 
 
 class JsonSchemaGeneratorDirector:
@@ -85,16 +84,7 @@ class JsonSchemaGeneratorDirector:
 
         # To represent each attribute of the nested model dictionary as a column in a dataframe,
         # it must be unpacked and the index reset
-        unpacked_model_dict = {}
-
-        for top_key, nested_dict in self.parsed_model.items():
-            for nested_key, value in nested_dict.items():
-                unpacked_model_dict[top_key, nested_key] = value
-
-        attrs = pd.DataFrame.from_dict(
-            unpacked_model_dict,
-            orient="index",
-        ).reset_index(drop=True)
+        attrs = parsed_model_as_dataframe(self.parsed_model)
 
         # Get a series of boolean values that can be used to identify which attributes (rows) have 'Component' in the DependsOn column
         string_depends_on = attrs.DependsOn

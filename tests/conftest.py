@@ -20,6 +20,7 @@ from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import load_df
 from schematic.utils.general import create_temp_folder
@@ -390,3 +391,9 @@ def parsed_example_model(helpers, example_data_model_path):
     parsed_example_model = data_model_parser.parse_model()
 
     yield parsed_example_model
+
+
+@pytest.fixture(name="dmr")
+def fixture_dmr():
+    "Returns a DataModelRelationships instance"
+    return DataModelRelationships()

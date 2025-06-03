@@ -7,17 +7,20 @@
       "description": "TBD",
       "not": {
         "type": "null"
-      }
+      },
+      "title": "Component"
     },
     "MockRDBId": {
       "description": "TBD",
+      "title": "MockRDB_id",
       "type": "integer"
     },
     "SourceManifest": {
       "description": "TBD",
       "not": {
         "type": "null"
-      }
+      },
+      "title": "SourceManifest"
     }
   },
   "required": [
