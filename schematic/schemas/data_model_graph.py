@@ -207,9 +207,8 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
         valid_values = []
         for node_1, node_2, rel in self.graph.edges:
-            if (
-                node_1 == node_label
-                and rel == self.dmr.get_relationship_value("rangeIncludes", "edge_key")
+            if node_1 == node_label and rel == self.dmr.get_relationship_value(
+                "rangeIncludes", "edge_key"
             ):
                 valid_values.append(node_2)
         valid_values = list(set(valid_values))
@@ -626,7 +625,9 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         else:
             required_dependencies = self.get_adjacent_nodes_by_relationship(
                 node_label=source_node,
-                relationship=self.dmr.get_relationship_value("requiresDependency", "edge_key"),
+                relationship=self.dmr.get_relationship_value(
+                    "requiresDependency", "edge_key"
+                ),
             )
 
         if display_names:
@@ -635,7 +636,9 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
             for req in required_dependencies:
                 dependencies_display_names.append(
-                    self.graph.nodes[req][self.dmr.get_relationship_value("displayName", "node_label")]
+                    self.graph.nodes[req][
+                        self.dmr.get_relationship_value("displayName", "node_label")
+                    ]
                 )
 
             return dependencies_display_names
@@ -666,7 +669,9 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             List of display names.
         """
         node_list_display_names = [
-            self.graph.nodes[node][self.dmr.get_relationship_value("displayName", "node_label")]
+            self.graph.nodes[node][
+                self.dmr.get_relationship_value("displayName", "node_label")
+            ]
             for node in node_list
         ]
 
@@ -822,7 +827,8 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         """
         node_label = self._get_node_label(node_label, node_display_name)
         return self.get_adjacent_nodes_by_relationship(
-            node_label=node_label, relationship=self.dmr.get_relationship_value("subClassOf", "edge_key")
+            node_label=node_label,
+            relationship=self.dmr.get_relationship_value("subClassOf", "edge_key"),
         )
 
     def find_child_classes(self, schema_class: str) -> list:
