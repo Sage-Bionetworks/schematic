@@ -2,6 +2,7 @@
 
 from typing import Optional, Any
 from enum import Enum
+from typing import Optional, Any, Literal, get_args
 
 from schematic.utils.schema_utils import (
     convert_bool_to_str,
@@ -9,6 +10,8 @@ from schematic.utils.schema_utils import (
     get_label_from_display_name,
     parse_validation_rules,
 )
+
+JSONSchemaType = Literal["string", "number", "integer", "boolean"]
 
 
 class JSONSchemaType(Enum):
