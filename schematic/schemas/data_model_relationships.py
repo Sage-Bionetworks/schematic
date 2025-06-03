@@ -1,6 +1,6 @@
 """Data Model Relationships"""
 
-from typing import Optional, Any
+from typing import Optional, Any, Literal, get_args
 
 from schematic.utils.schema_utils import (
     convert_bool_to_str,
@@ -8,6 +8,8 @@ from schematic.utils.schema_utils import (
     get_label_from_display_name,
     parse_validation_rules,
 )
+
+JSONSchemaType = Literal["string", "number", "integer", "boolean"]
 
 
 class DataModelRelationships:
@@ -199,7 +201,7 @@ class DataModelRelationships:
                 "required_header": False,
                 "edge_rel": False,
                 "node_attr_dict": {"default": None},
-                "allowed_values": ["string", "integer", "number", "boolean"],
+                "allowed_values": list(get_args(JSONSchemaType)),
             },
         }
 
