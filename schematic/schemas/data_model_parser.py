@@ -10,7 +10,7 @@ from opentelemetry import trace
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.df_utils import load_df
 from schematic.utils.io_utils import load_json
-from schematic.utils.schema_utils import attr_dict_template
+from schematic.utils.schema_utils import attr_dict_template, check_allowed_values
 
 logger = logging.getLogger("Schemas")
 
@@ -213,7 +213,8 @@ class DataModelCSVParser:
         self.check_schema_definition(model_df)
 
         # get attributes from Attribute column
-        attributes = model_df[list(self.required_headers)].to_dict("records")
+        attributes = model_df.to_dict("records")
+        model_includes_column_type = "columnType" in model_df.columns
 
         # Build attribute/relationship dictionary
         relationship_types = self.required_headers
@@ -232,7 +233,38 @@ class DataModelCSVParser:
                     attr_rel_dictionary[attribute_name]["Relationships"].update(
                         {relationship: parsed_rel_entry}
                     )
+            if model_includes_column_type:
+                column_type_dict = self.parse_column_type(attr)
+                attr_rel_dictionary[attribute_name].update(column_type_dict)
         return attr_rel_dictionary
+
+    def parse_column_type(self, attr: dict) -> dict:
+        """Parse the attribute type for a given attribute.
+
+        Args:
+            attr (dict): The attribute dictionary.
+
+        Returns:
+            dict: A dictionary containing the parsed column type information if present
+            else an empty dict
+        """
+        column_type = attr.get("columnType")
+
+        # If no column type specified, we don't want to add any entry to the dictionary
+        if pd.isna(column_type):
+            return {}
+
+        # column types should be case agnostic and valid
+        column_type = str(column_type).strip().lower()
+
+        check_allowed_values(
+            self.dmr,
+            entry_id=attr["Source"],
+            value=column_type,
+            relationship="columnType",
+        )
+
+        return {"columnType": column_type}
 
     @tracer.start_as_current_span("Schemas::DataModelCSVParser::parse_csv_model")
     def parse_csv_model(
@@ -455,6 +487,16 @@ class DataModelJSONLDParser:
                             rel_entry=rel_entry,
                             id_jsonld_key=id_jsonld_key,
                             model_jsonld=model_jsonld,
+                        )
+                        if "@id" not in entry:
+                            raise ValueError(
+                                "Datatype in JSON-LD missing `@id`: ", entry
+                            )
+                        check_allowed_values(
+                            self.dmr,
+                            entry_id=entry["@id"],
+                            value=rel_entry,
+                            relationship=rel_key,
                         )
                         rel_csv_header = rel_vals["csv_header"]
                         if rel_key == "domainIncludes":
