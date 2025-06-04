@@ -1048,7 +1048,7 @@ class TestDataModelEdges:
 
     """
 
-    def test_skip_edge(self, helpers, DMR:DataModelRelationships, data_model_edges):
+    def test_skip_edge(self, helpers, DMR: DataModelRelationships, data_model_edges):
         # Instantiate graph object and set node
         G = nx.MultiDiGraph()
         node = "Diagnosis"
@@ -1108,7 +1108,12 @@ class TestDataModelEdges:
         ids=["subClassOf", "Valid Value", "all others"],
     )
     def test_generate_edge(
-        self, helpers, DMR:DataModelRelationships, data_model_edges, node_to_add, edge_relationship
+        self,
+        helpers,
+        DMR: DataModelRelationships,
+        data_model_edges,
+        node_to_add,
+        edge_relationship,
     ):
         # Instantiate graph object
         G = nx.MultiDiGraph()
@@ -1173,7 +1178,7 @@ class TestDataModelEdges:
     def test_generate_weights(
         self,
         helpers,
-        DMR:DataModelRelationships,
+        DMR: DataModelRelationships,
         data_model_edges,
         node_to_add,
         other_node,
