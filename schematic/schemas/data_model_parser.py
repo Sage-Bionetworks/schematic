@@ -129,7 +129,7 @@ class DataModelCSVParser:
         # Load relationships dictionary.
         self.rel_dict = self.dmr.define_data_model_relationships()
         # Get edge relationships
-        self.edge_relationships_dictionary = self.dmr.retreive_rel_headers_dict(
+        self.edge_relationships_dictionary = self.dmr.retrieve_rel_headers_dict(
             edge=True
         )
         # Load required csv headers

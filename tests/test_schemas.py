@@ -386,10 +386,10 @@ class TestDataModelRelationships:
         ]
 
     @pytest.mark.parametrize("edge", [True, False], ids=["True", "False"])
-    def test_retreive_rel_headers_dict(self, DMR: DataModelRelationships, edge: bool):
+    def test_retrieve_rel_headers_dict(self, DMR: DataModelRelationships, edge: bool):
         """Tests method returns correct values"""
         if edge:
-            assert DMR.retreive_rel_headers_dict(edge=edge) == {
+            assert DMR.retrieve_rel_headers_dict(edge=edge) == {
                 "rangeIncludes": "Valid Values",
                 "requiresDependency": "DependsOn",
                 "requiresComponent": "DependsOn Component",
@@ -397,7 +397,7 @@ class TestDataModelRelationships:
                 "domainIncludes": "Properties",
             }
         else:
-            assert DMR.retreive_rel_headers_dict(edge=edge) == {
+            assert DMR.retrieve_rel_headers_dict(edge=edge) == {
                 "columnType": "ColumnType",
                 "displayName": "Attribute",
                 "label": None,
@@ -1048,7 +1048,7 @@ class TestDataModelEdges:
 
     """
 
-    def test_skip_edge(self, helpers, DMR, data_model_edges):
+    def test_skip_edge(self, helpers, DMR:, data_model_edges):
         # Instantiate graph object and set node
         G = nx.MultiDiGraph()
         node = "Diagnosis"
@@ -1065,7 +1065,7 @@ class TestDataModelEdges:
         DMN = DataModelNodes(parsed_data_model)
 
         # Get edge relationships and all nodes from the parsed model
-        edge_relationships = DMR.retreive_rel_headers_dict(edge=True)
+        edge_relationships = DMR.retrieve_rel_headers_dict(edge=True)
         all_nodes = DMN.gather_all_nodes_in_model(attr_rel_dict=parsed_data_model)
 
         # Sanity check to ensure that the node we intend to test exists in the data model
@@ -1108,7 +1108,7 @@ class TestDataModelEdges:
         ids=["subClassOf", "Valid Value", "all others"],
     )
     def test_generate_edge(
-        self, helpers, DMR, data_model_edges, node_to_add, edge_relationship
+        self, helpers, DMR:DataModelRelationships, data_model_edges, node_to_add, edge_relationship
     ):
         # Instantiate graph object
         G = nx.MultiDiGraph()
@@ -1125,7 +1125,7 @@ class TestDataModelEdges:
         DMN = DataModelNodes(parsed_data_model)
 
         # Get edge relationships and all nodes from the parsed model
-        edge_relationships = DMR.retreive_rel_headers_dict(edge=True)
+        edge_relationships = DMR.retrieve_rel_headers_dict(edge=True)
         all_nodes = DMN.gather_all_nodes_in_model(attr_rel_dict=parsed_data_model)
 
         # Sanity check to ensure that the node we intend to test exists in the data model
@@ -1173,7 +1173,7 @@ class TestDataModelEdges:
     def test_generate_weights(
         self,
         helpers,
-        DMR,
+        DMR:DataModelRelationships,
         data_model_edges,
         node_to_add,
         other_node,
@@ -1195,7 +1195,7 @@ class TestDataModelEdges:
         DMN = DataModelNodes(parsed_data_model)
 
         # Get edge relationships and all nodes from the parsed model
-        edge_relationships = DMR.retreive_rel_headers_dict(edge=True)
+        edge_relationships = DMR.retrieve_rel_headers_dict(edge=True)
         all_nodes = DMN.gather_all_nodes_in_model(attr_rel_dict=parsed_data_model)
 
         # Sanity check to ensure that the node we intend to test exists in the data model

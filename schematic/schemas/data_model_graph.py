@@ -101,7 +101,7 @@ class DataModelGraph:  # pylint: disable=too-few-public-methods
             G: nx.MultiDiGraph, networkx graph representation of the data model
         """
         # Get all relationships with edges
-        edge_relationships = self.dmr.retreive_rel_headers_dict(edge=True)
+        edge_relationships = self.dmr.retrieve_rel_headers_dict(edge=True)
 
         # Find all nodes
         all_nodes = self.dmn.gather_all_nodes_in_model(

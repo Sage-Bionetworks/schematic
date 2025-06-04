@@ -229,9 +229,9 @@ class DataModelRelationships:
 
         return required_headers
 
-    def retreive_rel_headers_dict(self, edge: bool) -> dict[str, str]:
+    def retrieve_rel_headers_dict(self, edge: bool) -> dict[str, str]:
         """
-        Helper function to retrieve CSV headers for edge and non-edge relationships
+        Helper method to retrieve CSV headers for edge and non-edge relationships
           defined by edge_type.
 
         Args:
