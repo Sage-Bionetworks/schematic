@@ -1048,7 +1048,7 @@ class TestDataModelEdges:
 
     """
 
-    def test_skip_edge(self, helpers, DMR:, data_model_edges):
+    def test_skip_edge(self, helpers, DMR:DataModelRelationships, data_model_edges):
         # Instantiate graph object and set node
         G = nx.MultiDiGraph()
         node = "Diagnosis"
