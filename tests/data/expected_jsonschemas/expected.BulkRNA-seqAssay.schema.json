@@ -101,7 +101,8 @@
       "description": "TBD",
       "not": {
         "type": "null"
-      }
+      },
+      "title": "Component"
     },
     "FileFormat": {
       "description": "TBD",
@@ -115,13 +116,15 @@
           ],
           "title": "enum"
         }
-      ]
+      ],
+      "title": "File Format"
     },
     "Filename": {
       "description": "TBD",
       "not": {
         "type": "null"
-      }
+      },
+      "title": "Filename"
     },
     "GenomeBuild": {
       "description": "TBD",
@@ -139,16 +142,19 @@
           "title": "null",
           "type": "null"
         }
-      ]
+      ],
+      "title": "Genome Build"
     },
     "GenomeFASTA": {
-      "description": "TBD"
+      "description": "TBD",
+      "title": "Genome FASTA"
     },
     "SampleID": {
       "description": "TBD",
       "not": {
         "type": "null"
-      }
+      },
+      "title": "Sample ID"
     }
   },
   "required": [

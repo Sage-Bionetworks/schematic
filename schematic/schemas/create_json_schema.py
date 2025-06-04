@@ -797,6 +797,7 @@ def _set_property(
             prop = _create_simple_property(node)
 
     prop["description"] = node.description
+    prop["title"] = node.display_name
     schema_property = {node_name: prop}
 
     json_schema.update_property(schema_property)

@@ -7,13 +7,15 @@
       "description": "TBD",
       "not": {
         "type": "null"
-      }
+      },
+      "title": "Component"
     },
     "Filename": {
       "description": "TBD",
       "not": {
         "type": "null"
-      }
+      },
+      "title": "Filename"
     }
   },
   "required": [

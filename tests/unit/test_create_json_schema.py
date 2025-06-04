@@ -772,6 +772,7 @@ def test_set_conditional_dependencies(
                 properties={
                     "ListEnum": {
                         "description": "TBD",
+                        "title": "List Enum",
                         "oneOf": [
                             {
                                 "type": "array",
@@ -791,6 +792,7 @@ def test_set_conditional_dependencies(
                 properties={
                     "ListEnumNotRequired": {
                         "description": "TBD",
+                        "title": "List Enum Not Required",
                         "oneOf": [
                             {
                                 "type": "array",
@@ -811,6 +813,7 @@ def test_set_conditional_dependencies(
                 properties={
                     "Enum": {
                         "description": "TBD",
+                        "title": "Enum",
                         "oneOf": [{"enum": ["ab", "cd", "ef", "gh"], "title": "enum"}],
                     }
                 },
@@ -827,6 +830,7 @@ def test_set_conditional_dependencies(
                             {"type": "array", "title": "array"},
                         ],
                         "description": "TBD",
+                        "title": "List",
                     }
                 },
                 required=["List"],
@@ -836,7 +840,13 @@ def test_set_conditional_dependencies(
         (
             "String",
             JSONSchema(
-                properties={"String": {"description": "TBD", "type": "string"}},
+                properties={
+                    "String": {
+                        "description": "TBD",
+                        "type": "string",
+                        "title": "String",
+                    }
+                },
                 required=["String"],
             ),
         ),
