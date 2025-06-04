@@ -165,10 +165,10 @@ def convert(
 )
 @click_log.simple_verbosity_option(logger)
 @click.option(
-    "--data_model_location",
-    "-dml",
+    "--data_model_source",
+    "-dms",
     help=query_dict(
-        schema_commands, ("schema", "generate-jsonschema", "data_model_location")
+        schema_commands, ("schema", "generate-jsonschema", "data_model_source")
     ),
 )
 @click.option(
@@ -186,17 +186,27 @@ def convert(
     callback=parse_comma_str_to_list,
     help=query_dict(schema_commands, ("schema", "generate-jsonschema", "data_type")),
 )
+@click.option(
+    "--data_model_labels",
+    "-dml",
+    default="class_label",
+    type=click.Choice(list(get_args(DisplayLabelType)), case_sensitive=True),
+    help=query_dict(schema_commands, ("schema", "convert", "data_model_labels")),
+)
 def generate_jsonschema(
-    data_model_location: str, output_directory: str, data_type: Optional[list[str]]
+    data_model_source: str,
+    output_directory: str,
+    data_type: Optional[list[str]],
+    data_model_labels: DisplayLabelType,
 ) -> None:
     """
     Command to generate jsonschema files for validation for component(s) of the data model.
     """
 
     generator = JsonSchemaGeneratorDirector(
-        data_model_location=data_model_location,
+        data_model_source=data_model_source,
         output_directory=output_directory,
         components=data_type,
     )
 
-    generator.generate_jsonschema()
+    generator.generate_jsonschema(data_model_labels=data_model_labels)

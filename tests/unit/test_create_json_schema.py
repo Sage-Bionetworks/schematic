@@ -511,6 +511,31 @@ def test_create_json_schema_with_display_names(
 
 
 @pytest.mark.parametrize(
+    "datatype",
+    [
+        ("BulkRNA-seqAssay"),
+        ("Patient"),
+    ],
+)
+def test_create_json_schema_with_display_names(
+    dmge: DataModelGraphExplorer, datatype: str, test_directory: str
+) -> None:
+    """Tests for JSONSchemaGenerator.create_json_schema"""
+    test_file = f"test.{datatype}.display_names_schema.json"
+    test_path = os.path.join(test_directory, test_file)
+    expected_path = (
+        f"tests/data/expected_jsonschemas/expected.{datatype}.display_names_schema.json"
+    )
+    create_json_schema(
+        dmge=dmge,
+        datatype=datatype,
+        schema_name=f"{datatype}_validation",
+        schema_path=test_path,
+    )
+    assert json_files_equal(expected_path, test_path)
+
+
+@pytest.mark.parametrize(
     "instance_path, datatype",
     [
         ("tests/data/json_instances/valid_biospecimen1.json", "Biospecimen"),
