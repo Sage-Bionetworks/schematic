@@ -13,6 +13,7 @@ from schematic.json_schema_functions import (
     _get_list_column_type_from_js_property,
 )
 
+
 @pytest.mark.parametrize(
     "js_path, expected_column_types",
     [
@@ -23,7 +24,7 @@ from schematic.json_schema_functions import (
                 "PatientID": ColumnType.STRING,
                 "SampleID": ColumnType.STRING,
                 "TissueStatus": ColumnType.STRING,
-            }
+            },
         ),
         (
             "tests/data/expected_jsonschemas/expected.JSONSchemaComponent.schema.json",
@@ -37,8 +38,8 @@ from schematic.json_schema_functions import (
                 "ListString": ColumnType.STRING_LIST,
                 "NoRules": ColumnType.STRING,
                 "NoRulesNotRequired": ColumnType.STRING,
-                "StringNotRequired": ColumnType.STRING
-            }
+                "StringNotRequired": ColumnType.STRING,
+            },
         ),
         (
             "tests/data/expected_jsonschemas/expected.MockComponent.schema.json",
@@ -73,14 +74,10 @@ from schematic.json_schema_functions import (
                 "CheckURL": ColumnType.STRING,
                 "CheckUnique": ColumnType.STRING,
                 "Component": ColumnType.STRING,
-            }
-        )
+            },
+        ),
     ],
-    ids=[
-        "Biospecimen",
-        "JSONSchemaComponent",
-        "MockComponent"
-    ]
+    ids=["Biospecimen", "JSONSchemaComponent", "MockComponent"],
 )
 def test_create_columns_from_js_schema(
     js_path: str, expected_column_types: dict[str, ColumnType]
@@ -93,7 +90,7 @@ def test_create_columns_from_js_schema(
     with open(js_path, encoding="utf-8") as js_file:
         js_schema = json.load(js_file)
     columns = _create_columns_from_js_schema(js_schema)
-    column_types = {column.name:column.column_type for column in columns}
+    column_types = {column.name: column.column_type for column in columns}
     assert column_types == expected_column_types
 
 
@@ -107,7 +104,7 @@ def test_create_columns_from_js_schema(
         ({"type": "boolean"}, ColumnType.BOOLEAN),
         ({"type": "integer"}, ColumnType.INTEGER),
         ({"type": "number"}, ColumnType.DOUBLE),
-        ({"oneOf": [{"type": "null"}, {"type": "array"}]}, ColumnType.STRING_LIST)
+        ({"oneOf": [{"type": "null"}, {"type": "array"}]}, ColumnType.STRING_LIST),
     ],
     ids=[
         "Empty",
@@ -117,11 +114,11 @@ def test_create_columns_from_js_schema(
         "Boolean type",
         "Integer type",
         "Number type",
-        "Array in oneOf list"
-    ]
+        "Array in oneOf list",
+    ],
 )
 def test_get_column_type_from_js_property(
-    js_property: dict[str, Any], expected_type:ColumnType
+    js_property: dict[str, Any], expected_type: ColumnType
 ) -> None:
     """
     Tests for _get_column_type_from_js_property
@@ -129,6 +126,7 @@ def test_get_column_type_from_js_property(
       the types in the JSON Schema
     """
     assert _get_column_type_from_js_property(js_property) == expected_type
+
 
 @pytest.mark.parametrize(
     "js_one_of_list, expected_type",
@@ -156,11 +154,11 @@ def test_get_column_type_from_js_property(
         "String type",
         "Boolean type",
         "Integer type",
-        "Number type"
-    ]
+        "Number type",
+    ],
 )
 def test_get_column_type_from_js_one_of_list(
-    js_one_of_list: list[Any], expected_type:ColumnType
+    js_one_of_list: list[Any], expected_type: ColumnType
 ) -> None:
     """
     Tests for _get_column_type_from_js_one_of_list
@@ -168,6 +166,7 @@ def test_get_column_type_from_js_one_of_list(
       the types in the JSON Schema
     """
     assert _get_column_type_from_js_one_of_list(js_one_of_list) == expected_type
+
 
 @pytest.mark.parametrize(
     "js_property, expected_type",
@@ -190,11 +189,11 @@ def test_get_column_type_from_js_one_of_list(
         "List string",
         "List boolean",
         "List integer",
-        "List number"
-    ]
+        "List number",
+    ],
 )
 def test_get_list_column_type_from_js_property(
-    js_property: dict[str, Any], expected_type:ColumnType
+    js_property: dict[str, Any], expected_type: ColumnType
 ) -> None:
     """
     Tests for _get_list_column_type_from_js_property

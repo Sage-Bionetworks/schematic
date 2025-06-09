@@ -19,37 +19,37 @@ SCHEMA_TEST_ORG = "dpetest"
 SCHEMA_TEST_VERSION = "0.0.1"
 
 MOCK_COMPONENT_SYNAPSE_COLUMNS = {
-        "CheckAges": ColumnType.STRING,
-        "CheckDate": ColumnType.STRING,
-        "CheckFloat": ColumnType.DOUBLE,
-        "CheckInt": ColumnType.INTEGER,
-        "CheckList": ColumnType.STRING_LIST,
-        "CheckListEnum": ColumnType.STRING_LIST,
-        "CheckListEnumStrict": ColumnType.STRING_LIST,
-        "CheckListLike": ColumnType.STRING_LIST,
-        "CheckListLikeEnum": ColumnType.STRING_LIST,
-        "CheckListStrict": ColumnType.STRING_LIST,
-        "CheckMatchExactly": ColumnType.STRING,
-        "CheckMatchExactlyvalues": ColumnType.STRING,
-        "CheckMatchNone": ColumnType.STRING,
-        "CheckMatchNonevalues": ColumnType.STRING,
-        "CheckMatchatLeast": ColumnType.STRING,
-        "CheckMatchatLeastvalues": ColumnType.STRING,
-        "CheckNA": ColumnType.INTEGER,
-        "CheckNum": ColumnType.DOUBLE,
-        "CheckRange": ColumnType.DOUBLE,
-        "CheckRecommended": ColumnType.STRING,
-        "CheckRegexFormat": ColumnType.STRING,
-        "CheckRegexInteger": ColumnType.STRING,
-        "CheckRegexList": ColumnType.STRING_LIST,
-        "CheckRegexListLike": ColumnType.STRING_LIST,
-        "CheckRegexListStrict": ColumnType.STRING_LIST,
-        "CheckRegexSingle": ColumnType.STRING,
-        "CheckString": ColumnType.STRING,
-        "CheckURL": ColumnType.STRING,
-        "CheckUnique": ColumnType.STRING,
-        "Component": ColumnType.STRING,
-    }
+    "CheckAges": ColumnType.STRING,
+    "CheckDate": ColumnType.STRING,
+    "CheckFloat": ColumnType.DOUBLE,
+    "CheckInt": ColumnType.INTEGER,
+    "CheckList": ColumnType.STRING_LIST,
+    "CheckListEnum": ColumnType.STRING_LIST,
+    "CheckListEnumStrict": ColumnType.STRING_LIST,
+    "CheckListLike": ColumnType.STRING_LIST,
+    "CheckListLikeEnum": ColumnType.STRING_LIST,
+    "CheckListStrict": ColumnType.STRING_LIST,
+    "CheckMatchExactly": ColumnType.STRING,
+    "CheckMatchExactlyvalues": ColumnType.STRING,
+    "CheckMatchNone": ColumnType.STRING,
+    "CheckMatchNonevalues": ColumnType.STRING,
+    "CheckMatchatLeast": ColumnType.STRING,
+    "CheckMatchatLeastvalues": ColumnType.STRING,
+    "CheckNA": ColumnType.INTEGER,
+    "CheckNum": ColumnType.DOUBLE,
+    "CheckRange": ColumnType.DOUBLE,
+    "CheckRecommended": ColumnType.STRING,
+    "CheckRegexFormat": ColumnType.STRING,
+    "CheckRegexInteger": ColumnType.STRING,
+    "CheckRegexList": ColumnType.STRING_LIST,
+    "CheckRegexListLike": ColumnType.STRING_LIST,
+    "CheckRegexListStrict": ColumnType.STRING_LIST,
+    "CheckRegexSingle": ColumnType.STRING,
+    "CheckString": ColumnType.STRING,
+    "CheckURL": ColumnType.STRING,
+    "CheckUnique": ColumnType.STRING,
+    "Component": ColumnType.STRING,
+}
 
 ENTITY_VIEW_COLUMNS = [
     "benefactorId",
@@ -75,6 +75,7 @@ ENTITY_VIEW_COLUMNS = [
     "type",
 ]
 
+
 @pytest.fixture(name="synapse_project", scope="function")
 def fixture_synapse_project(syn: Synapse, request) -> str:
     """This returns Synapse ids for a created Synapse project and a folder crated in the project"""
@@ -87,13 +88,14 @@ def fixture_synapse_project(syn: Synapse, request) -> str:
 
     def delete_project():
         syn.delete(project.id)
+
     request.addfinalizer(delete_project)
 
     return project.id, folder.id
 
 
 def test_create_json_schema_entity_view_and_wiki(
-    syn:Synapse,
+    syn: Synapse,
     synapse_project: str,
 ) -> None:
     """
@@ -117,7 +119,7 @@ def test_create_json_schema_entity_view_and_wiki(
             synapse_org=SCHEMA_TEST_ORG,
             synapse_entity_id=folder_id,
             synapse_parent_id=project_id,
-            schema_name=schema_name
+            schema_name=schema_name,
         )
         # THEN the schema should be getable from the folder
         js_schema = js.get_json_schema(folder_id)
@@ -139,9 +141,7 @@ def test_create_json_schema_entity_view_and_wiki(
 
 
 def test_upload_and_bind_json_schema(
-    syn:Synapse,
-    synapse_project: str,
-    dmge: DataModelGraphExplorer
+    syn: Synapse, synapse_project: str, dmge: DataModelGraphExplorer
 ) -> None:
     """
     Test for upload_and_bind_json_schema
@@ -171,7 +171,7 @@ def test_upload_and_bind_json_schema(
             synapse_org=SCHEMA_TEST_ORG,
             synapse_entity_id=folder_id,
             schema_name=schema_name,
-            schema_version=SCHEMA_TEST_VERSION
+            schema_version=SCHEMA_TEST_VERSION,
         )
         # THEN the schema should be getable from the folder
         js_schema = js.get_json_schema(folder_id)
@@ -196,9 +196,7 @@ def test_create_json_schema_entity_view(syn: Synapse, synapse_project: str) -> N
     view_id = None
     # WHEN creating a fileview from it
     view_id = create_json_schema_entity_view(
-        syn=syn,
-        entity_id=folder_id,
-        parent_id=project_id
+        syn=syn, entity_id=folder_id, parent_id=project_id
     )
     view = EntityView(id=view_id).get(synapse_client=syn)
     # THEN the fileview's column types should match the JSON Schema types as well as possible

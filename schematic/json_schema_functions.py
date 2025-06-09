@@ -7,9 +7,9 @@ This module includes functions for:
 
 from typing import Any, Optional
 
-from synapseclient import Synapse #type: ignore
-from synapseclient.models import Column, ColumnType, ViewTypeMask, EntityView #type: ignore
-from synapseclient import Wiki #type: ignore
+from synapseclient import Synapse  # type: ignore
+from synapseclient.models import Column, ColumnType, ViewTypeMask, EntityView  # type: ignore
+from synapseclient import Wiki  # type: ignore
 
 from schematic.schemas.create_json_schema import create_json_schema
 from schematic.schemas.data_model_graph import create_dmge
@@ -18,17 +18,18 @@ TYPE_DICT = {
     "string": ColumnType.STRING,
     "number": ColumnType.DOUBLE,
     "integer": ColumnType.INTEGER,
-    "boolean": ColumnType.BOOLEAN
+    "boolean": ColumnType.BOOLEAN,
 }
 
 LIST_TYPE_DICT = {
     "string": ColumnType.STRING_LIST,
     "integer": ColumnType.INTEGER_LIST,
-    "boolean": ColumnType.BOOLEAN_LIST
+    "boolean": ColumnType.BOOLEAN_LIST,
 }
 
-def create_json_schema_entity_view_and_wiki( # pylint: disable=too-many-arguments
-    syn:Synapse,
+
+def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-arguments
+    syn: Synapse,
     data_model_path: str,
     datatype: str,
     synapse_org: str,
@@ -76,7 +77,7 @@ def create_json_schema_entity_view_and_wiki( # pylint: disable=too-many-argument
         datatype=datatype,
         schema_name=schema_name,
         write_schema=False,
-        use_property_display_names=False
+        use_property_display_names=False,
     )
 
     schema_uri = upload_and_bind_json_schema(
@@ -92,25 +93,25 @@ def create_json_schema_entity_view_and_wiki( # pylint: disable=too-many-argument
         syn=syn,
         entity_id=synapse_entity_id,
         parent_id=synapse_parent_id,
-        entity_view_name=entity_view_name
+        entity_view_name=entity_view_name,
     )
     wiki = create_entity_view_wiki(
         syn=syn,
         entity_view_id=entity_view_id,
         owner_id=synapse_parent_id,
-        title=wiki_title
+        title=wiki_title,
     )
-    return(schema_uri, entity_view_id, wiki)
+    return (schema_uri, entity_view_id, wiki)
 
 
-def upload_and_bind_json_schema( # pylint: disable=too-many-arguments
-        syn:Synapse,
-        js_schema: dict[str, Any],
-        synapse_org: str,
-        synapse_entity_id: str,
-        schema_name: str,
-        schema_version: str = "0.0.1",
-    ) -> str:
+def upload_and_bind_json_schema(  # pylint: disable=too-many-arguments
+    syn: Synapse,
+    js_schema: dict[str, Any],
+    synapse_org: str,
+    synapse_entity_id: str,
+    schema_name: str,
+    schema_version: str = "0.0.1",
+) -> str:
     """
     1. Uploads a JSON Schema to Synapse
     2. Binds the JSON Schema to a Synapse entity
@@ -135,11 +136,12 @@ def upload_and_bind_json_schema( # pylint: disable=too-many-arguments
     js_service.bind_json_schema(uri, synapse_entity_id)
     return uri
 
+
 def create_json_schema_entity_view(
-    syn:Synapse,
-    entity_id:str,
-    parent_id:str,
-    entity_view_name:str="JSON Schema view"
+    syn: Synapse,
+    entity_id: str,
+    parent_id: str,
+    entity_view_name: str = "JSON Schema view",
 ) -> str:
     """Creates A Synapse entity view based on a JSON Schema that is bound to a Synapse entity
 
@@ -156,12 +158,12 @@ def create_json_schema_entity_view(
     js_service = syn.service("json_schema")
     json_schema = js_service.get_json_schema(entity_id)
     my_org = js_service.JsonSchemaOrganization(
-        json_schema['jsonSchemaVersionInfo']['organizationName']
+        json_schema["jsonSchemaVersionInfo"]["organizationName"]
     )
     schema_version = js_service.JsonSchemaVersion(
         my_org,
-        json_schema['jsonSchemaVersionInfo']['schemaName'],
-        json_schema['jsonSchemaVersionInfo']['semanticVersion'],
+        json_schema["jsonSchemaVersionInfo"]["schemaName"],
+        json_schema["jsonSchemaVersionInfo"]["semanticVersion"],
     )
     columns = _create_columns_from_js_schema(schema_version.body)
     view = EntityView(
@@ -169,7 +171,7 @@ def create_json_schema_entity_view(
         parent_id=parent_id,
         scope_ids=[entity_id],
         view_type_mask=ViewTypeMask.FILE,
-        columns=columns
+        columns=columns,
     ).store(synapse_client=syn)
     view.reorder_column(name="createdBy", index=0)
     view.reorder_column(name="name", index=0)
@@ -177,7 +179,10 @@ def create_json_schema_entity_view(
     view.store(synapse_client=syn)
     return view.id
 
-def create_entity_view_wiki(syn:Synapse, entity_view_id:str, owner_id:str, title:str) -> Wiki:
+
+def create_entity_view_wiki(
+    syn: Synapse, entity_view_id: str, owner_id: str, title: str
+) -> Wiki:
     """Creates a wiki for a entity view in Synapse
 
     Args:
@@ -194,11 +199,7 @@ def create_entity_view_wiki(syn:Synapse, entity_view_id:str, owner_id:str, title
         f"{entity_view_id}"
         "&showquery=false&tableonly=false}"
     )
-    wiki = Wiki(
-        title=title,
-        owner=owner_id,
-        markdown=content
-    )
+    wiki = Wiki(title=title, owner=owner_id, markdown=content)
     wiki = syn.store(wiki)
     return wiki
 
@@ -234,7 +235,7 @@ def _create_columns_from_js_schema(js_schema: dict[str, Any]) -> list[Column]:
             name=name,
             column_type=column_type,
             maximum_size=maximum_size,
-            default_value=None
+            default_value=None,
         )
         columns.append(column)
     return columns
@@ -291,7 +292,6 @@ def _get_column_type_from_js_one_of_list(js_one_of_list: list[Any]) -> ColumnTyp
     return ColumnType.STRING
 
 
-
 def _get_list_column_type_from_js_property(js_property: dict[str, Any]) -> ColumnType:
     """
     Gets the Synapse column type from a JSON Schema array property
@@ -307,6 +307,8 @@ def _get_list_column_type_from_js_property(js_property: dict[str, Any]) -> Colum
         if "enum" in js_property["items"]:
             return ColumnType.STRING_LIST
         if "type" in js_property["items"]:
-            return LIST_TYPE_DICT.get(js_property["items"]["type"], ColumnType.STRING_LIST)
+            return LIST_TYPE_DICT.get(
+                js_property["items"]["type"], ColumnType.STRING_LIST
+            )
 
     return ColumnType.STRING_LIST
