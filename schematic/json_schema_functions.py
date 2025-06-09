@@ -39,7 +39,7 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
     entity_view_name: Optional[str] = None,
     wiki_title: Optional[str] = None,
     schema_version: str = "0.0.1",
-):
+) -> tuple[str, str, Wiki]:
     """
     1. Creates a JSON Schema from the data model for the input datatype
     2. Uploads the JSON Schema to Synapse and binds it to the input entity id
