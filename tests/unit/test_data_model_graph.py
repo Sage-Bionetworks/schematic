@@ -3,6 +3,7 @@ from typing import Optional, Union
 import pytest
 
 from tests.conftest import Helpers
+from schematic.schemas.data_model_graph import create_dmge
 
 DATA_MODEL_DICT = {"example.model.csv": "CSV", "example.model.jsonld": "JSONLD"}
 
@@ -84,3 +85,16 @@ class TestDataModelGraphExplorer:
             DMGE.get_node_validation_rules(
                 node_label=node_label, node_display_name=node_display_name
             )
+
+
+@pytest.mark.parametrize(
+    "data_model_path",
+    ["tests/data/example.model.csv", "tests/data/example.model.jsonld"],
+)
+def test_create_dmge(data_model_path: str) -> None:
+    """
+    Tests for create_dmge
+    Tests that the dmge is created
+    """
+    dmge = create_dmge(data_model_path)
+    assert dmge

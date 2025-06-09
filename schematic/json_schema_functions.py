@@ -1,0 +1,312 @@
+"""JSON Schema functions
+This module includes functions for:
+- uploading JSON Schemas to Synapse
+- binding JSON Schemas to Synapse entities
+- creating file views and wikis based on JSON Schemas
+"""
+
+from typing import Any, Optional
+
+from synapseclient import Synapse #type: ignore
+from synapseclient.models import Column, ColumnType, ViewTypeMask, EntityView #type: ignore
+from synapseclient import Wiki #type: ignore
+
+from schematic.schemas.create_json_schema import create_json_schema
+from schematic.schemas.data_model_graph import create_dmge
+
+TYPE_DICT = {
+    "string": ColumnType.STRING,
+    "number": ColumnType.DOUBLE,
+    "integer": ColumnType.INTEGER,
+    "boolean": ColumnType.BOOLEAN
+}
+
+LIST_TYPE_DICT = {
+    "string": ColumnType.STRING_LIST,
+    "integer": ColumnType.INTEGER_LIST,
+    "boolean": ColumnType.BOOLEAN_LIST
+}
+
+def create_json_schema_entity_view_and_wiki( # pylint: disable=too-many-arguments
+    syn:Synapse,
+    data_model_path: str,
+    datatype: str,
+    synapse_org: str,
+    synapse_entity_id: str,
+    synapse_parent_id: str,
+    schema_name: Optional[str] = None,
+    entity_view_name: Optional[str] = None,
+    wiki_title: Optional[str] = None,
+    schema_version: str = "0.0.1",
+):
+    """
+    1. Creates a JSON Schema from the data model for the input datatype
+    2. Uploads the JSON Schema to Synapse and binds it to the input entity id
+    3. Creates a entity view with columns based on the JSON Schema
+    4. Creates a wiki for the entity view
+
+    Arguments:
+        syn: A Synapse object thats been logged in
+        data_model_path: A path to the data model use dot create the JSON Schema
+        datatype: The datatype in the data model to create the JSON Schema for
+        synapse_org: The Synapse org to upload the JSON Schema to
+        synapse_entity_id: The ID of the entity in Synapse to bind the JSON Schema to
+        synapse_parent_id: The ID of the entity in Synapse to put the entity_view and wiki at
+        schema_name: The name the created JSON Schema will have
+        entity_view_name: The name the crated entity view will have
+        wiki_title: The title the created wiki will have
+        schema_version: The version the created JSON Schema will have
+
+    Returns:
+        The uri of the uploaded JSON Schema,
+        the Synapse id of the created entity view,
+        and the Synapse Wiki object
+    """
+    if not schema_name:
+        schema_name = f"{datatype}.schema"
+    if not entity_view_name:
+        entity_view_name = f"{datatype} entity view"
+    if not wiki_title:
+        wiki_title = f"{datatype} wiki"
+
+    dmge = create_dmge(data_model_path)
+
+    js_schema = create_json_schema(
+        dmge=dmge,
+        datatype=datatype,
+        schema_name=schema_name,
+        write_schema=False,
+        use_property_display_names=False
+    )
+
+    schema_uri = upload_and_bind_json_schema(
+        syn=syn,
+        js_schema=js_schema,
+        synapse_org=synapse_org,
+        synapse_entity_id=synapse_entity_id,
+        schema_name=schema_name,
+        schema_version=schema_version,
+    )
+
+    entity_view_id = create_json_schema_entity_view(
+        syn=syn,
+        entity_id=synapse_entity_id,
+        parent_id=synapse_parent_id,
+        entity_view_name=entity_view_name
+    )
+    wiki = create_entity_view_wiki(
+        syn=syn,
+        entity_view_id=entity_view_id,
+        owner_id=synapse_parent_id,
+        title=wiki_title
+    )
+    return(schema_uri, entity_view_id, wiki)
+
+
+def upload_and_bind_json_schema( # pylint: disable=too-many-arguments
+        syn:Synapse,
+        js_schema: dict[str, Any],
+        synapse_org: str,
+        synapse_entity_id: str,
+        schema_name: str,
+        schema_version: str = "0.0.1",
+    ) -> str:
+    """
+    1. Uploads a JSON Schema to Synapse
+    2. Binds the JSON Schema to a Synapse entity
+
+    Args:
+        syn: A Synapse object thats been logged in
+        js_schema: A JSON Schema in dict form
+        synapse_org: The Synapse org to upload the JSON Schema to
+        synapse_entity_id: The ID of the entity in Synapse to bind the JSON Schema to
+        schema_name: The name the created JSON Schema will have
+        schema_version: The version the created JSON Schema will have
+
+    Returns:
+        The Synapse id of the created entity view
+    """
+
+    js_service = syn.service("json_schema")
+    org = js_service.JsonSchemaOrganization(synapse_org)
+    org.create_json_schema(js_schema, schema_name, schema_version)
+
+    uri = f"{synapse_org}-{schema_name}-{schema_version}"
+    js_service.bind_json_schema(uri, synapse_entity_id)
+    return uri
+
+def create_json_schema_entity_view(
+    syn:Synapse,
+    entity_id:str,
+    parent_id:str,
+    entity_view_name:str="JSON Schema view"
+) -> str:
+    """Creates A Synapse entity view based on a JSON Schema that is bound to a Synapse entity
+
+    Args:
+        syn: A Synapse object thats been logged in
+        entity_id: The ID of the entity in Synapse to bind the JSON Schema to
+        parent_id: The ID of the entity in Synapse to put the entity view and wiki at
+        entity_view_name: The name the crated entity view will have
+
+    Returns:
+        The Synapse id of the crated entity view
+    """
+    syn.get_available_services()
+    js_service = syn.service("json_schema")
+    json_schema = js_service.get_json_schema(entity_id)
+    my_org = js_service.JsonSchemaOrganization(
+        json_schema['jsonSchemaVersionInfo']['organizationName']
+    )
+    schema_version = js_service.JsonSchemaVersion(
+        my_org,
+        json_schema['jsonSchemaVersionInfo']['schemaName'],
+        json_schema['jsonSchemaVersionInfo']['semanticVersion'],
+    )
+    columns = _create_columns_from_js_schema(schema_version.body)
+    view = EntityView(
+        name=entity_view_name,
+        parent_id=parent_id,
+        scope_ids=[entity_id],
+        view_type_mask=ViewTypeMask.FILE,
+        columns=columns
+    ).store(synapse_client=syn)
+    view.reorder_column(name="createdBy", index=0)
+    view.reorder_column(name="name", index=0)
+    view.reorder_column(name="id", index=0)
+    view.store(synapse_client=syn)
+    return view.id
+
+def create_entity_view_wiki(syn:Synapse, entity_view_id:str, owner_id:str, title:str) -> Wiki:
+    """Creates a wiki for a entity view in Synapse
+
+    Args:
+        syn: A Synapse object thats been logged in
+        entity_view_id: The Synapse id of the entity view to make the wiki for
+        owner_id: The ID of the entity in Synapse to put as owner of the wiki
+        title: The title of the wiki to be created
+
+    Returns:
+        The created wiki object
+    """
+    content = (
+        "${synapsetable?query=select %2A from "
+        f"{entity_view_id}"
+        "&showquery=false&tableonly=false}"
+    )
+    wiki = Wiki(
+        title=title,
+        owner=owner_id,
+        markdown=content
+    )
+    wiki = syn.store(wiki)
+    return wiki
+
+
+def _create_columns_from_js_schema(js_schema: dict[str, Any]) -> list[Column]:
+    """Creates a list of Synapse Columns based on the JSON Schema type
+
+    Arguments:
+        js_schema: The JSON Schema in dict form
+
+    Raises:
+        ValueError: If the JSON Schema has no properties
+        ValueError: If the JSON Schema properties is not a dict
+
+    Returns:
+        A list of Synapse columns based on the JSON Schema
+    """
+    if "properties" not in js_schema:
+        raise ValueError("JSON Schema does not have a properties field")
+    properties = js_schema["properties"]
+    if not isinstance(properties, dict):
+        raise ValueError("JSON Schema properties is not a dictionary")
+    columns = []
+    for name, prop_schema in properties.items():
+        column_type = _get_column_type_from_js_property(prop_schema)
+        maximum_size = None
+        if column_type == "STRING":
+            maximum_size = 100
+        if column_type in LIST_TYPE_DICT.values():
+            maximum_size = 5
+
+        column = Column(
+            name=name,
+            column_type=column_type,
+            maximum_size=maximum_size,
+            default_value=None
+        )
+        columns.append(column)
+    return columns
+
+
+def _get_column_type_from_js_property(js_property: dict[str, Any]) -> ColumnType:
+    """
+    Gets the Synapse column type from a JSON Schema property.
+    The JSON Schema should be valid but that should not be assumed.
+    If the type can not be determined ColumnType.STRING will be returned.
+
+    Args:
+        js_property: A JSON Schema property in dict form.
+
+    Returns:
+        A Synapse ColumnType based on the JSON Schema type
+    """
+    # Enums are always strings in Synapse tables
+    if "enum" in js_property:
+        return ColumnType.STRING
+    if "type" in js_property:
+        if js_property["type"] == "array":
+            return _get_list_column_type_from_js_property(js_property)
+        return TYPE_DICT.get(js_property["type"], ColumnType.STRING)
+    # A oneOf list usually indicates that the type could be one or more different things
+    if "oneOf" in js_property and isinstance(js_property["oneOf"], list):
+        return _get_column_type_from_js_one_of_list(js_property["oneOf"])
+    return ColumnType.STRING
+
+
+def _get_column_type_from_js_one_of_list(js_one_of_list: list[Any]) -> ColumnType:
+    """
+    Gets the Synapse column type from a JSON Schema oneOf list.
+    Items in the oneOf list should be dicts, but that should not be assumed.
+
+    Args:
+        js_one_of_list: A list of items to check for type
+
+    Returns:
+        A Synapse ColumnType based on the JSON Schema type
+    """
+    # items in a oneOf list should be dicts
+    items = [item for item in js_one_of_list if isinstance(item, dict)]
+    # Enums are always strings in Synapse tables
+    if [item for item in items if "enum" in item]:
+        return ColumnType.STRING
+    # For Synapse ColumnType we can ignore null types in JSON Schemas
+    type_items = [item for item in items if "type" in item if item["type"] != "null"]
+    if len(type_items) == 1:
+        type_item = type_items[0]
+        if type_item["type"] == "array":
+            return _get_list_column_type_from_js_property(type_item)
+        return TYPE_DICT.get(type_item["type"], ColumnType.STRING)
+    return ColumnType.STRING
+
+
+
+def _get_list_column_type_from_js_property(js_property: dict[str, Any]) -> ColumnType:
+    """
+    Gets the Synapse column type from a JSON Schema array property
+
+    Args:
+        js_property: A JSON Schema property in dict form.
+
+    Returns:
+        A Synapse ColumnType based on the JSON Schema type
+    """
+    if "items" in js_property and isinstance(js_property["items"], dict):
+        # Enums are always strings in Synapse tables
+        if "enum" in js_property["items"]:
+            return ColumnType.STRING_LIST
+        if "type" in js_property["items"]:
+            return LIST_TYPE_DICT.get(js_property["items"]["type"], ColumnType.STRING_LIST)
+
+    return ColumnType.STRING_LIST
