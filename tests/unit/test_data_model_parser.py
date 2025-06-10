@@ -105,6 +105,7 @@ class TestDataModelCSVParser:
                 continue
 
             # AND the column type of each attribute should match the expected type if a column type is specified
+            print(result[expected_attribute])
             assert (
                 result[expected_attribute]["Relationships"]["ColumnType"]
                 == expected_type
