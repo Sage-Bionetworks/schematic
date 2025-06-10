@@ -21,6 +21,17 @@ def fixture_column_type_dmge_jsonld() -> DataModelGraphExplorer:
     graph_data_model = data_model_grapher.graph
     return DataModelGraphExplorer(graph_data_model)
 
+@pytest.fixture(name="column_type_dmge_csv", scope="module")
+def fixture_column_type_dmge_csv() -> DataModelGraphExplorer:
+    """Returns a DataModelGraphExplorer using the example data model with columnType attributes"""
+    data_model_parser = DataModelParser(
+        path_to_data_model="tests/data/example.model.column_type_component.csv"
+    )
+    parsed_data_model = data_model_parser.parse_model()
+    data_model_grapher = DataModelGraph(parsed_data_model)
+    graph_data_model = data_model_grapher.graph
+    return DataModelGraphExplorer(graph_data_model)
+
 
 @pytest.fixture(name="column_type_dmge_csv", scope="module")
 def fixture_column_type_dmge_csv() -> DataModelGraphExplorer:
@@ -130,6 +141,28 @@ class TestDataModelGraphExplorer:
         """Tests for DataModelGraphExplorer.get_node_column_type using node label"""
         assert (
             column_type_dmge_jsonld.get_node_column_type(node_label=node_label)
+            == expected_type
+        )
+
+
+    @pytest.mark.parametrize(
+        "node_label, expected_type",
+        [
+            ("Stringtype", "string"),
+            ("Numtype", "number"),
+            ("CheckURL", None),
+        ],
+        ids=["Stringtype", "Numtype", "CheckURL"],
+    )
+    def test_get_node_column_type_with_node_labels_csv(
+        self,
+        node_label: str,
+        expected_type: Optional[JSONSchemaType],
+        column_type_dmge_csv: DataModelGraphExplorer,
+    ) -> None:
+        """Tests for DataModelGraphExplorer.get_node_column_type using node label"""
+        assert (
+            column_type_dmge_csv.get_node_column_type(node_label=node_label)
             == expected_type
         )
 
