@@ -32,7 +32,7 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
     syn: Synapse,
     data_model_path: str,
     datatype: str,
-    synapse_org: str,
+    synapse_org_name: str,
     synapse_entity_id: str,
     synapse_parent_id: str,
     schema_name: Optional[str] = None,
@@ -50,7 +50,7 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
         syn: A Synapse object thats been logged in
         data_model_path: A path to the data model use dot create the JSON Schema
         datatype: The datatype in the data model to create the JSON Schema for
-        synapse_org: The Synapse org to upload the JSON Schema to
+        synapse_org_name: The Synapse org to upload the JSON Schema to
         synapse_entity_id: The ID of the entity in Synapse to bind the JSON Schema to
         synapse_parent_id: The ID of the entity in Synapse to put the entity_view and wiki at
         schema_name: The name the created JSON Schema will have
@@ -70,23 +70,14 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
     if not wiki_title:
         wiki_title = f"{datatype} wiki"
 
-    dmge = create_dmge(data_model_path)
-
-    js_schema = create_json_schema(
-        dmge=dmge,
-        datatype=datatype,
-        schema_name=schema_name,
-        write_schema=False,
-        use_property_display_names=False,
-    )
-
-    schema_uri = upload_and_bind_json_schema(
+    js_schema_uri = create_and_bind_json_schema(
         syn=syn,
-        js_schema=js_schema,
-        synapse_org=synapse_org,
+        data_model_path=data_model_path,
+        datatype=datatype,
+        synapse_org_name=synapse_org_name,
         synapse_entity_id=synapse_entity_id,
         schema_name=schema_name,
-        schema_version=schema_version,
+        schema_version=schema_version
     )
 
     entity_view_id = create_json_schema_entity_view(
@@ -101,14 +92,46 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
         owner_id=synapse_parent_id,
         title=wiki_title,
     )
-    return (schema_uri, entity_view_id, wiki)
+    return (js_schema_uri, entity_view_id, wiki)
+
+def create_and_bind_json_schema( # pylint: disable=too-many-arguments
+    syn: Synapse,
+    data_model_path: str,
+    datatype: str,
+    synapse_org_name: str,
+    synapse_entity_id: str,
+    schema_name: Optional[str] = None,
+    schema_version: str = "0.0.1",
+) -> str:
+    js_service = syn.service("json_schema")
+    dmge = create_dmge(data_model_path)
+
+    if not schema_name:
+        schema_name = f"{datatype}.schema"
+
+    js_schema = create_json_schema(
+        dmge=dmge,
+        datatype=datatype,
+        schema_name=schema_name,
+        write_schema=False,
+        use_property_display_names=False,
+    )
+    js_schema_uri = upload_json_schema(
+        syn = syn,
+        js_schema=js_schema,
+        synapse_org_name=synapse_org_name,
+        schema_name=schema_name,
+        schema_version=schema_version
+    )
+
+    js_service.bind_json_schema(js_schema_uri, synapse_entity_id)
+    return js_schema_uri
 
 
-def upload_and_bind_json_schema(  # pylint: disable=too-many-arguments
+def upload_json_schema(
     syn: Synapse,
     js_schema: dict[str, Any],
-    synapse_org: str,
-    synapse_entity_id: str,
+    synapse_org_name: str,
     schema_name: str,
     schema_version: str = "0.0.1",
 ) -> str:
@@ -119,21 +142,18 @@ def upload_and_bind_json_schema(  # pylint: disable=too-many-arguments
     Args:
         syn: A Synapse object thats been logged in
         js_schema: A JSON Schema in dict form
-        synapse_org: The Synapse org to upload the JSON Schema to
-        synapse_entity_id: The ID of the entity in Synapse to bind the JSON Schema to
+        synapse_org_name: The Synapse org to upload the JSON Schema to
         schema_name: The name the created JSON Schema will have
         schema_version: The version the created JSON Schema will have
 
     Returns:
-        The Synapse id of the created entity view
+        The URI for the JSON Schema
     """
 
     js_service = syn.service("json_schema")
-    org = js_service.JsonSchemaOrganization(synapse_org)
+    org = js_service.JsonSchemaOrganization(synapse_org_name)
     org.create_json_schema(js_schema, schema_name, schema_version)
-
-    uri = f"{synapse_org}-{schema_name}-{schema_version}"
-    js_service.bind_json_schema(uri, synapse_entity_id)
+    uri = f"{synapse_org_name}-{schema_name}-{schema_version}"
     return uri
 
 
