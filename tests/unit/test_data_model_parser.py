@@ -107,7 +107,8 @@ class TestDataModelCSVParser:
             # AND the column type of each attribute should match the expected type if a column type is specified
             print(result[expected_attribute])
             assert (
-                result[expected_attribute]["Relationships"]["ColumnType"] == expected_type
+                result[expected_attribute]["Relationships"]["ColumnType"]
+                == expected_type
             ), f"Expected column type for '{expected_attribute}' to be '{expected_type}', but got '{result[expected_attribute]['Relationships']['ColumnType']}'"
 
     def test_parse_csv_model_without_column_type(

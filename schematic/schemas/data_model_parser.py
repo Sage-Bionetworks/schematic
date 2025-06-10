@@ -235,7 +235,9 @@ class DataModelCSVParser:
                     )
             if model_includes_column_type:
                 column_type_dict = self.parse_column_type(attr)
-                attr_rel_dictionary[attribute_name]["Relationships"].update(column_type_dict)
+                attr_rel_dictionary[attribute_name]["Relationships"].update(
+                    column_type_dict
+                )
         return attr_rel_dictionary
 
     def parse_column_type(self, attr: dict) -> dict:
