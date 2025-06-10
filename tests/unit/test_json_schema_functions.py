@@ -7,7 +7,7 @@ import pytest
 from synapseclient.models import ColumnType
 
 from schematic.json_schema_functions import (
-    _create_columns_from_js_schema,
+    _create_columns_from_json_schema,
     _get_column_type_from_js_property,
     _get_column_type_from_js_one_of_list,
     _get_list_column_type_from_js_property,
@@ -88,8 +88,8 @@ def test_create_columns_from_js_schema(
       the types in the JSON Schema
     """
     with open(js_path, encoding="utf-8") as js_file:
-        js_schema = json.load(js_file)
-    columns = _create_columns_from_js_schema(js_schema)
+        json_schema = json.load(js_file)
+    columns = _create_columns_from_json_schema(json_schema)
     column_types = {column.name: column.column_type for column in columns}
     assert column_types == expected_column_types
 

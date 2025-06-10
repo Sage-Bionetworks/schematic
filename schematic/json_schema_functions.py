@@ -3,6 +3,11 @@ This module includes functions for:
 - uploading JSON Schemas to Synapse
 - binding JSON Schemas to Synapse entities
 - creating file views and wikis based on JSON Schemas
+
+Several functions are deprecated. These are the ones that have to do with creating a fileview and
+ wiki in Synapse. This functionality is only needed temporarily for Curator purposes while the
+ Synapse platform creates this functionality internally. These will be sunsetted in the near future.
+
 """
 
 from typing import Any, Optional
@@ -72,7 +77,7 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
     if not wiki_title:
         wiki_title = f"{datatype} wiki"
 
-    js_schema_uri = create_and_bind_json_schema(
+    json_schema_uri = create_and_bind_json_schema(
         syn=syn,
         data_model_path=data_model_path,
         datatype=datatype,
@@ -94,7 +99,7 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
         owner_id=synapse_parent_id,
         title=wiki_title,
     )
-    return (js_schema_uri, entity_view_id, wiki)
+    return (json_schema_uri, entity_view_id, wiki)
 
 def create_and_bind_json_schema( # pylint: disable=too-many-arguments
     syn: Synapse,
@@ -111,28 +116,28 @@ def create_and_bind_json_schema( # pylint: disable=too-many-arguments
     if not schema_name:
         schema_name = f"{datatype}.schema"
 
-    js_schema = create_json_schema(
+    json_schema = create_json_schema(
         dmge=dmge,
         datatype=datatype,
         schema_name=schema_name,
         write_schema=False,
         use_property_display_names=False,
     )
-    js_schema_uri = upload_json_schema(
+    json_schema_uri = upload_json_schema(
         syn = syn,
-        js_schema=js_schema,
+        json_schema=json_schema,
         synapse_org_name=synapse_org_name,
         schema_name=schema_name,
         schema_version=schema_version
     )
 
-    js_service.bind_json_schema(js_schema_uri, synapse_entity_id)
-    return js_schema_uri
+    js_service.bind_json_schema(json_schema_uri, synapse_entity_id)
+    return json_schema_uri
 
 
 def upload_json_schema(
     syn: Synapse,
-    js_schema: dict[str, Any],
+    json_schema: dict[str, Any],
     synapse_org_name: str,
     schema_name: str,
     schema_version: str = "0.0.1",
@@ -143,7 +148,7 @@ def upload_json_schema(
 
     Args:
         syn: A Synapse object thats been logged in
-        js_schema: A JSON Schema in dict form
+        json_schema: A JSON Schema in dict form
         synapse_org_name: The Synapse org to upload the JSON Schema to
         schema_name: The name the created JSON Schema will have
         schema_version: The version the created JSON Schema will have
@@ -154,7 +159,7 @@ def upload_json_schema(
 
     js_service = syn.service("json_schema")
     org = js_service.JsonSchemaOrganization(synapse_org_name)
-    org.create_json_schema(js_schema, schema_name, schema_version)
+    org.create_json_schema(json_schema, schema_name, schema_version)
     uri = f"{synapse_org_name}-{schema_name}-{schema_version}"
     return uri
 
@@ -187,7 +192,7 @@ def create_json_schema_entity_view(
         json_schema["jsonSchemaVersionInfo"]["schemaName"],
         json_schema["jsonSchemaVersionInfo"]["semanticVersion"],
     )
-    columns = _create_columns_from_js_schema(schema_version.body)
+    columns = _create_columns_from_json_schema(schema_version.body)
     view = EntityView(
         name=entity_view_name,
         parent_id=parent_id,
@@ -226,11 +231,11 @@ def create_entity_view_wiki(
     return wiki
 
 
-def _create_columns_from_js_schema(js_schema: dict[str, Any]) -> list[Column]:
+def _create_columns_from_json_schema(json_schema: dict[str, Any]) -> list[Column]:
     """Creates a list of Synapse Columns based on the JSON Schema type
 
     Arguments:
-        js_schema: The JSON Schema in dict form
+        json_schema: The JSON Schema in dict form
 
     Raises:
         ValueError: If the JSON Schema has no properties
@@ -239,9 +244,9 @@ def _create_columns_from_js_schema(js_schema: dict[str, Any]) -> list[Column]:
     Returns:
         A list of Synapse columns based on the JSON Schema
     """
-    if "properties" not in js_schema:
+    if "properties" not in json_schema:
         raise ValueError("JSON Schema does not have a properties field")
-    properties = js_schema["properties"]
+    properties = json_schema["properties"]
     if not isinstance(properties, dict):
         raise ValueError("JSON Schema properties is not a dictionary")
     columns = []

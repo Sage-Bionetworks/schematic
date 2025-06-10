@@ -11,7 +11,8 @@ from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.create_json_schema import create_json_schema
 from schematic.json_schema_functions import (
     create_json_schema_entity_view_and_wiki,
-    upload_and_bind_json_schema,
+    create_and_bind_json_schema,
+    upload_json_schema,
     create_json_schema_entity_view,
 )
 
@@ -116,19 +117,19 @@ def test_create_json_schema_entity_view_and_wiki(
             syn=syn,
             data_model_path="tests/data/example.model.csv",
             datatype="MockComponent",
-            synapse_org=SCHEMA_TEST_ORG,
+            synapse_org_name=SCHEMA_TEST_ORG,
             synapse_entity_id=folder_id,
             synapse_parent_id=project_id,
             schema_name=schema_name,
         )
         # THEN the schema should be getable from the folder
-        js_schema = js.get_json_schema(folder_id)
+        json_schema = js.get_json_schema(folder_id)
     finally:
         js.unbind_json_schema(folder_id)
         js.delete_json_schema(f"{SCHEMA_TEST_ORG}-{schema_name}")
     # AND the schema URI should have the given schema name
     uri = f"{SCHEMA_TEST_ORG}-{schema_name}-{SCHEMA_TEST_VERSION}"
-    assert uri == js_schema["jsonSchemaVersionInfo"]["$id"]
+    assert uri == json_schema["jsonSchemaVersionInfo"]["$id"]
     # AND the fileview was created
     view = EntityView(id=fileview_id).get(synapse_client=syn)
     # AND the fileview's column types should match the JSON Schema types as well as possible
@@ -140,11 +141,9 @@ def test_create_json_schema_entity_view_and_wiki(
     assert wiki.title == "MockComponent wiki"
 
 
-def test_upload_and_bind_json_schema(
-    syn: Synapse, synapse_project: str, dmge: DataModelGraphExplorer
-) -> None:
+def test_create_and_bind_json_schema(syn: Synapse, synapse_project: str) -> None:
     """
-    Test for upload_and_bind_json_schema
+    Test for create_and_bind_json_schema
     Tests that
     - the JSON Schema can be gotten form the folder its bound to
     - the bound JSON Schema has the correct id
@@ -155,32 +154,61 @@ def test_upload_and_bind_json_schema(
     schema_name = f"test.schematic.{schema_id}"
     # GIVEN a Synapse Project with a Folder
     _, folder_id = synapse_project
-    # AND a JSON SChema
-    js_schema = create_json_schema(
-        dmge=dmge,
-        datatype="MockComponent",
-        schema_name=schema_name,
-        write_schema=False,
-        use_property_display_names=False,
-    )
     try:
         # WHEN the schema is uploaded and bound to the Synapse folder
-        upload_and_bind_json_schema(
+        json_schema_uri = create_and_bind_json_schema(
             syn=syn,
-            js_schema=js_schema,
-            synapse_org=SCHEMA_TEST_ORG,
+            data_model_path="tests/data/example.model.csv",
+            datatype="MockComponent",
+            synapse_org_name=SCHEMA_TEST_ORG,
             synapse_entity_id=folder_id,
             schema_name=schema_name,
             schema_version=SCHEMA_TEST_VERSION,
         )
         # THEN the schema should be getable from the folder
-        js_schema = js.get_json_schema(folder_id)
+        json_schema = js.get_json_schema(folder_id)
     finally:
         js.unbind_json_schema(folder_id)
         js.delete_json_schema(f"{SCHEMA_TEST_ORG}-{schema_name}")
     # AND the schema URI should have the given schema name
     uri = f"{SCHEMA_TEST_ORG}-{schema_name}-{SCHEMA_TEST_VERSION}"
-    assert uri == js_schema["jsonSchemaVersionInfo"]["$id"]
+    assert uri == json_schema["jsonSchemaVersionInfo"]["$id"]
+    assert uri == json_schema_uri
+
+def test_upload_json_schema(syn: Synapse, dmge:DataModelGraphExplorer) -> None:
+    """
+    Test for upload_json_schema
+    Tests that
+    - the JSON schema is uploaded
+    - the URI for the uploaded JSON Schema is correct
+    """
+    syn.get_available_services()
+    js = syn.service("json_schema")
+    schema_id = "".join(i for i in str(uuid.uuid4()) if i.isalpha())
+    schema_name = f"test.schematic.{schema_id}"
+    # GIVEN a JSON Schema
+    json_schema = create_json_schema(
+        dmge=dmge,
+        datatype="MockComponent",
+        schema_name="",
+        write_schema=False
+    )
+    try:
+        # WHEN the schema is uploaded
+        json_schema_uri = upload_json_schema(
+            syn=syn,
+            json_schema=json_schema,
+            synapse_org_name=SCHEMA_TEST_ORG,
+            schema_name=schema_name,
+            schema_version=SCHEMA_TEST_VERSION,
+        )
+        # THEN it should be downloadable
+        js.get_json_schema_body(json_schema_uri)
+    finally:
+        js.delete_json_schema(f"{SCHEMA_TEST_ORG}-{schema_name}")
+    # AND the schema URI should have the given schema name
+    uri = f"{SCHEMA_TEST_ORG}-{schema_name}-{SCHEMA_TEST_VERSION}"
+    assert uri == json_schema_uri
 
 
 def test_create_json_schema_entity_view(syn: Synapse, synapse_project: str) -> None:
