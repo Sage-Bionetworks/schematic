@@ -175,7 +175,8 @@ def test_create_and_bind_json_schema(syn: Synapse, synapse_project: str) -> None
     assert uri == json_schema["jsonSchemaVersionInfo"]["$id"]
     assert uri == json_schema_uri
 
-def test_upload_json_schema(syn: Synapse, dmge:DataModelGraphExplorer) -> None:
+
+def test_upload_json_schema(syn: Synapse, dmge: DataModelGraphExplorer) -> None:
     """
     Test for upload_json_schema
     Tests that
@@ -188,10 +189,7 @@ def test_upload_json_schema(syn: Synapse, dmge:DataModelGraphExplorer) -> None:
     schema_name = f"test.schematic.{schema_id}"
     # GIVEN a JSON Schema
     json_schema = create_json_schema(
-        dmge=dmge,
-        datatype="MockComponent",
-        schema_name="",
-        write_schema=False
+        dmge=dmge, datatype="MockComponent", schema_name="", write_schema=False
     )
     try:
         # WHEN the schema is uploaded

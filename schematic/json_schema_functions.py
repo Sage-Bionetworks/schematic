@@ -53,6 +53,8 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
     3. Creates a entity view with columns based on the JSON Schema
     4. Creates a wiki for the entity view
 
+    This functionality is needed only temporarily. See note at top of module.
+
     Arguments:
         syn: A Synapse object thats been logged in
         data_model_path: A path to the data model use dot create the JSON Schema
@@ -84,7 +86,7 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
         synapse_org_name=synapse_org_name,
         synapse_entity_id=synapse_entity_id,
         schema_name=schema_name,
-        schema_version=schema_version
+        schema_version=schema_version,
     )
 
     entity_view_id = create_json_schema_entity_view(
@@ -101,7 +103,8 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
     )
     return (json_schema_uri, entity_view_id, wiki)
 
-def create_and_bind_json_schema( # pylint: disable=too-many-arguments
+
+def create_and_bind_json_schema(  # pylint: disable=too-many-arguments
     syn: Synapse,
     data_model_path: str,
     datatype: str,
@@ -110,6 +113,24 @@ def create_and_bind_json_schema( # pylint: disable=too-many-arguments
     schema_name: Optional[str] = None,
     schema_version: str = "0.0.1",
 ) -> str:
+    """
+    This function:
+    - creates a json schema
+    - uploads it to Synapse
+    - binds it to a Synapse entity
+
+    Arguments:
+        syn: A Synapse object thats been logged in
+        data_model_path: A path to the data model use dot create the JSON Schema
+        datatype: The datatype in the data model to create the JSON Schema for
+        synapse_org_name: The Synapse org to upload the JSON Schema to
+        synapse_entity_id: The ID of the entity in Synapse to bind the JSON Schema to
+        schema_name: The name the created JSON Schema will have
+        schema_version: The version the created JSON Schema will have
+
+    Returns:
+        The uri of the uploaded JSON Schema
+    """
     js_service = syn.service("json_schema")
     dmge = create_dmge(data_model_path)
 
@@ -124,11 +145,11 @@ def create_and_bind_json_schema( # pylint: disable=too-many-arguments
         use_property_display_names=False,
     )
     json_schema_uri = upload_json_schema(
-        syn = syn,
+        syn=syn,
         json_schema=json_schema,
         synapse_org_name=synapse_org_name,
         schema_name=schema_name,
-        schema_version=schema_version
+        schema_version=schema_version,
     )
 
     js_service.bind_json_schema(json_schema_uri, synapse_entity_id)
@@ -163,6 +184,7 @@ def upload_json_schema(
     uri = f"{synapse_org_name}-{schema_name}-{schema_version}"
     return uri
 
+
 @deprecated(reason="Entity view functionality is only need temporarily")
 def create_json_schema_entity_view(
     syn: Synapse,
@@ -170,7 +192,9 @@ def create_json_schema_entity_view(
     parent_id: str,
     entity_view_name: str = "JSON Schema view",
 ) -> str:
-    """Creates A Synapse entity view based on a JSON Schema that is bound to a Synapse entity
+    """
+    Creates A Synapse entity view based on a JSON Schema that is bound to a Synapse entity
+    This functionality is needed only temporarily. See note at top of module.
 
     Args:
         syn: A Synapse object thats been logged in
@@ -206,11 +230,14 @@ def create_json_schema_entity_view(
     view.store(synapse_client=syn)
     return view.id
 
+
 @deprecated(reason="Entity view functionality is only need temporarily")
 def create_entity_view_wiki(
     syn: Synapse, entity_view_id: str, owner_id: str, title: str
 ) -> Wiki:
-    """Creates a wiki for a entity view in Synapse
+    """
+    Creates a wiki for a entity view in Synapse
+    This functionality is needed only temporarily. See note at top of module.
 
     Args:
         syn: A Synapse object thats been logged in
