@@ -100,14 +100,15 @@ class TestDataModelCSVParser:
             if not expected_type:
                 # If the expected type is None, we expect the column type to be missing
                 assert (
-                    "columnType" not in result[expected_attribute]
-                ), f"Expected no column type for '{expected_attribute}', but got '{result[expected_attribute].get('columnType')}'"
+                    "ColumnType" not in result[expected_attribute]["Relationships"]
+                ), f"Expected no column type for '{expected_attribute}', but got '{result[expected_attribute]['Relationships'].get('ColumnType')}'"
                 continue
 
             # AND the column type of each attribute should match the expected type if a column type is specified
+            print(result[expected_attribute])
             assert (
-                result[expected_attribute]["columnType"] == expected_type
-            ), f"Expected column type for '{expected_attribute}' to be '{expected_type}', but got '{result[expected_attribute]['columnType']}'"
+                result[expected_attribute]["Relationships"]["ColumnType"] == expected_type
+            ), f"Expected column type for '{expected_attribute}' to be '{expected_type}', but got '{result[expected_attribute]['Relationships']['ColumnType']}'"
 
     def test_parse_csv_model_without_column_type(
         self,
