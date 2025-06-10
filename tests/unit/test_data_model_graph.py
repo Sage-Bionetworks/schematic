@@ -21,6 +21,7 @@ def fixture_column_type_dmge_jsonld() -> DataModelGraphExplorer:
     graph_data_model = data_model_grapher.graph
     return DataModelGraphExplorer(graph_data_model)
 
+
 @pytest.fixture(name="column_type_dmge_csv", scope="module")
 def fixture_column_type_dmge_csv() -> DataModelGraphExplorer:
     """Returns a DataModelGraphExplorer using the example data model with columnType attributes"""
@@ -131,7 +132,6 @@ class TestDataModelGraphExplorer:
             column_type_dmge_jsonld.get_node_column_type(node_label=node_label)
             == expected_type
         )
-
 
     @pytest.mark.parametrize(
         "node_label, expected_type",
