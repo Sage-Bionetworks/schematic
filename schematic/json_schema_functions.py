@@ -6,6 +6,7 @@ This module includes functions for:
 """
 
 from typing import Any, Optional
+from deprecated import deprecated
 
 from synapseclient import Synapse  # type: ignore
 from synapseclient.models import Column, ColumnType, ViewTypeMask, EntityView  # type: ignore
@@ -28,6 +29,7 @@ LIST_TYPE_DICT = {
 }
 
 
+@deprecated(reason="Entity view functionality is only need temporarily")
 def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-arguments
     syn: Synapse,
     data_model_path: str,
@@ -156,7 +158,7 @@ def upload_json_schema(
     uri = f"{synapse_org_name}-{schema_name}-{schema_version}"
     return uri
 
-
+@deprecated(reason="Entity view functionality is only need temporarily")
 def create_json_schema_entity_view(
     syn: Synapse,
     entity_id: str,
@@ -199,7 +201,7 @@ def create_json_schema_entity_view(
     view.store(synapse_client=syn)
     return view.id
 
-
+@deprecated(reason="Entity view functionality is only need temporarily")
 def create_entity_view_wiki(
     syn: Synapse, entity_view_id: str, owner_id: str, title: str
 ) -> Wiki:
