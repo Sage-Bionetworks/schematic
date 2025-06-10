@@ -1,6 +1,7 @@
 """Data Model Relationships"""
 
-from typing import Optional, Any, Literal, get_args
+from typing import Optional, Any
+from enum import Enum
 
 from schematic.utils.schema_utils import (
     convert_bool_to_str,
@@ -9,7 +10,14 @@ from schematic.utils.schema_utils import (
     parse_validation_rules,
 )
 
-JSONSchemaType = Literal["string", "number", "integer", "boolean"]
+
+class JSONSchemaType(Enum):
+    """This enum is allowed values type values for a JSON Schema in a data model"""
+
+    STRING = "string"
+    NUMBER = "number"
+    INTEGER = "integer"
+    BOOLEAN = "boolean"
 
 
 class DataModelRelationships:
@@ -201,7 +209,7 @@ class DataModelRelationships:
                 "required_header": False,
                 "edge_rel": False,
                 "node_attr_dict": {"default": None},
-                "allowed_values": list(get_args(JSONSchemaType)),
+                "allowed_values": [enum.value for enum in JSONSchemaType],
             },
         }
 
