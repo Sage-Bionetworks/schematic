@@ -10,6 +10,7 @@ from schematic.utils.schema_utils import (
     parse_validation_rules,
 )
 
+
 class DataModelRelationships:
     """Data Model Relationships"""
 

@@ -226,17 +226,13 @@ class Node:  # pylint: disable=too-many-instance-attributes
                     raise ValueError(
                         "Validation rules must be either 'int' or 'num' when using the inRange rule"
                     )
-                if self.type is None:
-                    self.type = JSONSchemaType.NUMBER.value
+                self.type = self.type or JSONSchemaType.NUMBER.value
                 self.minimum, self.maximum = _get_range_from_in_range_rule(range_rule)
 
             if regex_rule:
-                if self.type not in [JSONSchemaType.STRING.value, None]:
-                    raise ValueError(
-                        "Validation rules must be 'string' when using the regex rule"
-                    )
-                if self.type is None:
-                    self.type = JSONSchemaType.STRING.value
+                if self.type not in (None, JSONSchemaType.STRING.value):
+                    raise ValueError("Type must be 'string' when using a regex rule")
+                self.type = JSONSchemaType.STRING.value
                 self.pattern = _get_pattern_from_regex_rule(regex_rule)
 
 
@@ -274,10 +270,9 @@ def _get_pattern_from_regex_rule(rule: str) -> Optional[str]:
         Otherwise None
     """
     parameters = rule.split(" ")
-    if len(parameters) < 3:
+    if len(parameters) != 3:
         return None
-    module = parameters[1]
-    pattern = parameters[2]
+    _, module, pattern = parameters
     # Do not translate other modules
     if module not in [item.value for item in RegexModule]:
         return None
@@ -329,7 +324,6 @@ def _get_rule_from_rule_list(
         The rule if one is found, otherwise None is returned
     """
     rule_value = rule.value
-    print(rule_value)
     rule_list = [rule for rule in rule_list if rule.startswith(rule_value)]
     if len(rule_list) > 1:
         msg = (
