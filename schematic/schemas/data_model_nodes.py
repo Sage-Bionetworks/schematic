@@ -26,10 +26,10 @@ class DataModelNodes:
         }
         self.data_model_relationships = DataModelRelationships()
         self.value_relationships = (
-            self.data_model_relationships.retreive_rel_headers_dict(edge=False)
+            self.data_model_relationships.retrieve_rel_headers_dict(edge=False)
         )
         self.edge_relationships_dictionary = (
-            self.data_model_relationships.retreive_rel_headers_dict(edge=True)
+            self.data_model_relationships.retrieve_rel_headers_dict(edge=True)
         )
         self.properties = self.get_data_model_properties(
             attr_rel_dict=attribute_relationships_dict

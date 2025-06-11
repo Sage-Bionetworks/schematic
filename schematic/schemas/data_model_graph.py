@@ -9,7 +9,10 @@ from opentelemetry import trace
 
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes
-from schematic.schemas.data_model_relationships import DataModelRelationships
+from schematic.schemas.data_model_relationships import (
+    DataModelRelationships,
+    JSONSchemaType,
+)
 from schematic.utils.general import unlist
 from schematic.utils.schema_utils import (
     DisplayLabelType,
@@ -98,7 +101,7 @@ class DataModelGraph:  # pylint: disable=too-few-public-methods
             G: nx.MultiDiGraph, networkx graph representation of the data model
         """
         # Get all relationships with edges
-        edge_relationships = self.dmr.retreive_rel_headers_dict(edge=True)
+        edge_relationships = self.dmr.retrieve_rel_headers_dict(edge=True)
 
         # Find all nodes
         all_nodes = self.dmn.gather_all_nodes_in_model(
@@ -159,7 +162,6 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         """
         self.graph = graph  # At this point the graph is expected to be fully formed.
         self.dmr = DataModelRelationships()
-        self.rel_dict = self.dmr.relationships_dictionary
 
     def find_properties(self) -> set[str]:
         """
@@ -172,7 +174,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         """
         properties_list: list[str] = []
         for node_1, _, rel in self.graph.edges:
-            if rel == self.rel_dict["domainIncludes"]["edge_key"]:
+            if rel == self.dmr.get_relationship_value("domainIncludes", "edge_key"):
                 properties_list.append(node_1)
         properties_set = set(properties_list)
         return properties_set
@@ -201,15 +203,12 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         Returns:
             valid_values, list: List of valid values associated with the provided node.
         """
-        if not node_label:
-            assert node_display_name is not None
-            node_label = self.get_node_label(node_display_name)
+        node_label = self._get_node_label(node_label, node_display_name)
 
         valid_values = []
         for node_1, node_2, rel in self.graph.edges:
-            if (
-                node_1 == node_label
-                and rel == self.rel_dict["rangeIncludes"]["edge_key"]
+            if node_1 == node_label and rel == self.dmr.get_relationship_value(
+                "rangeIncludes", "edge_key"
             ):
                 valid_values.append(node_2)
         valid_values = list(set(valid_values))
@@ -243,10 +242,10 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         node_display_name: Optional[str] = None,
     ) -> bool:
         """Check if a node is required taking into account the manifest component it is defined in
-        (requirements can be set in validaiton rule as well as required column)
+        (requirements can be set in validation rule as well as required column)
         Args:
             manifest_component: str, manifest component display name that the node belongs to.
-            node_validation_rules: list[str], valdation rules for a given node and component.
+            node_validation_rules: list[str], validation rules for a given node and component.
             node_label: str, Label of the node you would want to get the comment for.
             node_display_name: str, node display name for the node being queried.
         Returns:
@@ -262,7 +261,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
                 node_display_name=node_display_name,
             )
 
-        # Check if the valdation rule specifies that the node is required for this particular
+        # Check if the validation rule specifies that the node is required for this particular
         # component.
         if rule_in_rule_list("required", node_validation_rules):
             node_required = True
@@ -273,7 +272,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
                 if not node_display_name:
                     assert node_label is not None
                     node_display_name = self.graph.nodes[node_label][
-                        self.rel_dict["displayName"]["node_label"]
+                        self.dmr.get_relationship_value("displayName", "node_label")
                     ]
                 error_str = " ".join(
                     [
@@ -289,7 +288,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
                 logger.error(error_str)
         else:
-            # If requirements are not being set in the validaiton rule, then just pull the
+            # If requirements are not being set in the validation rule, then just pull the
             # standard node requirements from the model
             node_required = self.get_node_required(
                 node_label=node_label, node_display_name=node_display_name
@@ -302,7 +301,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         node_label: Optional[str] = None,
         node_display_name: Optional[str] = None,
     ) -> list:
-        """Get valdation rules for a given node and component.
+        """Get validation rules for a given node and component.
         Args:
             manifest_component: str, manifest component display name that the node belongs to.
             node_label: str, Label of the node you would want to get the comment for.
@@ -348,7 +347,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             reversed(
                 self.get_descendants_by_edge_type(
                     source_component,
-                    self.rel_dict["requiresComponent"]["edge_key"],
+                    self.dmr.get_relationship_value("requiresComponent", "edge_key"),
                     ordered=True,
                 )
             )
@@ -378,7 +377,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
         # get the subgraph induced on required component nodes
         req_components_graph = self.get_subgraph_by_edge_type(
-            self.rel_dict["requiresComponent"]["edge_key"],
+            self.dmr.get_relationship_value("requiresComponent", "edge_key"),
         ).subgraph(req_components)
 
         return req_components_graph
@@ -395,7 +394,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
           type of edge / relationship type.
 
         Args:
-            source_node: The node whose descendants need to be retreived.
+            source_node: The node whose descendants need to be retrieved.
             relationship: Edge / link relationship type with possible values same as in above docs.
             connected:
               If True, we need to ensure that all descendant nodes are reachable from the source
@@ -405,7 +404,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             ordered:
               If True, the list of descendants will be topologically ordered.
               If False, the list has no particular order (depends on the order in which the
-                descendats were traversed in the subgraph).
+                descendants were traversed in the subgraph).
 
         Returns:
             List of nodes that are descendants from a particular node (sorted / unsorted)
@@ -480,7 +479,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         node: str,
         relationship: str,
     ) -> list[tuple[str, str]]:
-        """Get a list of out-edges of a node where the edges match a specifc type of relationship.
+        """Get a list of out-edges of a node where the edges match a specific type of relationship.
 
         i.e., the edges connecting a node to its neighbors are of relationship type -- "parentOf"
           (set of edges to children / sub-class nodes).
@@ -526,11 +525,11 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
                 f"Cannot find node: {source_node_label} in the graph, please check entry."
             )
 
-        edge_key = self.rel_dict[key]["edge_key"]
+        edge_key = self.dmr.get_relationship_value(key, "edge_key")
 
         # Handle out edges
-        if self.rel_dict[key]["jsonld_direction"] == "out":
-            # use outedges
+        if self.dmr.get_relationship_value(key, "jsonld_direction") == "out":
+            # use out edges
 
             original_edge_weights_dict = {
                 attached_node: self.graph[source_node][attached_node][edge_key][
@@ -543,7 +542,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             }
         # Handle in edges
         else:
-            # use inedges
+            # use in edges
             original_edge_weights_dict = {
                 attached_node: self.graph[attached_node][source_node][edge_key][
                     "weight"
@@ -586,15 +585,13 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         Returns:
             Comment associated with node, as a string.
         """
-        if not node_label:
-            assert node_display_name is not None
-            node_label = self.get_node_label(node_display_name)
+        node_label = self._get_node_label(node_label, node_display_name)
 
         if not node_label:
             return ""
 
         node_definition = self.graph.nodes[node_label][
-            self.rel_dict["comment"]["node_label"]
+            self.dmr.get_relationship_value("comment", "node_label")
         ]
         return node_definition
 
@@ -622,13 +619,15 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         if schema_ordered:
             # get dependencies in the same order in which they are defined in the schema
             required_dependencies = self.get_ordered_entry(
-                key=self.rel_dict["requiresDependency"]["edge_key"],
+                key=self.dmr.get_relationship_value("requiresDependency", "edge_key"),
                 source_node_label=source_node,
             )
         else:
             required_dependencies = self.get_adjacent_nodes_by_relationship(
                 node_label=source_node,
-                relationship=self.rel_dict["requiresDependency"]["edge_key"],
+                relationship=self.dmr.get_relationship_value(
+                    "requiresDependency", "edge_key"
+                ),
             )
 
         if display_names:
@@ -637,7 +636,9 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
             for req in required_dependencies:
                 dependencies_display_names.append(
-                    self.graph.nodes[req][self.rel_dict["displayName"]["node_label"]]
+                    self.graph.nodes[req][
+                        self.dmr.get_relationship_value("displayName", "node_label")
+                    ]
                 )
 
             return dependencies_display_names
@@ -668,7 +669,9 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             List of display names.
         """
         node_list_display_names = [
-            self.graph.nodes[node][self.rel_dict["displayName"]["node_label"]]
+            self.graph.nodes[node][
+                self.dmr.get_relationship_value("displayName", "node_label")
+            ]
             for node in node_list
         ]
 
@@ -725,10 +728,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
               If display_names=True, a list of valid values (display names) associated
                 with a given node
         """
-        if not node_label:
-            assert node_display_name is not None
-            node_label = self.get_node_label(node_display_name)
-
+        node_label = self._get_node_label(node_label, node_display_name)
         try:
             # get node range in the order defined in schema for given node
             required_range = self.find_node_range(node_label=node_label)
@@ -763,11 +763,8 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             True: If the given node is a "required" node.
             False: If the given node is not a "required" (i.e., an "optional") node.
         """
-        if not node_label:
-            assert node_display_name is not None
-            node_label = self.get_node_label(node_display_name)
-
-        rel_node_label = self.rel_dict["required"]["node_label"]
+        node_label = self._get_node_label(node_label, node_display_name)
+        rel_node_label = self.dmr.get_relationship_value("required", "node_label")
         node_required = self.graph.nodes[node_label][rel_node_label]
         return node_required
 
@@ -782,14 +779,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         Returns:
             A set of validation rules associated with node, as a list or a dictionary.
         """
-        if not node_label:
-            if node_display_name is None:
-                raise ValueError(
-                    "Either node_label or node_display_name must be provided."
-                )
-
-            # try search node label using display name
-            node_label = self.get_node_label(node_display_name)
+        node_label = self._get_node_label(node_label, node_display_name)
 
         if not node_label:
             return []
@@ -835,12 +825,10 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         Returns:
             List of nodes that are adjacent to the given node, by SubclassOf relationship.
         """
-        if not node_label:
-            assert node_display_name is not None
-            node_label = self.get_node_label(node_display_name)
-
+        node_label = self._get_node_label(node_label, node_display_name)
         return self.get_adjacent_nodes_by_relationship(
-            node_label=node_label, relationship=self.rel_dict["subClassOf"]["edge_key"]
+            node_label=node_label,
+            relationship=self.dmr.get_relationship_value("subClassOf", "edge_key"),
         )
 
     def find_child_classes(self, schema_class: str) -> list:
@@ -861,7 +849,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         Returns:
             properties, list: List of properties associate with a given schema class.
         Raises:
-            KeyError: Key error is raised if the provded schema_class is not in the graph
+            KeyError: Key error is raised if the provided schema_class is not in the graph
         """
 
         if not self.is_class_in_schema(schema_class):
@@ -926,7 +914,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         """Create a sub-schema graph
         Args:
             source, str: source node label to start graph
-            direction, str: direction to create the vizualization, choose from "up", "down", "both"
+            direction, str: direction to create the visualization, choose from "up", "down", "both"
             size, float: max height and width of the graph, if one value provided it is used for
               both.
         Returns:
@@ -952,3 +940,40 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
                     edges.append((_path[i], _path[i + 1]))
             return visualize(edges, size=size)
         return None
+
+    def get_node_column_type(
+        self, node_label: Optional[str] = None, node_display_name: Optional[str] = None
+    ) -> Optional[JSONSchemaType]:
+        """Gets the column type of the node
+
+        Args:
+            node_label: The label of the node to get the type from
+            node_display_name: The display name of the node to get the type from
+
+        Returns:
+            The column type of the node if it has one, otherwise None
+        """
+        node_label = self._get_node_label(node_label, node_display_name)
+        rel_node_label = self.dmr.get_relationship_value("columnType", "node_label")
+        return self.graph.nodes[node_label][rel_node_label]
+
+    def _get_node_label(
+        self, node_label: Optional[str] = None, node_display_name: Optional[str] = None
+    ) -> str:
+        """Returns the node label if given otherwise gets the node label from the display name
+
+        Args:
+            node_label: The label of the node to get the type from
+            node_display_name: The display name of the node to get the type from
+
+        Raises:
+            ValueError: If neither node_label or node_display_name is provided
+
+        Returns:
+            The node label
+        """
+        if node_label is not None:
+            return node_label
+        if node_display_name is not None:
+            return self.get_node_label(node_display_name)
+        raise ValueError("Either 'node_label' or 'node_display_name' must be provided.")

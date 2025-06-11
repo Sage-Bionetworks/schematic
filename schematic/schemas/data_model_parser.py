@@ -129,7 +129,7 @@ class DataModelCSVParser:
         # Load relationships dictionary.
         self.rel_dict = self.dmr.define_data_model_relationships()
         # Get edge relationships
-        self.edge_relationships_dictionary = self.dmr.retreive_rel_headers_dict(
+        self.edge_relationships_dictionary = self.dmr.retrieve_rel_headers_dict(
             edge=True
         )
         # Load required csv headers
@@ -235,7 +235,9 @@ class DataModelCSVParser:
                     )
             if model_includes_column_type:
                 column_type_dict = self.parse_column_type(attr)
-                attr_rel_dictionary[attribute_name].update(column_type_dict)
+                attr_rel_dictionary[attribute_name]["Relationships"].update(
+                    column_type_dict
+                )
         return attr_rel_dictionary
 
     def parse_column_type(self, attr: dict) -> dict:
@@ -264,7 +266,7 @@ class DataModelCSVParser:
             relationship="columnType",
         )
 
-        return {"columnType": column_type}
+        return {"ColumnType": column_type}
 
     @tracer.start_as_current_span("Schemas::DataModelCSVParser::parse_csv_model")
     def parse_csv_model(
