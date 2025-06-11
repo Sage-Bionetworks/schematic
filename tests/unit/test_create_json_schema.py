@@ -15,6 +15,7 @@ from jsonschema.exceptions import ValidationError
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.create_json_schema import (
+    ValidationRule,
     _get_range_from_in_range_rule,
     _get_pattern_from_regex_rule,
     _get_type_rule_from_rule_list,
@@ -241,14 +242,14 @@ def test_get_pattern_from_regex_rule(
 
 
 @pytest.mark.parametrize(
-    "rule_name, input_rules, expected_rule",
+    "rule, input_rules, expected_rule",
     [
-        ("inRange", [], None),
-        ("inRange", ["regex match [a-f]"], None),
-        ("inRange", ["inRange 0 1"], "inRange 0 1"),
-        ("inRange", ["str error", "inRange 0 1"], "inRange 0 1"),
-        ("regex", ["inRange 0 1"], None),
-        ("regex", ["regex match [a-f]"], "regex match [a-f]"),
+        (ValidationRule.IN_RANGE, [], None),
+        (ValidationRule.IN_RANGE, ["regex match [a-f]"], None),
+        (ValidationRule.IN_RANGE, ["inRange 0 1"], "inRange 0 1"),
+        (ValidationRule.IN_RANGE, ["str error", "inRange 0 1"], "inRange 0 1"),
+        (ValidationRule.REGEX, ["inRange 0 1"], None),
+        (ValidationRule.REGEX, ["regex match [a-f]"], "regex match [a-f]"),
     ],
     ids=[
         "inRange: No rules",
@@ -260,29 +261,32 @@ def test_get_pattern_from_regex_rule(
     ],
 )
 def test_get_rule_from_rule_list(
-    rule_name: str,
+    rule: ValidationRule,
     input_rules: list[str],
     expected_rule: Optional[str],
 ) -> None:
     """Test for _get_rule_from_rule_list"""
-    result = _get_rule_from_rule_list(rule_name, input_rules)
+    result = _get_rule_from_rule_list(rule, input_rules)
     assert result == expected_rule
 
 
 @pytest.mark.parametrize(
-    "rule_name, input_rules",
-    [("inRange", ["inRange", "inRange"]), ("inRange", ["inRange 0", "inRange 0"])],
+    "rule, input_rules",
+    [
+        (ValidationRule.IN_RANGE, ["inRange", "inRange"]),
+        (ValidationRule.IN_RANGE, ["inRange 0", "inRange 0"]),
+    ],
     ids=["Multiple inRange rules", "Multiple inRange rules with params"],
 )
 def test_get_rule_from_rule_list_exceptions(
-    rule_name: str,
+    rule: ValidationRule,
     input_rules: list[str],
 ) -> None:
     """Test for __get_rule_from_rule_list with exceptions"""
     with pytest.raises(
         ValueError, match="Found more than one 'inRange' rule in validation rules"
     ):
-        _get_rule_from_rule_list(rule_name, input_rules)
+        _get_rule_from_rule_list(rule, input_rules)
 
 
 @pytest.mark.parametrize(

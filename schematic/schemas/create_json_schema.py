@@ -10,6 +10,7 @@ import logging
 import os
 from typing import Union, Any, Optional
 from dataclasses import dataclass, field, asdict
+from enum import Enum
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.utils.schema_utils import get_json_schema_log_file_path
@@ -20,14 +21,44 @@ from schematic.utils.io_utils import export_json
 
 logger = logging.getLogger(__name__)
 
+
+class ValidationRule(Enum):
+    """Validation rules that are used to create JSON Schema"""
+
+    REGEX = "regex"
+    IN_RANGE = "inRange"
+    STR = "str"
+    FLOAT = "float"
+    INT = "int"
+    BOOL = "bool"
+    NUM = "num"
+
+
+class JSONSchemaType(Enum):
+    """This enum is allowed values type values for a JSON Schema in a data model"""
+
+    STRING = "string"
+    NUMBER = "number"
+    INTEGER = "integer"
+    BOOLEAN = "boolean"
+
+
+class RegexModule(Enum):
+    """This enum are allowed modules for the regex validation rule"""
+
+    SEARCH = "search"
+    MATCH = "match"
+
+
 # A dict where the keys are type validation rules, and the values are their JSON Schema equivalent
 TYPE_RULES = {
-    "str": "string",
-    "num": "number",
-    "float": "number",
-    "int": "integer",
-    "bool": "boolean",
+    ValidationRule.STR.value: JSONSchemaType.STRING.value,
+    ValidationRule.NUM.value: JSONSchemaType.NUMBER.value,
+    ValidationRule.FLOAT.value: JSONSchemaType.NUMBER.value,
+    ValidationRule.INT.value: JSONSchemaType.INTEGER.value,
+    ValidationRule.BOOL.value: JSONSchemaType.BOOLEAN.value,
 }
+
 
 # Complex types
 Items = dict[str, Union[str, float, list[str]]]
@@ -209,29 +240,37 @@ class Node:  # pylint: disable=too-many-instance-attributes
             if type_rule:
                 self.type = TYPE_RULES.get(type_rule)
 
-            regex_rule = _get_rule_from_rule_list("regex", validation_rules)
-            range_rule = _get_rule_from_rule_list("inRange", validation_rules)
+            regex_rule = _get_rule_from_rule_list(
+                ValidationRule.REGEX, validation_rules
+            )
+            range_rule = _get_rule_from_rule_list(
+                ValidationRule.IN_RANGE, validation_rules
+            )
             if range_rule and regex_rule:
                 raise ValueError(
                     "regex and inRange rules are incompatible: ", validation_rules
                 )
 
             if range_rule:
-                if self.type not in ["number", "integer", None]:
+                if self.type not in [
+                    JSONSchemaType.NUMBER.value,
+                    JSONSchemaType.INTEGER.value,
+                    None,
+                ]:
                     raise ValueError(
-                        "Validation rules bust be either 'int' or 'num' when using the inRange rule"
+                        "Validation rules must be either 'int' or 'num' when using the inRange rule"
                     )
                 if self.type is None:
-                    self.type = "number"
+                    self.type = JSONSchemaType.NUMBER.value
                 self.minimum, self.maximum = _get_range_from_in_range_rule(range_rule)
 
             if regex_rule:
-                if self.type not in ["string", None]:
+                if self.type not in [JSONSchemaType.STRING.value, None]:
                     raise ValueError(
-                        "Validation rules bust be 'string' when using the regex rule"
+                        "Validation rules must be 'string' when using the regex rule"
                     )
                 if self.type is None:
-                    self.type = "string"
+                    self.type = JSONSchemaType.STRING.value
                 self.pattern = _get_pattern_from_regex_rule(regex_rule)
 
 
@@ -274,10 +313,10 @@ def _get_pattern_from_regex_rule(rule: str) -> Optional[str]:
     module = parameters[1]
     pattern = parameters[2]
     # Do not translate other modules
-    if module not in ["search", "match"]:
+    if module not in [item.value for item in RegexModule]:
         return None
     # Match is just search but only at the beginning of the string
-    if module == "match" and not pattern.startswith("^"):
+    if module == RegexModule.MATCH.value and not pattern.startswith("^"):
         return f"^{pattern}"
     return pattern
 
@@ -307,12 +346,14 @@ def _get_type_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
     return rule_list[0]
 
 
-def _get_rule_from_rule_list(rule_name: str, rule_list: list[str]) -> Optional[str]:
+def _get_rule_from_rule_list(
+    rule: ValidationRule, rule_list: list[str]
+) -> Optional[str]:
     """
     Returns the a rule from a list of rules if there is only one
-    Returns None if there are no inRange rules
 
     Arguments:
+        rule: A ValidationRule enum
         rule_list: A list of validation rules
 
     Raises:
@@ -321,9 +362,13 @@ def _get_rule_from_rule_list(rule_name: str, rule_list: list[str]) -> Optional[s
     Returns:
         The rule if one is found, otherwise None is returned
     """
-    rule_list = [rule for rule in rule_list if rule.startswith(rule_name)]
+    rule_value = rule.value
+    print(rule_value)
+    rule_list = [rule for rule in rule_list if rule.startswith(rule_value)]
     if len(rule_list) > 1:
-        msg = f"Found more than one '{rule_name}' rule in validation rules: {rule_list}"
+        msg = (
+            f"Found more than one '{rule_value}' rule in validation rules: {rule_list}"
+        )
         raise ValueError(msg)
     if len(rule_list) == 0:
         return None
