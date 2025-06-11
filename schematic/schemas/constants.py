@@ -2,6 +2,7 @@
 
 from enum import Enum
 
+
 class ValidationRule(Enum):
     """Validation rules that are used to create JSON Schema"""
 
