@@ -282,14 +282,14 @@ class DataModelRelationships:
         if relationship.strip() not in self.relationships_dictionary:
             msg = (
                 f"Relationship: '{relationship}' not in dictionary: "
-                f"[{list(self.relationships_dictionary.keys())}]"
+                f"{list(self.relationships_dictionary.keys())}"
             )
             raise ValueError(msg)
         if value.strip().lower() not in self.relationships_dictionary[relationship]:
             if not none_if_missing:
                 msg = (
                     f"Value: '{value}' not in relationship dictionary: "
-                    f"[{list(self.relationships_dictionary[relationship].keys())}]"
+                    f"{list(self.relationships_dictionary[relationship].keys())}"
                 )
                 raise ValueError(msg)
             return None

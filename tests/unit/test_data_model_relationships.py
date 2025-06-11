@@ -34,7 +34,7 @@ class TestDataModelRelationships:
         """
         with pytest.raises(
             ValueError,
-            match="Value: 'edge_dir' not in relationship dictionary: 'displayName'",
+            match="Value: 'edge_dir' not in relationship dictionary",
         ):
             dmr.get_relationship_value("displayName", "edge_dir")
 
