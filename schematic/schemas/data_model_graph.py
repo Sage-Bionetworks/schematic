@@ -972,8 +972,8 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         Returns:
             The node label
         """
-        if node_label is None:
-            if node_display_name is None:
-                raise ValueError("must provide either node_label or node_display_name")
-            node_label = self.get_node_label(node_display_name)
-        return node_label
+        if node_label is not None:
+            return node_label
+        if node_display_name is not None:
+            return self.get_node_label(node_display_name)
+        raise ValueError("Either 'node_label' or 'node_display_name' must be provided.")

@@ -267,9 +267,10 @@ class DataModelRelationships:
         Args:
             relationship: The name of the relationship, the key in the top level relationship dict
             value: The name of the value to get, the key dict of the relationship itself
-            none_if_missing: What happens if the value isn't a key in the relationship
-              If True returns None
-              If False an exception is raised
+            none_if_missing: Determines the behavior when the specified value is not found
+              in the relationship dictionary:
+                If True returns None
+                If False an exception is raised
 
         Raises:
             ValueError: If the relationship doesn't exist
@@ -278,13 +279,19 @@ class DataModelRelationships:
         Returns:
             The value
         """
-        if relationship not in self.relationships_dictionary:
-            raise ValueError(f"Relationship: '{relationship}' not in dictionary")
-        if value not in self.relationships_dictionary[relationship]:
+        if relationship.strip() not in self.relationships_dictionary:
+            msg = (
+                f"Relationship: '{relationship}' not in dictionary: "
+                f"[{list(self.relationships_dictionary.keys())}]"
+            )
+            raise ValueError(msg)
+        if value.strip().lower() not in self.relationships_dictionary[relationship]:
             if not none_if_missing:
-                raise ValueError(
-                    f"Value: '{value}' not in relationship dictionary: '{relationship}'"
+                msg = (
+                    f"Value: '{value}' not in relationship dictionary: "
+                    f"[{list(self.relationships_dictionary[relationship].keys())}]"
                 )
+                raise ValueError(msg)
             return None
         return self.relationships_dictionary[relationship][value]
 
