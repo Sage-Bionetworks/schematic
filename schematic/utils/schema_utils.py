@@ -231,6 +231,9 @@ def get_label_from_display_name(
         # If not, set get a stripped class or property label (as indicated by the entry type)
         else:
             label = get_stripped_label(display_name=display_name, entry_type=entry_type)
+            logger.warning(
+                f"Display name {display_name} is not a valid label. The name has been stripped of blackisted characters to produce the valid label: {label}"
+            )
 
     else:
         label = get_schema_label(
