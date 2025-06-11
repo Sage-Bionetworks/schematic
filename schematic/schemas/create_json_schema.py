@@ -10,54 +10,20 @@ import logging
 import os
 from typing import Union, Any, Optional
 from dataclasses import dataclass, field, asdict
-from enum import Enum
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.utils.schema_utils import get_json_schema_log_file_path
 from schematic.utils.validate_utils import rule_in_rule_list
-
 from schematic.utils.io_utils import export_json
+from schematic.schemas.constants import (
+    ValidationRule,
+    JSONSchemaType,
+    RegexModule,
+    TYPE_RULES,
+)
 
 
 logger = logging.getLogger(__name__)
-
-
-class ValidationRule(Enum):
-    """Validation rules that are used to create JSON Schema"""
-
-    REGEX = "regex"
-    IN_RANGE = "inRange"
-    STR = "str"
-    FLOAT = "float"
-    INT = "int"
-    BOOL = "bool"
-    NUM = "num"
-
-
-class JSONSchemaType(Enum):
-    """This enum is allowed values type values for a JSON Schema in a data model"""
-
-    STRING = "string"
-    NUMBER = "number"
-    INTEGER = "integer"
-    BOOLEAN = "boolean"
-
-
-class RegexModule(Enum):
-    """This enum are allowed modules for the regex validation rule"""
-
-    SEARCH = "search"
-    MATCH = "match"
-
-
-# A dict where the keys are type validation rules, and the values are their JSON Schema equivalent
-TYPE_RULES = {
-    ValidationRule.STR.value: JSONSchemaType.STRING.value,
-    ValidationRule.NUM.value: JSONSchemaType.NUMBER.value,
-    ValidationRule.FLOAT.value: JSONSchemaType.NUMBER.value,
-    ValidationRule.INT.value: JSONSchemaType.INTEGER.value,
-    ValidationRule.BOOL.value: JSONSchemaType.BOOLEAN.value,
-}
 
 
 # Complex types
