@@ -1,6 +1,7 @@
 """Data Model Relationships"""
 
 from typing import Optional, Any
+from enum import Enum
 
 from schematic.utils.schema_utils import (
     convert_bool_to_str,
@@ -8,6 +9,15 @@ from schematic.utils.schema_utils import (
     get_label_from_display_name,
     parse_validation_rules,
 )
+
+
+class JSONSchemaType(Enum):
+    """This enum is allowed values type values for a JSON Schema in a data model"""
+
+    STRING = "string"
+    NUMBER = "number"
+    INTEGER = "integer"
+    BOOLEAN = "boolean"
 
 
 class DataModelRelationships:
@@ -19,13 +29,13 @@ class DataModelRelationships:
     def define_data_model_relationships(self) -> dict:
         """Define the relationships and their attributes so they can be accessed
           through other classes.
-        The key is how it the relationship will be referenced througout Schematic.
+        The key is how it the relationship will be referenced throughout Schematic.
         Note: Though we could use other keys to determine which keys define nodes and edges,
-            edge_rel is used as an explicit definition, for easier code readablity.
+            edge_rel is used as an explicit definition, for easier code readability.
         key:
             jsonld_key: Name for relationship in the JSONLD.
                         Include in all sub-dictionaries.
-            csv_header: Str, name for this relationshp in the CSV data model.
+            csv_header: Str, name for this relationship in the CSV data model.
                         Enter None if not part of the CSV data model.
             node_label: Name for relationship in the graph representation of the data model.
                         Do not include this key for edge relationships.
@@ -199,7 +209,7 @@ class DataModelRelationships:
                 "required_header": False,
                 "edge_rel": False,
                 "node_attr_dict": {"default": None},
-                "allowed_values": ["string", "integer", "number", "boolean"],
+                "allowed_values": [enum.value for enum in JSONSchemaType],
             },
         }
 
@@ -227,9 +237,9 @@ class DataModelRelationships:
 
         return required_headers
 
-    def retreive_rel_headers_dict(self, edge: bool) -> dict[str, str]:
+    def retrieve_rel_headers_dict(self, edge: bool) -> dict[str, str]:
         """
-        Helper function to retrieve CSV headers for edge and non-edge relationships
+        Helper method to retrieve CSV headers for edge and non-edge relationships
           defined by edge_type.
 
         Args:
@@ -249,23 +259,53 @@ class DataModelRelationships:
 
         return rel_headers_dict
 
-    def get_allowed_values(self, relationship: str) -> Optional[list[Any]]:
-        """Gets the allowed values for the relationship
+    def get_relationship_value(
+        self, relationship: str, value: str, none_if_missing: bool = False
+    ) -> Any:
+        """Returns a value from the relationship dictionary
 
         Args:
-            relationship: The name of the relationship
+            relationship: The name of the relationship, the key in the top level relationship dict
+            value: The name of the value to get, the key dict of the relationship itself
+            none_if_missing: Determines the behavior when the specified value is not found
+              in the relationship dictionary:
+                If True returns None
+                If False an exception is raised
 
         Raises:
             ValueError: If the relationship doesn't exist
-            AssertionError: If the allowed values aren't a list
+            ValueError: If the value isn't in the relationship and none_if_missing is False
+
+        Returns:
+            The value
+        """
+        if relationship.strip() not in self.relationships_dictionary:
+            msg = (
+                f"Relationship: '{relationship}' not in dictionary: "
+                f"{list(self.relationships_dictionary.keys())}"
+            )
+            raise ValueError(msg)
+        if value.strip().lower() not in self.relationships_dictionary[relationship]:
+            if not none_if_missing:
+                msg = (
+                    f"Value: '{value}' not in relationship dictionary: "
+                    f"{list(self.relationships_dictionary[relationship].keys())}"
+                )
+                raise ValueError(msg)
+            return None
+        return self.relationships_dictionary[relationship][value]
+
+    def get_allowed_values(self, relationship: str) -> Optional[list[Any]]:
+        """Gets the allowed values for the relationship
+
+        Arguments:
+            relationship: The name of the relationship
 
         Returns:
              A list of allowed values if they exist, otherwise None
         """
-        if relationship not in self.relationships_dictionary:
-            raise ValueError(f"Relationship: '{relationship}' not in dictionary")
-        allowed_values = self.relationships_dictionary[relationship].get(
-            "allowed_values"
+        allowed_values = self.get_relationship_value(
+            relationship, "allowed_values", none_if_missing=True
         )
         assert isinstance(allowed_values, list) or allowed_values is None
         return allowed_values
