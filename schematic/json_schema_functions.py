@@ -243,16 +243,20 @@ def create_or_update_wiki_with_entity_view(
     owner_id: str,
     title: Optional[str] = None,
 ) -> Wiki:
-    """_summary_
+    """
+    Creates or updates a Wiki for an entity if the wiki exists or not.
+    An EntityView query is added to the wiki markdown
+
+    This functionality is needed only temporarily. See note at top of module.
 
     Args:
         syn: A Synapse object thats been logged in
-        entity_view_id: The Synapse id of the entity view to create the entity view query for
+        entity_view_id: The Synapse id of the EntityView for the query
         owner_id: The ID of the entity in Synapse that the wiki will be created/updated
         title: The (new) title of the wiki to be created/updated
 
     Returns:
-        The created wiki object
+        The created Wiki object
     """
     warnings.warn(
         "This function is a prototype, and could change or be removed at any point."
