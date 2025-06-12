@@ -6,7 +6,7 @@ from schematic.schemas.data_model_relationships import JSONSchemaType
 from schematic.schemas.data_model_graph import (
     DataModelGraph,
     DataModelGraphExplorer,
-    create_dmge,
+    create_data_model_graph_explorer,
 )
 from schematic.schemas.data_model_parser import DataModelParser
 from tests.conftest import Helpers
@@ -186,10 +186,10 @@ class TestDataModelGraphExplorer:
     "data_model_path",
     ["tests/data/example.model.csv", "tests/data/example.model.jsonld"],
 )
-def test_create_dmge(data_model_path: str) -> None:
+def test_create_data_model_graph_explorer(data_model_path: str) -> None:
     """
-    Tests for create_dmge
+    Tests for create_data_model_graph_explorer
     Tests that the dmge is created
     """
-    dmge = create_dmge(data_model_path)
+    dmge = create_data_model_graph_explorer(data_model_path)
     assert dmge

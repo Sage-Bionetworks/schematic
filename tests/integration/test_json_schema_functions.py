@@ -1,4 +1,4 @@
-"Integration tests for JSON Schema functions"
+"""Integration tests for JSON Schema functions"""
 
 import uuid
 

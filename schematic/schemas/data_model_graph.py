@@ -980,7 +980,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         raise ValueError("Either 'node_label' or 'node_display_name' must be provided.")
 
 
-def create_dmge(data_model_path: str) -> DataModelGraphExplorer:
+def create_data_model_graph_explorer(data_model_path: str) -> DataModelGraphExplorer:
     """Creates a DataModelGraphExplore using a data model
 
     Args:

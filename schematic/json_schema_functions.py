@@ -20,7 +20,7 @@ from synapseclient import Wiki  # type: ignore
 from synapseclient.core.exceptions import SynapseHTTPError  # type: ignore
 
 from schematic.schemas.create_json_schema import create_json_schema
-from schematic.schemas.data_model_graph import create_dmge
+from schematic.schemas.data_model_graph import create_data_model_graph_explorer
 
 TYPE_DICT = {
     "string": ColumnType.STRING,
@@ -132,7 +132,7 @@ def create_and_bind_json_schema(  # pylint: disable=too-many-arguments
         "This function is a prototype, and could change or be removed at any point."
     )
     js_service = syn.service("json_schema")
-    dmge = create_dmge(data_model_path)
+    dmge = create_data_model_graph_explorer(data_model_path)
 
     if not schema_name:
         schema_name = f"{datatype}.schema"
