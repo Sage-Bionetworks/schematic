@@ -16,18 +16,18 @@ OutputDirectory = collections.namedtuple("OutputDirectory", ["given", "expected"
 
 
 @pytest.fixture
-def data_model_location(helpers, request):
+def data_model_source(helpers, request):
     try:
-        data_model_location = request.param
+        data_model_source = request.param
     except AttributeError:
-        data_model_location = helpers.get_data_path("tests/data/example.model.jsonld")
+        data_model_source = helpers.get_data_path("tests/data/example.model.jsonld")
 
-    yield data_model_location
+    yield data_model_source
 
 
 @pytest.fixture
-def output_directory(helpers, data_model_location):
-    data_model_basename = Path(data_model_location).stem
+def output_directory(helpers, data_model_source):
+    data_model_basename = Path(data_model_source).stem
 
     given_output_directory = Path(helpers.get_data_path("test_jsonschemas"))
     expected_output_directory = Path(
@@ -50,13 +50,13 @@ class TestJsonSchemaGeneratorDirector:
         # GIVEN the JsonSchemaGeneratorDirector class and certain parameters
         # WHEN the class is initialized
         generator = JsonSchemaGeneratorDirector(
-            data_model_location=example_data_model_path,
+            data_model_source=example_data_model_path,
             components=["MockComponent"],
             output_directory=output_directory.given,
         )
 
         # THEN the class should be initialized with the correct parameters
-        assert generator.data_model_location == example_data_model_path
+        assert generator.data_model_source == example_data_model_path
         assert generator.components == ["MockComponent"]
         assert generator.output_directory == output_directory.given
 
@@ -93,7 +93,7 @@ class TestJsonSchemaGeneratorDirector:
 
         # GIVEN a JsonSchemaGeneratorDirector instance, a data model, an output directory, and optionally a component
         generator = JsonSchemaGeneratorDirector(
-            data_model_location=example_data_model_path,
+            data_model_source=example_data_model_path,
             components=specified_component,
             output_directory=output_directory.given,
         )
@@ -129,7 +129,7 @@ class TestJsonSchemaGeneratorDirector:
             assert json_files_equal(expected_jsonschema, generated_jsonschema)
 
     @pytest.mark.parametrize(
-        "data_model_location, expected_components",
+        "data_model_source, expected_components",
         [
             (
                 "example.model.jsonld",
@@ -243,14 +243,14 @@ class TestJsonSchemaGeneratorDirector:
         ],
     )
     def test_gather_components(
-        self, helpers, data_model_location: str, expected_components: list[str]
+        self, helpers, data_model_source: str, expected_components: list[str]
     ):
         # GIVEN a data model from a local file or a url
-        if data_model_location.startswith("example"):
-            data_model_location = helpers.get_data_path(data_model_location)
+        if data_model_source.startswith("example"):
+            data_model_source = helpers.get_data_path(data_model_source)
 
         # WHEN an instance of the JsonSchemaGeneratorDirector class is created
-        generator = JsonSchemaGeneratorDirector(data_model_location=data_model_location)
+        generator = JsonSchemaGeneratorDirector(data_model_source=data_model_source)
         # AND the gather_components method is called
         identified_components = generator.gather_components()
 
@@ -260,7 +260,7 @@ class TestJsonSchemaGeneratorDirector:
 
 class TestJsonSchemaComponentGenerator:
     @pytest.mark.parametrize(
-        "data_model_location, component",
+        "data_model_source, component",
         [
             ("example.model.jsonld", "MockComponent"),
             (
@@ -268,11 +268,11 @@ class TestJsonSchemaComponentGenerator:
                 "Biospecimen",
             ),
         ],
-        indirect=["data_model_location"],
+        indirect=["data_model_source"],
     )
     def test_init(
         self,
-        data_model_location,
+        data_model_source,
         component,
         parsed_example_model,
         output_directory,
@@ -284,14 +284,14 @@ class TestJsonSchemaComponentGenerator:
 
         # WHEN the JsonSchemaComponentGenerator class is initialized
         generator = JsonSchemaComponentGenerator(
-            data_model_location=data_model_location,
+            data_model_source=data_model_source,
             component=component,
             output_directory=output_directory.given,
             parsed_model=parsed_example_model,
         )
 
         # THEN the class should be initialized with the correct parameters
-        assert generator.data_model_location == data_model_location
+        assert generator.data_model_source == data_model_source
         assert generator.component == component
         assert generator.output_path == expected_output_path
 
@@ -303,7 +303,7 @@ class TestJsonSchemaComponentGenerator:
 
         # WHEN the JsonSchemaComponentGenerator class is initialized
         generator = JsonSchemaComponentGenerator(
-            data_model_location=example_data_model_path,
+            data_model_source=example_data_model_path,
             component=component,
             output_directory=output_directory.given,
             parsed_model=parsed_example_model,

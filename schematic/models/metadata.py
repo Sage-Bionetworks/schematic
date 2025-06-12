@@ -178,7 +178,7 @@ class MetadataModel(object):
         # get required components for the input/source component
         req_components = self.dmge.get_component_requirements(source_component)
 
-        # retreive components as graph
+        # retrieve components as graph
         if as_graph:
             req_components_graph = self.dmge.get_component_requirements_graph(
                 source_component
