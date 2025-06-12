@@ -16,6 +16,7 @@ from deprecated import deprecated
 from synapseclient import Synapse  # type: ignore
 from synapseclient.models import Column, ColumnType, ViewTypeMask, EntityView  # type: ignore
 from synapseclient import Wiki  # type: ignore
+from synapseclient.core.exceptions import SynapseHTTPError # type: ignore
 
 from schematic.schemas.create_json_schema import create_json_schema
 from schematic.schemas.data_model_graph import create_dmge
@@ -46,7 +47,7 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
     entity_view_name: Optional[str] = None,
     wiki_title: Optional[str] = None,
     schema_version: str = "0.0.1",
-) -> tuple[str, str, Wiki]:
+) -> tuple[str, str]:
     """
     1. Creates a JSON Schema from the data model for the input datatype
     2. Uploads the JSON Schema to Synapse and binds it to the input entity id
@@ -69,15 +70,12 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
 
     Returns:
         The uri of the uploaded JSON Schema,
-        the Synapse id of the created entity view,
-        and the Synapse Wiki object
+        the Synapse id of the created entity view
     """
     if not schema_name:
         schema_name = f"{datatype}.schema"
     if not entity_view_name:
         entity_view_name = f"{datatype} entity view"
-    if not wiki_title:
-        wiki_title = f"{datatype} wiki"
 
     json_schema_uri = create_and_bind_json_schema(
         syn=syn,
@@ -95,13 +93,13 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
         synapse_parent_id=synapse_parent_id,
         entity_view_name=entity_view_name,
     )
-    wiki = create_entity_view_wiki(
+    create_or_update_wiki_with_entity_view(
         syn=syn,
         entity_view_id=entity_view_id,
         owner_id=synapse_entity_id,
         title=wiki_title,
     )
-    return (json_schema_uri, entity_view_id, wiki)
+    return (json_schema_uri, entity_view_id)
 
 
 def create_and_bind_json_schema(  # pylint: disable=too-many-arguments
@@ -232,11 +230,36 @@ def create_json_schema_entity_view(
 
 
 @deprecated(reason="Entity view functionality is only need temporarily")
+def create_or_update_wiki_with_entity_view(
+    syn: Synapse, entity_view_id: str, owner_id: str, title: str
+) -> Wiki:
+    """_summary_
+
+    Args:
+        syn: A Synapse object thats been logged in
+        entity_view_id: The Synapse id of the entity view to create the entity view query for
+        owner_id: The ID of the entity in Synapse that the wiki will be created/updated
+        title: The (new) title of the wiki to be created/updated
+
+    Returns:
+        The created wiki object
+    """
+    entity = syn.get(owner_id)
+
+    try:
+        wiki = syn.getWiki(entity)
+    except SynapseHTTPError:
+        wiki = None
+    if wiki:
+        return update_wiki_with_entity_view(syn, entity_view_id, owner_id, title)
+    return create_entity_view_wiki(syn, entity_view_id, owner_id, title)
+
+@deprecated(reason="Entity view functionality is only need temporarily")
 def create_entity_view_wiki(
     syn: Synapse, entity_view_id: str, owner_id: str, title: str
 ) -> Wiki:
     """
-    Creates a wiki for a entity view in Synapse
+    Creates a wiki with a query of an entity view
     This functionality is needed only temporarily. See note at top of module.
 
     Args:
@@ -255,6 +278,41 @@ def create_entity_view_wiki(
     )
     wiki = Wiki(title=title, owner=owner_id, markdown=content)
     wiki = syn.store(wiki)
+    return wiki
+
+
+@deprecated(reason="Entity view functionality is only need temporarily")
+def update_wiki_with_entity_view(
+    syn: Synapse, entity_view_id: str, owner_id: str, title: Optional[str] = None
+) -> Wiki:
+    """
+    Updates a wiki to include a query of an entity view
+    This functionality is needed only temporarily. See note at top of module.
+
+    Args:
+        syn: A Synapse object thats been logged in
+        entity_view_id: The Synapse id of the entity view to make the query for
+        owner_id: The ID of the entity in Synapse to put as owner of the wiki
+        title: The title of the wiki to be updated
+
+    Returns:
+        The created wiki object
+    """
+
+    entity = syn.get(owner_id)
+    wiki = syn.getWiki(entity)
+
+    new_content = (
+        "\n"
+        "${synapsetable?query=select %2A from "
+        f"{entity_view_id}"
+        "&showquery=false&tableonly=false}"
+    )
+    wiki.markdown = wiki.markdown + new_content
+    if title:
+        wiki.title = title
+
+    syn.store(wiki)
     return wiki
 
 

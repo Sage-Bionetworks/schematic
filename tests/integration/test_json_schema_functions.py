@@ -5,6 +5,7 @@ import uuid
 import pytest
 from synapseclient.client import Synapse
 from synapseclient.models import EntityView, ColumnType, Project, Folder
+from synapseclient import Wiki
 
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
@@ -14,6 +15,7 @@ from schematic.json_schema_functions import (
     create_and_bind_json_schema,
     upload_json_schema,
     create_json_schema_entity_view,
+    create_or_update_wiki_with_entity_view,
 )
 
 SCHEMA_TEST_ORG = "dpetest"
@@ -113,7 +115,7 @@ def test_create_json_schema_entity_view_and_wiki(
     project_id, folder_id = synapse_project
     # WHEN creating a JSON Schema fileview and wiki
     try:
-        _, fileview_id, wiki = create_json_schema_entity_view_and_wiki(
+        _, fileview_id = create_json_schema_entity_view_and_wiki(
             syn=syn,
             data_model_path="tests/data/example.model.csv",
             datatype="MockComponent",
@@ -137,8 +139,17 @@ def test_create_json_schema_entity_view_and_wiki(
     for item in ENTITY_VIEW_COLUMNS:
         column_types.pop(item)
     assert column_types == MOCK_COMPONENT_SYNAPSE_COLUMNS
-    # AND the wiki exists and has the correct title
-    assert wiki.title == "MockComponent wiki"
+    folder = syn.get(folder_id)
+    # AND the wiki exists
+    wiki = syn.getWiki(folder)
+    # AND the wiki owner is the folder
+    assert wiki.ownerId == folder_id
+    # AND the wiki markdown includes the fileview
+    assert wiki.markdown == (
+        "${synapsetable?query=select %2A from "
+        f"{fileview_id}"
+        "&showquery=false&tableonly=false}"
+    )
 
 
 def test_create_and_bind_json_schema(syn: Synapse, synapse_project: str) -> None:
@@ -230,3 +241,37 @@ def test_create_json_schema_entity_view(syn: Synapse, synapse_project: str) -> N
     for item in ENTITY_VIEW_COLUMNS:
         column_types.pop(item)
     assert column_types == MOCK_COMPONENT_SYNAPSE_COLUMNS
+
+def test_create_or_update_wiki_with_entity_view_no_existing_wiki(
+    syn: Synapse, synapse_project: str
+) -> None:
+    """
+    Test for create_or_update_wiki_with_entity_view when no wiki exists for the folder
+    Tests that:
+    - the markdown includes a query of the fileview
+    - the title was added
+    """
+    _, folder_id = synapse_project
+    wiki = create_or_update_wiki_with_entity_view(syn, "syn1", folder_id, "test_title")
+    assert wiki.markdown == (
+        "${synapsetable?query=select %2A from syn1&showquery=false&tableonly=false}"
+    )
+    assert wiki.title == "test_title"
+
+def test_create_or_update_wiki_with_entity_view_with_existing_wiki(
+    syn: Synapse, synapse_project: str
+) -> None:
+    """
+    Test for create_or_update_wiki_with_entity_view when a wiki exists for the folder
+    Tests that:
+    - the a query of the fileview was added to the markdown
+    - the title was changed
+    """
+    _, folder_id = synapse_project
+    old_wiki = Wiki(title="old_title", owner=folder_id, markdown="old_content")
+    syn.store(old_wiki)
+    new_wiki = create_or_update_wiki_with_entity_view(syn, "syn1", folder_id, "new_title")
+    assert new_wiki.markdown == (
+        "old_content\n${synapsetable?query=select %2A from syn1&showquery=false&tableonly=false}"
+    )
+    assert new_wiki.title == "new_title"
