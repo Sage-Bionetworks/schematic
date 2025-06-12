@@ -90,10 +90,10 @@ class TestDataModelJsonLD:
         # THEN there should be no dicts that contain extra keys
         actual_set = set(actual_keys)
         expected_set = set(expected_keys)
-        symmertic_difference = actual_set.symmetric_difference(expected_set)
+        symmetric_difference = actual_set.symmetric_difference(expected_set)
         assert (
-            not symmertic_difference
-        ), f"Expected equal dictionaries but got anomalous key {symmertic_difference}"
+            not symmetric_difference
+        ), f"Expected equal dictionaries but got anomalous key {symmetric_difference}"
 
         # AND the columnType should be set as expected
         if expected_col_type:
