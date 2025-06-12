@@ -59,14 +59,14 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
 
     Arguments:
         syn: A Synapse object thats been logged in
-        data_model_path: A path to the data model use dot create the JSON Schema
+        data_model_path: A path to the data model used to create the JSON Schema
         datatype: The datatype in the data model to create the JSON Schema for
         synapse_org_name: The Synapse org to upload the JSON Schema to
         synapse_entity_id: The ID of the entity in Synapse to bind the JSON Schema to
         synapse_parent_id: The ID of the entity in Synapse to put the entity_view at
         schema_name: The name the created JSON Schema will have
-        entity_view_name: The name the crated entity view will have
-        wiki_title: The title the created wiki will have
+        entity_view_name: The name the created entity view will have
+        wiki_title: The title the created/updated wiki will have
         schema_version: The version the created JSON Schema will have
 
     Returns:
