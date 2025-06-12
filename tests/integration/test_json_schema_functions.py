@@ -242,6 +242,7 @@ def test_create_json_schema_entity_view(syn: Synapse, synapse_project: str) -> N
         column_types.pop(item)
     assert column_types == MOCK_COMPONENT_SYNAPSE_COLUMNS
 
+
 def test_create_or_update_wiki_with_entity_view_no_existing_wiki(
     syn: Synapse, synapse_project: str
 ) -> None:
@@ -258,6 +259,7 @@ def test_create_or_update_wiki_with_entity_view_no_existing_wiki(
     )
     assert wiki.title == "test_title"
 
+
 def test_create_or_update_wiki_with_entity_view_with_existing_wiki(
     syn: Synapse, synapse_project: str
 ) -> None:
@@ -270,7 +272,9 @@ def test_create_or_update_wiki_with_entity_view_with_existing_wiki(
     _, folder_id = synapse_project
     old_wiki = Wiki(title="old_title", owner=folder_id, markdown="old_content")
     syn.store(old_wiki)
-    new_wiki = create_or_update_wiki_with_entity_view(syn, "syn1", folder_id, "new_title")
+    new_wiki = create_or_update_wiki_with_entity_view(
+        syn, "syn1", folder_id, "new_title"
+    )
     assert new_wiki.markdown == (
         "old_content\n${synapsetable?query=select %2A from syn1&showquery=false&tableonly=false}"
     )

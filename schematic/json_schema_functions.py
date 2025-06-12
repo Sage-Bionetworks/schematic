@@ -11,12 +11,13 @@ Several functions are deprecated. These are the ones that have to do with creati
 """
 
 from typing import Any, Optional
-from deprecated import deprecated
+import warnings
 
+from deprecated import deprecated
 from synapseclient import Synapse  # type: ignore
 from synapseclient.models import Column, ColumnType, ViewTypeMask, EntityView  # type: ignore
 from synapseclient import Wiki  # type: ignore
-from synapseclient.core.exceptions import SynapseHTTPError # type: ignore
+from synapseclient.core.exceptions import SynapseHTTPError  # type: ignore
 
 from schematic.schemas.create_json_schema import create_json_schema
 from schematic.schemas.data_model_graph import create_dmge
@@ -72,6 +73,9 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
         The uri of the uploaded JSON Schema,
         the Synapse id of the created entity view
     """
+    warnings.warn(
+        "This function is in development, and could change or be removed at any point."
+    )
     if not schema_name:
         schema_name = f"{datatype}.schema"
     if not entity_view_name:
@@ -129,6 +133,9 @@ def create_and_bind_json_schema(  # pylint: disable=too-many-arguments
     Returns:
         The uri of the uploaded JSON Schema
     """
+    warnings.warn(
+        "This function is in development, and could change or be removed at any point."
+    )
     js_service = syn.service("json_schema")
     dmge = create_dmge(data_model_path)
 
@@ -175,7 +182,9 @@ def upload_json_schema(
     Returns:
         The URI for the JSON Schema
     """
-
+    warnings.warn(
+        "This function is in development, and could change or be removed at any point."
+    )
     js_service = syn.service("json_schema")
     org = js_service.JsonSchemaOrganization(synapse_org_name)
     org.create_json_schema(json_schema, schema_name, schema_version)
@@ -203,6 +212,9 @@ def create_json_schema_entity_view(
     Returns:
         The Synapse id of the crated entity view
     """
+    warnings.warn(
+        "This function is in development, and could change or be removed at any point."
+    )
     syn.get_available_services()
     js_service = syn.service("json_schema")
     json_schema = js_service.get_json_schema(synapse_entity_id)
@@ -244,6 +256,9 @@ def create_or_update_wiki_with_entity_view(
     Returns:
         The created wiki object
     """
+    warnings.warn(
+        "This function is in development, and could change or be removed at any point."
+    )
     entity = syn.get(owner_id)
 
     try:
@@ -253,6 +268,7 @@ def create_or_update_wiki_with_entity_view(
     if wiki:
         return update_wiki_with_entity_view(syn, entity_view_id, owner_id, title)
     return create_entity_view_wiki(syn, entity_view_id, owner_id, title)
+
 
 @deprecated(reason="Entity view functionality is only need temporarily")
 def create_entity_view_wiki(
@@ -271,6 +287,9 @@ def create_entity_view_wiki(
     Returns:
         The created wiki object
     """
+    warnings.warn(
+        "This function is in development, and could change or be removed at any point."
+    )
     content = (
         "${synapsetable?query=select %2A from "
         f"{entity_view_id}"
@@ -298,7 +317,9 @@ def update_wiki_with_entity_view(
     Returns:
         The created wiki object
     """
-
+    warnings.warn(
+        "This function is in development, and could change or be removed at any point."
+    )
     entity = syn.get(owner_id)
     wiki = syn.getWiki(entity)
 
