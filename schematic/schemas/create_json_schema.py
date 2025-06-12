@@ -32,7 +32,6 @@ Property = dict[str, Union[str, float, list, dict]]
 TypeDict = dict[str, Union[str, Items]]
 AllOf = dict[str, Any]
 
-
 @dataclass
 class JSONSchema:  # pylint: disable=too-many-instance-attributes
     """
@@ -165,10 +164,6 @@ class Node:  # pylint: disable=too-many-instance-attributes
     def __post_init__(self) -> None:
         """
         Uses the dmge to fill in most of the fields of the dataclass
-
-        Raises:
-            ValueError: If the type is not numeric, and there is an
-              inRange rule in the validation rules
         """
         self.display_name = self.dmge.get_nodes_display_names([self.name])[0]
         self.valid_values = sorted(self.dmge.get_node_range(node_label=self.name))
@@ -192,48 +187,80 @@ class Node:  # pylint: disable=too-many-instance-attributes
             node_display_name=self.display_name
         )
 
-        self.type = None
-        self.is_array = False
-        self.minimum = None
-        self.maximum = None
-        self.pattern = None
+        (
+            self.type,
+            self.is_array,
+            self.minimum,
+            self.maximum,
+            self.pattern,
+        ) = _get_validation_rule_based_fields(validation_rules)
 
-        if validation_rules:
-            if rule_in_rule_list("list", validation_rules):
-                self.is_array = True
 
-            type_rule = _get_type_rule_from_rule_list(validation_rules)
-            if type_rule:
-                self.type = TYPE_RULES.get(type_rule)
+def _get_validation_rule_based_fields(
+    validation_rules: list[str],
+) -> tuple[Optional[str], bool, Optional[float], Optional[float], Optional[str]]:
+    """
+    Gets the fields for the Node class that are based on the validation rules
 
-            regex_rule = _get_rule_from_rule_list(
-                ValidationRule.REGEX, validation_rules
+    Args:
+        validation_rules: A list of validation rules
+
+    Raises:
+        ValueError: If both the inRange and regex rule are present
+        ValueError: If the inRange rule and a type validation rule other than 'int' or 'num'
+          are present
+        ValueError: If the regex rule and a type validation rule other than 'str' are present
+
+    Returns:
+        A tuple containing the type, is_array, minimum, maximum, and pattern fields for
+         a Node object
+    """
+    prop_type: Optional[str] = None
+    is_array = False
+    minimum: Optional[float] = None
+    maximum: Optional[float] = None
+    pattern: Optional[str] = None
+
+    if validation_rules:
+        if rule_in_rule_list("list", validation_rules):
+            is_array = True
+
+        type_rule = _get_type_rule_from_rule_list(validation_rules)
+        if type_rule:
+            prop_type = TYPE_RULES.get(type_rule)
+
+        regex_rule = _get_rule_from_rule_list(ValidationRule.REGEX, validation_rules)
+        range_rule = _get_rule_from_rule_list(ValidationRule.IN_RANGE, validation_rules)
+        if range_rule and regex_rule:
+            raise ValueError(
+                "regex and inRange rules are incompatible: ", validation_rules
             )
-            range_rule = _get_rule_from_rule_list(
-                ValidationRule.IN_RANGE, validation_rules
-            )
-            if range_rule and regex_rule:
+
+        if range_rule:
+            if prop_type not in [
+                JSONSchemaType.NUMBER.value,
+                JSONSchemaType.INTEGER.value,
+                None,
+            ]:
                 raise ValueError(
-                    "regex and inRange rules are incompatible: ", validation_rules
+                    "Validation rules must be either 'int' or 'num' when using the inRange rule"
                 )
+            prop_type = prop_type or JSONSchemaType.NUMBER.value
+            minimum, maximum = _get_range_from_in_range_rule(range_rule)
 
-            if range_rule:
-                if self.type not in [
-                    JSONSchemaType.NUMBER.value,
-                    JSONSchemaType.INTEGER.value,
-                    None,
-                ]:
-                    raise ValueError(
-                        "Validation rules must be either 'int' or 'num' when using the inRange rule"
-                    )
-                self.type = self.type or JSONSchemaType.NUMBER.value
-                self.minimum, self.maximum = _get_range_from_in_range_rule(range_rule)
+        if regex_rule:
+            if prop_type not in (None, JSONSchemaType.STRING.value):
+                raise ValueError("Type must be 'string' when using a regex rule")
+            prop_type = JSONSchemaType.STRING.value
+            pattern = _get_pattern_from_regex_rule(regex_rule)
 
-            if regex_rule:
-                if self.type not in (None, JSONSchemaType.STRING.value):
-                    raise ValueError("Type must be 'string' when using a regex rule")
-                self.type = JSONSchemaType.STRING.value
-                self.pattern = _get_pattern_from_regex_rule(regex_rule)
+    return (
+        prop_type,
+        is_array,
+        minimum,
+        maximum,
+        pattern,
+    )
 
 
 def _get_range_from_in_range_rule(
