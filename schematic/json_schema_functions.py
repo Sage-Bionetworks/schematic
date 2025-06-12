@@ -76,11 +76,6 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
     warnings.warn(
         "This function is a prototype, and could change or be removed at any point."
     )
-    if not schema_name:
-        schema_name = f"{datatype}.schema"
-    if not entity_view_name:
-        entity_view_name = f"{datatype} entity view"
-
     json_schema_uri = create_and_bind_json_schema(
         syn=syn,
         data_model_path=data_model_path,
@@ -243,7 +238,10 @@ def create_json_schema_entity_view(
 
 @deprecated(reason="Entity view functionality is only need temporarily")
 def create_or_update_wiki_with_entity_view(
-    syn: Synapse, entity_view_id: str, owner_id: str, title: str
+    syn: Synapse,
+    entity_view_id: str,
+    owner_id: str,
+    title: Optional[str] = None,
 ) -> Wiki:
     """_summary_
 
@@ -272,7 +270,10 @@ def create_or_update_wiki_with_entity_view(
 
 @deprecated(reason="Entity view functionality is only need temporarily")
 def create_entity_view_wiki(
-    syn: Synapse, entity_view_id: str, owner_id: str, title: str
+    syn: Synapse,
+    entity_view_id: str,
+    owner_id: str,
+    title: Optional[str] = None,
 ) -> Wiki:
     """
     Creates a wiki with a query of an entity view
@@ -295,6 +296,8 @@ def create_entity_view_wiki(
         f"{entity_view_id}"
         "&showquery=false&tableonly=false}"
     )
+    if title is None:
+        title = "Entity View"
     wiki = Wiki(title=title, owner=owner_id, markdown=content)
     wiki = syn.store(wiki)
     return wiki
