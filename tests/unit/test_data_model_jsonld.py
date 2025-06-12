@@ -15,7 +15,10 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 DATA_MODEL_DICT = {"example.model.csv": "CSV", "example.model.jsonld": "JSONLD"}
-COL_TYPE_MODEL_DICT = {"example.model.column_type_component.csv": "CSV_Column_Type"}
+COL_TYPE_MODEL_DICT = {
+    "example.model.column_type_component.csv": "CSV_Column_Type",
+    "example.model.column_type_component.jsonld": "JSONLD_Column_Type",
+}
 ORG_AND_COL_TYPE_MODEL_DICT = DATA_MODEL_DICT | COL_TYPE_MODEL_DICT
 
 
