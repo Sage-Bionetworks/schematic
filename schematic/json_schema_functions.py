@@ -70,7 +70,7 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
         schema_version: The version the created JSON Schema will have
 
     Returns:
-        The uri of the uploaded JSON Schema,
+        The URI of the uploaded JSON Schema,
         the Synapse id of the created entity view
     """
     warnings.warn(
@@ -118,7 +118,7 @@ def create_and_bind_json_schema(  # pylint: disable=too-many-arguments
 
     Arguments:
         syn: A Synapse object thats been logged in
-        data_model_path: A path to the data model use dot create the JSON Schema
+        data_model_path: A path to the data model used to create the JSON Schema
         datatype: The datatype in the data model to create the JSON Schema for
         synapse_org_name: The Synapse org to upload the JSON Schema to
         synapse_entity_id: The ID of the entity in Synapse to bind the JSON Schema to
@@ -126,7 +126,7 @@ def create_and_bind_json_schema(  # pylint: disable=too-many-arguments
         schema_version: The version the created JSON Schema will have
 
     Returns:
-        The uri of the uploaded JSON Schema
+        The URI of the uploaded JSON Schema
     """
     warnings.warn(
         "This function is a prototype, and could change or be removed at any point."
@@ -213,11 +213,11 @@ def create_json_schema_entity_view(
     syn.get_available_services()
     js_service = syn.service("json_schema")
     json_schema = js_service.get_json_schema(synapse_entity_id)
-    my_org = js_service.JsonSchemaOrganization(
+    org = js_service.JsonSchemaOrganization(
         json_schema["jsonSchemaVersionInfo"]["organizationName"]
     )
     schema_version = js_service.JsonSchemaVersion(
-        my_org,
+        org,
         json_schema["jsonSchemaVersionInfo"]["schemaName"],
         json_schema["jsonSchemaVersionInfo"]["semanticVersion"],
     )
