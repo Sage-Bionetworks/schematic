@@ -74,7 +74,7 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
         the Synapse id of the created entity view
     """
     warnings.warn(
-        "This function is in development, and could change or be removed at any point."
+        "This function is a prototype, and could change or be removed at any point."
     )
     if not schema_name:
         schema_name = f"{datatype}.schema"
@@ -134,7 +134,7 @@ def create_and_bind_json_schema(  # pylint: disable=too-many-arguments
         The uri of the uploaded JSON Schema
     """
     warnings.warn(
-        "This function is in development, and could change or be removed at any point."
+        "This function is a prototype, and could change or be removed at any point."
     )
     js_service = syn.service("json_schema")
     dmge = create_dmge(data_model_path)
@@ -183,7 +183,7 @@ def upload_json_schema(
         The URI for the JSON Schema
     """
     warnings.warn(
-        "This function is in development, and could change or be removed at any point."
+        "This function is a prototype, and could change or be removed at any point."
     )
     js_service = syn.service("json_schema")
     org = js_service.JsonSchemaOrganization(synapse_org_name)
@@ -213,7 +213,7 @@ def create_json_schema_entity_view(
         The Synapse id of the crated entity view
     """
     warnings.warn(
-        "This function is in development, and could change or be removed at any point."
+        "This function is a prototype, and could change or be removed at any point."
     )
     syn.get_available_services()
     js_service = syn.service("json_schema")
@@ -257,7 +257,7 @@ def create_or_update_wiki_with_entity_view(
         The created wiki object
     """
     warnings.warn(
-        "This function is in development, and could change or be removed at any point."
+        "This function is a prototype, and could change or be removed at any point."
     )
     entity = syn.get(owner_id)
 
@@ -288,7 +288,7 @@ def create_entity_view_wiki(
         The created wiki object
     """
     warnings.warn(
-        "This function is in development, and could change or be removed at any point."
+        "This function is a prototype, and could change or be removed at any point."
     )
     content = (
         "${synapsetable?query=select %2A from "
@@ -318,7 +318,7 @@ def update_wiki_with_entity_view(
         The created wiki object
     """
     warnings.warn(
-        "This function is in development, and could change or be removed at any point."
+        "This function is a prototype, and could change or be removed at any point."
     )
     entity = syn.get(owner_id)
     wiki = syn.getWiki(entity)
