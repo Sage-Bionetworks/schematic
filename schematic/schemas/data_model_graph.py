@@ -987,7 +987,7 @@ def create_dmge(data_model_path: str) -> DataModelGraphExplorer:
         data_model_path: The path to a data model to create the dmge
 
     Returns:
-        DataModelGraphExplorer: A dmge crated using the input data model
+        DataModelGraphExplorer: A dmge created using the input data model
     """
     data_model_parser = DataModelParser(path_to_data_model=data_model_path)
     parsed_data_model = data_model_parser.parse_model()
