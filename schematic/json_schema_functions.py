@@ -61,7 +61,7 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
         datatype: The datatype in the data model to create the JSON Schema for
         synapse_org_name: The Synapse org to upload the JSON Schema to
         synapse_entity_id: The ID of the entity in Synapse to bind the JSON Schema to
-        synapse_parent_id: The ID of the entity in Synapse to put the entity_view and wiki at
+        synapse_parent_id: The ID of the entity in Synapse to put the entity_view at
         schema_name: The name the created JSON Schema will have
         entity_view_name: The name the crated entity view will have
         wiki_title: The title the created wiki will have
@@ -91,14 +91,14 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
 
     entity_view_id = create_json_schema_entity_view(
         syn=syn,
-        entity_id=synapse_entity_id,
-        parent_id=synapse_parent_id,
+        synapse_entity_id=synapse_entity_id,
+        synapse_parent_id=synapse_parent_id,
         entity_view_name=entity_view_name,
     )
     wiki = create_entity_view_wiki(
         syn=syn,
         entity_view_id=entity_view_id,
-        owner_id=synapse_parent_id,
+        owner_id=synapse_entity_id,
         title=wiki_title,
     )
     return (json_schema_uri, entity_view_id, wiki)
@@ -188,8 +188,8 @@ def upload_json_schema(
 @deprecated(reason="Entity view functionality is only need temporarily")
 def create_json_schema_entity_view(
     syn: Synapse,
-    entity_id: str,
-    parent_id: str,
+    synapse_entity_id: str,
+    synapse_parent_id: str,
     entity_view_name: str = "JSON Schema view",
 ) -> str:
     """
@@ -198,8 +198,8 @@ def create_json_schema_entity_view(
 
     Args:
         syn: A Synapse object thats been logged in
-        entity_id: The ID of the entity in Synapse to bind the JSON Schema to
-        parent_id: The ID of the entity in Synapse to put the entity view and wiki at
+        synapse_entity_id: The ID of the entity in Synapse to bind the JSON Schema to
+        synapse_parent_id: The ID of the entity in Synapse to put the entity_view at
         entity_view_name: The name the crated entity view will have
 
     Returns:
@@ -207,7 +207,7 @@ def create_json_schema_entity_view(
     """
     syn.get_available_services()
     js_service = syn.service("json_schema")
-    json_schema = js_service.get_json_schema(entity_id)
+    json_schema = js_service.get_json_schema(synapse_entity_id)
     my_org = js_service.JsonSchemaOrganization(
         json_schema["jsonSchemaVersionInfo"]["organizationName"]
     )
@@ -219,8 +219,8 @@ def create_json_schema_entity_view(
     columns = _create_columns_from_json_schema(schema_version.body)
     view = EntityView(
         name=entity_view_name,
-        parent_id=parent_id,
-        scope_ids=[entity_id],
+        parent_id=synapse_parent_id,
+        scope_ids=[synapse_entity_id],
         view_type_mask=ViewTypeMask.FILE,
         columns=columns,
     ).store(synapse_client=syn)

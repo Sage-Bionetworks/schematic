@@ -222,7 +222,7 @@ def test_create_json_schema_entity_view(syn: Synapse, synapse_project: str) -> N
     view_id = None
     # WHEN creating a fileview from it
     view_id = create_json_schema_entity_view(
-        syn=syn, entity_id=folder_id, parent_id=project_id
+        syn=syn, synapse_entity_id=folder_id, synapse_parent_id=project_id
     )
     view = EntityView(id=view_id).get(synapse_client=syn)
     # THEN the fileview's column types should match the JSON Schema types as well as possible
