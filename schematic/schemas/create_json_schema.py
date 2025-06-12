@@ -32,6 +32,7 @@ Property = dict[str, Union[str, float, list, dict]]
 TypeDict = dict[str, Union[str, Items]]
 AllOf = dict[str, Any]
 
+
 @dataclass
 class JSONSchema:  # pylint: disable=too-many-instance-attributes
     """

@@ -16,6 +16,7 @@ from jsonschema.exceptions import ValidationError
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.create_json_schema import (
     ValidationRule,
+    _get_validation_rule_based_fields,
     _get_range_from_in_range_rule,
     _get_pattern_from_regex_rule,
     _get_type_rule_from_rule_list,
@@ -183,6 +184,50 @@ def test_node_init(
     assert node.minimum == expected_min
     assert node.maximum == expected_max
     assert node.pattern == expected_pattern
+
+
+@pytest.mark.parametrize(
+    "validation_rules, expected_type, expected_is_array, expected_min, expected_max, expected_pattern",
+    [
+        # If there are no type validation rules the type is None
+        ([], None, False, None, None, None),
+        # If there is one type validation rule the type is set to the
+        #  JSON Schema equivalent of the validation rule
+        (["str"], "string", False, None, None, None),
+        # If there are any list type validation rules then is_array is set to True
+        (["list"], None, True, None, None, None),
+        # If there are any list type validation rules and one type validation rule
+        #  then is_array is set to True, and the type is set to the
+        #  JSON Schema equivalent of the validation rule
+        (["list", "str"], "string", True, None, None, None),
+        # If there is an inRange rule the min and max will be set
+        (["inRange 50 100"], "number", False, 50, 100, None),
+        # If there is a regex rule, then the pattern should be set
+        (["regex search [a-f]"], "string", False, None, None, "[a-f]"),
+    ],
+    ids=["No rules", "String", "List", "ListString", "InRange", "Regex"],
+)
+def test_get_validation_rule_based_fields(
+    validation_rules: list[str],
+    expected_type: Optional[str],
+    expected_is_array: bool,
+    expected_min: Optional[float],
+    expected_max: Optional[float],
+    expected_pattern: Optional[str],
+) -> None:
+    """Tests for _get_validation_rule_based_fields"""
+    (
+        prop_type,
+        is_array,
+        minimum,
+        maximum,
+        pattern,
+    ) = _get_validation_rule_based_fields(validation_rules)
+    assert prop_type == expected_type
+    assert is_array == expected_is_array
+    assert minimum == expected_min
+    assert maximum == expected_max
+    assert pattern == expected_pattern
 
 
 @pytest.mark.parametrize(
