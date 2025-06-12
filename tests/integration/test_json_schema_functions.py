@@ -80,8 +80,8 @@ ENTITY_VIEW_COLUMNS = [
 
 
 @pytest.fixture(name="synapse_project", scope="function")
-def fixture_synapse_project(syn: Synapse, request) -> str:
-    """This returns Synapse ids for a created Synapse project and a folder crated in the project"""
+def fixture_synapse_project(syn: Synapse, request) -> tuple[str, str]:
+    """This returns Synapse ids for a created Synapse project and a folder created in the project"""
     project = Project(name=f"test_json_schemas_{str(uuid.uuid4())}")
     project = project.store(synapse_client=syn)
 
