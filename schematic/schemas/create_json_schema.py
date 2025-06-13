@@ -6,6 +6,8 @@ The Node class gets all the information about a node in the graph needed to writ
 The JSONSchema class is used to store all the data needed to write the final JSON Schema
 """
 
+#pylint: disable=too-many-lines
+
 import logging
 import os
 from typing import Union, Any, Optional
