@@ -2110,6 +2110,25 @@
             ]
         },
         {
+            "@id": "bts:Regex",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Regex",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Regex",
+            "sms:required": "sms:true",
+            "sms:validationRules": [
+                "regex search [a-f]"
+            ]
+        },
+        {
             "@id": "bts:List",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",

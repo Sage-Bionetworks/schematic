@@ -6,6 +6,8 @@ The Node class gets all the information about a node in the graph needed to writ
 The JSONSchema class is used to store all the data needed to write the final JSON Schema
 """
 
+# pylint: disable=too-many-lines
+
 import logging
 import os
 from typing import Union, Any, Optional
@@ -14,20 +16,17 @@ from dataclasses import dataclass, field, asdict
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.utils.schema_utils import get_json_schema_log_file_path
 from schematic.utils.validate_utils import rule_in_rule_list
-
 from schematic.utils.io_utils import export_json
+from schematic.schemas.constants import (
+    ValidationRule,
+    JSONSchemaType,
+    RegexModule,
+    TYPE_RULES,
+)
 
 
 logger = logging.getLogger(__name__)
 
-# A dict where the keys are type validation rules, and the values are their JSON Schema equivalent
-TYPE_RULES = {
-    "str": "string",
-    "num": "number",
-    "float": "number",
-    "int": "integer",
-    "bool": "boolean",
-}
 
 # Complex types
 Items = dict[str, Union[str, float, list[str]]]
@@ -147,6 +146,7 @@ class Node:  # pylint: disable=too-many-instance-attributes
         is_array: Whether or not the property is an array (inferred from validation_rules)
         minimum: The minimum value of the property (if numeric) (inferred from validation_rules)
         maximum: The maximum value of the property (if numeric) (inferred from validation_rules)
+        pattern: The regex pattern of the property
     """
 
     name: str
@@ -162,14 +162,11 @@ class Node:  # pylint: disable=too-many-instance-attributes
     is_array: bool = field(init=False)
     minimum: Optional[float] = field(init=False)
     maximum: Optional[float] = field(init=False)
+    pattern: Optional[str] = field(init=False)
 
     def __post_init__(self) -> None:
         """
         Uses the dmge to fill in most of the fields of the dataclass
-
-        Raises:
-            ValueError: If the type is not numeric, and there is an
-              inRange rule in the validation rules
         """
         self.display_name = self.dmge.get_nodes_display_names([self.name])[0]
         self.valid_values = sorted(self.dmge.get_node_range(node_label=self.name))
@@ -193,32 +190,83 @@ class Node:  # pylint: disable=too-many-instance-attributes
             node_display_name=self.display_name
         )
 
-        self.type = None
-        self.is_array = False
-        self.minimum = None
-        self.maximum = None
-
-        if validation_rules:
-            if rule_in_rule_list("list", validation_rules):
-                self.is_array = True
-
-            type_rule = _get_type_rule_from_rule_list(validation_rules)
-            if type_rule:
-                self.type = TYPE_RULES.get(type_rule)
-
-            range_rule = _get_in_range_rule_from_rule_list(validation_rules)
-            if range_rule:
-                if self.type is None:
-                    self.type = "number"
-                elif self.type not in ["number", "integer"]:
-                    raise ValueError(
-                        "Validation type must be either 'number' or 'integer' "
-                        f"when using the inRange rule, but got: {self.type}"
-                    )
-                self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
+        (
+            self.type,
+            self.is_array,
+            self.minimum,
+            self.maximum,
+            self.pattern,
+        ) = _get_validation_rule_based_fields(validation_rules)
 
 
-def _get_ranges_from_range_rule(
+def _get_validation_rule_based_fields(
+    validation_rules: list[str],
+) -> tuple[Optional[str], bool, Optional[float], Optional[float], Optional[str]]:
+    """
+    Gets the fields for the Node class that are based on the validation rules
+
+    Args:
+        validation_rules: A list of validation rules
+
+    Raises:
+        ValueError: If both the inRange and regex rule are present
+        ValueError: If the inRange rule and a type validation rule other than 'int' or 'num'
+          are present
+        ValueError: If the regex rule and a type validation rule other than 'str' are present
+
+    Returns:
+        A tuple containing the type, is_array, minimum, maximum, and pattern fields for
+         a Node object
+    """
+    prop_type: Optional[str] = None
+    is_array = False
+    minimum: Optional[float] = None
+    maximum: Optional[float] = None
+    pattern: Optional[str] = None
+
+    if validation_rules:
+        if rule_in_rule_list("list", validation_rules):
+            is_array = True
+
+        type_rule = _get_type_rule_from_rule_list(validation_rules)
+        if type_rule:
+            prop_type = TYPE_RULES.get(type_rule)
+
+        regex_rule = _get_rule_from_rule_list(ValidationRule.REGEX, validation_rules)
+        range_rule = _get_rule_from_rule_list(ValidationRule.IN_RANGE, validation_rules)
+        if range_rule and regex_rule:
+            raise ValueError(
+                "regex and inRange rules are incompatible: ", validation_rules
+            )
+
+        if range_rule:
+            if prop_type not in [
+                JSONSchemaType.NUMBER.value,
+                JSONSchemaType.INTEGER.value,
+                None,
+            ]:
+                raise ValueError(
+                    "Validation rules must be either 'int' or 'num' when using the inRange rule"
+                )
+            prop_type = prop_type or JSONSchemaType.NUMBER.value
+            minimum, maximum = _get_range_from_in_range_rule(range_rule)
+
+        if regex_rule:
+            if prop_type not in (None, JSONSchemaType.STRING.value):
+                raise ValueError("Type must be 'string' when using a regex rule")
+            prop_type = JSONSchemaType.STRING.value
+            pattern = _get_pattern_from_regex_rule(regex_rule)
+
+    return (
+        prop_type,
+        is_array,
+        minimum,
+        maximum,
+        pattern,
+    )
+
+
+def _get_range_from_in_range_rule(
     rule: str,
 ) -> tuple[Optional[float], Optional[float]]:
     """
@@ -230,8 +278,8 @@ def _get_ranges_from_range_rule(
     Returns:
         The min and max from the rule
     """
-    range_min: Union[float, None] = None
-    range_max: Union[float, None] = None
+    range_min: Optional[float] = None
+    range_max: Optional[float] = None
     parameters = rule.split(" ")
     if len(parameters) > 1 and parameters[1].isnumeric():
         range_min = float(parameters[1])
@@ -240,28 +288,28 @@ def _get_ranges_from_range_rule(
     return (range_min, range_max)
 
 
-def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
-    """
-    Returns the inRange rule from a list of rules if there is only one
-    Returns None if there are no inRange rules
+def _get_pattern_from_regex_rule(rule: str) -> Optional[str]:
+    """Gets the pattern from the regex rule
 
     Arguments:
-        rule_list: A list of validation rules
-
-    Raises:
-        ValueError: When more than one inRange rule is found
+        rule: The full regex rule
 
     Returns:
-        The inRange rule if one is found, or None
+        If the module parameter is search or match, and the pattern parameter exists
+          the pattern is returned
+        Otherwise None
     """
-    in_range_rules = [rule for rule in rule_list if rule.startswith("inRange")]
-    if len(in_range_rules) > 1:
-        raise ValueError(
-            "Found more than one inRange rule in validation rules: ", rule_list
-        )
-    if len(in_range_rules) == 0:
+    parameters = rule.split(" ")
+    if len(parameters) != 3:
         return None
-    return in_range_rules[0]
+    _, module, pattern = parameters
+    # Do not translate other modules
+    if module not in [item.value for item in RegexModule]:
+        return None
+    # Match is just search but only at the beginning of the string
+    if module == RegexModule.MATCH.value and not pattern.startswith("^"):
+        return f"^{pattern}"
+    return pattern
 
 
 def _get_type_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
@@ -279,14 +327,42 @@ def _get_type_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
         The type rule if one is found, or None
     """
     rule_list = [rule.split(" ")[0] for rule in rule_list]
-    type_rules = [rule for rule in rule_list if rule in TYPE_RULES]
-    if len(type_rules) > 1:
+    rule_list = [rule for rule in rule_list if rule in TYPE_RULES]
+    if len(rule_list) > 1:
         raise ValueError(
             "Found more than one type rule in validation rules: ", rule_list
         )
-    if len(type_rules) == 0:
+    if len(rule_list) == 0:
         return None
-    return type_rules[0]
+    return rule_list[0]
+
+
+def _get_rule_from_rule_list(
+    rule: ValidationRule, rule_list: list[str]
+) -> Optional[str]:
+    """
+    Returns the a rule from a list of rules if there is only one
+
+    Arguments:
+        rule: A ValidationRule enum
+        rule_list: A list of validation rules
+
+    Raises:
+        ValueError: When more than one of the rule is found
+
+    Returns:
+        The rule if one is found, otherwise None is returned
+    """
+    rule_value = rule.value
+    rule_list = [rule for rule in rule_list if rule.startswith(rule_value)]
+    if len(rule_list) > 1:
+        msg = (
+            f"Found more than one '{rule_value}' rule in validation rules: {rule_list}"
+        )
+        raise ValueError(msg)
+    if len(rule_list) == 0:
+        return None
+    return rule_list[0]
 
 
 @dataclass
@@ -501,7 +577,7 @@ def create_json_schema(  # pylint: disable=too-many-arguments
     datatype: str,
     schema_name: str,
     write_schema: bool = True,
-    schema_path: Union[str, None] = None,
+    schema_path: Optional[str] = None,
     jsonld_path: Optional[str] = None,
     use_property_display_names: bool = True,
     use_valid_value_display_names: bool = True,
@@ -539,7 +615,6 @@ def create_json_schema(  # pylint: disable=too-many-arguments
     Returns:
         JSON Schema as a dictionary.
     """
-    logger.info("Starting to create JSON Schema for %s", datatype)
     graph_state = GraphTraversalState(dmge, datatype)
 
     json_schema = JSONSchema(
@@ -640,6 +715,11 @@ def _write_data_model(
         json_schema_dirname = os.path.dirname(json_schema_path)
         if json_schema_dirname != "":
             os.makedirs(json_schema_dirname, exist_ok=True)
+
+        logger.info(
+            "The JSON schema file can be inspected by setting the following "
+            "nested key in the configuration: (model > location)."
+        )
     else:
         raise ValueError(
             "Either schema_path or both name and jsonld_path must be provided."
@@ -832,10 +912,7 @@ def _create_array_property(node: Node) -> Property:
     items: Items = {}
     if node.type:
         items["type"] = node.type
-    if node.minimum is not None:
-        items["minimum"] = node.minimum
-    if node.maximum is not None:
-        items["maximum"] = node.maximum
+        _set_type_specific_keywords(items, node)
 
     array_type_dict: TypeDict = {"type": "array", "title": "array"}
     null_type_dict: TypeDict = {"type": "null", "title": "null"}
@@ -916,9 +993,21 @@ def _create_simple_property(node: Node) -> Property:
     elif node.is_required:
         prop["not"] = {"type": "null"}
 
-    if node.minimum is not None:
-        prop["minimum"] = node.minimum
-    if node.maximum is not None:
-        prop["maximum"] = node.maximum
+    _set_type_specific_keywords(prop, node)
 
     return prop
+
+
+def _set_type_specific_keywords(schema: dict[str, Any], node: Node) -> None:
+    """Sets JSON Schema keywords that are allowed if type has been set
+
+    Arguments:
+        schema: The schema to set keywords on
+        node (Node): The node the corresponds to the property which is being set in the JSON Schema
+    """
+    if node.minimum is not None:
+        schema["minimum"] = node.minimum
+    if node.maximum is not None:
+        schema["maximum"] = node.maximum
+    if node.pattern is not None:
+        schema["pattern"] = node.pattern
