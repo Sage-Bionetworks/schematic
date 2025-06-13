@@ -43,7 +43,6 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
     datatype: str,
     synapse_org_name: str,
     synapse_entity_id: str,
-    synapse_parent_id: str,
     schema_name: Optional[str] = None,
     entity_view_name: Optional[str] = None,
     wiki_title: Optional[str] = None,
@@ -63,7 +62,6 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
         datatype: The datatype in the data model to create the JSON Schema for
         synapse_org_name: The Synapse org to upload the JSON Schema to
         synapse_entity_id: The ID of the entity in Synapse to bind the JSON Schema to
-        synapse_parent_id: The ID of the entity in Synapse to put the entity_view at
         schema_name: The name the created JSON Schema will have
         entity_view_name: The name the created entity view will have
         wiki_title: The title the created/updated wiki will have
@@ -89,7 +87,6 @@ def create_json_schema_entity_view_and_wiki(  # pylint: disable=too-many-argumen
     entity_view_id = create_json_schema_entity_view(
         syn=syn,
         synapse_entity_id=synapse_entity_id,
-        synapse_parent_id=synapse_parent_id,
         entity_view_name=entity_view_name,
     )
     create_or_update_wiki_with_entity_view(
@@ -191,7 +188,6 @@ def upload_json_schema(
 def create_json_schema_entity_view(
     syn: Synapse,
     synapse_entity_id: str,
-    synapse_parent_id: str,
     entity_view_name: str = "JSON Schema view",
 ) -> str:
     """
@@ -201,7 +197,6 @@ def create_json_schema_entity_view(
     Args:
         syn: A Synapse object thats been logged in
         synapse_entity_id: The ID of the entity in Synapse to bind the JSON Schema to
-        synapse_parent_id: The ID of the entity in Synapse to put the entity_view at
         entity_view_name: The name the crated entity view will have
 
     Returns:
@@ -224,7 +219,7 @@ def create_json_schema_entity_view(
     columns = _create_columns_from_json_schema(schema_version.body)
     view = EntityView(
         name=entity_view_name,
-        parent_id=synapse_parent_id,
+        parent_id=synapse_entity_id,
         scope_ids=[synapse_entity_id],
         view_type_mask=ViewTypeMask.FILE,
         columns=columns,

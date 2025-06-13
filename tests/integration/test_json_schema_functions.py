@@ -112,7 +112,7 @@ def test_create_json_schema_entity_view_and_wiki(
     schema_id = "".join(i for i in str(uuid.uuid4()) if i.isalpha())
     schema_name = f"test.schematic.{schema_id}"
     # GIVEN a Synapse Project with a Folder
-    project_id, folder_id = synapse_project
+    _, folder_id = synapse_project
     # WHEN creating a JSON Schema fileview and wiki
     try:
         _, fileview_id = create_json_schema_entity_view_and_wiki(
@@ -121,7 +121,6 @@ def test_create_json_schema_entity_view_and_wiki(
             datatype="MockComponent",
             synapse_org_name=SCHEMA_TEST_ORG,
             synapse_entity_id=folder_id,
-            synapse_parent_id=project_id,
             schema_name=schema_name,
         )
         # THEN the schema should be getable from the folder
@@ -227,14 +226,12 @@ def test_create_json_schema_entity_view(syn: Synapse, synapse_project: str) -> N
     """
     js = syn.service("json_schema")
     # GIVEN a Synapse Project with a Folder
-    project_id, folder_id = synapse_project
+    _, folder_id = synapse_project
     # WHEN the folder has a JSON Schema bound to it
     js.bind_json_schema("dpetest-test.schematic.MockComponent-0.0.3", folder_id)
     view_id = None
     # WHEN creating a fileview from it
-    view_id = create_json_schema_entity_view(
-        syn=syn, synapse_entity_id=folder_id, synapse_parent_id=project_id
-    )
+    view_id = create_json_schema_entity_view(syn=syn, synapse_entity_id=folder_id)
     view = EntityView(id=view_id).get(synapse_client=syn)
     # THEN the fileview's column types should match the JSON Schema types as well as possible
     column_types = {k: v.column_type for (k, v) in view.columns.items()}
