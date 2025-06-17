@@ -12,9 +12,8 @@
     },
     "CheckDate": {
       "description": "TBD",
-      "not": {
-        "type": "null"
-      },
+      "type": "string",
+      "format": "date",
       "title": "Check Date"
     },
     "CheckFloat": {
@@ -241,9 +240,8 @@
     },
     "CheckURL": {
       "description": "TBD",
-      "not": {
-        "type": "null"
-      },
+      "type": "string",
+      "format": "uri",
       "title": "Check URL"
     },
     "CheckUnique": {

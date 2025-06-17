@@ -10,6 +10,12 @@
       },
       "title": "Component"
     },
+    "Date": {
+      "description": "TBD",
+      "format": "date",
+      "title": "Date",
+      "type": "string"
+    },
     "Enum": {
       "description": "TBD",
       "oneOf": [
@@ -43,6 +49,41 @@
         }
       ],
       "title": "Enum Not Required"
+    },
+    "InRange": {
+      "description": "TBD",
+      "maximum": 100.0,
+      "minimum": 50.0,
+      "title": "InRange",
+      "type": "number"
+    },
+    "List": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "title": "array",
+          "type": "array"
+        }
+      ],
+      "title": "List"
+    },
+    "ListEnum": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "items": {
+            "enum": [
+              "ab",
+              "cd",
+              "ef",
+              "gh"
+            ]
+          },
+          "title": "array",
+          "type": "array"
+        }
+      ],
+      "title": "List Enum"
     },
     "ListEnumNotRequired": {
       "description": "TBD",
@@ -119,6 +160,17 @@
       "description": "TBD",
       "title": "No Rules Not Required"
     },
+    "Regex": {
+      "description": "TBD",
+      "pattern": "[a-f]",
+      "title": "Regex",
+      "type": "string"
+    },
+    "String": {
+      "description": "TBD",
+      "title": "String",
+      "type": "string"
+    },
     "StringNotRequired": {
       "description": "TBD",
       "oneOf": [
@@ -132,14 +184,27 @@
         }
       ],
       "title": "String Not Required"
+    },
+    "URL": {
+      "description": "TBD",
+      "format": "uri",
+      "title": "URL",
+      "type": "string"
     }
   },
   "required": [
     "Component",
+    "Date",
     "Enum",
+    "InRange",
+    "List",
+    "ListEnum",
     "ListInRange",
     "ListString",
-    "NoRules"
+    "NoRules",
+    "Regex",
+    "String",
+    "URL"
   ],
   "title": "JSONSchemaComponent_validation",
   "type": "object"

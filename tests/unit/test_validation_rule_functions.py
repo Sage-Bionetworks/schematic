@@ -1,0 +1,363 @@
+"""Unit tests for validation rule functions"""
+
+from typing import Optional, Union
+import pytest
+from schematic.schemas.validation_rule_functions import (
+    ValidationRuleName,
+    filter_unused_rules,
+    check_for_rule_duplicates,
+    check_for_rule_conflicts,
+    get_in_range_parameters_from_rule,
+    get_regex_parameters_from_rule,
+    get_rule_from_rule_list,
+    get_js_type_from_rule_list,
+    _get_parameters_from_input_rule,
+    _get_rules_by_name,
+    _get_rule_by_name
+)
+
+
+@pytest.mark.parametrize(
+    "input_list, expected_list",
+    [
+        ([], []),
+        (["str"], ["str"]),
+        (["str", "unused_rule"], ["str"]),
+
+    ],
+    ids=[
+        "No rules",
+        "Str rule",
+        "Contains an unused rule"
+    ],
+)
+def test_filter_unused_rules(
+    input_list: list[str],
+    expected_list: list[str]
+) -> None:
+    """
+    Test for filter_unused_rules
+    Tests that only rules used to create JSON Schemas are left
+    """
+    result = filter_unused_rules(input_list)
+    assert result == expected_list
+
+
+@pytest.mark.parametrize(
+    "input_list",
+    [
+        ([]),
+        (["str"]),
+        (["str", "int", "bool"]),
+
+    ],
+    ids=[
+        "No rules",
+        "One rule",
+        "Multiple rules"
+    ],
+)
+def test_check_for_rule_duplicates(
+    input_list: list[str],
+) -> None:
+    """
+    Test for check_for_rule_duplicates
+    Tests that no duplicate rules were found and no exceptions raised
+    """
+    check_for_rule_duplicates(input_list)
+
+@pytest.mark.parametrize(
+    "input_list",
+    [
+        (["str", "str"]),
+        (["str warning", "str error"])
+    ],
+    ids=[
+        "Duplicate string rules",
+        "Duplicate string rules with different parameters"
+    ],
+)
+def test_check_for_rule_duplicates_with_duplicates(
+    input_list: list[str],
+) -> None:
+    """
+    Test for check_for_rule_duplicates
+    Tests that duplicate rules were found and a ValueError was raised
+    """
+    with pytest.raises(ValueError, match="Validation Rules contains duplicates"):
+        check_for_rule_duplicates(input_list)
+
+
+@pytest.mark.parametrize(
+    "input_list",
+    [
+        ([]),
+        (["str", "regex"]),
+        (["inRange", "int"])
+
+    ],
+    ids=[
+        "No rules",
+        "Str and regex rules",
+        "InRange and int rules"
+    ],
+)
+def test_check_for_rule_conflicts(
+    input_list: list[str],
+) -> None:
+    """
+    Test for check_for_rule_conflicts
+    Tests that no rules are in conflict with each other
+    """
+    check_for_rule_conflicts(input_list)
+
+
+@pytest.mark.parametrize(
+    "input_list",
+    [
+        (["str", "int"]),
+        (["date", "url"]),
+        (["inRange", "str"]),
+        (["regex", "int"]),
+
+    ],
+    ids=[
+        "Multiple type rules",
+        "Multiple format rules",
+        "InRange and str rules",
+        "Regex and int rules"
+    ],
+)
+def test_check_for_rule_conflicts_with_conflicts(
+    input_list: list[str],
+) -> None:
+    """
+    Test for check_for_rule_conflicts
+    Tests that rules are in conflict with each other and a ValueError is raised
+    """
+    with pytest.raises(ValueError, match="Validation rule"):
+        check_for_rule_conflicts(input_list)
+
+@pytest.mark.parametrize(
+    "rule, input_rules, expected_rule",
+    [
+        (ValidationRuleName.IN_RANGE, [], None),
+        (ValidationRuleName.IN_RANGE, ["regex match [a-f]"], None),
+        (ValidationRuleName.IN_RANGE, ["inRange 0 1"], "inRange 0 1"),
+        (ValidationRuleName.IN_RANGE, ["str error", "inRange 0 1"], "inRange 0 1"),
+        (ValidationRuleName.REGEX, ["inRange 0 1"], None),
+        (ValidationRuleName.REGEX, ["regex match [a-f]"], "regex match [a-f]"),
+    ],
+    ids=[
+        "inRange: No rules",
+        "inRange: No inRange rules",
+        "inRange: Rule present",
+        "inRange: Rule present, multiple rules",
+        "regex: No regex rules",
+        "regex: Rule present",
+    ],
+)
+def test_get_rule_from_rule_list(
+    rule: ValidationRuleName,
+    input_rules: list[str],
+    expected_rule: Optional[str],
+) -> None:
+    """
+    Test for get_rule_from_rule_list
+    Tests that None is returned if there are no matches
+      or the rule is returned if there is a match
+    """
+    result = get_rule_from_rule_list(rule, input_rules)
+    assert result == expected_rule
+
+
+def test_get_rule_from_rule_list_with_exception() -> None:
+    """
+    Test for get_rule_from_rule_list
+    Tests that when the requested rule has multiple matches, a ValueError is raised
+    """
+    with pytest.raises(ValueError):
+        get_rule_from_rule_list(ValidationRuleName.IN_RANGE, ["inRange", "inRange 0 1"])
+
+
+@pytest.mark.parametrize(
+    "input_rules, expected_rule",
+    [
+        ([], None),
+        (["list strict"], None),
+        (["str"], "string"),
+        (["str error"], "string")
+    ],
+    ids=[
+        "No rules",
+        "List",
+        "String",
+        "String with error param"
+    ],
+)
+def test_get_js_type_from_rule_list(
+    input_rules: list[str],
+    expected_rule: Optional[str],
+) -> None:
+    """
+    Test for get_js_type_from_rule_list
+    Tests that if theres a type rule in the rule list, it's  JSON Schema type will be  returned
+      Otherwise None will be returned
+    """
+    result = get_js_type_from_rule_list(input_rules)
+    assert result == expected_rule
+
+
+def test_get_js_type_from_rule_list_with_exception() -> None:
+    """
+    Test for get_js_type_from_rule_list
+    Tests that if theres a type rule in the rule list, it's JSON Schema type will be  returned
+      Otherwise None will be returned
+    """
+    with pytest.raises(ValueError):
+        get_js_type_from_rule_list(["str", "int"])
+
+
+@pytest.mark.parametrize(
+    "input_rule, expected_tuple",
+    [
+        ("inRange", (None, None)),
+        ("inRange x x", (None, None)),
+        ("inRange 0", (0, None)),
+        ("inRange 0 x", (0, None)),
+        ("inRange 0 1", (0, 1)),
+        ("inRange 0 1 x", (0, 1)),
+    ],
+    ids=[
+        "inRange with no params",
+        "inRange with bad params",
+        "inRange with minimum",
+        "inRange with minimum, bad maximum",
+        "inRange with minimum, maximum",
+        "inRange with minimum, maximum, extra param",
+    ],
+)
+def test_get_in_range_parameters(
+    input_rule: str,
+    expected_tuple: tuple[Optional[str], Optional[str]],
+) -> None:
+    """
+    Test for get_in_range_parameters
+    Tests that if the minimum and maximum parameters exist and are numeric they are returned
+    """
+    result = get_in_range_parameters_from_rule(input_rule)
+    assert result == expected_tuple
+
+
+@pytest.mark.parametrize(
+    "input_rule, expected_pattern",
+    [
+        ("regex search [a-f]", "[a-f]"),
+        ("regex match [a-f]", "^[a-f]"),
+        ("regex match ^[a-f]", "^[a-f]"),
+        ("regex split ^[a-f]", None),
+    ],
+    ids=[
+        "Search module, Pattern returned",
+        "Match module, Pattern returned with carrot added",
+        "Match module, Pattern returned with no carrot added",
+        "Unallowed module, None returned",
+    ],
+)
+def test_get_regex_parameters(
+    input_rule: str,
+    expected_pattern: Optional[str],
+) -> None:
+    """
+    Test for get_pattern_from_regex_rule
+    Tests that if the module parameter exists and is one of the allowed values
+      the pattern is returned
+    """
+    result = get_regex_parameters_from_rule(input_rule)
+    assert result == expected_pattern
+
+
+@pytest.mark.parametrize(
+    "input_rule, expected_dict",
+    [
+        ("not a rule", None),
+        ("str", None),
+        ("str error", None),
+        ("regex", {}),
+        ("regex search", {"module": "search"}),
+        ("regex search [a-f]", {"module": "search", "pattern": "[a-f]"})
+    ],
+    ids=[
+        "Not a rule",
+        "Str rule no parameters",
+        "Str rule parameters, but not collected",
+        "Regex rule no parameters",
+        "Regex rule module parameter",
+        "Regex rule module parameter and pattern parameter"
+    ],
+)
+def test_get_parameters_from_input_rule(
+    input_rule: str,
+    expected_dict: Optional[dict[str, Union[str, float]]],
+) -> None:
+    """
+    Test for _get_parameters_from_input_rule
+    Tests that if the validation rule has parameters to collect, and the input rule has them
+      they will be collected as a dict.
+    """
+    result = _get_parameters_from_input_rule(input_rule)
+    assert result == expected_dict
+
+
+@pytest.mark.parametrize(
+    "rule_names, expected_rule_names",
+    [
+        (["not_a_rule"], []),
+        (["str"], [ValidationRuleName.STR]),
+        (["str", "regex", "not_a_rule"], [ValidationRuleName.STR, ValidationRuleName.REGEX])
+    ],
+    ids=[
+        "Not a rule",
+        "Str rule",
+        "Str, regex, and a non-rule"
+    ],
+)
+def test_get_rules_by_name(
+    rule_names: list[str],
+    expected_rule_names: list[ValidationRuleName]
+) -> None:
+    """
+    Test for _get_rules_by_name
+    Tests that for every actual rule name in the input list the rule is returned
+    """
+    result = _get_rules_by_name(rule_names)
+    result_rules_names = [rule.name for rule in result]
+    assert result_rules_names == expected_rule_names
+
+
+@pytest.mark.parametrize(
+    "rule_name, expected_rule_name",
+    [
+        ("not_a_rule",None),
+        ("str", ValidationRuleName.STR),
+        ("regex", ValidationRuleName.REGEX)
+    ],
+    ids=[
+        "Not a rule",
+        "Str rule",
+        "Regex rule",
+    ],
+)
+def test_get_rule_by_name(
+    rule_name: list[str],
+    expected_rule_name: list[ValidationRuleName]
+) -> None:
+    """
+    Test for _get_rule_by_name
+    Tests that input rule name is an actual rule the rule is returned, otherwise None
+    """
+    result = _get_rule_by_name(rule_name)
+    if result is None:
+        assert expected_rule_name is None
+    else:
+        assert result.name == expected_rule_name

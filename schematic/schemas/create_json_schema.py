@@ -15,13 +15,17 @@ from dataclasses import dataclass, field, asdict
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.utils.schema_utils import get_json_schema_log_file_path
-from schematic.utils.validate_utils import rule_in_rule_list
 from schematic.utils.io_utils import export_json
-from schematic.schemas.constants import (
-    ValidationRule,
+from schematic.schemas.validation_rule_functions import (
+    ValidationRuleName,
     JSONSchemaType,
-    RegexModule,
-    TYPE_RULES,
+    filter_unused_rules,
+    check_for_rule_conflicts,
+    check_for_rule_duplicates,
+    get_in_range_parameters_from_rule,
+    get_regex_parameters_from_rule,
+    get_js_type_from_rule_list,
+    get_rule_from_rule_list,
 )
 
 
@@ -163,6 +167,7 @@ class Node:  # pylint: disable=too-many-instance-attributes
     minimum: Optional[float] = field(init=False)
     maximum: Optional[float] = field(init=False)
     pattern: Optional[str] = field(init=False)
+    format: Optional[str] = field(init=False)
 
     def __post_init__(self) -> None:
         """
@@ -192,6 +197,7 @@ class Node:  # pylint: disable=too-many-instance-attributes
 
         (
             self.type,
+            self.format,
             self.is_array,
             self.minimum,
             self.maximum,
@@ -201,7 +207,9 @@ class Node:  # pylint: disable=too-many-instance-attributes
 
 def _get_validation_rule_based_fields(
     validation_rules: list[str],
-) -> tuple[Optional[str], bool, Optional[float], Optional[float], Optional[str]]:
+) -> tuple[
+    Optional[str], Optional[str], bool, Optional[float], Optional[float], Optional[str]
+]:
     """
     Gets the fields for the Node class that are based on the validation rules
 
@@ -215,154 +223,57 @@ def _get_validation_rule_based_fields(
         ValueError: If the regex rule and a type validation rule other than 'str' are present
 
     Returns:
-        A tuple containing the type, is_array, minimum, maximum, and pattern fields for
+        A tuple containing the type, format, is_array, minimum, maximum, and pattern for
          a Node object
     """
-    prop_type: Optional[str] = None
+    property_type: Optional[str] = None
+    property_format: Optional[str] = None
     is_array = False
     minimum: Optional[float] = None
     maximum: Optional[float] = None
     pattern: Optional[str] = None
 
     if validation_rules:
-        if rule_in_rule_list("list", validation_rules):
+        validation_rules = filter_unused_rules(validation_rules)
+        check_for_rule_duplicates(validation_rules)
+        check_for_rule_conflicts(validation_rules)
+
+        if get_rule_from_rule_list(ValidationRuleName.LIST, validation_rules):
             is_array = True
 
-        type_rule = _get_type_rule_from_rule_list(validation_rules)
-        if type_rule:
-            prop_type = TYPE_RULES.get(type_rule)
+        property_type = get_js_type_from_rule_list(validation_rules)
 
-        regex_rule = _get_rule_from_rule_list(ValidationRule.REGEX, validation_rules)
-        range_rule = _get_rule_from_rule_list(ValidationRule.IN_RANGE, validation_rules)
-        if range_rule and regex_rule:
-            raise ValueError(
-                "regex and inRange rules are incompatible: ", validation_rules
-            )
+        url_rule = get_rule_from_rule_list(ValidationRuleName.URL, validation_rules)
+        date_rule = get_rule_from_rule_list(ValidationRuleName.DATE, validation_rules)
+        regex_rule = get_rule_from_rule_list(ValidationRuleName.REGEX, validation_rules)
+        range_rule = get_rule_from_rule_list(
+            ValidationRuleName.IN_RANGE, validation_rules
+        )
+
+        if url_rule:
+            property_type = property_type or JSONSchemaType.STRING.value
+            property_format = "uri"
+
+        if date_rule:
+            property_type = property_type or JSONSchemaType.STRING.value
+            property_format = "date"
 
         if range_rule:
-            if prop_type not in [
-                JSONSchemaType.NUMBER.value,
-                JSONSchemaType.INTEGER.value,
-                None,
-            ]:
-                raise ValueError(
-                    "Validation rules must be either 'int' or 'num' when using the inRange rule"
-                )
-            prop_type = prop_type or JSONSchemaType.NUMBER.value
-            minimum, maximum = _get_range_from_in_range_rule(range_rule)
+            property_type = property_type or JSONSchemaType.NUMBER.value
+            minimum, maximum = get_in_range_parameters_from_rule(range_rule)
 
         if regex_rule:
-            if prop_type not in (None, JSONSchemaType.STRING.value):
-                raise ValueError("Type must be 'string' when using a regex rule")
-            prop_type = JSONSchemaType.STRING.value
-            pattern = _get_pattern_from_regex_rule(regex_rule)
+            property_type = property_type or JSONSchemaType.STRING.value
+            pattern = get_regex_parameters_from_rule(regex_rule)
 
     return (
-        prop_type,
+        property_type,
+        property_format,
         is_array,
         minimum,
         maximum,
         pattern,
     )
-
-
-def _get_range_from_in_range_rule(
-    rule: str,
-) -> tuple[Optional[float], Optional[float]]:
-    """
-    Returns the min and max from an inRange rule if they exist
-
-    Arguments:
-        rule: The inRange rule
-
-    Returns:
-        The min and max from the rule
-    """
-    range_min: Optional[float] = None
-    range_max: Optional[float] = None
-    parameters = rule.split(" ")
-    if len(parameters) > 1 and parameters[1].isnumeric():
-        range_min = float(parameters[1])
-    if len(parameters) > 2 and parameters[2].isnumeric():
-        range_max = float(parameters[2])
-    return (range_min, range_max)
-
-
-def _get_pattern_from_regex_rule(rule: str) -> Optional[str]:
-    """Gets the pattern from the regex rule
-
-    Arguments:
-        rule: The full regex rule
-
-    Returns:
-        If the module parameter is search or match, and the pattern parameter exists
-          the pattern is returned
-        Otherwise None
-    """
-    parameters = rule.split(" ")
-    if len(parameters) != 3:
-        return None
-    _, module, pattern = parameters
-    # Do not translate other modules
-    if module not in [item.value for item in RegexModule]:
-        return None
-    # Match is just search but only at the beginning of the string
-    if module == RegexModule.MATCH.value and not pattern.startswith("^"):
-        return f"^{pattern}"
-    return pattern
-
-
-def _get_type_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
-    """
-    Returns the type rule from a list of rules if there is only one
-    Returns None if there are no type rules
-
-    Arguments:
-        rule_list: A list of validation rules
-
-    Raises:
-        ValueError: When more than one type rule is found
-
-    Returns:
-        The type rule if one is found, or None
-    """
-    rule_list = [rule.split(" ")[0] for rule in rule_list]
-    rule_list = [rule for rule in rule_list if rule in TYPE_RULES]
-    if len(rule_list) > 1:
-        raise ValueError(
-            "Found more than one type rule in validation rules: ", rule_list
-        )
-    if len(rule_list) == 0:
-        return None
-    return rule_list[0]
-
-
-def _get_rule_from_rule_list(
-    rule: ValidationRule, rule_list: list[str]
-) -> Optional[str]:
-    """
-    Returns the a rule from a list of rules if there is only one
-
-    Arguments:
-        rule: A ValidationRule enum
-        rule_list: A list of validation rules
-
-    Raises:
-        ValueError: When more than one of the rule is found
-
-    Returns:
-        The rule if one is found, otherwise None is returned
-    """
-    rule_value = rule.value
-    rule_list = [rule for rule in rule_list if rule.startswith(rule_value)]
-    if len(rule_list) > 1:
-        msg = (
-            f"Found more than one '{rule_value}' rule in validation rules: {rule_list}"
-        )
-        raise ValueError(msg)
-    if len(rule_list) == 0:
-        return None
-    return rule_list[0]
 
 
 @dataclass
@@ -1011,3 +922,5 @@ def _set_type_specific_keywords(schema: dict[str, Any], node: Node) -> None:
         schema["maximum"] = node.maximum
     if node.pattern is not None:
         schema["pattern"] = node.pattern
+    if node.format is not None:
+        schema["format"] = node.format
