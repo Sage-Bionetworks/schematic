@@ -2,11 +2,7 @@
 
 from dataclasses import dataclass
 from typing import Optional
-from schematic.schemas.constants import (
-    JSONSchemaType,
-    ValidationRuleName,
-    RegexModule
-)
+from schematic.schemas.constants import JSONSchemaType, ValidationRuleName, RegexModule
 
 
 @dataclass
@@ -21,11 +17,13 @@ class ValidationRule:
         incompatible_rules: Other validation rules this rule can not be paired with
         parameters: Parameters for the validation rule that need to be collected for the JSON Schema
     """
+
     name: ValidationRuleName
     js_type: Optional[JSONSchemaType]
     is_type_rule: bool
     incompatible_rules: Optional[list[ValidationRuleName]] = None
     parameters: Optional[list[str]] = None
+
 
 # A List of validation rules currently collected to make a JSON Schema
 _VALIDATION_RULES = [
@@ -140,8 +138,9 @@ _VALIDATION_RULES = [
             ValidationRuleName.STR,
             ValidationRuleName.BOOL,
         ],
-    )
+    ),
 ]
+
 
 def filter_unused_rules(rules: list[str]) -> list[str]:
     """Filters a list of validation rules for only those used to create JSON Schemas
@@ -158,6 +157,7 @@ def filter_unused_rules(rules: list[str]) -> list[str]:
         if rule.split(" ")[0] in [e.value for e in ValidationRuleName]
     ]
 
+
 def check_for_rule_duplicates(rules: list[str]) -> None:
     """Checks that there are no duplicate rules by name
 
@@ -170,6 +170,7 @@ def check_for_rule_duplicates(rules: list[str]) -> None:
     rule_names = [rule.split(" ")[0] for rule in rules]
     if sorted(rule_names) != sorted(list(set(rule_names))):
         raise ValueError("Validation Rules contains duplicates: ", rules)
+
 
 def check_for_rule_conflicts(input_rules: list[str]) -> None:
     """Checks that each rule has no conflicts with any other rule
@@ -194,6 +195,7 @@ def check_for_rule_conflicts(input_rules: list[str]) -> None:
                     f"has conflicting rules: {conflicting_rule_names}"
                 )
                 raise ValueError(msg)
+
 
 def get_rule_from_rule_list(
     rule_name: ValidationRuleName, rules: list[str]
@@ -232,7 +234,9 @@ def get_js_type_from_rule_list(rules: list[str]) -> Optional[str]:
     """
     rule_names = [rule.split(" ")[0] for rule in rules]
     validation_rules = _get_rules_by_name(rule_names)
-    type_validation_rules = [rule for rule in validation_rules if rule.is_type_rule is not None]
+    type_validation_rules = [
+        rule for rule in validation_rules if rule.is_type_rule is not None
+    ]
     if len(type_validation_rules) > 1:
         raise ValueError("Found more than one type rule: ", type_validation_rules)
     if len(type_validation_rules) == 0:
@@ -240,6 +244,7 @@ def get_js_type_from_rule_list(rules: list[str]) -> Optional[str]:
     js_type = validation_rules[0].js_type
     assert js_type is not None
     return js_type.value
+
 
 def get_in_range_parameters_from_rule(
     rule: str,
@@ -257,11 +262,20 @@ def get_in_range_parameters_from_rule(
     maximum: Optional[float] = None
     parameters = _get_parameters_from_input_rule(rule)
     if parameters:
-        if "minimum" in parameters and parameters["minimum"] and parameters["minimum"].isnumeric():
+        if (
+            "minimum" in parameters
+            and parameters["minimum"]
+            and parameters["minimum"].isnumeric()
+        ):
             minimum = float(parameters["minimum"])
-        if "maximum" in parameters and parameters["maximum"] and parameters["maximum"].isnumeric():
+        if (
+            "maximum" in parameters
+            and parameters["maximum"]
+            and parameters["maximum"].isnumeric()
+        ):
             maximum = float(parameters["maximum"])
     return (minimum, maximum)
+
 
 def get_regex_parameters_from_rule(
     rule: str,
@@ -295,6 +309,7 @@ def get_regex_parameters_from_rule(
         return f"^{pattern}"
     return pattern
 
+
 def _get_parameters_from_input_rule(input_rule: str) -> Optional[dict[str, str]]:
     """Creates a dictionary of parameters and values from and input rule string
 
@@ -314,6 +329,7 @@ def _get_parameters_from_input_rule(input_rule: str) -> Optional[dict[str, str]]
         return dict(zip(rule.parameters, rule_values))
     return None
 
+
 def _get_rules_by_name(names: list[str]) -> list[ValidationRule]:
     """Gets a list of ValidationRules by name of they exist
 
@@ -325,6 +341,7 @@ def _get_rules_by_name(names: list[str]) -> list[ValidationRule]:
     """
     rules = [_get_rule_by_name(name) for name in names]
     return [rule for rule in rules if rule is not None]
+
 
 def _get_rule_by_name(name: str) -> Optional[ValidationRule]:
     """Gets a ValidationRule by its name if it exists

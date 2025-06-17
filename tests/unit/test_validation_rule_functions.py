@@ -13,7 +13,7 @@ from schematic.schemas.validation_rule_functions import (
     get_js_type_from_rule_list,
     _get_parameters_from_input_rule,
     _get_rules_by_name,
-    _get_rule_by_name
+    _get_rule_by_name,
 )
 
 
@@ -23,18 +23,10 @@ from schematic.schemas.validation_rule_functions import (
         ([], []),
         (["str"], ["str"]),
         (["str", "unused_rule"], ["str"]),
-
     ],
-    ids=[
-        "No rules",
-        "Str rule",
-        "Contains an unused rule"
-    ],
+    ids=["No rules", "Str rule", "Contains an unused rule"],
 )
-def test_filter_unused_rules(
-    input_list: list[str],
-    expected_list: list[str]
-) -> None:
+def test_filter_unused_rules(input_list: list[str], expected_list: list[str]) -> None:
     """
     Test for filter_unused_rules
     Tests that only rules used to create JSON Schemas are left
@@ -49,13 +41,8 @@ def test_filter_unused_rules(
         ([]),
         (["str"]),
         (["str", "int", "bool"]),
-
     ],
-    ids=[
-        "No rules",
-        "One rule",
-        "Multiple rules"
-    ],
+    ids=["No rules", "One rule", "Multiple rules"],
 )
 def test_check_for_rule_duplicates(
     input_list: list[str],
@@ -66,16 +53,11 @@ def test_check_for_rule_duplicates(
     """
     check_for_rule_duplicates(input_list)
 
+
 @pytest.mark.parametrize(
     "input_list",
-    [
-        (["str", "str"]),
-        (["str warning", "str error"])
-    ],
-    ids=[
-        "Duplicate string rules",
-        "Duplicate string rules with different parameters"
-    ],
+    [(["str", "str"]), (["str warning", "str error"])],
+    ids=["Duplicate string rules", "Duplicate string rules with different parameters"],
 )
 def test_check_for_rule_duplicates_with_duplicates(
     input_list: list[str],
@@ -90,17 +72,8 @@ def test_check_for_rule_duplicates_with_duplicates(
 
 @pytest.mark.parametrize(
     "input_list",
-    [
-        ([]),
-        (["str", "regex"]),
-        (["inRange", "int"])
-
-    ],
-    ids=[
-        "No rules",
-        "Str and regex rules",
-        "InRange and int rules"
-    ],
+    [([]), (["str", "regex"]), (["inRange", "int"])],
+    ids=["No rules", "Str and regex rules", "InRange and int rules"],
 )
 def test_check_for_rule_conflicts(
     input_list: list[str],
@@ -119,13 +92,12 @@ def test_check_for_rule_conflicts(
         (["date", "url"]),
         (["inRange", "str"]),
         (["regex", "int"]),
-
     ],
     ids=[
         "Multiple type rules",
         "Multiple format rules",
         "InRange and str rules",
-        "Regex and int rules"
+        "Regex and int rules",
     ],
 )
 def test_check_for_rule_conflicts_with_conflicts(
@@ -137,6 +109,7 @@ def test_check_for_rule_conflicts_with_conflicts(
     """
     with pytest.raises(ValueError, match="Validation rule"):
         check_for_rule_conflicts(input_list)
+
 
 @pytest.mark.parametrize(
     "rule, input_rules, expected_rule",
@@ -186,14 +159,9 @@ def test_get_rule_from_rule_list_with_exception() -> None:
         ([], None),
         (["list strict"], None),
         (["str"], "string"),
-        (["str error"], "string")
+        (["str error"], "string"),
     ],
-    ids=[
-        "No rules",
-        "List",
-        "String",
-        "String with error param"
-    ],
+    ids=["No rules", "List", "String", "String with error param"],
 )
 def test_get_js_type_from_rule_list(
     input_rules: list[str],
@@ -285,7 +253,7 @@ def test_get_regex_parameters(
         ("str error", None),
         ("regex", {}),
         ("regex search", {"module": "search"}),
-        ("regex search [a-f]", {"module": "search", "pattern": "[a-f]"})
+        ("regex search [a-f]", {"module": "search", "pattern": "[a-f]"}),
     ],
     ids=[
         "Not a rule",
@@ -293,7 +261,7 @@ def test_get_regex_parameters(
         "Str rule parameters, but not collected",
         "Regex rule no parameters",
         "Regex rule module parameter",
-        "Regex rule module parameter and pattern parameter"
+        "Regex rule module parameter and pattern parameter",
     ],
 )
 def test_get_parameters_from_input_rule(
@@ -314,17 +282,15 @@ def test_get_parameters_from_input_rule(
     [
         (["not_a_rule"], []),
         (["str"], [ValidationRuleName.STR]),
-        (["str", "regex", "not_a_rule"], [ValidationRuleName.STR, ValidationRuleName.REGEX])
+        (
+            ["str", "regex", "not_a_rule"],
+            [ValidationRuleName.STR, ValidationRuleName.REGEX],
+        ),
     ],
-    ids=[
-        "Not a rule",
-        "Str rule",
-        "Str, regex, and a non-rule"
-    ],
+    ids=["Not a rule", "Str rule", "Str, regex, and a non-rule"],
 )
 def test_get_rules_by_name(
-    rule_names: list[str],
-    expected_rule_names: list[ValidationRuleName]
+    rule_names: list[str], expected_rule_names: list[ValidationRuleName]
 ) -> None:
     """
     Test for _get_rules_by_name
@@ -338,9 +304,9 @@ def test_get_rules_by_name(
 @pytest.mark.parametrize(
     "rule_name, expected_rule_name",
     [
-        ("not_a_rule",None),
+        ("not_a_rule", None),
         ("str", ValidationRuleName.STR),
-        ("regex", ValidationRuleName.REGEX)
+        ("regex", ValidationRuleName.REGEX),
     ],
     ids=[
         "Not a rule",
@@ -349,8 +315,7 @@ def test_get_rules_by_name(
     ],
 )
 def test_get_rule_by_name(
-    rule_name: list[str],
-    expected_rule_name: list[ValidationRuleName]
+    rule_name: list[str], expected_rule_name: list[ValidationRuleName]
 ) -> None:
     """
     Test for _get_rule_by_name
