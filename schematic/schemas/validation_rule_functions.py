@@ -234,14 +234,12 @@ def get_js_type_from_rule_list(rules: list[str]) -> Optional[str]:
     """
     rule_names = [rule.split(" ")[0] for rule in rules]
     validation_rules = _get_rules_by_name(rule_names)
-    type_validation_rules = [
-        rule for rule in validation_rules if rule.is_type_rule is not None
-    ]
+    type_validation_rules = [rule for rule in validation_rules if rule.is_type_rule]
     if len(type_validation_rules) > 1:
         raise ValueError("Found more than one type rule: ", type_validation_rules)
     if len(type_validation_rules) == 0:
         return None
-    js_type = validation_rules[0].js_type
+    js_type = type_validation_rules[0].js_type
     assert js_type is not None
     return js_type.value
 
