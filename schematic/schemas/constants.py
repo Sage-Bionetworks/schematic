@@ -3,15 +3,6 @@
 from enum import Enum
 
 
-class JSONSchemaType(Enum):
-    """This enum is allowed values type values for a JSON Schema in a data model"""
-
-    STRING = "string"
-    NUMBER = "number"
-    INTEGER = "integer"
-    BOOLEAN = "boolean"
-
-
 class ValidationRuleName(Enum):
     """Validation rules that are used to create JSON Schema"""
 
@@ -25,6 +16,15 @@ class ValidationRuleName(Enum):
     INT = "int"
     BOOL = "bool"
     NUM = "num"
+
+
+class JSONSchemaType(Enum):
+    """This enum is allowed values type values for a JSON Schema in a data model"""
+
+    STRING = "string"
+    NUMBER = "number"
+    INTEGER = "integer"
+    BOOLEAN = "boolean"
 
 
 class RegexModule(Enum):
