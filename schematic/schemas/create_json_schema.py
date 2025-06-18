@@ -196,9 +196,9 @@ class Node:  # pylint: disable=too-many-instance-attributes
         )
 
         (
+            self.is_array,
             self.type,
             self.format,
-            self.is_array,
             self.minimum,
             self.maximum,
             self.pattern,
@@ -208,30 +208,29 @@ class Node:  # pylint: disable=too-many-instance-attributes
 def _get_validation_rule_based_fields(
     validation_rules: list[str],
 ) -> tuple[
-    Optional[str], Optional[str], bool, Optional[float], Optional[float], Optional[str]
+    bool, Optional[str], Optional[str], Optional[float], Optional[float], Optional[str]
 ]:
     """
     Gets the fields for the Node class that are based on the validation rules
 
-    Args:
-        validation_rules: A list of validation rules
-
-    Raises:
-        ValueError: If both the inRange and regex rule are present
-        ValueError: If the inRange rule and a type validation rule other than 'int' or 'num'
-          are present
-        ValueError: If the regex rule and a type validation rule other than 'str' are present
+    Arguments:
+        validation_rules: A list of input validation rules
 
     Returns:
-        A tuple containing the type, format, is_array, minimum, maximum, and pattern for
-         a Node object
+        A tuple containing fields for a Node object:
+        - js_is_array: Whether or not the Node should be an array in JSON Schema
+        - js_type: The JSON Schema type
+        - js_format: The JSON Schema format
+        - js_minimum: If the type is numeric the JSON Schema minimum
+        - js_maximum: If the type is numeric the JSON Schema maximum
+        - js_pattern: If the type is string the JSON Schema pattern
     """
-    property_type: Optional[str] = None
-    property_format: Optional[str] = None
-    is_array = False
-    minimum: Optional[float] = None
-    maximum: Optional[float] = None
-    pattern: Optional[str] = None
+    js_is_array = False
+    js_type: Optional[str] = None
+    js_format: Optional[str] = None
+    js_minimum: Optional[float] = None
+    js_maximum: Optional[float] = None
+    js_pattern: Optional[str] = None
 
     if validation_rules:
         validation_rules = filter_unused_rules(validation_rules)
@@ -239,9 +238,9 @@ def _get_validation_rule_based_fields(
         check_for_rule_conflicts(validation_rules)
 
         if get_rule_from_rule_list(ValidationRuleName.LIST, validation_rules):
-            is_array = True
+            js_is_array = True
 
-        property_type = get_js_type_from_rule_list(validation_rules)
+        js_type = get_js_type_from_rule_list(validation_rules)
 
         url_rule = get_rule_from_rule_list(ValidationRuleName.URL, validation_rules)
         date_rule = get_rule_from_rule_list(ValidationRuleName.DATE, validation_rules)
@@ -251,28 +250,28 @@ def _get_validation_rule_based_fields(
         )
 
         if url_rule:
-            property_type = property_type or JSONSchemaType.STRING.value
-            property_format = "uri"
+            js_type = js_type or JSONSchemaType.STRING.value
+            js_format = "uri"
 
         if date_rule:
-            property_type = property_type or JSONSchemaType.STRING.value
-            property_format = "date"
+            js_type = js_type or JSONSchemaType.STRING.value
+            js_format = "date"
 
         if range_rule:
-            property_type = property_type or JSONSchemaType.NUMBER.value
-            minimum, maximum = get_in_range_parameters_from_rule(range_rule)
+            js_type = js_type or JSONSchemaType.NUMBER.value
+            js_minimum, js_maximum = get_in_range_parameters_from_rule(range_rule)
 
         if regex_rule:
-            property_type = property_type or JSONSchemaType.STRING.value
-            pattern = get_regex_parameters_from_rule(regex_rule)
+            js_type = js_type or JSONSchemaType.STRING.value
+            js_pattern = get_regex_parameters_from_rule(regex_rule)
 
     return (
-        property_type,
-        property_format,
-        is_array,
-        minimum,
-        maximum,
-        pattern,
+        js_is_array,
+        js_type,
+        js_format,
+        js_minimum,
+        js_maximum,
+        js_pattern,
     )
 
 

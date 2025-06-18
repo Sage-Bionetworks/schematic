@@ -224,9 +224,9 @@ def test_get_validation_rule_based_fields(
 ) -> None:
     """Tests for _get_validation_rule_based_fields"""
     (
+        is_array,
         property_type,
         property_format,
-        is_array,
         minimum,
         maximum,
         pattern,
