@@ -4,7 +4,7 @@ from enum import Enum
 
 
 class ValidationRuleName(Enum):
-    """Validation rules that are used to create JSON Schema"""
+    """Names of validation rules that are used to create JSON Schema"""
 
     LIST = "list"
     DATE = "date"
