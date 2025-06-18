@@ -14,8 +14,8 @@ class ValidationRule:
         name: The name of the validation rule
         js_type: The JSON Schema type this rule indicates.
           For example type rules map over to their equivalent JSON Schema type: str -> string
-          Other rules have am implicit type. For example the regex rule maps to the JSON Schema pattern keyword.
-          The pattern keyword requires the type to be string
+          Other rules have am implicit type. For example the regex rule maps to the JSON
+            Schema pattern keyword. The pattern keyword requires the type to be string
         incompatible_rules: Other validation rules this rule can not be paired with
         parameters: Parameters for the validation rule that need to be collected for the JSON Schema
     """
