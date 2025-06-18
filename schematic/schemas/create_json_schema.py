@@ -19,13 +19,13 @@ from schematic.utils.io_utils import export_json
 from schematic.schemas.validation_rule_functions import (
     ValidationRuleName,
     JSONSchemaType,
-    filter_unused_rules,
-    check_for_rule_conflicts,
-    check_for_rule_duplicates,
-    get_in_range_parameters_from_rule,
-    get_regex_parameters_from_rule,
-    get_js_type_from_rule_list,
-    get_rule_from_rule_list,
+    filter_unused_inputted_rules,
+    check_for_conflicting_inputted_rules,
+    check_for_duplicate_inputted_rules,
+    get_in_range_parameters_from_inputted_rule,
+    get_regex_parameters_from_inputted_rule,
+    get_js_type_from_inputted_rules,
+    get_rule_from_inputted_rules,
 )
 
 
@@ -233,19 +233,25 @@ def _get_validation_rule_based_fields(
     js_pattern: Optional[str] = None
 
     if validation_rules:
-        validation_rules = filter_unused_rules(validation_rules)
-        check_for_rule_duplicates(validation_rules)
-        check_for_rule_conflicts(validation_rules)
+        validation_rules = filter_unused_inputted_rules(validation_rules)
+        check_for_duplicate_inputted_rules(validation_rules)
+        check_for_conflicting_inputted_rules(validation_rules)
 
-        if get_rule_from_rule_list(ValidationRuleName.LIST, validation_rules):
+        if get_rule_from_inputted_rules(ValidationRuleName.LIST, validation_rules):
             js_is_array = True
 
-        js_type = get_js_type_from_rule_list(validation_rules)
+        js_type = get_js_type_from_inputted_rules(validation_rules)
 
-        url_rule = get_rule_from_rule_list(ValidationRuleName.URL, validation_rules)
-        date_rule = get_rule_from_rule_list(ValidationRuleName.DATE, validation_rules)
-        regex_rule = get_rule_from_rule_list(ValidationRuleName.REGEX, validation_rules)
-        range_rule = get_rule_from_rule_list(
+        url_rule = get_rule_from_inputted_rules(
+            ValidationRuleName.URL, validation_rules
+        )
+        date_rule = get_rule_from_inputted_rules(
+            ValidationRuleName.DATE, validation_rules
+        )
+        regex_rule = get_rule_from_inputted_rules(
+            ValidationRuleName.REGEX, validation_rules
+        )
+        range_rule = get_rule_from_inputted_rules(
             ValidationRuleName.IN_RANGE, validation_rules
         )
 
@@ -259,11 +265,13 @@ def _get_validation_rule_based_fields(
 
         if range_rule:
             js_type = js_type or JSONSchemaType.NUMBER.value
-            js_minimum, js_maximum = get_in_range_parameters_from_rule(range_rule)
+            js_minimum, js_maximum = get_in_range_parameters_from_inputted_rule(
+                range_rule
+            )
 
         if regex_rule:
             js_type = js_type or JSONSchemaType.STRING.value
-            js_pattern = get_regex_parameters_from_rule(regex_rule)
+            js_pattern = get_regex_parameters_from_inputted_rule(regex_rule)
 
     return (
         js_is_array,
