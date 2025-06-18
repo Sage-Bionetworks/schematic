@@ -119,20 +119,6 @@ _VALIDATION_RULES = [
         ],
     ),
     ValidationRule(
-        name=ValidationRuleName.BOOL,
-        js_type=JSONSchemaType.BOOLEAN,
-        is_type_rule=True,
-        incompatible_rules=[
-            ValidationRuleName.URL,
-            ValidationRuleName.DATE,
-            ValidationRuleName.REGEX,
-            ValidationRuleName.STR,
-            ValidationRuleName.INT,
-            ValidationRuleName.FLOAT,
-            ValidationRuleName.NUM,
-        ],
-    ),
-    ValidationRule(
         name=ValidationRuleName.NUM,
         js_type=JSONSchemaType.NUMBER,
         is_type_rule=True,
