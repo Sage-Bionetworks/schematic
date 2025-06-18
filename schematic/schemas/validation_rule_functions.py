@@ -25,15 +25,17 @@ class ValidationRule:
     parameters: Optional[list[str]] = None
 
 
-# A List of validation rules currently collected to make a JSON Schema
-_VALIDATION_RULES = [
-    ValidationRule(
+# A dictionary of current Schematic validation rules
+#   where the keys are name fo the rule in Schematic
+#   and the values are ValidationRule objects
+_VALIDATION_RULES = {
+    "list": ValidationRule(
         name=ValidationRuleName.LIST,
         js_type=None,
         is_type_rule=False,
         incompatible_rules=[],
     ),
-    ValidationRule(
+    "date": ValidationRule(
         name=ValidationRuleName.DATE,
         js_type=JSONSchemaType.STRING,
         is_type_rule=False,
@@ -45,7 +47,7 @@ _VALIDATION_RULES = [
             ValidationRuleName.NUM,
         ],
     ),
-    ValidationRule(
+    "url": ValidationRule(
         name=ValidationRuleName.URL,
         js_type=JSONSchemaType.STRING,
         is_type_rule=False,
@@ -57,7 +59,7 @@ _VALIDATION_RULES = [
             ValidationRuleName.NUM,
         ],
     ),
-    ValidationRule(
+    "regex": ValidationRule(
         name=ValidationRuleName.REGEX,
         js_type=JSONSchemaType.STRING,
         is_type_rule=False,
@@ -69,7 +71,7 @@ _VALIDATION_RULES = [
         ],
         parameters=["module", "pattern"],
     ),
-    ValidationRule(
+    "inRange": ValidationRule(
         name=ValidationRuleName.IN_RANGE,
         js_type=JSONSchemaType.NUMBER,
         is_type_rule=False,
@@ -82,7 +84,7 @@ _VALIDATION_RULES = [
         ],
         parameters=["minimum", "maximum"],
     ),
-    ValidationRule(
+    "str": ValidationRule(
         name=ValidationRuleName.STR,
         js_type=JSONSchemaType.STRING,
         is_type_rule=True,
@@ -94,7 +96,7 @@ _VALIDATION_RULES = [
             ValidationRuleName.BOOL,
         ],
     ),
-    ValidationRule(
+    "float": ValidationRule(
         name=ValidationRuleName.FLOAT,
         js_type=JSONSchemaType.NUMBER,
         is_type_rule=True,
@@ -106,7 +108,7 @@ _VALIDATION_RULES = [
             ValidationRuleName.BOOL,
         ],
     ),
-    ValidationRule(
+    "int": ValidationRule(
         name=ValidationRuleName.INT,
         js_type=JSONSchemaType.INTEGER,
         is_type_rule=True,
@@ -118,7 +120,7 @@ _VALIDATION_RULES = [
             ValidationRuleName.BOOL,
         ],
     ),
-    ValidationRule(
+    "num": ValidationRule(
         name=ValidationRuleName.NUM,
         js_type=JSONSchemaType.NUMBER,
         is_type_rule=True,
@@ -130,7 +132,7 @@ _VALIDATION_RULES = [
             ValidationRuleName.BOOL,
         ],
     ),
-]
+}
 
 
 def filter_unused_inputted_rules(inputted_rules: list[str]) -> list[str]:
@@ -314,7 +316,7 @@ def _get_parameters_from_inputted_rule(inputted_rule: str) -> Optional[dict[str,
     """
     rule_name = _get_name_from_inputted_rule(inputted_rule)
     rule_values = inputted_rule.split(" ")[1:]
-    rule = _get_rule_by_name(rule_name)
+    rule = _VALIDATION_RULES.get(rule_name)
     if rule and rule.parameters:
         return dict(zip(rule.parameters, rule_values))
     return None
@@ -353,20 +355,5 @@ def _get_rules_by_name(names: list[str]) -> list[ValidationRule]:
     Returns:
         A list of ValidationRules
     """
-    rules = [_get_rule_by_name(name) for name in names]
+    rules = [_VALIDATION_RULES.get(name) for name in names]
     return [rule for rule in rules if rule is not None]
-
-
-def _get_rule_by_name(name: str) -> Optional[ValidationRule]:
-    """Gets a ValidationRule by its name if it exists
-
-    Args:
-        name: The name of the ValidationRule
-
-    Returns:
-        The ValidationRule if it exists, otherwise None
-    """
-    rules = [rule for rule in _VALIDATION_RULES if rule.name.value == name]
-    if len(rules) == 0:
-        return None
-    return rules[0]

@@ -15,7 +15,6 @@ from schematic.schemas.validation_rule_functions import (
     _get_names_from_inputted_rules,
     _get_name_from_inputted_rule,
     _get_rules_by_name,
-    _get_rule_by_name,
 )
 
 
@@ -353,30 +352,3 @@ def test_get_rules_by_name(
     result = _get_rules_by_name(rule_names)
     result_rules_names = [rule.name for rule in result]
     assert result_rules_names == expected_rule_names
-
-
-@pytest.mark.parametrize(
-    "rule_name, expected_rule_name",
-    [
-        ("not_a_rule", None),
-        ("str", ValidationRuleName.STR),
-        ("regex", ValidationRuleName.REGEX),
-    ],
-    ids=[
-        "Not a rule",
-        "Str rule",
-        "Regex rule",
-    ],
-)
-def test_get_rule_by_name(
-    rule_name: list[str], expected_rule_name: list[ValidationRuleName]
-) -> None:
-    """
-    Test for _get_rule_by_name
-    Tests that input rule name is an actual rule the rule is returned, otherwise None
-    """
-    result = _get_rule_by_name(rule_name)
-    if result is None:
-        assert expected_rule_name is None
-    else:
-        assert result.name == expected_rule_name
