@@ -150,7 +150,8 @@ class Node:  # pylint: disable=too-many-instance-attributes
         is_array: Whether or not the property is an array (inferred from validation_rules)
         minimum: The minimum value of the property (if numeric) (inferred from validation_rules)
         maximum: The maximum value of the property (if numeric) (inferred from validation_rules)
-        pattern: The regex pattern of the property
+        pattern: The regex pattern of the property (inferred from validation_rules)
+        format: The format of the property (inferred from validation_rules)
     """
 
     name: str
