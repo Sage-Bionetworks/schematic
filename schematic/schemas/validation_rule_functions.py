@@ -8,7 +8,7 @@ from schematic.schemas.constants import JSONSchemaType, ValidationRuleName, Rege
 @dataclass
 class ValidationRule:
     """
-    This class represents a validation rule to be used for creating JSON Schemas
+    This class represents a Schematic validation rule to be used for creating JSON Schemas
 
     Attributes:
         name: The name of the validation rule
