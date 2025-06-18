@@ -18,7 +18,6 @@ from schematic.utils.schema_utils import get_json_schema_log_file_path
 from schematic.utils.io_utils import export_json
 from schematic.schemas.validation_rule_functions import (
     ValidationRuleName,
-    JSONSchemaType,
     filter_unused_inputted_rules,
     check_for_conflicting_inputted_rules,
     check_for_duplicate_inputted_rules,
@@ -238,40 +237,29 @@ def _get_validation_rule_based_fields(
         check_for_duplicate_inputted_rules(validation_rules)
         check_for_conflicting_inputted_rules(validation_rules)
 
+        js_type = get_js_type_from_inputted_rules(validation_rules)
+
         if get_rule_from_inputted_rules(ValidationRuleName.LIST, validation_rules):
             js_is_array = True
 
-        js_type = get_js_type_from_inputted_rules(validation_rules)
+        if get_rule_from_inputted_rules(ValidationRuleName.URL, validation_rules):
+            js_format = "uri"
 
-        url_rule = get_rule_from_inputted_rules(
-            ValidationRuleName.URL, validation_rules
+        if get_rule_from_inputted_rules(ValidationRuleName.DATE, validation_rules):
+            js_format = "date"
+
+        in_range_rule = get_rule_from_inputted_rules(
+            ValidationRuleName.IN_RANGE, validation_rules
         )
-        date_rule = get_rule_from_inputted_rules(
-            ValidationRuleName.DATE, validation_rules
-        )
+        if in_range_rule:
+            js_minimum, js_maximum = get_in_range_parameters_from_inputted_rule(
+                in_range_rule
+            )
+
         regex_rule = get_rule_from_inputted_rules(
             ValidationRuleName.REGEX, validation_rules
         )
-        range_rule = get_rule_from_inputted_rules(
-            ValidationRuleName.IN_RANGE, validation_rules
-        )
-
-        if url_rule:
-            js_type = js_type or JSONSchemaType.STRING.value
-            js_format = "uri"
-
-        if date_rule:
-            js_type = js_type or JSONSchemaType.STRING.value
-            js_format = "date"
-
-        if range_rule:
-            js_type = js_type or JSONSchemaType.NUMBER.value
-            js_minimum, js_maximum = get_in_range_parameters_from_inputted_rule(
-                range_rule
-            )
-
         if regex_rule:
-            js_type = js_type or JSONSchemaType.STRING.value
             js_pattern = get_regex_parameters_from_inputted_rule(regex_rule)
 
     return (
