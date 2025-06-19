@@ -14,7 +14,7 @@ from schematic.utils.schema_utils import parsed_model_as_dataframe
 
 
 class TestDataModelJSONLDParser:
-    """Unit tests for DataModelCSVParser"""
+    """Unit tests for DataModelJSONLDParser"""
 
     def test_parse_jsonld_model_with_column_type(
         self,
