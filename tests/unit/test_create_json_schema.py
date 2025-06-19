@@ -30,6 +30,8 @@ from schematic.schemas.create_json_schema import (
     _set_type_specific_keywords,
 )
 
+from schematic.schemas.constants import JSONSchemaType, JSONSchemaFormat
+
 # pylint: disable=protected-access
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
@@ -150,32 +152,32 @@ class TestJSONSchema:
         ("NoRules", None, False, None, None, None, None),
         # If there is one type validation rule the type is set to the
         #  JSON Schema equivalent of the validation rule
-        ("String", "string", False, None, None, None, None),
+        ("String", JSONSchemaType.STRING, False, None, None, None, None),
         # If there are any list type validation rules then is_array is set to True
         ("List", None, True, None, None, None, None),
         # If there are any list type validation rules and one type validation rule
         #  then is_array is set to True, and the type is set to the
         #  JSON Schema equivalent of the validation rule
-        ("ListString", "string", True, None, None, None, None),
+        ("ListString", JSONSchemaType.STRING, True, None, None, None, None),
         # If there is an inRange rule the min and max will be set
-        ("InRange", "number", False, 50, 100, None, None),
+        ("InRange", JSONSchemaType.NUMBER, False, 50, 100, None, None),
         # If there is a regex rule, then the pattern should be set
-        ("Regex", "string", False, None, None, "[a-f]", None),
+        ("Regex", JSONSchemaType.STRING, False, None, None, "[a-f]", None),
         # If there is a date rule, then the format should be set to "date"
-        ("Date", "string", False, None, None, None, "date"),
+        ("Date", JSONSchemaType.STRING, False, None, None, None, JSONSchemaFormat.DATE),
         # If there is a URL rule, then the format should be set to "uri"
-        ("URL", "string", False, None, None, None, "uri"),
+        ("URL", JSONSchemaType.STRING, False, None, None, None, JSONSchemaFormat.URI),
     ],
     ids=["None", "String", "List", "ListString", "InRange", "Regex", "Date", "URI"],
 )
 def test_node_init(
     node_name: str,
-    expected_type: Optional[str],
+    expected_type: Optional[JSONSchemaType],
     expected_is_array: bool,
     expected_min: Optional[float],
     expected_max: Optional[float],
     expected_pattern: Optional[str],
-    expected_format: Optional[str],
+    expected_format: Optional[JSONSchemaFormat],
     test_nodes: dict[str, Node],
 ) -> None:
     """Tests for Node class"""
@@ -195,32 +197,48 @@ def test_node_init(
         ([], None, False, None, None, None, None),
         # If there is one type validation rule the type is set to the
         #  JSON Schema equivalent of the validation rule
-        (["str"], "string", False, None, None, None, None),
+        (["str"], JSONSchemaType.STRING, False, None, None, None, None),
         # If there are any list type validation rules then is_array is set to True
         (["list"], None, True, None, None, None, None),
         # If there are any list type validation rules and one type validation rule
         #  then is_array is set to True, and the type is set to the
         #  JSON Schema equivalent of the validation rule
-        (["list", "str"], "string", True, None, None, None, None),
+        (["list", "str"], JSONSchemaType.STRING, True, None, None, None, None),
         # If there is an inRange rule the min and max will be set
-        (["inRange 50 100"], "number", False, 50, 100, None, None),
+        (["inRange 50 100"], JSONSchemaType.NUMBER, False, 50, 100, None, None),
         # If there is a regex rule, then the pattern should be set
-        (["regex search [a-f]"], "string", False, None, None, "[a-f]", None),
+        (
+            ["regex search [a-f]"],
+            JSONSchemaType.STRING,
+            False,
+            None,
+            None,
+            "[a-f]",
+            None,
+        ),
         # If there is a date rule, then the format should be set to "date"
-        (["date"], "string", False, None, None, None, "date"),
+        (
+            ["date"],
+            JSONSchemaType.STRING,
+            False,
+            None,
+            None,
+            None,
+            JSONSchemaFormat.DATE,
+        ),
         # If there is a URL rule, then the format should be set to "uri"
-        (["url"], "string", False, None, None, None, "uri"),
+        (["url"], JSONSchemaType.STRING, False, None, None, None, JSONSchemaFormat.URI),
     ],
     ids=["No rules", "String", "List", "ListString", "InRange", "Regex", "Date", "URL"],
 )
 def test_get_validation_rule_based_fields(
     validation_rules: list[str],
-    expected_type: Optional[str],
+    expected_type: Optional[JSONSchemaType],
     expected_is_array: bool,
     expected_min: Optional[float],
     expected_max: Optional[float],
     expected_pattern: Optional[str],
-    expected_format: Optional[str],
+    expected_format: Optional[JSONSchemaFormat],
 ) -> None:
     """Tests for _get_validation_rule_based_fields"""
     (

@@ -16,6 +16,7 @@ from schematic.schemas.validation_rule_functions import (
     _get_name_from_inputted_rule,
     _get_rules_by_name,
 )
+from schematic.schemas.constants import JSONSchemaType
 
 
 @pytest.mark.parametrize(
@@ -159,33 +160,33 @@ def test_get_rule_from_inputted_rules_with_exception() -> None:
 
 
 @pytest.mark.parametrize(
-    "input_rules, expected_rule",
+    "input_rules, expected_js_type",
     [
         ([], None),
         (["list strict"], None),
-        (["str"], "string"),
-        (["str error"], "string"),
+        (["str"], JSONSchemaType.STRING),
+        (["str error"], JSONSchemaType.STRING),
     ],
     ids=["No rules", "List", "String", "String with error param"],
 )
 def test_get_js_type_from_inputted_rules(
     input_rules: list[str],
-    expected_rule: Optional[str],
+    expected_js_type: Optional[JSONSchemaType],
 ) -> None:
     """
     Test for get_js_type_from_inputted_rules
-    Tests that if theres a type rule in the rule list, it's  JSON Schema type will be  returned
+    Tests that if theres only one JSON Schema type amongst all the rules it will be returned
       Otherwise None will be returned
     """
     result = get_js_type_from_inputted_rules(input_rules)
-    assert result == expected_rule
+    assert result == expected_js_type
 
 
 def test_get_js_type_from_inputted_rules_with_exception() -> None:
     """
     Test for get_js_type_from_inputted_rules
-    Tests that if theres a type rule in the rule list, it's JSON Schema type will be  returned
-      Otherwise None will be returned
+    Tests that if there are multiple JSON Schema types amongst all the rules
+      a ValueError will be raised
     """
     with pytest.raises(ValueError):
         get_js_type_from_inputted_rules(["str", "int"])

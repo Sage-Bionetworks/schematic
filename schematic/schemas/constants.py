@@ -19,12 +19,19 @@ class ValidationRuleName(Enum):
 
 
 class JSONSchemaType(Enum):
-    """This enum is allowed values type values for a JSON Schema in a data model"""
+    """This enum is the currently supported JSON Schema types"""
 
     STRING = "string"
     NUMBER = "number"
     INTEGER = "integer"
     BOOLEAN = "boolean"
+
+
+class JSONSchemaFormat(Enum):
+    """This enum is the currently supported JSON Schema formats"""
+
+    DATE = "date"
+    URI = "uri"
 
 
 class RegexModule(Enum):

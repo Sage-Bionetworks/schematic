@@ -206,7 +206,9 @@ def get_rule_from_inputted_rules(
     return inputted_rules[0]
 
 
-def get_js_type_from_inputted_rules(inputted_rules: list[str]) -> Optional[str]:
+def get_js_type_from_inputted_rules(
+    inputted_rules: list[str],
+) -> Optional[JSONSchemaType]:
     """Gets the JSON Schema type from a list of rules
 
     Arguments:
@@ -230,7 +232,7 @@ def get_js_type_from_inputted_rules(inputted_rules: list[str]) -> Optional[str]:
         )
     if len(json_schema_types) == 0:
         return None
-    return list(json_schema_types)[0].value
+    return list(json_schema_types)[0]
 
 
 def get_in_range_parameters_from_inputted_rule(

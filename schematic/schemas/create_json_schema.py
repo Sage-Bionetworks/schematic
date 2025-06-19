@@ -26,6 +26,7 @@ from schematic.schemas.validation_rule_functions import (
     get_js_type_from_inputted_rules,
     get_rule_from_inputted_rules,
 )
+from schematic.schemas.constants import JSONSchemaType, JSONSchemaFormat
 
 
 logger = logging.getLogger(__name__)
@@ -145,12 +146,12 @@ class Node:  # pylint: disable=too-many-instance-attributes
         is_required: Whether or not this node is required
         dependencies: This nodes dependencies
         description: This nodes description, gotten from the comment in the data model
-        type: The type of the property (inferred from validation_rules)
         is_array: Whether or not the property is an array (inferred from validation_rules)
+        type: The type of the property (inferred from validation_rules)
+        format: The format of the property (inferred from validation_rules)
         minimum: The minimum value of the property (if numeric) (inferred from validation_rules)
         maximum: The maximum value of the property (if numeric) (inferred from validation_rules)
         pattern: The regex pattern of the property (inferred from validation_rules)
-        format: The format of the property (inferred from validation_rules)
     """
 
     name: str
@@ -162,12 +163,12 @@ class Node:  # pylint: disable=too-many-instance-attributes
     is_required: bool = field(init=False)
     dependencies: list[str] = field(init=False)
     description: str = field(init=False)
-    type: Optional[str] = field(init=False)
     is_array: bool = field(init=False)
+    type: Optional[JSONSchemaType] = field(init=False)
+    format: Optional[JSONSchemaFormat] = field(init=False)
     minimum: Optional[float] = field(init=False)
     maximum: Optional[float] = field(init=False)
     pattern: Optional[str] = field(init=False)
-    format: Optional[str] = field(init=False)
 
     def __post_init__(self) -> None:
         """
@@ -208,7 +209,12 @@ class Node:  # pylint: disable=too-many-instance-attributes
 def _get_validation_rule_based_fields(
     validation_rules: list[str],
 ) -> tuple[
-    bool, Optional[str], Optional[str], Optional[float], Optional[float], Optional[str]
+    bool,
+    Optional[JSONSchemaType],
+    Optional[JSONSchemaFormat],
+    Optional[float],
+    Optional[float],
+    Optional[str],
 ]:
     """
     Gets the fields for the Node class that are based on the validation rules
@@ -225,42 +231,45 @@ def _get_validation_rule_based_fields(
         - js_maximum: If the type is numeric the JSON Schema maximum
         - js_pattern: If the type is string the JSON Schema pattern
     """
-    js_is_array = False
-    js_type: Optional[str] = None
-    js_format: Optional[str] = None
-    js_minimum: Optional[float] = None
-    js_maximum: Optional[float] = None
-    js_pattern: Optional[str] = None
+    if not validation_rules:
+        return (False, None, None, None, None, None)
 
-    if validation_rules:
-        validation_rules = filter_unused_inputted_rules(validation_rules)
-        check_for_duplicate_inputted_rules(validation_rules)
-        check_for_conflicting_inputted_rules(validation_rules)
+    validation_rules = filter_unused_inputted_rules(validation_rules)
+    check_for_duplicate_inputted_rules(validation_rules)
+    check_for_conflicting_inputted_rules(validation_rules)
 
-        js_type = get_js_type_from_inputted_rules(validation_rules)
+    js_is_array = (
+        get_rule_from_inputted_rules(ValidationRuleName.LIST, validation_rules)
+        is not None
+    )
 
-        if get_rule_from_inputted_rules(ValidationRuleName.LIST, validation_rules):
-            js_is_array = True
+    js_type = get_js_type_from_inputted_rules(validation_rules)
 
-        if get_rule_from_inputted_rules(ValidationRuleName.URL, validation_rules):
-            js_format = "uri"
+    if get_rule_from_inputted_rules(ValidationRuleName.URL, validation_rules):
+        js_format = JSONSchemaFormat.URI
+    elif get_rule_from_inputted_rules(ValidationRuleName.DATE, validation_rules):
+        js_format = JSONSchemaFormat.DATE
+    else:
+        js_format = None
 
-        if get_rule_from_inputted_rules(ValidationRuleName.DATE, validation_rules):
-            js_format = "date"
-
-        in_range_rule = get_rule_from_inputted_rules(
-            ValidationRuleName.IN_RANGE, validation_rules
+    in_range_rule = get_rule_from_inputted_rules(
+        ValidationRuleName.IN_RANGE, validation_rules
+    )
+    if in_range_rule:
+        js_minimum, js_maximum = get_in_range_parameters_from_inputted_rule(
+            in_range_rule
         )
-        if in_range_rule:
-            js_minimum, js_maximum = get_in_range_parameters_from_inputted_rule(
-                in_range_rule
-            )
+    else:
+        js_minimum = None
+        js_maximum = None
 
-        regex_rule = get_rule_from_inputted_rules(
-            ValidationRuleName.REGEX, validation_rules
-        )
-        if regex_rule:
-            js_pattern = get_regex_parameters_from_inputted_rule(regex_rule)
+    regex_rule = get_rule_from_inputted_rules(
+        ValidationRuleName.REGEX, validation_rules
+    )
+    if regex_rule:
+        js_pattern = get_regex_parameters_from_inputted_rule(regex_rule)
+    else:
+        js_pattern = None
 
     return (
         js_is_array,
@@ -818,7 +827,7 @@ def _create_array_property(node: Node) -> Property:
 
     items: Items = {}
     if node.type:
-        items["type"] = node.type
+        items["type"] = node.type.value
         _set_type_specific_keywords(items, node)
 
     array_type_dict: TypeDict = {"type": "array", "title": "array"}
@@ -891,10 +900,10 @@ def _create_simple_property(node: Node) -> Property:
 
     if node.type:
         if node.is_required:
-            prop["type"] = node.type
+            prop["type"] = node.type.value
         else:
             prop["oneOf"] = [
-                {"type": node.type, "title": node.type},
+                {"type": node.type.value, "title": node.type.value},
                 {"type": "null", "title": "null"},
             ]
     elif node.is_required:
@@ -919,4 +928,4 @@ def _set_type_specific_keywords(schema: dict[str, Any], node: Node) -> None:
     if node.pattern is not None:
         schema["pattern"] = node.pattern
     if node.format is not None:
-        schema["format"] = node.format
+        schema["format"] = node.format.value
