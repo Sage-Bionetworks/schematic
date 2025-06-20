@@ -13,7 +13,7 @@ from schematic.schemas.json_schema_validation_rule_functions import (
     get_regex_parameters_from_inputted_rule,
     get_validation_rule_names_from_inputted_rules,
     _get_parameters_from_inputted_rule,
-    _get_names_from_inputted_rules,
+    get_names_from_inputted_rules,
     _get_name_from_inputted_rule,
     _get_rules_by_name,
 )
@@ -91,28 +91,31 @@ def test_check_for_conflicting_inputted_rules(
 
 
 @pytest.mark.parametrize(
-    "input_list",
+    "input_list, expected_msg",
     [
-        (["str", "int"]),
-        (["date", "url"]),
-        (["inRange", "str"]),
-        (["regex", "int"]),
+        (["str", "int"], "Validation rule: str has conflicting rules: \\['int'\\]"),
+        (["date", "url"], "Validation rule: date has conflicting rules: \\['url'\\]"),
+        (["regex", "int"], "Validation rule: regex has conflicting rules: \\['int'\\]"),
+        (["inRange", "str"], "Validation rule: inRange has conflicting rules: \\['str'\\]"),
+        (["inRange", "str", "regex"], "Validation rule: inRange has conflicting rules: \\['regex', 'str'\\]"),
     ],
     ids=[
         "Multiple type rules",
         "Multiple format rules",
-        "InRange and str rules",
         "Regex and int rules",
+        "InRange and str rules",
+        "InRange and multiple conflicting rules"
     ],
 )
 def test_check_for_conflicting_inputted_rules_with_conflicts(
     input_list: list[str],
+    expected_msg: str
 ) -> None:
     """
     Test for check_for_conflicting_inputted_rules
     Tests that rules are in conflict with each other and a ValueError is raised
     """
-    with pytest.raises(ValueError, match="Validation rule"):
+    with pytest.raises(ValueError, match=expected_msg):
         check_for_conflicting_inputted_rules(input_list)
 
 
@@ -331,11 +334,11 @@ def test_get_names_from_inputted_rules(
     rules: list[str], expected_rule_names: list[str]
 ) -> None:
     """
-    Test for _get_names_from_inputted_rules
+    Test for get_names_from_inputted_rules
     Tests that the rule name is returned for each rule
     (A rule is a string, that when split by spaces, the first item is the name)
     """
-    result = _get_names_from_inputted_rules(rules)
+    result = get_names_from_inputted_rules(rules)
     assert result == expected_rule_names
 
 

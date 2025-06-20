@@ -172,7 +172,7 @@ def check_for_duplicate_inputted_rules(inputted_rules: list[str]) -> None:
     Raises:
         ValueError: If there are multiple rules with the same name
     """
-    rule_names = _get_names_from_inputted_rules(inputted_rules)
+    rule_names = get_names_from_inputted_rules(inputted_rules)
     if sorted(rule_names) != sorted(list(set(rule_names))):
         raise ValueError("Validation Rules contains duplicates: ", inputted_rules)
 
@@ -186,13 +186,13 @@ def check_for_conflicting_inputted_rules(inputted_rules: list[str]) -> None:
     Raises:
         ValueError: If a rule is in conflict with any other rule
     """
-    rule_names = _get_names_from_inputted_rules(inputted_rules)
+    rule_names = get_names_from_inputted_rules(inputted_rules)
     rules: list[ValidationRule] = _get_rules_by_name(rule_names)
     for rule in rules:
         incompatible_rule_names = [rule.value for rule in rule.incompatible_rules]
-        conflicting_rule_names = list(
+        conflicting_rule_names = sorted(list(
             set(rule_names).intersection(incompatible_rule_names)
-        )
+        ))
         if conflicting_rule_names:
             msg = (
                 f"Validation rule: {rule.name.value} "
@@ -240,7 +240,7 @@ def get_js_type_from_inputted_rules(
     Returns:
         The JSON Schema type if a type rule is found, otherwise None
     """
-    rule_names = _get_names_from_inputted_rules(inputted_rules)
+    rule_names = get_names_from_inputted_rules(inputted_rules)
     validation_rules = _get_rules_by_name(rule_names)
     json_schema_types = {
         rule.js_type for rule in validation_rules if rule.js_type is not None
@@ -332,9 +332,21 @@ def get_validation_rule_names_from_inputted_rules(
     """
     validation_rules = [
         _VALIDATION_RULES.get(rule_name_string)
-        for rule_name_string in _get_names_from_inputted_rules(inputted_rules)
+        for rule_name_string in get_names_from_inputted_rules(inputted_rules)
     ]
     return [rule.name for rule in validation_rules if rule is not None]
+
+
+def get_names_from_inputted_rules(inputted_rules: list[str]) -> list[str]:
+    """Gets the names from a list of inputted rules
+
+    Arguments:
+        inputted_rules: A list of inputted validation rules form a data model
+
+    Returns:
+        The names of the inputted rules
+    """
+    return [_get_name_from_inputted_rule(rule) for rule in inputted_rules]
 
 
 def _get_parameters_from_inputted_rule(inputted_rule: str) -> Optional[dict[str, str]]:
@@ -357,16 +369,6 @@ def _get_parameters_from_inputted_rule(inputted_rule: str) -> Optional[dict[str,
     return None
 
 
-def _get_names_from_inputted_rules(inputted_rules: list[str]) -> list[str]:
-    """Gets the names from a list of inputted rules
-
-    Arguments:
-        inputted_rules: A list of inputted validation rules form a data model
-
-    Returns:
-        The names of the inputted rules
-    """
-    return [_get_name_from_inputted_rule(rule) for rule in inputted_rules]
 
 
 def _get_name_from_inputted_rule(inputted_rule: str) -> str:
