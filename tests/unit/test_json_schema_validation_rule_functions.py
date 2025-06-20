@@ -11,6 +11,7 @@ from schematic.schemas.json_schema_validation_rule_functions import (
     get_js_type_from_inputted_rules,
     get_in_range_parameters_from_inputted_rule,
     get_regex_parameters_from_inputted_rule,
+    get_validation_rule_names_from_inputted_rules,
     _get_parameters_from_inputted_rule,
     _get_names_from_inputted_rules,
     _get_name_from_inputted_rule,
@@ -249,6 +250,34 @@ def test_get_regex_parameters_from_inputted_rule(
     """
     result = get_regex_parameters_from_inputted_rule(input_rule)
     assert result == expected_pattern
+
+@pytest.mark.parametrize(
+    "input_rules, expected_rule_names",
+    [
+        ([], []),
+        (["not_a_rule"], []),
+        (["str"], [ValidationRuleName.STR]),
+        (["str error"], [ValidationRuleName.STR]),
+        (["str", "regex", "not_a_rule"], [ValidationRuleName.STR, ValidationRuleName.REGEX])
+    ],
+    ids=[
+        "Empty list",
+        "No actual rules",
+        "String rule",
+        "String rule with parameters",
+        "Multiple rules"
+    ],
+)
+def test_get_validation_rule_names_from_inputted_rules(
+    input_rules: list[str],
+    expected_rule_names: list[ValidationRuleName]
+) -> None:
+    """
+    Test for get_validation_rule_names_from_inputted_rules
+    Tests that for each input rule, the ValidationRuleName is returned if it exists
+    """
+    result = get_validation_rule_names_from_inputted_rules(input_rules)
+    assert result == expected_rule_names
 
 
 @pytest.mark.parametrize(

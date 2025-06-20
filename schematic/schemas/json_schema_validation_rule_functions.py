@@ -115,7 +115,7 @@ _VALIDATION_RULES = {
             ValidationRuleName.STR,
             ValidationRuleName.BOOL,
             ValidationRuleName.INT,
-            ValidationRuleName.NUM
+            ValidationRuleName.NUM,
         ],
     ),
     "int": ValidationRule(
@@ -128,7 +128,7 @@ _VALIDATION_RULES = {
             ValidationRuleName.STR,
             ValidationRuleName.BOOL,
             ValidationRuleName.NUM,
-            ValidationRuleName.FLOAT
+            ValidationRuleName.FLOAT,
         ],
     ),
     "num": ValidationRule(
@@ -141,7 +141,7 @@ _VALIDATION_RULES = {
             ValidationRuleName.STR,
             ValidationRuleName.BOOL,
             ValidationRuleName.INT,
-            ValidationRuleName.FLOAT
+            ValidationRuleName.FLOAT,
         ],
     ),
 }
@@ -317,6 +317,24 @@ def get_regex_parameters_from_inputted_rule(
     if module == RegexModule.MATCH.value and not pattern.startswith("^"):
         return f"^{pattern}"
     return pattern
+
+
+def get_validation_rule_names_from_inputted_rules(
+    inputted_rules: list[str],
+) -> list[ValidationRuleName]:
+    """Gets a list of ValidationRuleNames from a list of inputted validation rules
+
+    Args:
+        inputted_rules: A list of inputted validation rules form a data model
+
+    Returns:
+        A list of ValidationRuleNames
+    """
+    validation_rules = [
+        _VALIDATION_RULES.get(rule_name_string)
+        for rule_name_string in _get_names_from_inputted_rules(inputted_rules)
+    ]
+    return [rule.name for rule in validation_rules if rule is not None]
 
 
 def _get_parameters_from_inputted_rule(inputted_rule: str) -> Optional[dict[str, str]]:

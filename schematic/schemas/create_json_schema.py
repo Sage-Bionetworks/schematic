@@ -25,6 +25,7 @@ from schematic.schemas.json_schema_validation_rule_functions import (
     get_regex_parameters_from_inputted_rule,
     get_js_type_from_inputted_rules,
     get_rule_from_inputted_rules,
+    get_validation_rule_names_from_inputted_rules,
 )
 from schematic.schemas.constants import JSONSchemaType, JSONSchemaFormat
 
@@ -245,17 +246,15 @@ def _get_validation_rule_based_fields(
     validation_rules = filter_unused_inputted_rules(validation_rules)
     check_for_duplicate_inputted_rules(validation_rules)
     check_for_conflicting_inputted_rules(validation_rules)
+    validation_rule_names = get_validation_rule_names_from_inputted_rules(validation_rules)
 
-    js_is_array = (
-        get_rule_from_inputted_rules(ValidationRuleName.LIST, validation_rules)
-        is not None
-    )
+    js_is_array = ValidationRuleName.LIST in validation_rule_names
 
     js_type = get_js_type_from_inputted_rules(validation_rules)
 
-    if get_rule_from_inputted_rules(ValidationRuleName.URL, validation_rules):
+    if ValidationRuleName.URL in validation_rule_names:
         js_format = JSONSchemaFormat.URI
-    elif get_rule_from_inputted_rules(ValidationRuleName.DATE, validation_rules):
+    elif ValidationRuleName.DATE in validation_rule_names:
         js_format = JSONSchemaFormat.DATE
     else:
         js_format = None
