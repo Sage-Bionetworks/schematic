@@ -86,8 +86,8 @@ An attribute without a specified type::
     }
 
 
-Validation
-----------
+Validation Checks
+------------------
 
 Certain validation checks from schematic are also present in JSONSchema validation.
 
@@ -122,8 +122,8 @@ An attribute with valid values specified::
       "title": "Check List Enum"
     }
 
-Required
-^^^^^^^^^^^^^^
+Required Attributes
+^^^^^^^^^^^^^^^^^^^^^
 For required attributes, the JSONSchema will have an additional ``not: {"type": "null"}`` key value pair added to the property.
 
 A required attribute::
@@ -195,8 +195,8 @@ An attribute with a ``URL`` validation rule specified::
     }
 
 
-Conditionals
--------------
+Conditional Dependencies
+-------------------------
 
 Conditional properties will be added to the JSONSchema if present in the data model. The conditional formatting will look like a series of ``"if": {}, "then": {}`` key dictionary pairs, in addition to the regular attribute dictionaries.
 
