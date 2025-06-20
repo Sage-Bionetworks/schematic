@@ -190,9 +190,9 @@ def check_for_conflicting_inputted_rules(inputted_rules: list[str]) -> None:
     rules: list[ValidationRule] = _get_rules_by_name(rule_names)
     for rule in rules:
         incompatible_rule_names = [rule.value for rule in rule.incompatible_rules]
-        conflicting_rule_names = sorted(list(
-            set(rule_names).intersection(incompatible_rule_names)
-        ))
+        conflicting_rule_names = sorted(
+            list(set(rule_names).intersection(incompatible_rule_names))
+        )
         if conflicting_rule_names:
             msg = (
                 f"Validation rule: {rule.name.value} "
@@ -367,8 +367,6 @@ def _get_parameters_from_inputted_rule(inputted_rule: str) -> Optional[dict[str,
     if rule and rule.parameters:
         return dict(zip(rule.parameters, rule_values))
     return None
-
-
 
 
 def _get_name_from_inputted_rule(inputted_rule: str) -> str:

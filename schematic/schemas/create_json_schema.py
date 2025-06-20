@@ -26,7 +26,7 @@ from schematic.schemas.json_schema_validation_rule_functions import (
     get_js_type_from_inputted_rules,
     get_rule_from_inputted_rules,
     get_validation_rule_names_from_inputted_rules,
-    get_names_from_inputted_rules
+    get_names_from_inputted_rules,
 )
 from schematic.schemas.constants import JSONSchemaType, JSONSchemaFormat
 
@@ -248,7 +248,9 @@ def _get_validation_rule_based_fields(
     validation_rule_name_strings = get_names_from_inputted_rules(validation_rules)
     check_for_duplicate_inputted_rules(validation_rule_name_strings)
     check_for_conflicting_inputted_rules(validation_rule_name_strings)
-    validation_rule_names = get_validation_rule_names_from_inputted_rules(validation_rules)
+    validation_rule_names = get_validation_rule_names_from_inputted_rules(
+        validation_rules
+    )
 
     js_is_array = ValidationRuleName.LIST in validation_rule_names
 
