@@ -2,7 +2,7 @@
 
 from typing import Optional, Union
 import pytest
-from schematic.schemas.validation_rule_functions import (
+from schematic.schemas.json_schema_validation_rule_functions import (
     ValidationRuleName,
     filter_unused_inputted_rules,
     check_for_duplicate_inputted_rules,

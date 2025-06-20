@@ -16,7 +16,7 @@ from dataclasses import dataclass, field, asdict
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.utils.schema_utils import get_json_schema_log_file_path
 from schematic.utils.io_utils import export_json
-from schematic.schemas.validation_rule_functions import (
+from schematic.schemas.json_schema_validation_rule_functions import (
     ValidationRuleName,
     filter_unused_inputted_rules,
     check_for_conflicting_inputted_rules,
