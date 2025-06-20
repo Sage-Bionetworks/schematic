@@ -78,12 +78,9 @@ An attribute with a specified type::
 
 An attribute without a specified type::
 
-    "CheckDate": {
+    "YearofBirth": {
       "description": "TBD",
-      "not": {
-        "type": "null"
-      },
-      "title": "Check Date"
+      "title": "Year of Birth"
     }
 
 
