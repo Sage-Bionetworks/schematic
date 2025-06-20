@@ -219,6 +219,14 @@ def _get_validation_rule_based_fields(
     """
     Gets the fields for the Node class that are based on the validation rules
 
+    JSON Schema docs:
+
+    Array: https://json-schema.org/understanding-json-schema/reference/array
+    Types: https://json-schema.org/understanding-json-schema/reference/type#type-specific-keywords
+    Format: https://json-schema.org/understanding-json-schema/reference/type#format
+    Pattern: https://json-schema.org/understanding-json-schema/reference/string#regexp
+    Min/max: https://json-schema.org/understanding-json-schema/reference/numeric#range
+
     Arguments:
         validation_rules: A list of input validation rules
 

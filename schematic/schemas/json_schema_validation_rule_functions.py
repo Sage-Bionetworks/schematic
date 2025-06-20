@@ -1,4 +1,15 @@
-"""This module contains functions for interacting with validation rules for JSON Schema creation"""
+"""
+This module contains functions for interacting with validation rules for JSON Schema creation
+
+JSON Schema docs:
+
+Array: https://json-schema.org/understanding-json-schema/reference/array
+Types: https://json-schema.org/understanding-json-schema/reference/type#type-specific-keywords
+Format: https://json-schema.org/understanding-json-schema/reference/type#format
+Pattern: https://json-schema.org/understanding-json-schema/reference/string#regexp
+Min/max: https://json-schema.org/understanding-json-schema/reference/numeric#range
+
+"""
 
 from dataclasses import dataclass
 from typing import Optional
