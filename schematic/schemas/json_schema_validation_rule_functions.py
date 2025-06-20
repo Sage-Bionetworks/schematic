@@ -50,6 +50,7 @@ _VALIDATION_RULES = {
         name=ValidationRuleName.DATE,
         js_type=JSONSchemaType.STRING,
         incompatible_rules=[
+            ValidationRuleName.IN_RANGE,
             ValidationRuleName.URL,
             ValidationRuleName.INT,
             ValidationRuleName.FLOAT,
@@ -61,6 +62,7 @@ _VALIDATION_RULES = {
         name=ValidationRuleName.URL,
         js_type=JSONSchemaType.STRING,
         incompatible_rules=[
+            ValidationRuleName.IN_RANGE,
             ValidationRuleName.DATE,
             ValidationRuleName.INT,
             ValidationRuleName.FLOAT,
@@ -72,6 +74,7 @@ _VALIDATION_RULES = {
         name=ValidationRuleName.REGEX,
         js_type=JSONSchemaType.STRING,
         incompatible_rules=[
+            ValidationRuleName.IN_RANGE,
             ValidationRuleName.INT,
             ValidationRuleName.FLOAT,
             ValidationRuleName.BOOL,
@@ -111,6 +114,8 @@ _VALIDATION_RULES = {
             ValidationRuleName.REGEX,
             ValidationRuleName.STR,
             ValidationRuleName.BOOL,
+            ValidationRuleName.INT,
+            ValidationRuleName.NUM
         ],
     ),
     "int": ValidationRule(
@@ -122,6 +127,8 @@ _VALIDATION_RULES = {
             ValidationRuleName.REGEX,
             ValidationRuleName.STR,
             ValidationRuleName.BOOL,
+            ValidationRuleName.NUM,
+            ValidationRuleName.FLOAT
         ],
     ),
     "num": ValidationRule(
@@ -133,6 +140,8 @@ _VALIDATION_RULES = {
             ValidationRuleName.REGEX,
             ValidationRuleName.STR,
             ValidationRuleName.BOOL,
+            ValidationRuleName.INT,
+            ValidationRuleName.FLOAT
         ],
     ),
 }
