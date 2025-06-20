@@ -9,6 +9,7 @@ JSONSchema Components and How to Set from Data Model
 ====================================================
 
 This document serves as a guide on what features in a CSV data model map to which components in a JSONSchema file. All examples of JSONSchema files were taken from this `example data model <https://github.com/Sage-Bionetworks/schematic/blob/develop/tests/data/example.model.column_type_component.csv>`_.
+For documentation on how to generate a JSONSchema file, see the :ref:`cli documentation<generate-jsonschema>`.
 
 Property Keys
 -------------
