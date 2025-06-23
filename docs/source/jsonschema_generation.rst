@@ -103,6 +103,7 @@ Type Checks
 ^^^^^^^^^^^^^^
 
 Types discussed above are enforced in JSONSchema validation.
+For more information about these rules see :ref:`the documentation for type rules<Type Validation Type>`.
 
 Valid Values
 ^^^^^^^^^^^^^^^
@@ -161,6 +162,7 @@ An attribute with an ``inRange`` validation rule::
       "type": "number"
     }
 
+For more information about the ``inRange`` rule see :ref:`the rule documentation<inRange>`.
 
 ``regex`` module
 """""""""""""""""""""
@@ -174,6 +176,10 @@ An attribute with a ``regex`` module specified::
       "type": "string",
       "title": "Check Regex Format"
     }
+
+
+For more information about the ``regex`` module rule see :ref:`the rule documentation<Regex Validation Type>`.
+
 
 ``date``
 """""""""""""
@@ -189,6 +195,9 @@ An attribute with a ``date`` validation rule specified::
       "title": "Check Date"
     }
 
+For more information about the ``date`` rule see :ref:`the rule documentation<date>`.
+
+
 ``URL``
 """""""""""""
 If the ``URL`` validation rule is specified for an attribute, the JSONSchema will include a ``format: uri`` key value pair.
@@ -201,6 +210,8 @@ An attribute with a ``URL`` validation rule specified::
       "format": "uri",
       "title": "Check URL"
     }
+
+For more information about the ``URL`` rule see :ref:`the rule documentation<URL Validation Type>`.
 
 
 Conditional Dependencies
