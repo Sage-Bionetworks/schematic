@@ -39,12 +39,22 @@ An attribute without a description::
 
 Type
 -------
-Multiple types can be enforced in JSONSchema. Currently allowed types are: ``string``, ``numnber``, ``integer``, and ``boolean``.
-Types can be set explicitly in the data model or inferred from an attribute's specified validation rules.
+Multiple types can be enforced in JSONSchema. Currently allowed types are in the table below. Types can be set explicitly in the data model or inferred from an attribute's specified validation rules.
+
+.. list-table:: Currently Allowed Types
+    :widths: 60
+    :header-rows: 1
+
+    * - Type
+    * - ``string``
+    * - ``number``
+    * - ``integer``
+    * - ``boolean``
+
 
 Explicit Type Setting
 ^^^^^^^^^^^^^^^^^^^^^^
-To explicitly set the type of a property in the JSONSchema, add the ``columnType`` column to the data model and specify one of the allowed types in that column for the appropriate attribute's row. It is acceptable to leave rows blank for attributes that you do not wish to specify type for.
+To explicitly set the type of a property in the JSONSchema, add the ``olumnType`` column to the data model and specify one of the allowed types in that column for the appropriate attribute's row. It is acceptable to leave rows blank for attributes that you do not wish to specify type for.
 
 
 Implicit Type Inference
