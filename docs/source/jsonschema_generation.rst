@@ -139,7 +139,7 @@ Validation Rules
 
 ``inRange``
 """"""""""""""
-Aside from the type validation checks, the ``inRange`` rule will also be translated to the JSONSchema if provided for an attribute. The attribute must be a numberical type, and the ``maximum`` and ``minimum`` keys will be added to the JSONSchema for the property, with the values taken from the range specified in the data model.
+Aside from the type validation checks, the ``inRange`` rule will also be translated to the JSONSchema if provided for an attribute. The attribute must be a ``number`` type, and the ``maximum`` and ``minimum`` keys will be added to the JSONSchema for the property, with the values taken from the range specified in the data model.
 
 An attribute with an ``inRange`` validation rule::
 
