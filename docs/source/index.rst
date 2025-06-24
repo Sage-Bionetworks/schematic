@@ -155,3 +155,4 @@ For the entire Python API reference documentation, you can visit the docs here: 
    troubleshooting
    cli_reference
    linkml
+   jsonschema_generation
