@@ -166,9 +166,19 @@ For more information about the ``inRange`` rule see :ref:`the rule documentation
 
 ``regex`` module
 """""""""""""""""""""
-If the ``regex`` module is specified for an attribute, the JSONSchema will include a ``pattern`` keyword with the value being the regex string provided in the data model. Note that in cases where ``regex match`` is the specified rule, the character ``^`` will be pre-prended to the regex string, which enables the ``match`` functionality on the backend.
+If the ``regex`` module is specified for an attribute, the JSONSchema will include a ``pattern`` keyword with the value being the regex string provided in the data model. Note that in cases where ``regex match`` is the specified rule, the character ``^`` will be automatically pre-prended to the regex string, which enables the ``match`` functionality on the backend. This caret does not need to be added within the data model to enable this functionality.
 
-An attribute with a ``regex`` module specified::
+For example, an attribute with a ``regex`` rule ``regex search [a-f]`` specified will yield a property like::
+
+    "CheckRegexSingle": {
+      "description": "TBD",
+      "pattern": "[a-f]",
+      "type": "string",
+      "title": "Check Regex Single"
+    },
+
+
+While an attribute with a ``regex`` rule ``regex match [a-f]`` specified will yield a property like::
 
     "CheckRegexFormat": {
       "description": "TBD",
@@ -176,6 +186,7 @@ An attribute with a ``regex`` module specified::
       "type": "string",
       "title": "Check Regex Format"
     }
+
 
 
 For more information about the ``regex`` module rule see :ref:`the rule documentation<Regex Validation Type>`.
