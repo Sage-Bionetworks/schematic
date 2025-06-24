@@ -112,6 +112,24 @@ This will show up in the JSONSchema as an ``enum`` key with a list of valid valu
 
 An attribute with valid values specified::
 
+    "FileFormat": {
+      "description": "TBD",
+      "oneOf": [
+        {
+          "enum": [
+            "BAM",
+            "CRAM",
+            "CSV/TSV",
+            "FASTQ"
+          ],
+          "title": "enum"
+        }
+      ],
+      "title": "File Format"
+    },
+
+An attribute with valid values specified along with the ``list`` rule::
+
     "CheckListEnum": {
       "description": "TBD",
       "oneOf": [
