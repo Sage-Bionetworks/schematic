@@ -80,8 +80,9 @@ Option 2: Use the API
 
    - **schema_url**: The URL of your data model.
      - If your data model is hosted on **GitHub**, the URL should follow this format:
-       - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
-       - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
+
+      - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
+      - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
    - **data_type**: The data type or schema model for your manifest (e.g., `"Patient"`, `"Biospecimen"`).
        - You can specify multiple data types or enter `"all manifests"` to generate manifests for all available data types.

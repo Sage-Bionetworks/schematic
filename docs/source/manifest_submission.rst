@@ -17,7 +17,7 @@ Ensure you have a Synapse account and set up Synapse configuration file correctl
   Familiarize yourself with key concepts outlined on the :ref:`index` of the documentation.
 
 - **Configuration File**:
-  For more details on configuring Schematic, refer to the :ref:`configure schematic` section.
+  For more details on configuring Schematic, refer to the :ref:`configuration` section.
 
 - **Obtain a manifest**:
   Please obtain a manifest by following the documentation of generating a manifest.
