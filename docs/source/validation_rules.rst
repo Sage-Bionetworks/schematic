@@ -27,7 +27,7 @@ Validation Types
 
 Validation rules are just one type of validation run by Schematic to ensure that submitted manifests conform to the expectations set by the data model.
 
-This page details how to use validation rules, but please refer to `this documentation <https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/3302785036>`_ to learn about the other types of validation.
+This page details how to use validation rules, but please refer to `this documentation on validation types <https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/3302785036>`_ to learn about the other types of validation.
 
 Rule Implementation
 ===================
@@ -119,7 +119,7 @@ regex
   `regex101.com <https://regex101.com/>`_ is a tool that can be used to build and validate the behavior of your regular expression
   If the module specified is match for a given attribute's validation rule, regex match validation will be preformed in Google Sheets (but not Excel) real-time during metadata entry.
   The ``strict_validation parameter`` (in the `config.yml <https://github.com/Sage-Bionetworks/schematic/blob/develop/config_example.yml>`_ file for CLI or in manifest generation REST API calls) sets whether to stop the user from entering incorrect information in a Google Sheets cell (``strict_validation = true``) or simply throws a warning (``strict_validation = false``). Default: ``true``.
-  ``regex`` validation in Google Sheets is different than standard regex validation (for example, it does not support validation of digits). See `this documentation <https://github.com/google/re2/wiki/Syntax>`_ for details on Google regex syntax. It is up to the user/modeler to validate that ``regex match`` is working in their manifests, as intended. This is especially important if the ``strict_validation`` parameter is set to ``True`` as users will be blocked from entering incorrect data. If you are using Google Sheets and do not want to use real-time validation use ``regex search`` instead of ``regex match``.
+  ``regex`` validation in Google Sheets is different than standard regex validation (for example, it does not support validation of digits). See `Google Regex Syntax documentation <https://github.com/google/re2/wiki/Syntax>`_ for details on Google regex syntax. It is up to the user/modeler to validate that ``regex match`` is working in their manifests, as intended. This is especially important if the ``strict_validation`` parameter is set to ``True`` as users will be blocked from entering incorrect data. If you are using Google Sheets and do not want to use real-time validation use ``regex search`` instead of ``regex match``.
 
 
 Type Validation Type
