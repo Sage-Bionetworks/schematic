@@ -241,46 +241,51 @@ def _get_validation_rule_based_fields(
         - js_maximum: If the type is numeric the JSON Schema maximum
         - js_pattern: If the type is string the JSON Schema pattern
     """
-    if not validation_rules:
-        return (False, None, None, None, None, None)
+    js_is_array = False
+    js_type = None
+    js_format = None
+    js_minimum = None
+    js_maximum = None
+    js_pattern = None
 
-    validation_rules = filter_unused_inputted_rules(validation_rules)
-    validation_rule_name_strings = get_names_from_inputted_rules(validation_rules)
-    check_for_duplicate_inputted_rules(validation_rule_name_strings)
-    check_for_conflicting_inputted_rules(validation_rule_name_strings)
-    validation_rule_names = get_validation_rule_names_from_inputted_rules(
-        validation_rules
-    )
-
-    js_is_array = ValidationRuleName.LIST in validation_rule_names
-
-    js_type = get_js_type_from_inputted_rules(validation_rules)
-
-    if ValidationRuleName.URL in validation_rule_names:
-        js_format = JSONSchemaFormat.URI
-    elif ValidationRuleName.DATE in validation_rule_names:
-        js_format = JSONSchemaFormat.DATE
-    else:
-        js_format = None
-
-    in_range_rule = get_rule_from_inputted_rules(
-        ValidationRuleName.IN_RANGE, validation_rules
-    )
-    if in_range_rule:
-        js_minimum, js_maximum = get_in_range_parameters_from_inputted_rule(
-            in_range_rule
+    if validation_rules:
+        validation_rules = filter_unused_inputted_rules(validation_rules)
+        validation_rule_name_strings = get_names_from_inputted_rules(validation_rules)
+        check_for_duplicate_inputted_rules(validation_rule_name_strings)
+        check_for_conflicting_inputted_rules(validation_rule_name_strings)
+        validation_rule_names = get_validation_rule_names_from_inputted_rules(
+            validation_rules
         )
-    else:
-        js_minimum = None
-        js_maximum = None
 
-    regex_rule = get_rule_from_inputted_rules(
-        ValidationRuleName.REGEX, validation_rules
-    )
-    if regex_rule:
-        js_pattern = get_regex_parameters_from_inputted_rule(regex_rule)
-    else:
-        js_pattern = None
+        js_is_array = ValidationRuleName.LIST in validation_rule_names
+
+        js_type = get_js_type_from_inputted_rules(validation_rules)
+
+        if ValidationRuleName.URL in validation_rule_names:
+            js_format = JSONSchemaFormat.URI
+        elif ValidationRuleName.DATE in validation_rule_names:
+            js_format = JSONSchemaFormat.DATE
+        else:
+            js_format = None
+
+        in_range_rule = get_rule_from_inputted_rules(
+            ValidationRuleName.IN_RANGE, validation_rules
+        )
+        if in_range_rule:
+            js_minimum, js_maximum = get_in_range_parameters_from_inputted_rule(
+                in_range_rule
+            )
+        else:
+            js_minimum = None
+            js_maximum = None
+
+        regex_rule = get_rule_from_inputted_rules(
+            ValidationRuleName.REGEX, validation_rules
+        )
+        if regex_rule:
+            js_pattern = get_regex_parameters_from_inputted_rule(regex_rule)
+        else:
+            js_pattern = None
 
     return (
         js_is_array,
@@ -932,11 +937,10 @@ def _set_type_specific_keywords(schema: dict[str, Any], node: Node) -> None:
         schema: The schema to set keywords on
         node (Node): The node the corresponds to the property which is being set in the JSON Schema
     """
-    if node.minimum is not None:
-        schema["minimum"] = node.minimum
-    if node.maximum is not None:
-        schema["maximum"] = node.maximum
-    if node.pattern is not None:
-        schema["pattern"] = node.pattern
+    for attr in ["minimum", "maximum", "pattern"]:
+        value = getattr(node, attr)
+        if value is not None:
+            schema[attr] = value
+
     if node.format is not None:
         schema["format"] = node.format.value
