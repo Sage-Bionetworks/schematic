@@ -54,7 +54,7 @@ Multiple types can be enforced in JSONSchema. Currently allowed types are in the
 
 Explicit Type Setting
 ^^^^^^^^^^^^^^^^^^^^^^
-To explicitly set the type of a property in the JSONSchema, add the ``olumnType`` column to the data model and specify one of the allowed types in that column for the appropriate attribute's row. It is acceptable to leave rows blank for attributes that you do not wish to specify type for.
+To explicitly set the type of a property in the JSONSchema, add the ``columnType`` column to the data model and specify one of the allowed types in that column for the appropriate attribute's row. It is acceptable to leave rows blank for attributes that you do not wish to specify type for.
 
 
 Implicit Type Inference
