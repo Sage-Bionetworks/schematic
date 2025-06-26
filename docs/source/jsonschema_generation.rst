@@ -72,8 +72,8 @@ num                  number
 string               string
 inRange              integer or number
 date                 string
-datetime             format: date
-URL                  format: uri
+datetime             string
+URL                  string
 ===================  ================
 
 An attribute with a specified type::
@@ -93,6 +93,17 @@ An attribute without a specified type::
       "title": "Year of Birth"
     }
 
+
+Implicit Format Inference
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+Formats are also inferred from the validation rules set for an attribute. The following validation rules map to the indicated JSONSchema formats:
+
+===================  =================
+Validation Rule      JSONSchema Format
+===================  =================
+datetime             format: date
+URL                  format: uri
+===================  =================
 
 Validation Checks
 ------------------
