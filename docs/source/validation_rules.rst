@@ -27,7 +27,7 @@ Validation Types
 
 Validation rules are just one type of validation run by Schematic to ensure that submitted manifests conform to the expectations set by the data model.
 
-This page details how to use Validation Rules, but please refer to `this documentation <https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/3302785036>`_ to learn about the other types of validation.
+This page details how to use validation rules, but please refer to `this documentation <https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/3302785036>`_ to learn about the other types of validation.
 
 Rule Implementation
 ===================
