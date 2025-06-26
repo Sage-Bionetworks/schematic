@@ -54,7 +54,7 @@ Multiple types can be enforced in JSONSchema. Currently allowed types are in the
 
 Explicit Type Setting
 ^^^^^^^^^^^^^^^^^^^^^^
-To explicitly set the type of a property in the JSONSchema, add the ``olumnType`` column to the data model and specify one of the allowed types in that column for the appropriate attribute's row. It is acceptable to leave rows blank for attributes that you do not wish to specify type for.
+To explicitly set the type of a property in the JSONSchema, add the ``columnType`` column to the data model and specify one of the allowed types in that column for the appropriate attribute's row. It is acceptable to leave rows blank for attributes that you do not wish to specify type for.
 
 
 Implicit Type Inference
@@ -72,8 +72,8 @@ num                  number
 string               string
 inRange              integer or number
 date                 string
-datetime             format: date
-URL                  format: uri
+datetime             string
+URL                  string
 ===================  ================
 
 An attribute with a specified type::
@@ -92,6 +92,18 @@ An attribute without a specified type::
       "description": "TBD",
       "title": "Year of Birth"
     }
+
+
+Implicit Format Inference
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+Formats are also inferred from the validation rules set for an attribute. The following validation rules map to the indicated JSONSchema formats:
+
+====================  =================
+Validation Rule       JSONSchema Format
+====================  =================
+datetime              format: date
+URL                   format: uri
+====================  =================
 
 
 Validation Checks
@@ -149,9 +161,11 @@ An attribute with valid values specified along with the ``list`` rule::
       "title": "Check List Enum"
     }
 
+For more information about the ``list`` rule see :ref:`the rule documentation<list validation type>`.
+
 Required Attributes
 ^^^^^^^^^^^^^^^^^^^^^
-For required attributes, the JSONSchema will have an additional ``not: {"type": "null"}`` key value pair added to the property.
+For required attributes with no type, the JSONSchema will have an additional ``not: {"type": "null"}`` key value pair added to the property.
 
 A required attribute::
 
@@ -168,7 +182,7 @@ Validation Rules
 
 ``inRange``
 """"""""""""""
-Aside from the type validation checks, the ``inRange`` rule will also be translated to the JSONSchema if provided for an attribute. The attribute must be a ``number`` type, and the ``maximum`` and ``minimum`` keys will be added to the JSONSchema for the property, with the values taken from the range specified in the data model.
+Aside from the type validation checks, the ``inRange`` rule will also be translated to the JSONSchema if provided for an attribute. The attribute must be a ``number`` or ``integer`` type, and the ``maximum`` and ``minimum`` keys will be added to the JSONSchema for the property, with the values taken from the range specified in the data model.
 
 An attribute with an ``inRange`` validation rule::
 
