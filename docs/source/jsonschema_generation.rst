@@ -174,8 +174,8 @@ A required attribute::
       "title": "Check Date"
     }
 
-Validation Rules
-^^^^^^^^^^^^^^^^^^
+Validation Rule : JSONSchema Field Mappings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``inRange``
 """"""""""""""
