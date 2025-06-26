@@ -162,7 +162,7 @@ An attribute with valid values specified along with the ``list`` rule::
 
 Required Attributes
 ^^^^^^^^^^^^^^^^^^^^^
-For required attributes, the JSONSchema will have an additional ``not: {"type": "null"}`` key value pair added to the property.
+For required attributes with no type, the JSONSchema will have an additional ``not: {"type": "null"}`` key value pair added to the property.
 
 A required attribute::
 
