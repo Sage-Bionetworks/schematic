@@ -72,8 +72,7 @@ num                  number
 string               string
 inRange              integer or number
 date                 string
-datetime             string
-URL                  string
+url                  string
 ===================  ================
 
 An attribute with a specified type::
@@ -101,8 +100,8 @@ Formats are also inferred from the validation rules set for an attribute. The fo
 ====================  =================
 Validation Rule       JSONSchema Format
 ====================  =================
-datetime              format: date
-URL                   format: uri
+date                  format: date
+url                   format: uri
 ====================  =================
 
 
