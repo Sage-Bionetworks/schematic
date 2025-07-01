@@ -164,7 +164,7 @@ def filter_unused_inputted_rules(inputted_rules: list[str]) -> list[str]:
 
 
 def check_for_duplicate_inputted_rules(inputted_rules: list[str]) -> None:
-    """Checks that there are no duplicate rules by name
+    """Checks that there are no rules with duplicate names
 
     Arguments:
         inputted_rules: A list of validation rules
@@ -187,7 +187,7 @@ def check_for_conflicting_inputted_rules(inputted_rules: list[str]) -> None:
         ValueError: If a rule is in conflict with any other rule
     """
     rule_names = get_names_from_inputted_rules(inputted_rules)
-    rules: list[ValidationRule] = _get_rules_by_name(rule_names)
+    rules: list[ValidationRule] = _get_rules_by_names(rule_names)
     for rule in rules:
         incompatible_rule_names = [rule.value for rule in rule.incompatible_rules]
         conflicting_rule_names = sorted(
@@ -241,7 +241,8 @@ def get_js_type_from_inputted_rules(
         The JSON Schema type if a type rule is found, otherwise None
     """
     rule_names = get_names_from_inputted_rules(inputted_rules)
-    validation_rules = _get_rules_by_name(rule_names)
+    validation_rules = _get_rules_by_names(rule_names)
+    # A set of js_types of the validation rules
     json_schema_types = {
         rule.js_type for rule in validation_rules if rule.js_type is not None
     }
@@ -325,7 +326,7 @@ def get_validation_rule_names_from_inputted_rules(
     """Gets a list of ValidationRuleNames from a list of inputted validation rules
 
     Args:
-        inputted_rules: A list of inputted validation rules form a data model
+        inputted_rules: A list of inputted validation rules from a data model
 
     Returns:
         A list of ValidationRuleNames
@@ -341,7 +342,7 @@ def get_names_from_inputted_rules(inputted_rules: list[str]) -> list[str]:
     """Gets the names from a list of inputted rules
 
     Arguments:
-        inputted_rules: A list of inputted validation rules form a data model
+        inputted_rules: A list of inputted validation rules from a data model
 
     Returns:
         The names of the inputted rules
@@ -353,7 +354,7 @@ def _get_parameters_from_inputted_rule(inputted_rule: str) -> Optional[dict[str,
     """Creates a dictionary of parameters and values from and input rule string
 
     Args:
-        input_rule: An inputted validation rule form a data model
+        input_rule: An inputted validation rule from a data model
 
     Returns:
         If the rule exists, a dictionary where
@@ -373,7 +374,7 @@ def _get_name_from_inputted_rule(inputted_rule: str) -> str:
     """Gets the name from an inputted rule
 
     Arguments:
-        inputted_rule: An inputted validation rule form a data model
+        inputted_rule: An inputted validation rule from a data model
 
     Returns:
         The name of the inputted rule
@@ -381,7 +382,7 @@ def _get_name_from_inputted_rule(inputted_rule: str) -> str:
     return inputted_rule.split(" ")[0]
 
 
-def _get_rules_by_name(names: list[str]) -> list[ValidationRule]:
+def _get_rules_by_names(names: list[str]) -> list[ValidationRule]:
     """Gets a list of ValidationRules by name of they exist
 
     Args:
