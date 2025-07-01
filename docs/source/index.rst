@@ -104,8 +104,8 @@ Manifest Generation
 
 Provides a manifest template for users for a particular project or data type. If a project with annotations already exists, a semi-filled-out template can be provided to the user. This ensures they do not start from scratch. If there are no existing annotations and manifests, an empty manifest template is provided.
 
-Manifest Validation
-~~~~~~~~~~~~~~~~~~~
+Validating a Manifest
+~~~~~~~~~~~~~~~~~~~~~
 
 Given a filled-out manifest:
 
