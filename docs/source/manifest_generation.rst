@@ -14,7 +14,7 @@ Prerequisites
   See the :ref:`installation` section for more details.
 
 - **Understand Important Concepts**:
-  Understand Important Concepts: Familiarize yourself with key concepts outlined on the :ref:`index` of the documentation.
+  Understand Important Concepts: Familiarize yourself with key concepts outlined on the :ref:`Homepage <index>` of the documentation.
 
 - **Configuration File**:
   Learn more about each attribute in the configuration file by referring to the relevant documentation.
