@@ -9,7 +9,7 @@ JSONSchema Components and How to Set from Data Model
 ====================================================
 
 This document serves as a guide on what features in a CSV data model map to which components in a JSONSchema file. All examples of JSONSchema files were taken from this `example data model <https://github.com/Sage-Bionetworks/schematic/blob/develop/tests/data/example.model.column_type_component.csv>`_.
-For documentation on how to generate a JSONSchema file, see the :ref:`cli documentation<generate-jsonschema>`.
+For documentation on how to generate a JSONSchema file, see the :ref:`cli documentation<cli_reference:generate-jsonschema>`.
 
 Property Keys
 -------------
@@ -114,7 +114,7 @@ Type Checks
 ^^^^^^^^^^^^^^
 
 Types discussed above are enforced in JSONSchema validation.
-For more information about these rules see :ref:`the documentation for type rules<Type Validation Type>`.
+For more information about these rules see :ref:`the documentation for type rules<validation_rules:Type Validation Type>`.
 
 Valid Values
 ^^^^^^^^^^^^^^^
@@ -160,7 +160,7 @@ An attribute with valid values specified along with the ``list`` rule::
       "title": "Check List Enum"
     }
 
-For more information about the ``list`` rule see :ref:`the rule documentation<list validation type>`.
+For more information about the ``list`` rule see :ref:`the rule documentation<validation_rules:list validation type>`.
 
 Required Attributes
 ^^^^^^^^^^^^^^^^^^^^^
@@ -193,7 +193,7 @@ An attribute with an ``inRange`` validation rule::
       "type": "number"
     }
 
-For more information about the ``inRange`` rule see :ref:`the rule documentation<inRange>`.
+For more information about the ``inRange`` rule see :ref:`the rule documentation<validation_rules:inrange>`.
 
 ``regex`` module
 """""""""""""""""""""
@@ -220,7 +220,7 @@ While an attribute with a ``regex`` rule ``regex match [a-f]`` specified will yi
 
 
 
-For more information about the ``regex`` module rule see :ref:`the rule documentation<Regex Validation Type>`.
+For more information about the ``regex`` module rule see :ref:`the rule documentation<validation_rules:Regex Validation Type>`.
 
 
 ``date``
@@ -237,7 +237,7 @@ An attribute with a ``date`` validation rule specified::
       "title": "Check Date"
     }
 
-For more information about the ``date`` rule see :ref:`the rule documentation<date>`.
+For more information about the ``date`` rule see :ref:`the rule documentation<validation_rules:date>`.
 
 
 ``URL``
@@ -253,7 +253,7 @@ An attribute with a ``URL`` validation rule specified::
       "title": "Check URL"
     }
 
-For more information about the ``URL`` rule see :ref:`the rule documentation<URL Validation Type>`.
+For more information about the ``URL`` rule see :ref:`the rule documentation<validation_rules:URL Validation Type>`.
 
 
 Conditional Dependencies
