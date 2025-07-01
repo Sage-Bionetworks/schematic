@@ -52,15 +52,15 @@ Python 3 has built-in support for virtual environments with the ``venv`` module,
 
 ``conda`` is a powerful package and environment management tool that allows users to create isolated environments used particularly in data science and machine learning workflows. If you would like to manage your environments with ``conda``, continue reading:
 
-1. **Download your preferred ``conda`` installer**: Begin by `installing conda <https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html>`_. We personally recommend working with Miniconda, which is a lightweight installer for ``conda`` that includes only ``conda`` and its dependencies.
-2. **Execute the ``conda`` installer**: Once you have downloaded your preferred installer, execute it using ``bash`` or ``zsh``, depending on the shell configured for your terminal environment. For example:
+1. **Download your preferred conda installer**: Begin by `installing conda <https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html>`_. We personally recommend working with Miniconda, which is a lightweight installer for ``conda`` that includes only ``conda`` and its dependencies.
+2. **Execute the conda installer**: Once you have downloaded your preferred installer, execute it using ``bash`` or ``zsh``, depending on the shell configured for your terminal environment. For example:
 
    .. code-block:: shell
 
       bash Miniconda3-latest-MacOSX-arm64.sh
 
-3. **Verify your ``conda`` setup**: Follow the prompts to complete your setup. Then verify your setup by running the ``conda`` command.
-4. **Create your ``schematic`` environment**: Begin by creating a fresh ``conda`` environment for ``schematic`` like so:
+3. **Verify your conda setup**: Follow the prompts to complete your setup. Then verify your setup by running the ``conda`` command.
+4. **Create your schematic environment**: Begin by creating a fresh ``conda`` environment for ``schematic`` like so:
 
    .. code-block:: shell
 
@@ -75,7 +75,7 @@ Python 3 has built-in support for virtual environments with the ``venv`` module,
 3. Install ``schematic`` dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Install the package using `pip <https://pip.pypa.io/en/stable/quickstart/>`_:
+Install the package using `pip <https://pip.pypa.io/en/stable/getting-started/>`_:
 
 .. code-block:: shell
 
@@ -130,7 +130,7 @@ There are two main configuration files that need to be created and modified:
 - ``.synapseConfig``
 - ``config.yml``
 
-**Create and modify the ``.synapseConfig``**
+**Create and modify the .synapseConfig**
 
 The ``.synapseConfig`` file is what enables communication between ``schematic`` and the Synapse API using your credentials. You can automatically generate a ``.synapseConfig`` file by running the following in your command line and following the prompts.
 
@@ -149,7 +149,7 @@ After following the prompts, a new ``.synapseConfig`` file and ``.synapseCache``
 
 The ``.synapseConfig`` is used to log into Synapse if you are not using an environment variable (i.e. ``SYNAPSE_ACCESS_TOKEN``) for authentication, and the ``.synapseCache`` is where your assets are stored if you are not working with the CLI and/or you have specified ``.synapseCache`` as the location in which to store your manifests, in your ``config.yml``.
 
-**Create and modify the ``config.yml``**
+**Create and modify the config.yml**
 
 In this repository there is a ``config_example.yml`` file with default configurations to various components that are required before running ``schematic``, such as the Synapse ID of the main file view containing all your project assets, the
 
@@ -163,9 +163,9 @@ The instructions below assume you have already installed `python <https://www.py
 
 When contributing to this repository, please first discuss the change you wish to make via the `service desk <https://sagebionetworks.jira.com/servicedesk/customer/portal/5/group/8>`_ so that we may track these changes.
 
-Once you have finished setting up your development environment using the instructions below, please follow the guidelines in `CONTRIBUTION.md <https://github.com/Sage-Bionetworks/schematic/blob/develop-fds-2218-update-readme/CONTRIBUTION.md>`_ during your development.
+Once you have finished setting up your development environment using the instructions below, please follow the guidelines in `CONTRIBUTION.md <https://github.com/Sage-Bionetworks/schematic/blob/main/CONTRIBUTION.md>`_ during your development.
 
-Please note we have a `code of conduct <CODE_OF_CONDUCT.md>`_, please follow it in all your interactions with the project.
+Please note we have a `code of conduct <https://github.com/Sage-Bionetworks/schematic/blob/main/CODE_OF_CONDUCT.md>`_, please follow it in all your interactions with the project.
 
 1. Clone the ``schematic`` package repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -231,7 +231,7 @@ There are two main configuration files that need to be created and modified:
 - ``.synapseConfig``
 - ``config.yml``
 
-**Create and modify the ``.synapseConfig``**
+**Create and modify the .synapseConfig**
 
 The ``.synapseConfig`` file is what enables communication between ``schematic`` and the Synapse API using your credentials. You can automatically generate a ``.synapseConfig`` file by running the following in your command line and following the prompts.
 
@@ -253,7 +253,7 @@ The ``.synapseConfig`` is used to log into Synapse if you are not using an envir
 .. important::
    When developing on ``schematic``, keep your ``.synapseConfig`` in your current working directory to avoid authentication errors.
 
-**Create and modify the ``config.yml``**
+**Create and modify the config.yml**
 
 In this repository, there is a ``config_example.yml`` file with default configurations to various components required before running ``schematic``, such as the Synapse ID of the main file view containing all your project assets, the base name of your manifest files, etc.
 
