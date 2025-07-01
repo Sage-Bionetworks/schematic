@@ -27,7 +27,11 @@ from schematic.schemas.json_schema_validation_rule_functions import (
     get_validation_rule_names_from_inputted_rules,
     get_names_from_inputted_rules,
 )
-from schematic.schemas.constants import JSONSchemaType, JSONSchemaFormat, ValidationRuleName
+from schematic.schemas.constants import (
+    JSONSchemaType,
+    JSONSchemaFormat,
+    ValidationRuleName,
+)
 
 
 logger = logging.getLogger(__name__)
