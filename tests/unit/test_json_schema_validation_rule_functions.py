@@ -15,7 +15,7 @@ from schematic.schemas.json_schema_validation_rule_functions import (
     _get_parameters_from_inputted_rule,
     get_names_from_inputted_rules,
     _get_name_from_inputted_rule,
-    _get_rules_by_name,
+    _get_rules_by_names,
 )
 from schematic.schemas.constants import JSONSchemaType
 
@@ -383,13 +383,13 @@ def test_get_name_from_inputted_rule(
     ],
     ids=["Not a rule", "Str rule", "Str, regex, and a non-rule"],
 )
-def test_get_rules_by_name(
+def test_get_rules_by_names(
     rule_names: list[str], expected_rule_names: list[ValidationRuleName]
 ) -> None:
     """
-    Test for _get_rules_by_name
+    Test for _get_rules_by_names
     Tests that for every actual rule name in the input list the rule is returned
     """
-    result = _get_rules_by_name(rule_names)
+    result = _get_rules_by_names(rule_names)
     result_rules_names = [rule.name for rule in result]
     assert result_rules_names == expected_rule_names
