@@ -17,7 +17,6 @@ from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.utils.schema_utils import get_json_schema_log_file_path
 from schematic.utils.io_utils import export_json
 from schematic.schemas.json_schema_validation_rule_functions import (
-    ValidationRuleName,
     filter_unused_inputted_rules,
     check_for_conflicting_inputted_rules,
     check_for_duplicate_inputted_rules,
@@ -28,7 +27,7 @@ from schematic.schemas.json_schema_validation_rule_functions import (
     get_validation_rule_names_from_inputted_rules,
     get_names_from_inputted_rules,
 )
-from schematic.schemas.constants import JSONSchemaType, JSONSchemaFormat
+from schematic.schemas.constants import JSONSchemaType, JSONSchemaFormat, ValidationRuleName
 
 
 logger = logging.getLogger(__name__)
@@ -265,8 +264,6 @@ def _get_validation_rule_based_fields(
             js_format = JSONSchemaFormat.URI
         elif ValidationRuleName.DATE in validation_rule_names:
             js_format = JSONSchemaFormat.DATE
-        else:
-            js_format = None
 
         in_range_rule = get_rule_from_inputted_rules(
             ValidationRuleName.IN_RANGE, validation_rules
@@ -275,17 +272,12 @@ def _get_validation_rule_based_fields(
             js_minimum, js_maximum = get_in_range_parameters_from_inputted_rule(
                 in_range_rule
             )
-        else:
-            js_minimum = None
-            js_maximum = None
 
         regex_rule = get_rule_from_inputted_rules(
             ValidationRuleName.REGEX, validation_rules
         )
         if regex_rule:
             js_pattern = get_regex_parameters_from_inputted_rule(regex_rule)
-        else:
-            js_pattern = None
 
     return (
         js_is_array,

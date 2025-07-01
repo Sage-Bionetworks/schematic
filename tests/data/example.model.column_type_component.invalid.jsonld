@@ -1860,6 +1860,15 @@
                 },
                 {
                     "@id": "bts:StringNotRequired"
+                },
+                {
+                    "@id": "bts:Date"
+                },
+                {
+                    "@id": "bts:URL"
+                },
+                {
+                    "@id": "bts:InRange"
                 }
             ],
             "sms:validationRules": []
@@ -2088,6 +2097,63 @@
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "str error"
+            ]
+        },
+                {
+            "@id": "bts:Date",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Date",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Date",
+            "sms:required": "sms:true",
+            "sms:validationRules": [
+                "date"
+            ]
+        },
+        {
+            "@id": "bts:URL",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "URL",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "URL",
+            "sms:required": "sms:true",
+            "sms:validationRules": [
+                "url"
+            ]
+        },
+        {
+            "@id": "bts:InRange",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "InRange",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "InRange",
+            "sms:required": "sms:true",
+            "sms:validationRules": [
+                "inRange 50 100"
             ]
         },
         {
