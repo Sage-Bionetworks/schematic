@@ -1,4 +1,3 @@
-.. _configuration:
 
 Configure Schematic
 ===================
