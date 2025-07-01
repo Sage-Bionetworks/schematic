@@ -1,5 +1,6 @@
+############################
 Setting up your asset store
-===========================
+############################
 
 .. note::
 
@@ -40,7 +41,7 @@ In each of these project setups, there are two ways you can lay out your data:
 
 
 Option 1: Distributed Synapse Projects
---------------------------------------
+***************************************
 
 Pick **option 1** if you answer "yes" to one or more of the following questions:
 
@@ -50,7 +51,7 @@ Pick **option 1** if you answer "yes" to one or more of the following questions:
 - Are you not willing to annotate each DCC dataset folder with the annotation ``contentType:dataset``?
 
 Access & Project Setup - Multiple Contributing Projects
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+========================================================
 
 1. Create a DCC Admin Team with admin permissions.
 2. Create a Team for each data contributing institution. Begin with a "Test Team" if all teams are not yet identified.
@@ -72,7 +73,7 @@ Access & Project Setup - Multiple Contributing Projects
 
 
 Option 2: Single Synapse Project
---------------------------------
+**********************************
 
 Pick **option 2** if you don't select option 1 and you answer "yes" to any of these questions:
 
@@ -84,7 +85,7 @@ If neither option fits, select option 1.
 
 
 Access & Project Setup - Single Contributing Project
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=======================================================
 
 1. Create a Team for each data contributing institution.
 2. Create a single Synapse Project (e.g., MyDCC).
@@ -115,7 +116,7 @@ Access & Project Setup - Single Contributing Project
    proliferation of folders per contributor and data type.
 
 Synapse External Cloud Buckets Setup
-------------------------------------
+=====================================
 
 If DCC contributors require external cloud buckets, select one of the following configurations.  For more information on how to
 set this up on Synapse, view this documentation: https://help.synapse.org/docs/Custom-Storage-Locations.2048327803.html
