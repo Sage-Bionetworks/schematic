@@ -39,7 +39,7 @@ In each of these project setups, there are two ways you can lay out your data:
          ├── batch_1 <- annotated
          └── batch_2 <- annotated
 
-
+***************************************
 Option 1: Distributed Synapse Projects
 ***************************************
 
@@ -71,7 +71,7 @@ Access & Project Setup - Multiple Contributing Projects
    distributed projects, just the ``contentType`` column to your fileview, and you will have
    to annotate your top level folders with ``contentType:dataset``.
 
-
+**********************************
 Option 2: Single Synapse Project
 **********************************
 
