@@ -131,8 +131,6 @@ There are two main configuration files that need to be created and modified:
 - ``.synapseConfig``
 - ``config.yml``
 
-.. _create_synapse_config:
-
 **Create and modify the .synapseConfig**
 
 The ``.synapseConfig`` file is what enables communication between ``schematic`` and the Synapse API using your credentials. You can automatically generate a ``.synapseConfig`` file by running the following in your command line and following the prompts.
