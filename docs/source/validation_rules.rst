@@ -3,7 +3,7 @@ Validation Rules Documentation
 ###############################
 
 .. contents::
-   :depth: 2
+   :depth: 3
    :local:
    :backlinks: entry
 
@@ -246,22 +246,22 @@ There are three rules that do cross-manifest validation: [``matchAtLeastOne``, `
 There are two scopes to choose from: [ ``value``, ``set``]
 
 ``value`` Scope
------------------
+^^^^^^^^^^^^^^^^
 
 When the value scope is used all values from the target attribute in all target manifests are combined. The values from the manifest being validated are compared to this combined list. In other words, there is no distinction between what values came from what target manifest.
 
 matchAtleastOne Value Scope
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""""
 
 The manifest is validated if each value in the target attribute exists at least once in the combined values of the target attribute of the target manifests.
 
 matchExactlyOne Value Scope
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""""
 
 The manifest is validated if each value in the target attribute exists once, and only once, in the combined values of the target attribute of the target manifests.
 
 matchNone Value Scope
-^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""
 
 The manifest is validated if each value in the target attribute does not exist in the combined values of the target attribute of the target manifests.
 
@@ -376,7 +376,7 @@ Target manifests: ["A", "B"],  ["A", "B"]
   - because "A" is in the target manifest
 
 ``set`` Scope
---------------
+^^^^^^^^^^^^^
 
 When the set scope is used the values from the tested manifest are compared **one at a time** against each target manifest, and the number of matches are counted. The test to determine if the tested manifest matches the target manifest is to see if the tested manifest values are a subset of the target manifest values. Imagine a target manifest who's values are ["A", "B" "C"]:
 
@@ -385,17 +385,17 @@ When the set scope is used the values from the tested manifest are compared **on
 - [1], ["D"], ["D", "D"], ["D", "E"] are not subsets of the example target manifest.
 
 matchAtleastOne Set scope
-^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""
 
 The manifest is validated if there is atleast one set match between the tested manifest and the target manifests
 
 matchExactlyOne Set scope
-^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""
 
 The manifest is validated if there is one and only one set match between the tested manifest and the target manifests
 
 matchNone Set scope
-^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""
 
 The manifest is validated if there are no set match between the tested manifest and the target manifests
 
