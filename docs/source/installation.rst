@@ -20,7 +20,7 @@ Installation Guide For: Users
 The instructions below assume you have already installed `python <https://www.python.org/downloads/>`_, with the release version meeting the constraints set in the `Installation Requirements`_ section, and do not have a Python environment already active.
 
 1. Verify your python version
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+==============================
 
 Ensure your python version meets the requirements from the `Installation Requirements`_ section using the following command:
 
@@ -34,12 +34,12 @@ If your current Python version is not supported by Schematic, you can switch to 
    You can double-check the current supported python version by opening up the `pyproject.toml <https://github.com/Sage-Bionetworks/schematic/blob/main/pyproject.toml#L39>`_ file in this repository and finding the supported versions of python in the script.
 
 2. Set up your virtual environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+===================================
 
 Once you are working with a python version supported by `schematic`, you will need to activate a virtual environment within which you can install the package. Below we will show how to create your virtual environment either with ``venv`` or with ``conda``.
 
 2a. Set up your virtual environment with ``venv``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------
 
 Python 3 has built-in support for virtual environments with the ``venv`` module, so you no longer need to install ``virtualenv``:
 
@@ -49,7 +49,7 @@ Python 3 has built-in support for virtual environments with the ``venv`` module,
    source .venv/bin/activate
 
 2b. Set up your virtual environment with ``conda``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------------------------
 
 ``conda`` is a powerful package and environment management tool that allows users to create isolated environments used particularly in data science and machine learning workflows. If you would like to manage your environments with ``conda``, continue reading:
 
@@ -74,7 +74,7 @@ Python 3 has built-in support for virtual environments with the ``venv`` module,
       conda activate schematicpy
 
 3. Install ``schematic`` dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+======================================
 
 Install the package using `pip <https://pip.pypa.io/en/stable/getting-started/>`_:
 
@@ -89,7 +89,7 @@ If you run into ``ERROR: Failed building wheel for numpy``, the error might be a
    pip3 install --upgrade pip
 
 4. Get your data model as a ``JSON-LD`` schema file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=====================================================
 
 Now you need a schema file, e.g. ``model.jsonld``, to have a data model that schematic can work with. While you can download a super basic `example data model <https://raw.githubusercontent.com/Sage-Bionetworks/schematic/refs/heads/develop/tests/data/example.model.jsonld>`_, you'll probably be working with a DCC-specific data model. For non-Sage employees/contributors using the CLI, you might care only about the minimum needed artifact, which is the  ``.jsonld``; locate and download only that from the right repo.
 
@@ -99,7 +99,7 @@ Here are some example repos with schema files:
 - https://github.com/nf-osi/nf-metadata-dictionary/
 
 5. Obtain Google credential files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+==================================
 
 Any function that interacts with a Google sheet (such as ``schematic manifest get``) requires Google Cloud credentials.
 
@@ -122,7 +122,7 @@ Once you have obtained credentials, be sure that the json file generated is name
 .. _Set up configuration files:
 
 6. Set up configuration files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+==============================
 
 The following section will walk through setting up your configuration files with your credentials to allow for communication between ``schematic`` and the Synapse API.
 
@@ -130,6 +130,8 @@ There are two main configuration files that need to be created and modified:
 
 - ``.synapseConfig``
 - ``config.yml``
+
+.. _create_synapse_config:
 
 **Create and modify the .synapseConfig**
 
@@ -169,8 +171,9 @@ Once you have finished setting up your development environment using the instruc
 
 Please note we have a `code of conduct <https://github.com/Sage-Bionetworks/schematic/blob/main/CODE_OF_CONDUCT.md>`_, please follow it in all your interactions with the project.
 
+
 1. Clone the ``schematic`` package repository
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=============================================
 
 For development, you will be working with the latest version of ``schematic`` on the repository to ensure compatibility between its latest state and your changes. Ensure your current working directory is where you would like to store your local fork before running the following command:
 
@@ -178,8 +181,9 @@ For development, you will be working with the latest version of ``schematic`` on
 
    git clone https://github.com/Sage-Bionetworks/schematic.git
 
+
 2. Install ``poetry``
-~~~~~~~~~~~~~~~~~~~~~
+=====================
 
 Install ``poetry`` (version 1.3.0 or later) using either the `official installer <https://python-poetry.org/docs/#installing-with-the-official-installer>`_ or ``pip``. If you have an older installation of Poetry, we recommend uninstalling it first.
 
@@ -193,8 +197,9 @@ Check to make sure your version of poetry is > v1.3.0
 
    poetry --version
 
+
 3. Start the virtual environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=================================
 
 Change directory (``cd``) into your cloned ``schematic`` repository, and initialize the virtual environment using the following command with ``poetry``:
 
@@ -208,8 +213,9 @@ To make sure your poetry version and python version are consistent with the vers
 
    poetry debug info
 
+
 4. Install ``schematic`` dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+======================================
 
 Before you begin, make sure you are in the latest ``develop`` branch of the repository.
 
@@ -225,7 +231,7 @@ This command will install:
 - Documentation dependencies such as ``sphinx`` for building and maintaining documentation.
 
 5. Set up configuration files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=================================
 
 The following section will walk through setting up your configuration files with your credentials to allow for communication between ``schematic`` and the Synapse API.
 
@@ -281,7 +287,7 @@ Once you've copied the file, modify its contents according to your use case. For
    ``config.yml`` is ignored by git.
 
 6. Obtain Google credential files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+==================================
 
 Any function that interacts with a Google Sheet (such as ``schematic manifest get``) requires Google Cloud credentials.
 
@@ -307,6 +313,6 @@ Once you have obtained credentials, ensure that the JSON file generated is named
 
 
 7. Verify your setup
-~~~~~~~~~~~~~~~~~~~~
+=====================
 
 After running the steps above, your setup is complete, and you can test it in a ``python`` instance or by running a command based on the examples
