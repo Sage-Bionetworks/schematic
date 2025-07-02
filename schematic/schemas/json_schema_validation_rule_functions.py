@@ -261,8 +261,7 @@ def get_js_type_from_inputted_rules(
     }
     if len(json_schema_types) > 1:
         raise ValueError(
-            "Validation rules contain more than one implied JSON Schema type: ",
-            inputted_rules,
+            f"Validation rules contain more than one implied JSON Schema type: {inputted_rules}"
         )
     if len(json_schema_types) == 0:
         return None
