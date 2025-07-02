@@ -7,7 +7,7 @@ LinkML
 Background
 **********
 
-DPE is currently looking into what the future of Schematic might look like. This includes the possibility of completely reworking how we handle data models. Currently, Schematic supports data models in CSV or JSON-LD format. Several DCCs are either using or planning on using LinkML to create their data models and then port them to JsonLD for use in schematic. One possibility in Schematic 2.0 (placeholder name) is to make LinkML the format for data models and to use native LinkML functionality where possible to reduce the work that Schematic does. DPE is currently looking into what the future of Schematic might look like. This includes the possibility of completely reworking how we handle data models. Currently, Schematic supports data models in CSV or JSON-LD format. Several DCCs are either using or planning on using LinkML to create their data models and then port them to JsonLD for use in schematic. One possibility in Schematic 2.0 (placeholder name) is to make LinkML the format for data models and to use native LinkML functionality where possible to reduce the work that Schematic does.
+DPE is currently looking into what the future of Schematic might look like. This includes the possibility of completely reworking how we handle data models. Currently, Schematic supports data models in CSV or JSON-LD format. Several DCCs are either using or planning on using LinkML to create their data models and then port them to JsonLD for use in schematic. One possibility in Schematic 2.0 (placeholder name) is to make LinkML the format for data models and to use native LinkML functionality where possible to reduce the work that Schematic does.
 
 *****
 Links
