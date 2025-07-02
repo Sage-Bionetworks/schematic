@@ -233,7 +233,7 @@ def get_rule_from_inputted_rules(
         rule for rule in inputted_rules if rule.startswith(rule_name.value)
     ]
     if len(inputted_rules) > 1:
-        raise ValueError("Found duplicates of rule in rules: ", inputted_rules)
+        raise ValueError(f"Found duplicates of rule in rules: {inputted_rules}")
     if len(inputted_rules) == 0:
         return None
     return inputted_rules[0]
