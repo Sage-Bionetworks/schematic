@@ -34,7 +34,7 @@ This will open the **Swagger UI**, where you can explore all available API endpo
   For more details on configuring Schematic, refer to the :ref:`configuration:Configure Schematic` section.
 
 - **Obtain a manifest**:
-  Please obtain a manifest by following the documentation of generating a manifest.
+  Please obtain a manifest by following the documentation of :ref:`generating a manifest <manifest_generation>`.
 
 
 Run help command
@@ -93,6 +93,7 @@ Submit a Manifest File to Synapse
 
    Here is the top-level folder ID: syn12345678
 
+.. _submit_manifest_cli:
 
 Option 1: Use the CLI
 =====================
@@ -114,6 +115,8 @@ Option 1: Use the CLI
 - **-no-fa**: Skips the file annotations upload.
 - **-tcn**: Table Column Names: This is optional, and the available options are "class_label", "display_label", and "display_name". The default is "class_label", but you can change it based on your requirements.
 
+
+.. _submit_manifest_api:
 
 Option 2: Use the API
 ======================
@@ -158,6 +161,7 @@ Submit a Manifest file and Add Annotations
   Since annotations are enabled in the submission, if you are submitting a file-based manifest, you should see annotations attached to the entity IDs listed in the manifest.
 
 
+.. _submit_manifest_add_annotations_cli:
 
 Option 1: Use the CLI
 =====================
@@ -180,6 +184,8 @@ Option 1: Use the CLI
 - **-fa**: Enable file annotations upload.
 - **-tcn**: Table Column Names: This is optional, and the available options are "class_label", "display_label", and "display_name". The default is "class_label", but you can change it based on your requirements.
 
+
+.. _submit_manifest_add_annotations_api:
 
 Option 2: Use the API
 ======================
@@ -225,6 +231,7 @@ You could expedite the submission process by specifying the project_scope parame
 
 To utilize this parameter, make sure that the projects listed there are part of the asset view.
 
+.. _expedite_submission_cli:
 
 Option 1: Use the CLI
 =====================
@@ -235,6 +242,8 @@ Option 1: Use the CLI
 
 - **-ps**: Specifies the project scope as a comma separated list of project IDs.
 
+
+.. _expedite_submission_api:
 
 Option 2: Use the API
 ======================
@@ -281,6 +290,7 @@ Pre-requisites
 2. If you plan to use upsert in the future, select the upsert option during the initial table uploads.
 3. Currently it is required to use -tcn "display_label" with table upserts.
 
+.. _enable_upsert_cli:
 
 Option 1: Use the CLI
 ======================
@@ -291,6 +301,9 @@ Option 1: Use the CLI
 
 - **-tm**: The default option is "replace". Change it to "upsert" for enabling upsert.
 - **-tcn**: Use display label for upsert.
+
+
+.. _enable_upsert_api:
 
 Option 2: Use the API
 ======================
