@@ -10,7 +10,7 @@ Pattern: https://json-schema.org/understanding-json-schema/reference/string#rege
 Min/max: https://json-schema.org/understanding-json-schema/reference/numeric#range
 
 """
-
+import warnings
 from dataclasses import dataclass
 from typing import Optional
 from schematic.schemas.constants import JSONSchemaType, ValidationRuleName, RegexModule
@@ -25,7 +25,7 @@ class ValidationRule:
         name: The name of the validation rule
         js_type: The JSON Schema type this rule indicates.
           For example type rules map over to their equivalent JSON Schema type: str -> string
-          Other rules have am implicit type. For example the regex rule maps to the JSON
+          Other rules have an implicit type. For example the regex rule maps to the JSON
             Schema pattern keyword. The pattern keyword requires the type to be string
         incompatible_rules: Other validation rules this rule can not be paired with
         parameters: Parameters for the validation rule that need to be collected for the JSON Schema
@@ -38,7 +38,7 @@ class ValidationRule:
 
 
 # A dictionary of current Schematic validation rules
-#   where the keys are name fo the rule in Schematic
+#   where the keys are name of the rule in Schematic
 #   and the values are ValidationRule objects
 _VALIDATION_RULES = {
     "list": ValidationRule(
@@ -153,9 +153,22 @@ def filter_unused_inputted_rules(inputted_rules: list[str]) -> list[str]:
     Arguments:
         inputted_rules: A list of validation rules
 
+    Raises:
+        warning: When any of the inputted rules are not used for JSON Schema creation
+
     Returns:
         A filtered list of validation rules
     """
+    unused_rules = [
+        rule
+        for rule in inputted_rules
+        if _get_name_from_inputted_rule(rule)
+        not in [e.value for e in ValidationRuleName]
+    ]
+    if unused_rules:
+        msg = f"These validation rules will be ignored in creating the JSON Schema: {unused_rules}"
+        warnings.warn(msg)
+
     return [
         rule
         for rule in inputted_rules
@@ -204,7 +217,7 @@ def check_for_conflicting_inputted_rules(inputted_rules: list[str]) -> None:
 def get_rule_from_inputted_rules(
     rule_name: ValidationRuleName, inputted_rules: list[str]
 ) -> Optional[str]:
-    """Returns the a rule from a list of rules
+    """Returns a rule from a list of rules
 
     Arguments:
         rule_name: A ValidationRuleName
@@ -325,17 +338,15 @@ def get_validation_rule_names_from_inputted_rules(
 ) -> list[ValidationRuleName]:
     """Gets a list of ValidationRuleNames from a list of inputted validation rules
 
-    Args:
+    Arguments:
         inputted_rules: A list of inputted validation rules from a data model
 
     Returns:
         A list of ValidationRuleNames
     """
-    validation_rules = [
-        _VALIDATION_RULES.get(rule_name_string)
-        for rule_name_string in get_names_from_inputted_rules(inputted_rules)
-    ]
-    return [rule.name for rule in validation_rules if rule is not None]
+    rule_names = get_names_from_inputted_rules(inputted_rules)
+    rules = _get_rules_by_names(rule_names)
+    return [rule.name for rule in rules]
 
 
 def get_names_from_inputted_rules(inputted_rules: list[str]) -> list[str]:
@@ -351,10 +362,10 @@ def get_names_from_inputted_rules(inputted_rules: list[str]) -> list[str]:
 
 
 def _get_parameters_from_inputted_rule(inputted_rule: str) -> Optional[dict[str, str]]:
-    """Creates a dictionary of parameters and values from and input rule string
+    """Creates a dictionary of parameters and values from an input rule string
 
-    Args:
-        input_rule: An inputted validation rule from a data model
+    Arguments:
+        inputted_rule: An inputted validation rule from a data model
 
     Returns:
         If the rule exists, a dictionary where
@@ -383,13 +394,21 @@ def _get_name_from_inputted_rule(inputted_rule: str) -> str:
 
 
 def _get_rules_by_names(names: list[str]) -> list[ValidationRule]:
-    """Gets a list of ValidationRules by name of they exist
+    """Gets a list of ValidationRules by name if they exist
 
-    Args:
+    Arguments:
         names: A list of names of ValidationRules
+
+    Raises:
+        ValueError: If any of the input names don't correspond to actual rules
 
     Returns:
         A list of ValidationRules
     """
-    rules = [_VALIDATION_RULES.get(name) for name in names]
-    return [rule for rule in rules if rule is not None]
+    rule_dict = {name: _VALIDATION_RULES.get(name) for name in names}
+    invalid_rule_names = [
+        rule_name for (rule_name, rule) in rule_dict.items() if rule is None
+    ]
+    if invalid_rule_names:
+        raise ValueError("Some input rule names are invalid:", invalid_rule_names)
+    return [rule for rule in rule_dict.values() if rule is not None]

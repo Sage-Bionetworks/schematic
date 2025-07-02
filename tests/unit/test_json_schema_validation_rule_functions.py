@@ -264,17 +264,15 @@ def test_get_regex_parameters_from_inputted_rule(
     "input_rules, expected_rule_names",
     [
         ([], []),
-        (["not_a_rule"], []),
         (["str"], [ValidationRuleName.STR]),
         (["str error"], [ValidationRuleName.STR]),
         (
-            ["str", "regex", "not_a_rule"],
+            ["str", "regex"],
             [ValidationRuleName.STR, ValidationRuleName.REGEX],
         ),
     ],
     ids=[
         "Empty list",
-        "No actual rules",
         "String rule",
         "String rule with parameters",
         "Multiple rules",
@@ -285,10 +283,29 @@ def test_get_validation_rule_names_from_inputted_rules(
 ) -> None:
     """
     Test for get_validation_rule_names_from_inputted_rules
-    Tests that for each input rule, the ValidationRuleName is returned if it exists
+    Tests that for each input rule, the ValidationRuleName is returned
     """
     result = get_validation_rule_names_from_inputted_rules(input_rules)
     assert result == expected_rule_names
+
+
+@pytest.mark.parametrize(
+    "input_rules",
+    [
+        (["not_a_rule"]),
+        (["str", "regex", "not_a_rule"]),
+    ],
+    ids=["Non-rule", "Non-rule with actual rules"],
+)
+def test_get_validation_rule_names_from_inputted_rules_exception(
+    input_rules: list[str],
+) -> None:
+    """
+    Test for get_validation_rule_names_from_inputted_rules
+    Tests that if any fo the rules are invalid, a ValueError will be raised
+    """
+    with pytest.raises(ValueError):
+        get_validation_rule_names_from_inputted_rules(input_rules)
 
 
 @pytest.mark.parametrize(
@@ -374,22 +391,33 @@ def test_get_name_from_inputted_rule(
 @pytest.mark.parametrize(
     "rule_names, expected_rule_names",
     [
-        (["not_a_rule"], []),
+        ([], []),
         (["str"], [ValidationRuleName.STR]),
-        (
-            ["str", "regex", "not_a_rule"],
-            [ValidationRuleName.STR, ValidationRuleName.REGEX],
-        ),
+        (["str", "regex"], [ValidationRuleName.STR, ValidationRuleName.REGEX]),
     ],
-    ids=["Not a rule", "Str rule", "Str, regex, and a non-rule"],
+    ids=["No rules", "Str rule", "Str + regex rules"],
 )
 def test_get_rules_by_names(
     rule_names: list[str], expected_rule_names: list[ValidationRuleName]
 ) -> None:
     """
     Test for _get_rules_by_names
-    Tests that for every actual rule name in the input list the rule is returned
+    Tests that for every rule name in the input list the rule is returned
     """
     result = _get_rules_by_names(rule_names)
     result_rules_names = [rule.name for rule in result]
     assert result_rules_names == expected_rule_names
+
+
+@pytest.mark.parametrize(
+    "rule_names",
+    [(["not_a_rule"]), (["not_a_rule", "str"]), (["int", "not_a_rule"])],
+    ids=["Non-rule", "Non-rule + str", "Non-rule + int"],
+)
+def test_get_rules_by_names_exceptions(rule_names: list[str]) -> None:
+    """
+    Test for _get_rules_by_names
+    Tests when an a name with no actual real is given, a ValueError is raised
+    """
+    with pytest.raises(ValueError):
+        _get_rules_by_names(rule_names)
