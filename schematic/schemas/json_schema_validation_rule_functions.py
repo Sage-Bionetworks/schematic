@@ -187,7 +187,7 @@ def check_for_duplicate_inputted_rules(inputted_rules: list[str]) -> None:
     """
     rule_names = get_names_from_inputted_rules(inputted_rules)
     if sorted(rule_names) != sorted(list(set(rule_names))):
-        raise ValueError("Validation Rules contains duplicates: ", inputted_rules)
+        raise ValueError(f"Validation Rules contains duplicates: {inputted_rules}")
 
 
 def check_for_conflicting_inputted_rules(inputted_rules: list[str]) -> None:
