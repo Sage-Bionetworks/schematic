@@ -1,8 +1,10 @@
+############
 Installation
-============
+############
 
-Installation Requirements
--------------------------
+*************************
+Installation requirements
+*************************
 
 - Your installed python version must be 3.9.0 ≤ version < 3.11.0
 - You need to be a registered and certified user on `synapse.org <https://www.synapse.org/>`_
@@ -11,8 +13,9 @@ Installation Requirements
    To create Google Sheets files from Schematic, please follow our credential policy for Google credentials. You can find a detailed tutorial `Google Credentials Guide <https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA>`_.
    If you're using ``config.yml``, make sure to specify the path to ``schematic_service_account_creds.json`` (see the ``google_sheets > service_account_creds`` section for more information).
 
+*****************************
 Installation Guide For: Users
------------------------------
+*****************************
 
 The instructions below assume you have already installed `python <https://www.python.org/downloads/>`_, with the release version meeting the constraints set in the `Installation Requirements`_ section, and do not have a Python environment already active.
 
@@ -151,8 +154,9 @@ The ``.synapseConfig`` is used to log into Synapse if you are not using an envir
 
 In this repository there is a ``config_example.yml`` file with default configurations to various components that are required before running ``schematic``, such as the Synapse ID of the main file view containing all your project assets, the
 
+**********************************
 Installation Guide For: Developers
-----------------------------------
+**********************************
 
 .. note::
    This section is for people developing on Schematic only
