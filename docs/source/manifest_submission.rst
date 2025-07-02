@@ -36,6 +36,7 @@ This will open the **Swagger UI**, where you can explore all available API endpo
 - **Obtain a manifest**:
   Please obtain a manifest by following the documentation of :ref:`generating a manifest <manifest_generation>`.
 
+
 ****************
 Run help command
 ****************
