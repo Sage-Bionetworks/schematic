@@ -1,29 +1,18 @@
+#############################
 Submit a manifest to Synapse
-============================
+#############################
 
+*************
 Prerequisites
--------------
+*************
 
 **Obtain Synapse Credentials**:
-Ensure you have a Synapse account and set up Synapse configuration file correctly. See the :ref:`installation` section for more details.
-
-**Before Using the Schematic CLI**
-
-- **Install and Configure Schematic**:
-  Ensure you have installed `schematic` and set up its dependencies.
-  See the :ref:`installation` section for more details.
-
-- **Understand Important Concepts**:
-  Familiarize yourself with key concepts outlined on the :ref:`index` of the documentation.
-
-- **Configuration File**:
-  For more details on configuring Schematic, refer to the :ref:`configure schematic` section.
-
-- **Obtain a manifest**:
-  Please obtain a manifest by following the documentation of generating a manifest.
+================================
+Ensure you have a Synapse account and set up Synapse configuration file correctly. See the :ref:`setting up configuration files <installation:6. Set up configuration files>` section for more details.
 
 
 **Using the Schematic API in Production**
+=========================================
 
 Visit the **Schematic API (Production Environment)**:
 `<https://schematic.api.sagebionetworks.org/v1/ui/#/>`_
@@ -31,8 +20,25 @@ Visit the **Schematic API (Production Environment)**:
 This will open the **Swagger UI**, where you can explore all available API endpoints.
 
 
+**Before Using the Schematic CLI**
+==================================
+
+- **Install and Configure Schematic**:
+  Ensure you have installed ``schematic`` and set up its dependencies.
+  See the :ref:`installation:installation` section for more details.
+
+- **Understand Important Concepts**:
+  Familiarize yourself with key concepts outlined on the :ref:`index` of the documentation.
+
+- **Configuration File**:
+  For more details on configuring Schematic, refer to the :ref:`configuration:Configure Schematic` section.
+
+- **Obtain a manifest**:
+  Please obtain a manifest by following the documentation of generating a manifest.
+
+
 Run help command
-----------------
+=================
 
 You could run the following commands to learn about subcommands with manifest submission:
 
@@ -46,9 +52,9 @@ You could also run the following commands to learn about all the options with ma
 
     schematic model --config path/to/config.yml submit -h
 
-
+**********************************
 Submit a Manifest File to Synapse
----------------------------------
+**********************************
 
 .. note::
 
@@ -89,7 +95,7 @@ Submit a Manifest File to Synapse
 
 
 Option 1: Use the CLI
-~~~~~~~~~~~~~~~~~~~~~~
+=====================
 
 .. note::
 
@@ -110,7 +116,7 @@ Option 1: Use the CLI
 
 
 Option 2: Use the API
-~~~~~~~~~~~~~~~~~~~~~~
+======================
 
 .. note::
 
@@ -143,9 +149,9 @@ Option 2: Use the API
    - **table_column_names**: This is optional. Available options are "class_label", "display_label", and "display_name". The default is "class_label".
 
 
-
+*******************************************
 Submit a Manifest file and Add Annotations
--------------------------------------------
+*******************************************
 
 .. note::
 
@@ -154,7 +160,7 @@ Submit a Manifest file and Add Annotations
 
 
 Option 1: Use the CLI
-~~~~~~~~~~~~~~~~~~~~~~
+=====================
 
 
 .. note::
@@ -176,7 +182,7 @@ Option 1: Use the CLI
 
 
 Option 2: Use the API
-~~~~~~~~~~~~~~~~~~~~~~
+======================
 
 .. note::
 
@@ -209,9 +215,9 @@ Option 2: Use the API
    - **table_column_names**: This is optional. Available options are "class_label", "display_label", and "display_name". The default is "class_label".
 
 
-
+**************************************
 Expedite submission process (Optional)
----------------------------------------
+**************************************
 
 If your asset view contains multiple projects, it might take some time for the submission to finish.
 
@@ -221,7 +227,7 @@ To utilize this parameter, make sure that the projects listed there are part of 
 
 
 Option 1: Use the CLI
-~~~~~~~~~~~~~~~~~~~~~~
+=====================
 
 .. code-block:: bash
 
@@ -231,7 +237,7 @@ Option 1: Use the CLI
 
 
 Option 2: Use the API
-~~~~~~~~~~~~~~~~~~~~~~
+======================
 
 1. Visit the `**model/submit** endpoint <https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_
 2. Click **"Try it out"** to enable input fields.
@@ -261,14 +267,15 @@ Option 2: Use the API
    - **table_column_names**: This parameter is not applicable when uploading a manifest as a file. You can keep it as is and it will be ignored.
 
 
+*************************************
 Enable upsert for manifest submission
--------------------------------------
+*************************************
 
 By default, the CLI/API will replace the existing manifest and table with the new one. If you want to update the existing manifest and table, you could use the upsert option.
 
 
-Pre-requisite
-~~~~~~~~~~~~~~
+Pre-requisites
+==============
 
 1. Ensure that all your manifests, including both the initial manifests and those containing rows to be upserted, include a primary key: <YourComponentName_id>. For example, if your component name is "Patient", the primary key should be "Patient_id".
 2. If you plan to use upsert in the future, select the upsert option during the initial table uploads.
@@ -276,7 +283,7 @@ Pre-requisite
 
 
 Option 1: Use the CLI
-~~~~~~~~~~~~~~~~~~~~~~
+======================
 
 .. code-block:: bash
 
@@ -286,7 +293,7 @@ Option 1: Use the CLI
 - **-tcn**: Use display label for upsert.
 
 Option 2: Use the API
-~~~~~~~~~~~~~~~~~~~~~~
+======================
 
 1. Visit the `**model/submit** endpoint <https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.submit_manifest_route>`_
 2. Click **"Try it out"** to enable input fields.
