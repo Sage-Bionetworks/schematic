@@ -191,7 +191,7 @@ def create_json_schema_entity_view(
     entity_view_name: str = "JSON Schema view",
 ) -> str:
     """
-    Creates A Synapse entity view based on a JSON Schema that is bound to a Synapse entity
+    Creates a Synapse entity view based on a JSON Schema that is bound to a Synapse entity
     This functionality is needed only temporarily. See note at top of module.
 
     Args:
@@ -205,7 +205,6 @@ def create_json_schema_entity_view(
     warnings.warn(
         "This function is a prototype, and could change or be removed at any point."
     )
-    syn.get_available_services()
     js_service = syn.service("json_schema")
     json_schema = js_service.get_json_schema(synapse_entity_id)
     org = js_service.JsonSchemaOrganization(
@@ -224,6 +223,7 @@ def create_json_schema_entity_view(
         view_type_mask=ViewTypeMask.FILE,
         columns=columns,
     ).store(synapse_client=syn)
+    # This reorder is so that these show up in the front of the EntityView in Synapse
     view.reorder_column(name="createdBy", index=0)
     view.reorder_column(name="name", index=0)
     view.reorder_column(name="id", index=0)
@@ -352,11 +352,13 @@ def _create_columns_from_json_schema(json_schema: dict[str, Any]) -> list[Column
     Returns:
         A list of Synapse columns based on the JSON Schema
     """
-    if "properties" not in json_schema:
-        raise ValueError("JSON Schema does not have a properties field")
-    properties = json_schema["properties"]
+    properties = json_schema.get("properties")
+    if properties is None:
+        raise ValueError("The JSON Schema is missing a 'properties' field.")
     if not isinstance(properties, dict):
-        raise ValueError("JSON Schema properties is not a dictionary")
+        raise ValueError(
+            "The 'properties' field in the JSON Schema must be a dictionary."
+        )
     columns = []
     for name, prop_schema in properties.items():
         column_type = _get_column_type_from_js_property(prop_schema)

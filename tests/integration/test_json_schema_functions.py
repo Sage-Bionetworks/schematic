@@ -20,6 +20,7 @@ from schematic.json_schema_functions import (
 
 SCHEMA_TEST_ORG = "dpetest"
 SCHEMA_TEST_VERSION = "0.0.1"
+TEST_COMPONENT_URI = "dpetest-test.schematic.MockComponent-0.0.3"
 
 MOCK_COMPONENT_SYNAPSE_COLUMNS = {
     "CheckAges": ColumnType.STRING,
@@ -97,9 +98,15 @@ def fixture_synapse_project(syn: Synapse, request) -> tuple[str, str]:
     return project.id, folder.id
 
 
+@pytest.fixture(name="schema_name", scope="function")
+def fixture_schema_name() -> str:
+    """This returns a randomized Synapse valid schema name"""
+    schema_id = "".join(i for i in str(uuid.uuid4()) if i.isalpha())
+    return f"test.schematic.{schema_id}"
+
+
 def test_create_json_schema_entity_view_and_wiki(
-    syn: Synapse,
-    synapse_project: str,
+    syn: Synapse, synapse_project: str, schema_name: str
 ) -> None:
     """
     Test for create_json_schema_entity_view_and_wiki
@@ -109,8 +116,6 @@ def test_create_json_schema_entity_view_and_wiki(
     - the wiki is created
     """
     js = syn.service("json_schema")
-    schema_id = "".join(i for i in str(uuid.uuid4()) if i.isalpha())
-    schema_name = f"test.schematic.{schema_id}"
     # GIVEN a Synapse Project with a Folder
     _, folder_id = synapse_project
     # WHEN creating a JSON Schema fileview and wiki
@@ -151,17 +156,16 @@ def test_create_json_schema_entity_view_and_wiki(
     )
 
 
-def test_create_and_bind_json_schema(syn: Synapse, synapse_project: str) -> None:
+def test_create_and_bind_json_schema(
+    syn: Synapse, synapse_project: str, schema_name: str
+) -> None:
     """
     Test for create_and_bind_json_schema
     Tests that
     - the JSON Schema can be gotten form the folder its bound to
     - the bound JSON Schema has the correct id
     """
-    syn.get_available_services()
     js = syn.service("json_schema")
-    schema_id = "".join(i for i in str(uuid.uuid4()) if i.isalpha())
-    schema_name = f"test.schematic.{schema_id}"
     # GIVEN a Synapse Project with a Folder
     _, folder_id = synapse_project
     try:
@@ -186,17 +190,16 @@ def test_create_and_bind_json_schema(syn: Synapse, synapse_project: str) -> None
     assert uri == json_schema_uri
 
 
-def test_upload_json_schema(syn: Synapse, dmge: DataModelGraphExplorer) -> None:
+def test_upload_json_schema(
+    syn: Synapse, dmge: DataModelGraphExplorer, schema_name: str
+) -> None:
     """
     Test for upload_json_schema
     Tests that
     - the JSON schema is uploaded
     - the URI for the uploaded JSON Schema is correct
     """
-    syn.get_available_services()
     js = syn.service("json_schema")
-    schema_id = "".join(i for i in str(uuid.uuid4()) if i.isalpha())
-    schema_name = f"test.schematic.{schema_id}"
     # GIVEN a JSON Schema
     json_schema = create_json_schema(
         dmge=dmge, datatype="MockComponent", schema_name="", write_schema=False
@@ -228,7 +231,7 @@ def test_create_json_schema_entity_view(syn: Synapse, synapse_project: str) -> N
     # GIVEN a Synapse Project with a Folder
     _, folder_id = synapse_project
     # WHEN the folder has a JSON Schema bound to it
-    js.bind_json_schema("dpetest-test.schematic.MockComponent-0.0.3", folder_id)
+    js.bind_json_schema(TEST_COMPONENT_URI, folder_id)
     view_id = None
     # WHEN creating a fileview from it
     view_id = create_json_schema_entity_view(syn=syn, synapse_entity_id=folder_id)
