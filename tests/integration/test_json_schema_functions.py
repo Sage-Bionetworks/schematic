@@ -17,6 +17,7 @@ from schematic.json_schema_functions import (
     create_json_schema_entity_view,
     create_or_update_wiki_with_entity_view,
 )
+from tests.utils import CleanupItem
 
 SCHEMA_TEST_ORG = "dpetest"
 SCHEMA_TEST_VERSION = "0.0.1"
@@ -81,7 +82,7 @@ ENTITY_VIEW_COLUMNS = [
 
 
 @pytest.fixture(name="synapse_project", scope="function")
-def fixture_synapse_project(syn: Synapse, request) -> tuple[str, str]:
+def fixture_synapse_project(syn: Synapse, schedule_for_cleanup) -> tuple[str, str]:
     """This returns Synapse ids for a created Synapse project and a folder created in the project"""
     project = Project(name=f"test_json_schemas_{str(uuid.uuid4())}")
     project = project.store(synapse_client=syn)
@@ -90,10 +91,7 @@ def fixture_synapse_project(syn: Synapse, request) -> tuple[str, str]:
     folder = Folder(name=folder_name, parent_id=project.id)
     folder.store(synapse_client=syn)
 
-    def delete_project():
-        syn.delete(project.id)
-
-    request.addfinalizer(delete_project)
+    schedule_for_cleanup(CleanupItem(synapse_id=project.id))
 
     return project.id, folder.id
 
