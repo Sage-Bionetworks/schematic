@@ -1,9 +1,10 @@
+#########
 Tutorials
-=========
+#########
 
-
+***************************************
 Contributing your manifest with the CLI
----------------------------------------
+***************************************
 
 In this tutorial, you'll learn how to contribute your metadata manifests to Synapse using the `CLI`. Following best practices,
 we will cover generating, validating, and submitting your manifest in a structured workflow.
@@ -21,15 +22,17 @@ we will cover generating, validating, and submitting your manifest in a structur
     We strongly recommend not doing that.
 
 
+*************
 Prerequisites
-~~~~~~~~~~~~~
+*************
 
 1. **Install and configure Schematic**: Ensure that you have installed `schematic` and set up its dependencies. See "Installation Guide For: Users" for more information.
 2. **Important Concepts**: Make sure you know the important concepts outlined on the home page of the doc site.
 3. **Configuration**: Read more here about each of the attributes in the configuration file.
 
+******************************
 Steps to Contribute a Manifest
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+******************************
 
 The contribution process includes three main commands.
 For information about the parameters of each of these commands, please refer to the CLI Reference section.
@@ -40,7 +43,7 @@ For information about the parameters of each of these commands, please refer to 
 
 
 Step 1: Generate a Manifest
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+===========================
 
 The `schematic manifest get` command that creates a manifest template based on a data model and existing manifests.
 
@@ -60,7 +63,7 @@ The `schematic manifest get` command that creates a manifest template based on a
 This command will create a CSV file with the necessary columns and headers, which you can then fill with your metadata.
 
 Step 2: Validate the Manifest (Optional)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+========================================
 
 Though optional, `schematic model validate`` is a useful step to ensure that your manifest meets the required standards before submission.
 It checks for any errors, such as missing or incorrectly formatted values.
@@ -76,7 +79,7 @@ It checks for any errors, such as missing or incorrectly formatted values.
 If validation passes, you'll see a success message; if there are errors, `schematic` will list them. Correct any issues before proceeding to submission.
 
 Step 3: Submit the Manifest to Synapse
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+======================================
 
 The `schematic model submit` command uploads your manifest to Synapse. This command will automatically validate
 the manifest as part of the submission process, so if you prefer, you can skip the standalone validation step.

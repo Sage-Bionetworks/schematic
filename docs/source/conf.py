@@ -44,6 +44,9 @@ release = toml_metadata["version"]
 # ones.
 extensions = ["sphinx_click", "sphinx_rtd_theme", "sphinx.ext.autosectionlabel"]
 
+# Configure autosection label to prefix sections with document name. Requires referencing from directory index.rst is in.
+autosectionlabel_prefix_document = True
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 

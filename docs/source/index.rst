@@ -5,8 +5,9 @@
 
 .. _index:
 
+######################################
 Welcome to Schematic's documentation!
-=====================================
+######################################
 
 .. warning::
    This documentation site is a work in progress, and the sublinks may change.  Apologies for the inconvenience.
@@ -28,15 +29,16 @@ Schematic tackles these goals:
    :depth: 2
    :local:
 
+*******************
 Important Concepts
-------------------
+*******************
 
 .. important::
 
    Before moving reading more about schematic, this section covers essential concepts relevant for using the Schematic tool effectively.
 
 Synapse FileViews
-~~~~~~~~~~~~~~~~~
+=================
 Users are responsible for setting up a **FileView** that integrates with Schematic. Note that FileViews appear under the "Tables" tab in Synapse and can be named according to the project's needs. For instance, a FileView for the **Project A** could have a different name than a FileView for the **Project B**.
 
 For more information on Synapse projects, visit:
@@ -45,17 +47,17 @@ For more information on Synapse projects, visit:
 - `Synapse annotations <https://help.synapse.org/docs/Annotating-Data-With-Metadata.2667708522.html>`_
 
 Synapse Folders
-~~~~~~~~~~~~~~~
+================
 
 Folders in Synapse allow users to organize data within projects. More details on uploading and organizing data can be found at `Synapse folders <https://help.synapse.org/docs/Uploading-and-Organizing-Data-Into-Projects,-Files,-and-Folders.2048327716.html>`_
 
 Synapse Datasets
-~~~~~~~~~~~~~~~~
+================
 
 This is an object in Synapse which appears under the "Dataset" tab and represents a user-defined collection of Synapse files and versions. https://help.synapse.org/docs/Datasets.2611281979.html
 
 JSON-LD
-~~~~~~~
+=======
 JSON-LD is a lightweight Linked Data format. The usage of JSON-LD to capture our data models
 extends beyond the creation, validation, and submission of annotations/manifests into Synapse
 It can create relationships between different data models and, in the future, drive
@@ -64,7 +66,7 @@ and their relationships is also possible which allows the community to see the d
 connections between all the data uploaded into Synapse.
 
 Manifest
-~~~~~~~~
+========
 
 A manifest is a structured file that contains metadata about files under a "top level folder".
 The metadata includes information of the files such as data type and etc.
@@ -72,14 +74,14 @@ The manifest can also used to annotate the data on Synapse and create a file vie
 that enables the FAIR principles on each of the files in the "top level folder".
 
 Component/Data type
-~~~~~~~~~~~~~~~~~~~
+===================
 "component" and "data type" are used interchangeably. The component/data type is determined from the specified JSON-LD data model.
 If the string "component" exists in the depends on column, the "Attribute" value in that row is a data type.
 Examples of a data type is "Biospecimen", "Patient": https://github.com/Sage-Bionetworks/schematic/blob/develop/tests/data/example.model.csv#L3.
 Each data type/component should a manifest template that has different columns.
 
 Project Data Layout
-~~~~~~~~~~~~~~~~~~~
+===================
 
 Regardless of data layout, the data in your Synapse Project(s) are uploaded into Synapse Folders to be curated and annotated by schematic.
 In both layouts listed below, the project administrators along with the data contributors may have preferences on how the
@@ -93,19 +95,19 @@ different things under these two layouts.
 
 In both of these layouts, these are really just groupings of resources.
 
-
+*******************
 Schematic services
-------------------
+*******************
 
 The following are the four main endpoints that assist with the high-level goals outlined above, with additional goals to come.
 
 Manifest Generation
-~~~~~~~~~~~~~~~~~~~
+===================
 
 Provides a manifest template for users for a particular project or data type. If a project with annotations already exists, a semi-filled-out template can be provided to the user. This ensures they do not start from scratch. If there are no existing annotations and manifests, an empty manifest template is provided.
 
-Manifest Validation
-~~~~~~~~~~~~~~~~~~~
+Validating a Manifest
+=====================
 
 Given a filled-out manifest:
 
@@ -116,7 +118,7 @@ Given a filled-out manifest:
 - Validation results are provided before the manifest file is uploaded into Synapse.
 
 Manifest Submission
-~~~~~~~~~~~~~~~~~~~
+===================
 
 Given a filled out manifest, this will allow you to submit the manifest to the "top level folder".
 This is validates the manifest and...
@@ -130,13 +132,13 @@ This is validates the manifest and...
 More validation documentation can be found here: https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/3302785036/Schematic+Validation
 
 Data Model Visualization
-~~~~~~~~~~~~~~~~~~~~~~~~
+========================
 
 These endpoints allows you to visulize your data models and their relationships with each other.
 
-
+**************
 API reference
--------------
+**************
 
 For the entire Python API reference documentation, you can visit the docs here: https://sage-bionetworks.github.io/schematic/
 

@@ -1,10 +1,13 @@
+###############
 Troubleshooting
-===============
+###############
 
 These are some common issues you may encounter when using schematic
 
+*********
 Debugging
----------
+*********
+
 Whether you are using DCA or schematic API or schematic library/CLI, the following are some steps that you want to take to debug your issues.  Here are some steps to walk you through the process.
 
 1. What was the command that caused the error?
@@ -120,6 +123,9 @@ Whether you are using DCA or schematic API or schematic library/CLI, the followi
                 -H 'accept: application/json' ...
 
 
+Manifest Submission
+===================
+
 Manifest Submit: `RuntimeError: failed with SynapseHTTPError('400 Client Error: nan is not a valid Synapse ID.')`
 -----------------------------------------------------------------------------------------------------------------
 
@@ -154,6 +160,10 @@ You may encounter this error if your manifest has an "id" (lower case) column du
 To fix: Delete the `id` (any case variation) and `eTag` column (any case variation) from your manifest and submit the manifest again.
 
 
+Manifest Validation
+===================
+
+
 Manifest validation: `The submitted metadata does not contain all required column(s)`
 -------------------------------------------------------------------------------------
 
@@ -172,6 +182,8 @@ but the actual Component name is "ImagingAssayTemplate".
 
 To fix: Check if your manifest has invalid Component values and fill it out correctly.  Using the above example, fill out your Component column with "ImagingAssayTemplate"
 
+Manifest Generation
+===================
 
 Manifest Generate: `KeyError: entityId`
 ---------------------------------------

@@ -1,31 +1,20 @@
 .. _Validating a Metadata Manifest:
 
+##############################
 Validating a Metadata Manifest
-=================================================
+##############################
 
+*************
 Prerequisites
--------------
+*************
 
 **Obtain Synapse Credentials**:
-Ensure you have a Synapse account and set up Synapse configuration file correctly. See the :ref:`installation` section for more details.
-
-**Before Using the Schematic CLI**
-
-- **Install and Configure Schematic**:
-  Ensure you have installed `schematic` and set up its dependencies.
-  See the :ref:`installation` section for more details.
-
-- **Understand Important Concepts**:
-  Familiarize yourself with key concepts outlined on the :ref:`index` of the documentation.
-
-- **Configuration File**:
-  For more details on configuring Schematic, refer to the documentation on :ref:`creating a configuration file for schematic <configuration>`.
-
-- **Obtain a manifest**:
-  Please obtain a manifest by following the documentation of :ref:`generating a manifest <manifest_generation>`.
+================================
+Ensure you have a Synapse account and set up Synapse configuration file correctly. See the :ref:`setting up configuration files <installation:6. Set up configuration files>` section for more details.
 
 
 **Using the Schematic API in Production**
+=========================================
 
 Visit the **Schematic API (Production Environment)**:
 `<https://schematic.api.sagebionetworks.org/v1/ui/#/>`_
@@ -33,30 +22,53 @@ Visit the **Schematic API (Production Environment)**:
 This will open the **Swagger UI**, where you can explore all available API endpoints.
 
 
+**Before Using the Schematic CLI**
+==================================
+
+- **Install and Configure Schematic**:
+  Ensure you have installed ``schematic`` and set up its dependencies.
+  See the :ref:`installation:installation` section for more details.
+
+- **Understand Important Concepts**:
+  Familiarize yourself with key concepts outlined on the :ref:`index` of the documentation.
+
+- **Configuration File**:
+  For more details on configuring Schematic, refer to the :ref:`configuration:Configure Schematic` section.
+
+- **Obtain a manifest**:
+  Please obtain a manifest by following the documentation of :ref:`generating a manifest <manifest_generation>`.
+
+
+************
 Requirements
--------------------------------------------------
+************
 
 Authentication
-~~~~~~~~~~~~~~~~~~~~
+==============
+
 Authentication with Synapse is required for metadata validation that includes Cross Manifest Validation rules or the ``filenameExists`` rule.
 
 File Format
-~~~~~~~~~~~~~~
+===========
+
 In general, metadata manifests must be stored as ``.CSV`` files. When validating through the api, manifests may alternatively be sent as a JSON string.
 
 Required Column Headers
-~~~~~~~~~~~~~~~~~~~~~~~~~
+=======================
+
 A ``Component`` column that specifies the data type of the metadata must be present in the manifest. Additionally, columns must be present for each attribute in the component that you wish to validate.
 
 Restricted Column Headers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=========================
 The columns ``Filename``, ``entityId``, and ``Component`` are reserved for use by schematic and should not be used as other attributes in a data model.
 
-
+*******************
 Manifest Validation
--------------------------------------------------
+*******************
+
 Overview
-~~~~~~~~~
+========
+
 Invalidities within a manifest’s metadata are classified as either errors or warnings depending on the rule itself, whether the attribute is required, and what the data modeler has specified.
 Errors are considered serious invalidities that must be corrected before submission. Warnings are considered less serious invalidities that are acceptable.
 A manifest with errors should not be submitted and the presence of errors found during submission will block submission. The presence of warnings will not block submission.
@@ -93,14 +105,15 @@ or by viewing the parameter descriptions under the endpoints linked above.
 
 
 With the CLI
-~~~~~~~~~~~~~~~
+=============
 
 Authentication
-^^^^^^^^^^^^^^^^
+--------------
+
 To authenticate for use with the CLI, follow the installation guide instructions on how to :ref:`set up configuration files <set up configuration files>`
 
 Parameters
-^^^^^^^^^^^^^^^
+----------
 --manifest_path/-mp
     string
 
@@ -150,14 +163,16 @@ The SynId of the fileview containing all relevant project assets should also be 
 
 
 With the API
-~~~~~~~~~~~~~~~
+============
 
 Authentication
-^^^^^^^^^^^^^^^^
+--------------
+
 Your Synapse token should be included the in the request headers under the ``access_token`` key. In the SwaggerUI this can be added by clicking the padlock icon at the top right or next to the endoints that accept it.
 
 Parameters
-^^^^^^^^^^^^^^^
+----------
+
 schema_url
     string
     url to the raw version of the data model in either ``.CSV`` or ``.JSONLD`` formats
@@ -200,7 +215,8 @@ dataset_scope
     Specify a dataset to validate against for filename validation.
 
 Request Body
-^^^^^^^^^^^^^
+------------
+
 file_name
     string($binary)
 
@@ -208,13 +224,13 @@ file_name
 
 
 Response
-^^^^^^^^^^^
+--------
 If valiation completes successfully, regardless of the presence of validation errors or warnings, you'll recieve a ``200`` response code.
 The body will be a JSON string containing a list of valiation errors and warnings in the format of ``{"errors": [list of errors], "warnings": [warnings]}``
 
 Validating though the CLI will display all the errors and warnings found during validation or a message that no errors or warnings were found and the manifest is considered valid.
 
-
+*****************
 With the Library
-~~~~~~~~~~~~~~~~~
+*****************
 TODO
