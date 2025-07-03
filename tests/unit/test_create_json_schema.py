@@ -3,7 +3,7 @@ This contains unit test for the crate_json_schema function, and its helper class
 The helper classes tested are JSONSchema, Node, GraphTraversalState,
 """
 
-from typing import Any, Union, Optional
+from typing import Any, Optional
 import os
 import json
 import uuid
@@ -15,9 +15,7 @@ from jsonschema.exceptions import ValidationError
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.create_json_schema import (
-    _get_ranges_from_range_rule,
-    _get_in_range_rule_from_rule_list,
-    _get_type_rule_from_rule_list,
+    _get_validation_rule_based_fields,
     JSONSchema,
     Node,
     GraphTraversalState,
@@ -29,8 +27,10 @@ from schematic.schemas.create_json_schema import (
     _create_array_property,
     _create_enum_property,
     _create_simple_property,
+    _set_type_specific_keywords,
 )
-from tests.utils import json_files_equal
+
+from schematic.schemas.constants import JSONSchemaType, JSONSchemaFormat
 
 # pylint: disable=protected-access
 # pylint: disable=too-many-arguments
@@ -62,7 +62,10 @@ def fixture_test_nodes(
         "StringNotRequired",
         "Enum",
         "EnumNotRequired",
-        "Range",
+        "InRange",
+        "Regex",
+        "Date",
+        "URL",
         "List",
         "ListNotRequired",
         "ListEnum",
@@ -143,140 +146,115 @@ class TestJSONSchema:
 
 
 @pytest.mark.parametrize(
-    "node_name, expected_type, expected_is_array, expected_min, expected_max",
+    "node_name, expected_type, expected_is_array, expected_min, expected_max, expected_pattern, expected_format",
     [
         # If there are no type validation rules the type is None
-        ("NoRules", None, False, None, None),
+        ("NoRules", None, False, None, None, None, None),
         # If there is one type validation rule the type is set to the
         #  JSON Schema equivalent of the validation rule
-        ("String", "string", False, None, None),
+        ("String", JSONSchemaType.STRING, False, None, None, None, None),
         # If there are any list type validation rules then is_array is set to True
-        ("List", None, True, None, None),
+        ("List", None, True, None, None, None, None),
         # If there are any list type validation rules and one type validation rule
         #  then is_array is set to True, and the type is set to the
         #  JSON Schema equivalent of the validation rule
-        ("ListString", "string", True, None, None),
+        ("ListString", JSONSchemaType.STRING, True, None, None, None, None),
         # If there is an inRange rule the min and max will be set
-        ("Range", "number", False, 50, 100),
+        ("InRange", JSONSchemaType.NUMBER, False, 50, 100, None, None),
+        # If there is a regex rule, then the pattern should be set
+        ("Regex", JSONSchemaType.STRING, False, None, None, "[a-f]", None),
+        # If there is a date rule, then the format should be set to "date"
+        ("Date", JSONSchemaType.STRING, False, None, None, None, JSONSchemaFormat.DATE),
+        # If there is a URL rule, then the format should be set to "uri"
+        ("URL", JSONSchemaType.STRING, False, None, None, None, JSONSchemaFormat.URI),
     ],
-    ids=["None", "String", "List", "ListString", "Range"],
+    ids=["None", "String", "List", "ListString", "InRange", "Regex", "Date", "URI"],
 )
 def test_node_init(
     node_name: str,
-    expected_type: Optional[str],
+    expected_type: Optional[JSONSchemaType],
     expected_is_array: bool,
     expected_min: Optional[float],
     expected_max: Optional[float],
-    dmge: DataModelGraphExplorer,
+    expected_pattern: Optional[str],
+    expected_format: Optional[JSONSchemaFormat],
+    test_nodes: dict[str, Node],
 ) -> None:
     """Tests for Node class"""
-    node = Node(node_name, "MockComponent", dmge)
+    node = test_nodes[node_name]
     assert node.type == expected_type
+    assert node.format == expected_format
     assert node.is_array == expected_is_array
     assert node.minimum == expected_min
     assert node.maximum == expected_max
+    assert node.pattern == expected_pattern
 
 
 @pytest.mark.parametrize(
-    "input_rule, expected_tuple",
+    "validation_rules, expected_type, expected_is_array, expected_min, expected_max, expected_pattern, expected_format",
     [
-        ("", (None, None)),
-        ("inRange", (None, None)),
-        ("inRange x x", (None, None)),
-        ("inRange 0", (0, None)),
-        ("inRange 0 x", (0, None)),
-        ("inRange 0 1", (0, 1)),
-        ("inRange 0 1 x", (0, 1)),
+        # If there are no type validation rules the type is None
+        ([], None, False, None, None, None, None),
+        # If there is one type validation rule the type is set to the
+        #  JSON Schema equivalent of the validation rule
+        (["str"], JSONSchemaType.STRING, False, None, None, None, None),
+        # If there are any list type validation rules then is_array is set to True
+        (["list"], None, True, None, None, None, None),
+        # If there are any list type validation rules and one type validation rule
+        #  then is_array is set to True, and the type is set to the
+        #  JSON Schema equivalent of the validation rule
+        (["list", "str"], JSONSchemaType.STRING, True, None, None, None, None),
+        # If there is an inRange rule the min and max will be set
+        (["inRange 50 100"], JSONSchemaType.NUMBER, False, 50, 100, None, None),
+        # If there is a regex rule, then the pattern should be set
+        (
+            ["regex search [a-f]"],
+            JSONSchemaType.STRING,
+            False,
+            None,
+            None,
+            "[a-f]",
+            None,
+        ),
+        # If there is a date rule, then the format should be set to "date"
+        (
+            ["date"],
+            JSONSchemaType.STRING,
+            False,
+            None,
+            None,
+            None,
+            JSONSchemaFormat.DATE,
+        ),
+        # If there is a URL rule, then the format should be set to "uri"
+        (["url"], JSONSchemaType.STRING, False, None, None, None, JSONSchemaFormat.URI),
     ],
-    ids=[
-        "No rules",
-        "inRange with no params",
-        "inRange with bad params",
-        "inRange with minimum",
-        "inRange with minimum, bad maximum",
-        "inRange with minimum, maximum",
-        "inRange with minimum, maximum, extra param",
-    ],
+    ids=["No rules", "String", "List", "ListString", "InRange", "Regex", "Date", "URL"],
 )
-def test_get_ranges_from_range_rule(
-    input_rule: str,
-    expected_tuple: tuple[Union[str, None], Union[str, None]],
+def test_get_validation_rule_based_fields(
+    validation_rules: list[str],
+    expected_type: Optional[JSONSchemaType],
+    expected_is_array: bool,
+    expected_min: Optional[float],
+    expected_max: Optional[float],
+    expected_pattern: Optional[str],
+    expected_format: Optional[JSONSchemaFormat],
 ) -> None:
-    """Test for _get_ranges_from_range_rule"""
-    result = _get_ranges_from_range_rule(input_rule)
-    assert result == expected_tuple
-
-
-@pytest.mark.parametrize(
-    "input_rules, expected_rule",
-    [
-        ([], None),
-        (["list strict"], None),
-        (["inRange 0 1"], "inRange 0 1"),
-        (["str error", "inRange 0 1"], "inRange 0 1"),
-    ],
-    ids=[
-        "No rules",
-        "List",
-        "inRange",
-        "str and inRange",
-    ],
-)
-def test_get_in_range_rule_from_rule_list(
-    input_rules: list[str],
-    expected_rule: Union[str, None],
-) -> None:
-    """Test for _get_in_range_rule_from_rule_list"""
-    result = _get_in_range_rule_from_rule_list(input_rules)
-    assert result == expected_rule
-
-
-@pytest.mark.parametrize(
-    "input_rules",
-    [(["inRange", "inRange"]), (["inRange 0", "inRange 0"])],
-    ids=["Multiple inRange rules", "Multiple inRange rules with params"],
-)
-def test_get_in_range_rule_from_rule_list_exceptions(
-    input_rules: list[str],
-) -> None:
-    """Test for _get_in_range_rule_from_rule_list with exceptions"""
-    with pytest.raises(
-        ValueError, match="Found more than one inRange rule in validation rules"
-    ):
-        _get_in_range_rule_from_rule_list(input_rules)
-
-
-@pytest.mark.parametrize(
-    "input_rules, expected_rule",
-    [([], None), (["list strict"], None), (["str"], "str"), (["str error"], "str")],
-    ids=["No rules", "List", "String", "String with error param"],
-)
-def test_get_type_rule_from_rule_list(
-    input_rules: list[str],
-    expected_rule: Union[str, None],
-) -> None:
-    """Test for _get_type_rule_from_rule_list"""
-    result = _get_type_rule_from_rule_list(input_rules)
-    assert result == expected_rule
-
-
-@pytest.mark.parametrize(
-    "input_rules",
-    [(["str", "int"]), (["str", "str", "str"]), (["str", "str error", "str warning"])],
-    ids=[
-        "Multiple type rules",
-        "Repeated str rules",
-        "Repeated str rules with parameters",
-    ],
-)
-def test_get_type_rule_from_rule_list_exceptions(
-    input_rules: list[str],
-) -> None:
-    """Test for _get_type_rule_from_rule_list with exceptions"""
-    with pytest.raises(
-        ValueError, match="Found more than one type rule in validation rules"
-    ):
-        _get_type_rule_from_rule_list(input_rules)
+    """Tests for _get_validation_rule_based_fields"""
+    (
+        is_array,
+        property_type,
+        property_format,
+        minimum,
+        maximum,
+        pattern,
+    ) = _get_validation_rule_based_fields(validation_rules)
+    assert property_type == expected_type
+    assert property_format == expected_format
+    assert is_array == expected_is_array
+    assert minimum == expected_min
+    assert maximum == expected_max
+    assert pattern == expected_pattern
 
 
 class TestGraphTraversalState:
@@ -481,7 +459,12 @@ def test_create_json_schema_with_class_label(
         schema_path=test_path,
         use_property_display_names=False,
     )
-    assert json_files_equal(expected_path, test_path)
+    with open(expected_path, encoding="utf-8") as file1, open(
+        test_path, encoding="utf-8"
+    ) as file2:
+        expected_json = json.load(file1)
+        test_json = json.load(file2)
+    assert expected_json == test_json
 
 
 @pytest.mark.parametrize(
@@ -507,32 +490,12 @@ def test_create_json_schema_with_display_names(
         schema_name=f"{datatype}_validation",
         schema_path=test_path,
     )
-    assert json_files_equal(expected_path, test_path)
-
-
-@pytest.mark.parametrize(
-    "datatype",
-    [
-        ("BulkRNA-seqAssay"),
-        ("Patient"),
-    ],
-)
-def test_create_json_schema_with_display_names(
-    dmge: DataModelGraphExplorer, datatype: str, test_directory: str
-) -> None:
-    """Tests for JSONSchemaGenerator.create_json_schema"""
-    test_file = f"test.{datatype}.display_names_schema.json"
-    test_path = os.path.join(test_directory, test_file)
-    expected_path = (
-        f"tests/data/expected_jsonschemas/expected.{datatype}.display_names_schema.json"
-    )
-    create_json_schema(
-        dmge=dmge,
-        datatype=datatype,
-        schema_name=f"{datatype}_validation",
-        schema_path=test_path,
-    )
-    assert json_files_equal(expected_path, test_path)
+    with open(expected_path, encoding="utf-8") as file1, open(
+        test_path, encoding="utf-8"
+    ) as file2:
+        expected_json = json.load(file1)
+        test_json = json.load(file2)
+    assert expected_json == test_json
 
 
 @pytest.mark.parametrize(
@@ -1054,7 +1017,7 @@ def test_create_enum_property(
             [None],
         ),
         (
-            "Range",
+            "InRange",
             {
                 "type": "number",
                 "minimum": 50,
@@ -1089,3 +1052,27 @@ def test_create_simple_property(
     for value in invalid_values:
         with pytest.raises(ValidationError):
             validator.validate({"name": value})
+
+
+@pytest.mark.parametrize(
+    "node_name, expected_schema",
+    [
+        ("NoRules", {}),
+        ("InRange", {"minimum": 50, "maximum": 100}),
+        ("Regex", {"pattern": "[a-f]"}),
+    ],
+    ids=[
+        "NoRules",
+        "InRange",
+        "Regex",
+    ],
+)
+def test_set_type_specific_keywords(
+    node_name: str,
+    expected_schema: dict[str, Any],
+    test_nodes: dict[str, Node],
+) -> None:
+    """Test for _set_type_specific_keywords"""
+    schema = {}
+    _set_type_specific_keywords(schema, test_nodes[node_name])
+    assert schema == expected_schema

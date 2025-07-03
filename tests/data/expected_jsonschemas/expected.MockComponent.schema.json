@@ -12,9 +12,8 @@
     },
     "CheckDate": {
       "description": "TBD",
-      "not": {
-        "type": "null"
-      },
+      "type": "string",
+      "format": "date",
       "title": "Check Date"
     },
     "CheckFloat": {
@@ -176,22 +175,24 @@
     },
     "CheckRegexFormat": {
       "description": "TBD",
-      "not": {
-        "type": "null"
-      },
+      "pattern": "^[a-f]",
+      "type": "string",
       "title": "Check Regex Format"
     },
     "CheckRegexInteger": {
       "description": "TBD",
-      "not": {
-        "type": "null"
-      },
+      "pattern": "^\\d+$",
+      "type": "string",
       "title": "Check Regex Integer"
     },
     "CheckRegexList": {
       "description": "TBD",
       "oneOf": [
         {
+          "items": {
+            "pattern": "^[a-f]",
+            "type": "string"
+          },
           "title": "array",
           "type": "array"
         }
@@ -202,6 +203,10 @@
       "description": "TBD",
       "oneOf": [
         {
+          "items": {
+            "pattern": "^[a-f]",
+            "type": "string"
+          },
           "title": "array",
           "type": "array"
         }
@@ -212,6 +217,10 @@
       "description": "TBD",
       "oneOf": [
         {
+          "items": {
+            "pattern": "^[a-f]",
+            "type": "string"
+          },
           "title": "array",
           "type": "array"
         }
@@ -220,9 +229,8 @@
     },
     "CheckRegexSingle": {
       "description": "TBD",
-      "not": {
-        "type": "null"
-      },
+      "pattern": "[a-f]",
+      "type": "string",
       "title": "Check Regex Single"
     },
     "CheckString": {
@@ -232,9 +240,8 @@
     },
     "CheckURL": {
       "description": "TBD",
-      "not": {
-        "type": "null"
-      },
+      "type": "string",
+      "format": "uri",
       "title": "Check URL"
     },
     "CheckUnique": {

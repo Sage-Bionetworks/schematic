@@ -1,14 +1,15 @@
-================
-Validation Rules
-================
+###############################
+Validation Rules Documentation
+###############################
 
 .. contents::
-   :depth: 2
+   :depth: 3
    :local:
    :backlinks: entry
 
+*********
 Overview
-========
+*********
 
 When Schematic validates a manifest, it uses a data model. The data model contains a list of validation rules for each component(data-type). This document describes all allowed validation rules currently implemented by Schematic.
 
@@ -63,7 +64,7 @@ List Validation Type
 --------------------
 
 list
-~~~~
+^^^^^
 
 - Use to parse the imported value to a list of values and (optionally) to verify that the user provided value was a comma separated list, depending on how strictly entries must conform to the list structure. Values can come from Valid Values.
 
@@ -95,7 +96,7 @@ Regex Validation Type
 ---------------------
 
 regex
-~~~~~
+^^^^^^
 
 - Use the ``regex`` validation rule when you want to require that a user input values in a specific format, i.e. an ID that follows a particular format.
 
@@ -136,22 +137,22 @@ Type Validation Type
 - Examples: [ ``str``, ``str error``, ``str warning``]
 
 float
-~~~~~
+^^^^^^
 
 - Checks that the value is a float.
 
 int
-~~~
+^^^^
 
 - Checks that the value is an integer.
 
 num
-~~~
+^^^^
 
 - Checks that the value is either an integer or float.
 
 str
-~~~
+^^^
 
 - Checks that the value is a string (not a number).
 
@@ -159,7 +160,7 @@ URL Validation Type
 -------------------
 
 url
-~~~
+^^^
 
 - Using the ``url`` rule implies the user should add a URL to a free text box as a string. This function will check that the user has provided a usable URL. It will check for any standard URL error and throw an error if one is found. Further additions to this rule can allow for checking that a specific type of URL is added. For example, if the user needs to ensure that the input contains a http://protocols.io  URL string, http://protocols.io can be added after url to perform this check.
 
@@ -183,7 +184,7 @@ Required Validation Type
 ------------------------
 
 required
-~~~~~~~~
+^^^^^^^^
 
 
 An attribute's requirement is typically set using the required column (csv) or field (JSONLD) in the data model. A ``True`` value means a users must supply a value, ``False`` means they are allowed to skip providing a value.
@@ -219,7 +220,7 @@ When using the ``required`` validation rule, the ``Required`` column must ``Fals
 
   - To verify that the ``required`` rule is working as expected, you can generate all impacted manifests—required, and columns should appear highlighted in light blue.
 
-Examples:
+**Examples:**
 
 - ``#BiospecimenManifest required``
 
@@ -244,28 +245,27 @@ There are three rules that do cross-manifest validation: [``matchAtLeastOne``, `
 
 There are two scopes to choose from: [ ``value``, ``set``]
 
-Value Scope
-~~~~~~~~~~~
+``value`` Scope
+^^^^^^^^^^^^^^^^
 
 When the value scope is used all values from the target attribute in all target manifests are combined. The values from the manifest being validated are compared to this combined list. In other words, there is no distinction between what values came from what target manifest.
 
 matchAtleastOne Value Scope
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""""
 
 The manifest is validated if each value in the target attribute exists at least once in the combined values of the target attribute of the target manifests.
 
 matchExactlyOne Value Scope
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""""
 
 The manifest is validated if each value in the target attribute exists once, and only once, in the combined values of the target attribute of the target manifests.
 
 matchNone Value Scope
-^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""
 
 The manifest is validated if each value in the target attribute does not exist in the combined values of the target attribute of the target manifests.
 
-Example 1
-^^^^^^^^^
+**Example 1**
 
 Tested manifest: ["A"]
 
@@ -279,8 +279,7 @@ Target manifests: ["A", "B"]
 
   - because "A" is in the target manifest
 
-Example 2
-^^^^^^^^^
+**Example 2**
 
 Tested manifest: ["A", "C"]
 
@@ -298,8 +297,7 @@ Target manifests: ["A", "B"]
 
   - because "A" is in the target manifest
 
-Example 3
-^^^^^^^^^
+**Example 3**
 
 Tested manifest: ["C"]
 
@@ -315,8 +313,7 @@ Target manifests: ["A", "B"]
 
 - matchNone: passes
 
-Example 4
-^^^^^^^^^
+**Example 4**
 
 Tested manifest: ["A", "A"]
 
@@ -330,8 +327,7 @@ Target manifests: ["A", "B"]
 
   - because "A" is in the target manifest
 
-Example 5
-^^^^^^^^^
+**Example 5**
 
 Tested manifest: ["A"]
 
@@ -347,8 +343,7 @@ Target manifests: ["A", "A"]
 
   - because "A" is in the target manifest
 
-Example 6
-^^^^^^^^^
+**Example 6**
 
 Tested manifest: ["A"]
 
@@ -364,8 +359,7 @@ matchNone: fails
 
 because "A" is in the target manifest
 
-Example 7
-^^^^^^^^^
+**Example 7**
 
 Tested manifest: ["A"]
 
@@ -381,8 +375,8 @@ Target manifests: ["A", "B"],  ["A", "B"]
 
   - because "A" is in the target manifest
 
-Set scope
-~~~~~~~~~
+``set`` Scope
+^^^^^^^^^^^^^
 
 When the set scope is used the values from the tested manifest are compared **one at a time** against each target manifest, and the number of matches are counted. The test to determine if the tested manifest matches the target manifest is to see if the tested manifest values are a subset of the target manifest values. Imagine a target manifest who's values are ["A", "B" "C"]:
 
@@ -391,22 +385,21 @@ When the set scope is used the values from the tested manifest are compared **on
 - [1], ["D"], ["D", "D"], ["D", "E"] are not subsets of the example target manifest.
 
 matchAtleastOne Set scope
-^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""
 
 The manifest is validated if there is atleast one set match between the tested manifest and the target manifests
 
 matchExactlyOne Set scope
-^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""
 
 The manifest is validated if there is one and only one set match between the tested manifest and the target manifests
 
 matchNone Set scope
-^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""
 
 The manifest is validated if there are no set match between the tested manifest and the target manifests
 
-Example 1
-^^^^^^^^^
+**Example 1**
 
 Tested manifest: ["A"]
 
@@ -420,8 +413,7 @@ matchNone: fails
 
 because "A" is in the target manifest
 
-Example 2
-^^^^^^^^^
+**Example 2**
 
 Tested manifest: ["A"]
 
@@ -435,8 +427,7 @@ Target manifests: ["A", "B"], ["C", "D"]
 
   - because "A" is in atleast one of the target manifest
 
-Example 3
-^^^^^^^^^
+**Example 3**
 
 Tested manifest: ["A"]
 
@@ -452,8 +443,7 @@ Target manifests: ["A", "B"], ["A", "B"]
 
   - because "A" is in atleast one of the target manifests
 
-Example 4
-^^^^^^^^^
+**Example 4**
 
 Tested manifest: ["C"]
 
@@ -475,7 +465,7 @@ Content Validation Type
 Rules can be used to validate the contents of entries for an attribute.
 
 recommended
-~~~~~~~~~~~
+^^^^^^^^^^^^
 
 - Use to raise a warning when a manifest column is not required but empty. If an attribute is always necessary then ``required`` should be set to ``TRUE`` instead of using the ``recommended`` validation rule.
 
@@ -490,7 +480,7 @@ recommended
 - Default behavior: raises ``warning``
 
 protectAges
-~~~~~~~~~~~
+^^^^^^^^^^^^
 
 - Use to ensure that patient ages under 18 and over 89 years of age are censored when uploading for sharing. If necessary, a censored version of the manifest will be created and uploaded along with the uncensored version. Uncensored versions will be uploaded as restricted and Terms of Use will need to be set. Please follow up with governance after upload to set the terms of use
 
@@ -505,7 +495,7 @@ protectAges
 - Default behavior: raises ``warning``
 
 unique
-~~~~~~
+^^^^^^^
 
 - Use to ensure that attribute values are not duplicated within a column.
 
@@ -520,7 +510,7 @@ unique
 - Default behavior: raises ``error``
 
 inRange
-~~~~~~~
+^^^^^^^
 
 - Use to ensure that numerical data is within a specified range
 
@@ -535,7 +525,7 @@ inRange
 - Default behavior: raises ``error``
 
 date
-~~~~
+^^^^
 
 - Use to ensure the value parses as a date
 
@@ -557,7 +547,7 @@ This requires paths to be enabled for the synapse master file view in use. Can b
 This should be used only with the Filename attribute in a data model and specified with `Component Based Rule Setting <https://sagebionetworks.jira.com/wiki/spaces/SCHEM/pages/edit-v2/2645262364#Component-Based-Rule-Setting>`_
 
 filenameExists
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 - Used to validate that the filenames and paths as they exist in the metadata manifest match the paths that are in the Synapse master File View for the specified dataset
 
@@ -606,7 +596,7 @@ We get the following results for this Manifest::
 
 
 Rule Combinations
------------------
+=================
 
 Schematic allows certain combinations of existing validation rules to be used on a single attribute, where appropriate.
 
@@ -627,7 +617,7 @@ Rule combinations: [``list::regex``, ``int::inRange``, ``float::inRange``, ``num
   - ``list :: regex search [HTAN][0-9]{1}_[0-9]{4}_[0-9]*``
 
 Component-Based Rule Setting
-----------------------------
+=============================
 
 **Component-Based Rule Setting** is a powerful feature in data modeling that enables users to create rules tailored to specific subsets of components or manifests. This functionality was developed to address scenarios where a data modeler needs to enforce uniqueness for certain attribute values within one manifest while allowing non-uniqueness in another.
 

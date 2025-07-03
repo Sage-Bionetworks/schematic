@@ -6,6 +6,8 @@ The Node class gets all the information about a node in the graph needed to writ
 The JSONSchema class is used to store all the data needed to write the final JSON Schema
 """
 
+# pylint: disable=too-many-lines
+
 import logging
 import os
 from typing import Union, Any, Optional
@@ -13,21 +15,27 @@ from dataclasses import dataclass, field, asdict
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.utils.schema_utils import get_json_schema_log_file_path
-from schematic.utils.validate_utils import rule_in_rule_list
-
 from schematic.utils.io_utils import export_json
+from schematic.schemas.json_schema_validation_rule_functions import (
+    filter_unused_inputted_rules,
+    check_for_conflicting_inputted_rules,
+    check_for_duplicate_inputted_rules,
+    get_in_range_parameters_from_inputted_rule,
+    get_regex_parameters_from_inputted_rule,
+    get_js_type_from_inputted_rules,
+    get_rule_from_inputted_rules,
+    get_validation_rule_names_from_inputted_rules,
+    get_names_from_inputted_rules,
+)
+from schematic.schemas.constants import (
+    JSONSchemaType,
+    JSONSchemaFormat,
+    ValidationRuleName,
+)
 
 
 logger = logging.getLogger(__name__)
 
-# A dict where the keys are type validation rules, and the values are their JSON Schema equivalent
-TYPE_RULES = {
-    "str": "string",
-    "num": "number",
-    "float": "number",
-    "int": "integer",
-    "bool": "boolean",
-}
 
 # Complex types
 Items = dict[str, Union[str, float, list[str]]]
@@ -143,10 +151,12 @@ class Node:  # pylint: disable=too-many-instance-attributes
         is_required: Whether or not this node is required
         dependencies: This nodes dependencies
         description: This nodes description, gotten from the comment in the data model
-        type: The type of the property (inferred from validation_rules)
         is_array: Whether or not the property is an array (inferred from validation_rules)
+        type: The type of the property (inferred from validation_rules)
+        format: The format of the property (inferred from validation_rules)
         minimum: The minimum value of the property (if numeric) (inferred from validation_rules)
         maximum: The maximum value of the property (if numeric) (inferred from validation_rules)
+        pattern: The regex pattern of the property (inferred from validation_rules)
     """
 
     name: str
@@ -158,18 +168,16 @@ class Node:  # pylint: disable=too-many-instance-attributes
     is_required: bool = field(init=False)
     dependencies: list[str] = field(init=False)
     description: str = field(init=False)
-    type: Optional[str] = field(init=False)
     is_array: bool = field(init=False)
+    type: Optional[JSONSchemaType] = field(init=False)
+    format: Optional[JSONSchemaFormat] = field(init=False)
     minimum: Optional[float] = field(init=False)
     maximum: Optional[float] = field(init=False)
+    pattern: Optional[str] = field(init=False)
 
     def __post_init__(self) -> None:
         """
         Uses the dmge to fill in most of the fields of the dataclass
-
-        Raises:
-            ValueError: If the type is not numeric, and there is an
-              inRange rule in the validation rules
         """
         self.display_name = self.dmge.get_nodes_display_names([self.name])[0]
         self.valid_values = sorted(self.dmge.get_node_range(node_label=self.name))
@@ -193,100 +201,96 @@ class Node:  # pylint: disable=too-many-instance-attributes
             node_display_name=self.display_name
         )
 
-        self.type = None
-        self.is_array = False
-        self.minimum = None
-        self.maximum = None
-
-        if validation_rules:
-            if rule_in_rule_list("list", validation_rules):
-                self.is_array = True
-
-            type_rule = _get_type_rule_from_rule_list(validation_rules)
-            if type_rule:
-                self.type = TYPE_RULES.get(type_rule)
-
-            range_rule = _get_in_range_rule_from_rule_list(validation_rules)
-            if range_rule:
-                if self.type is None:
-                    self.type = "number"
-                elif self.type not in ["number", "integer"]:
-                    raise ValueError(
-                        "Validation type must be either 'number' or 'integer' "
-                        f"when using the inRange rule, but got: {self.type}"
-                    )
-                self.minimum, self.maximum = _get_ranges_from_range_rule(range_rule)
+        (
+            self.is_array,
+            self.type,
+            self.format,
+            self.minimum,
+            self.maximum,
+            self.pattern,
+        ) = _get_validation_rule_based_fields(validation_rules)
 
 
-def _get_ranges_from_range_rule(
-    rule: str,
-) -> tuple[Optional[float], Optional[float]]:
+def _get_validation_rule_based_fields(
+    validation_rules: list[str],
+) -> tuple[
+    bool,
+    Optional[JSONSchemaType],
+    Optional[JSONSchemaFormat],
+    Optional[float],
+    Optional[float],
+    Optional[str],
+]:
     """
-    Returns the min and max from an inRange rule if they exist
+    Gets the fields for the Node class that are based on the validation rules
+
+    JSON Schema docs:
+
+    Array: https://json-schema.org/understanding-json-schema/reference/array
+    Types: https://json-schema.org/understanding-json-schema/reference/type#type-specific-keywords
+    Format: https://json-schema.org/understanding-json-schema/reference/type#format
+    Pattern: https://json-schema.org/understanding-json-schema/reference/string#regexp
+    Min/max: https://json-schema.org/understanding-json-schema/reference/numeric#range
 
     Arguments:
-        rule: The inRange rule
+        validation_rules: A list of input validation rules
 
     Returns:
-        The min and max from the rule
+        A tuple containing fields for a Node object:
+        - js_is_array: Whether or not the Node should be an array in JSON Schema
+        - js_type: The JSON Schema type
+        - js_format: The JSON Schema format
+        - js_minimum: If the type is numeric the JSON Schema minimum
+        - js_maximum: If the type is numeric the JSON Schema maximum
+        - js_pattern: If the type is string the JSON Schema pattern
     """
-    range_min: Union[float, None] = None
-    range_max: Union[float, None] = None
-    parameters = rule.split(" ")
-    if len(parameters) > 1 and parameters[1].isnumeric():
-        range_min = float(parameters[1])
-    if len(parameters) > 2 and parameters[2].isnumeric():
-        range_max = float(parameters[2])
-    return (range_min, range_max)
+    js_is_array = False
+    js_type = None
+    js_format = None
+    js_minimum = None
+    js_maximum = None
+    js_pattern = None
 
-
-def _get_in_range_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
-    """
-    Returns the inRange rule from a list of rules if there is only one
-    Returns None if there are no inRange rules
-
-    Arguments:
-        rule_list: A list of validation rules
-
-    Raises:
-        ValueError: When more than one inRange rule is found
-
-    Returns:
-        The inRange rule if one is found, or None
-    """
-    in_range_rules = [rule for rule in rule_list if rule.startswith("inRange")]
-    if len(in_range_rules) > 1:
-        raise ValueError(
-            "Found more than one inRange rule in validation rules: ", rule_list
+    if validation_rules:
+        validation_rules = filter_unused_inputted_rules(validation_rules)
+        validation_rule_name_strings = get_names_from_inputted_rules(validation_rules)
+        check_for_duplicate_inputted_rules(validation_rule_name_strings)
+        check_for_conflicting_inputted_rules(validation_rule_name_strings)
+        validation_rule_names = get_validation_rule_names_from_inputted_rules(
+            validation_rules
         )
-    if len(in_range_rules) == 0:
-        return None
-    return in_range_rules[0]
 
+        js_is_array = ValidationRuleName.LIST in validation_rule_names
 
-def _get_type_rule_from_rule_list(rule_list: list[str]) -> Optional[str]:
-    """
-    Returns the type rule from a list of rules if there is only one
-    Returns None if there are no type rules
+        js_type = get_js_type_from_inputted_rules(validation_rules)
 
-    Arguments:
-        rule_list: A list of validation rules
+        if ValidationRuleName.URL in validation_rule_names:
+            js_format = JSONSchemaFormat.URI
+        elif ValidationRuleName.DATE in validation_rule_names:
+            js_format = JSONSchemaFormat.DATE
 
-    Raises:
-        ValueError: When more than one type rule is found
-
-    Returns:
-        The type rule if one is found, or None
-    """
-    rule_list = [rule.split(" ")[0] for rule in rule_list]
-    type_rules = [rule for rule in rule_list if rule in TYPE_RULES]
-    if len(type_rules) > 1:
-        raise ValueError(
-            "Found more than one type rule in validation rules: ", rule_list
+        in_range_rule = get_rule_from_inputted_rules(
+            ValidationRuleName.IN_RANGE, validation_rules
         )
-    if len(type_rules) == 0:
-        return None
-    return type_rules[0]
+        if in_range_rule:
+            js_minimum, js_maximum = get_in_range_parameters_from_inputted_rule(
+                in_range_rule
+            )
+
+        regex_rule = get_rule_from_inputted_rules(
+            ValidationRuleName.REGEX, validation_rules
+        )
+        if regex_rule:
+            js_pattern = get_regex_parameters_from_inputted_rule(regex_rule)
+
+    return (
+        js_is_array,
+        js_type,
+        js_format,
+        js_minimum,
+        js_maximum,
+        js_pattern,
+    )
 
 
 @dataclass
@@ -501,7 +505,7 @@ def create_json_schema(  # pylint: disable=too-many-arguments
     datatype: str,
     schema_name: str,
     write_schema: bool = True,
-    schema_path: Union[str, None] = None,
+    schema_path: Optional[str] = None,
     jsonld_path: Optional[str] = None,
     use_property_display_names: bool = True,
     use_valid_value_display_names: bool = True,
@@ -539,7 +543,6 @@ def create_json_schema(  # pylint: disable=too-many-arguments
     Returns:
         JSON Schema as a dictionary.
     """
-    logger.info("Starting to create JSON Schema for %s", datatype)
     graph_state = GraphTraversalState(dmge, datatype)
 
     json_schema = JSONSchema(
@@ -640,6 +643,11 @@ def _write_data_model(
         json_schema_dirname = os.path.dirname(json_schema_path)
         if json_schema_dirname != "":
             os.makedirs(json_schema_dirname, exist_ok=True)
+
+        logger.info(
+            "The JSON schema file can be inspected by setting the following "
+            "nested key in the configuration: (model > location)."
+        )
     else:
         raise ValueError(
             "Either schema_path or both name and jsonld_path must be provided."
@@ -831,11 +839,8 @@ def _create_array_property(node: Node) -> Property:
 
     items: Items = {}
     if node.type:
-        items["type"] = node.type
-    if node.minimum is not None:
-        items["minimum"] = node.minimum
-    if node.maximum is not None:
-        items["maximum"] = node.maximum
+        items["type"] = node.type.value
+        _set_type_specific_keywords(items, node)
 
     array_type_dict: TypeDict = {"type": "array", "title": "array"}
     null_type_dict: TypeDict = {"type": "null", "title": "null"}
@@ -907,18 +912,31 @@ def _create_simple_property(node: Node) -> Property:
 
     if node.type:
         if node.is_required:
-            prop["type"] = node.type
+            prop["type"] = node.type.value
         else:
             prop["oneOf"] = [
-                {"type": node.type, "title": node.type},
+                {"type": node.type.value, "title": node.type.value},
                 {"type": "null", "title": "null"},
             ]
     elif node.is_required:
         prop["not"] = {"type": "null"}
 
-    if node.minimum is not None:
-        prop["minimum"] = node.minimum
-    if node.maximum is not None:
-        prop["maximum"] = node.maximum
+    _set_type_specific_keywords(prop, node)
 
     return prop
+
+
+def _set_type_specific_keywords(schema: dict[str, Any], node: Node) -> None:
+    """Sets JSON Schema keywords that are allowed if type has been set
+
+    Arguments:
+        schema: The schema to set keywords on
+        node (Node): The node the corresponds to the property which is being set in the JSON Schema
+    """
+    for attr in ["minimum", "maximum", "pattern"]:
+        value = getattr(node, attr)
+        if value is not None:
+            schema[attr] = value
+
+    if node.format is not None:
+        schema["format"] = node.format.value
