@@ -7,6 +7,7 @@ import graphviz  # type: ignore
 import networkx as nx  # type: ignore
 from opentelemetry import trace
 
+from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes
 from schematic.schemas.data_model_relationships import (
@@ -977,3 +978,19 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         if node_display_name is not None:
             return self.get_node_label(node_display_name)
         raise ValueError("Either 'node_label' or 'node_display_name' must be provided.")
+
+
+def create_data_model_graph_explorer(data_model_path: str) -> DataModelGraphExplorer:
+    """Creates a DataModelGraphExplore using a data model
+
+    Args:
+        data_model_path: The path to a data model to create the dmge
+
+    Returns:
+        DataModelGraphExplorer: A dmge created using the input data model
+    """
+    data_model_parser = DataModelParser(path_to_data_model=data_model_path)
+    parsed_data_model = data_model_parser.parse_model()
+    data_model_grapher = DataModelGraph(parsed_data_model)
+    graph_data_model = data_model_grapher.graph
+    return DataModelGraphExplorer(graph_data_model)
