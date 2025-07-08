@@ -275,7 +275,6 @@ def _get_validation_rule_based_fields(
 
         js_is_array = ValidationRuleName.LIST in validation_rule_names
 
-
         # The explicit JSON Schema type is the one set in the data model
         # The implicit JSON Schema type is the one implied by the presence
         #   of certain validation rules
