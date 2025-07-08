@@ -231,7 +231,7 @@ def test_node_init(
     ],
     ids=["No rules", "String", "List", "ListString", "InRange", "Regex", "Date", "URL"],
 )
-def test_get_validation_rule_based_fields(
+def test_get_validation_rule_based_fields_no_explicit_type(
     validation_rules: list[str],
     expected_type: Optional[JSONSchemaType],
     expected_is_array: bool,
@@ -240,7 +240,10 @@ def test_get_validation_rule_based_fields(
     expected_pattern: Optional[str],
     expected_format: Optional[JSONSchemaFormat],
 ) -> None:
-    """Tests for _get_validation_rule_based_fields"""
+    """
+    Test for _get_validation_rule_based_fields
+    Tests that output is expected based on the input validation rules
+    """
     (
         is_array,
         property_type,
@@ -248,13 +251,128 @@ def test_get_validation_rule_based_fields(
         minimum,
         maximum,
         pattern,
-    ) = _get_validation_rule_based_fields(validation_rules)
+    ) = _get_validation_rule_based_fields(validation_rules, None, "name")
     assert property_type == expected_type
     assert property_format == expected_format
     assert is_array == expected_is_array
     assert minimum == expected_min
     assert maximum == expected_max
     assert pattern == expected_pattern
+
+
+@pytest.mark.parametrize(
+    "validation_rules, explicit_type, expected_type, expected_is_array, expected_min, expected_max, expected_pattern, expected_format",
+    [
+        (
+            ["str"],
+            JSONSchemaType.STRING,
+            JSONSchemaType.STRING,
+            False,
+            None,
+            None,
+            None,
+            None,
+        ),
+        (
+            ["inRange 50 100"],
+            JSONSchemaType.NUMBER,
+            JSONSchemaType.NUMBER,
+            False,
+            50,
+            100,
+            None,
+            None,
+        ),
+        (
+            ["regex search [a-f]"],
+            JSONSchemaType.STRING,
+            JSONSchemaType.STRING,
+            False,
+            None,
+            None,
+            "[a-f]",
+            None,
+        ),
+        (
+            ["date"],
+            JSONSchemaType.STRING,
+            JSONSchemaType.STRING,
+            False,
+            None,
+            None,
+            None,
+            JSONSchemaFormat.DATE,
+        ),
+        (
+            ["url"],
+            JSONSchemaType.STRING,
+            JSONSchemaType.STRING,
+            False,
+            None,
+            None,
+            None,
+            JSONSchemaFormat.URI,
+        ),
+    ],
+    ids=["String", "InRange", "Regex", "Date", "URL"],
+)
+def test_get_validation_rule_based_fields_with_explicit_type(
+    validation_rules: list[str],
+    explicit_type: JSONSchemaType,
+    expected_type: Optional[JSONSchemaType],
+    expected_is_array: bool,
+    expected_min: Optional[float],
+    expected_max: Optional[float],
+    expected_pattern: Optional[str],
+    expected_format: Optional[JSONSchemaFormat],
+) -> None:
+    """
+    Test for _get_validation_rule_based_fields
+    Tests that output is expected based on the input validation rules, and explicit type
+    """
+    (
+        is_array,
+        property_type,
+        property_format,
+        minimum,
+        maximum,
+        pattern,
+    ) = _get_validation_rule_based_fields(validation_rules, explicit_type, "name")
+    assert property_type == expected_type
+    assert property_format == expected_format
+    assert is_array == expected_is_array
+    assert minimum == expected_min
+    assert maximum == expected_max
+    assert pattern == expected_pattern
+
+
+@pytest.mark.parametrize(
+    "validation_rules, explicit_type",
+    [
+        (["str"], JSONSchemaType.INTEGER),
+        (["inRange 50 100"], JSONSchemaType.STRING),
+        (["regex search [a-f]"], JSONSchemaType.INTEGER),
+        (["date"], JSONSchemaType.INTEGER),
+        (["url"], JSONSchemaType.INTEGER),
+    ],
+    ids=[
+        "String rule, integer type",
+        "InRange rule, string type",
+        "Regex rule, integer type",
+        "Date rule, integer type",
+        "Url rule, integer type",
+    ],
+)
+def test_get_validation_rule_based_fields_with_exception(
+    validation_rules: list[str],
+    explicit_type: JSONSchemaType,
+) -> None:
+    """
+    Test for _get_validation_rule_based_fields
+    Tests that output is expected based on the input validation rules, and explicit type
+    """
+    with pytest.raises(ValueError):
+        _get_validation_rule_based_fields(validation_rules, explicit_type, "name")
 
 
 class TestGraphTraversalState:
