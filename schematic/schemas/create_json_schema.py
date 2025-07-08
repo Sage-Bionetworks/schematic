@@ -12,6 +12,7 @@ import logging
 import os
 from typing import Union, Any, Optional
 from dataclasses import dataclass, field, asdict
+import warnings
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.utils.schema_utils import get_json_schema_log_file_path
@@ -200,6 +201,9 @@ class Node:  # pylint: disable=too-many-instance-attributes
         self.description = self.dmge.get_node_comment(
             node_display_name=self.display_name
         )
+        explicit_js_type = self.dmge.get_node_column_type(
+            node_display_name=self.display_name
+        )
 
         (
             self.is_array,
@@ -208,11 +212,13 @@ class Node:  # pylint: disable=too-many-instance-attributes
             self.minimum,
             self.maximum,
             self.pattern,
-        ) = _get_validation_rule_based_fields(validation_rules)
+        ) = _get_validation_rule_based_fields(
+            validation_rules, explicit_js_type, self.name
+        )
 
 
 def _get_validation_rule_based_fields(
-    validation_rules: list[str],
+    validation_rules: list[str], explicit_js_type: Optional[JSONSchemaType], name: str
 ) -> tuple[
     bool,
     Optional[JSONSchemaType],
@@ -234,6 +240,13 @@ def _get_validation_rule_based_fields(
 
     Arguments:
         validation_rules: A list of input validation rules
+        explicit_js_type: A JSONSchemaType if set explicitly in the data model, otherwise None
+        name: The name of the node the validation rules belong to
+
+    Raises:
+       ValueError: When an explicit JSON Schema type is given, but the implicit type is different
+       Warning: When no explicit JSON Schema type is given,
+         and an implicit type is derived from  the validation rules
 
     Returns:
         A tuple containing fields for a Node object:
@@ -262,7 +275,38 @@ def _get_validation_rule_based_fields(
 
         js_is_array = ValidationRuleName.LIST in validation_rule_names
 
-        js_type = get_js_type_from_inputted_rules(validation_rules)
+        # The explicit JSON Schema type is the one set in the data model
+        # The implicit JSON Schema type is the one implied by the presence
+        #   of certain validation rules
+        # Schematic will use the implicit type if the explicit type isn't specified for now,
+        #   but this behavior is deprecated and will be removed in the future by SCHEMATIC-326
+        implicit_js_type = get_js_type_from_inputted_rules(validation_rules)
+        # If there is an explicit type set...
+        if explicit_js_type:
+            # and the implicit type conflicts with the explicit type, then an exception is raised
+            if explicit_js_type != implicit_js_type:
+                msg = (
+                    f"Property: '{name}', has explicit type: '{explicit_js_type}' "
+                    f"that conflicts with the implicit type: '{implicit_js_type}' "
+                    f"derived from its validation rules: {validation_rules}"
+                )
+                raise ValueError(msg)
+            # otherwise the explicit type is used
+            js_type = explicit_js_type
+        # If there is no explicit type...
+        else:
+            # and there is an implicit type...
+            if implicit_js_type:
+                # then the implicit type is used...
+                js_type = implicit_js_type
+                # and a warning is raised since this behavior is deprecated
+                msg = (
+                    f"No explicit type set for property: '{name}', "
+                    "using validation rules to set the type. "
+                    "Using validation rules to set type is deprecated. "
+                    "You should set the columnType for this property in your data model."
+                )
+                warnings.warn(msg)
 
         if ValidationRuleName.URL in validation_rule_names:
             js_format = JSONSchemaFormat.URI
