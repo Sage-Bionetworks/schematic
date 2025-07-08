@@ -1,0 +1,99 @@
+{
+  "$id": "http://example.com/TypeDefinitionComponent_validation",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Component to check type specification",
+  "properties": {
+    "Booleantype": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      },
+      "title": "Boolean type"
+    },
+    "Booleantypecaps": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      },
+      "title": "Boolean type caps"
+    },
+    "Component": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      },
+      "title": "Component"
+    },
+    "Inttype": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      },
+      "title": "Int type"
+    },
+    "Inttypecaps": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      },
+      "title": "Int type caps"
+    },
+    "Missingtype": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      },
+      "title": "Missing type"
+    },
+    "Nantype": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      },
+      "title": "Nan type"
+    },
+    "Numtype": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      },
+      "title": "Num type"
+    },
+    "Numtypecaps": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      },
+      "title": "Num type caps"
+    },
+    "Stringtype": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      },
+      "title": "String type"
+    },
+    "Stringtypecaps": {
+      "description": "TBD",
+      "not": {
+        "type": "null"
+      },
+      "title": "String type caps"
+    }
+  },
+  "required": [
+    "Booleantype",
+    "Booleantypecaps",
+    "Component",
+    "Inttype",
+    "Inttypecaps",
+    "Missingtype",
+    "Nantype",
+    "Numtype",
+    "Numtypecaps",
+    "Stringtype",
+    "Stringtypecaps"
+  ],
+  "title": "TypeDefinitionComponent_validation",
+  "type": "object"
+}
