@@ -3,7 +3,6 @@ from typing import Optional, Union
 import pytest
 
 from schematic.schemas.constants import JSONSchemaType
-from schematic.schemas.data_model_relationships import JSONSchemaType
 from schematic.schemas.data_model_graph import create_data_model_graph_explorer
 from tests.conftest import Helpers
 
