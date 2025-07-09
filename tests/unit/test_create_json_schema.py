@@ -616,7 +616,6 @@ def test_create_json_schema_with_display_names(
     assert expected_json == test_json
 
 
-
 def test_create_json_schema_with_no_column_type(
     dmge: DataModelGraphExplorer, test_directory: str
 ) -> None:
@@ -627,9 +626,7 @@ def test_create_json_schema_with_no_column_type(
     datatype = "JSONSchemaComponent"
     test_file = f"test.{datatype}.display_names_schema.json"
     test_path = os.path.join(test_directory, test_file)
-    expected_path = (
-        f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
-    )
+    expected_path = f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
     create_json_schema(
         dmge=dmge,
         datatype=datatype,
@@ -644,6 +641,7 @@ def test_create_json_schema_with_no_column_type(
         test_json = json.load(file2)
     assert expected_json == test_json
 
+
 def test_create_json_schema_with_column_type(
     dmge_column_type: DataModelGraphExplorer, test_directory: str
 ) -> None:
@@ -654,9 +652,7 @@ def test_create_json_schema_with_column_type(
     datatype = "JSONSchemaComponent"
     test_file = f"test.{datatype}.display_names_schema.json"
     test_path = os.path.join(test_directory, test_file)
-    expected_path = (
-        f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
-    )
+    expected_path = f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
     create_json_schema(
         dmge=dmge_column_type,
         datatype=datatype,
