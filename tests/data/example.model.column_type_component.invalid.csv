@@ -60,9 +60,9 @@ String,,,,,TRUE,DataProperty,,,str error,
 String Not Required,,,,,FALSE,DataProperty,,,str error,
 Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,,
 Enum Not Required,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,,
-Date,,,,,TRUE,DataProperty,,,date
-URL,,,,,TRUE,DataProperty,,,url
-InRange,,,,,TRUE,DataProperty,,,inRange 50 100
+Date,,,,,TRUE,DataProperty,,,date,
+URL,,,,,TRUE,DataProperty,,,url,
+InRange,,,,,TRUE,DataProperty,,,inRange 50 100,
 Range,,,,,TRUE,DataProperty,,,inRange 50 100,
 List,,,,,TRUE,DataProperty,,,list,
 List Not Required,,,,,FALSE,DataProperty,,,list,
@@ -70,7 +70,7 @@ List Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list,
 List Enum Not Required,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,list,
 List String,,,,,TRUE,DataProperty,,,list::str,
 List InRange,,,,,TRUE,DataProperty,,,list::inRange 50 100,
-TypeDefinitionComponent,Component to check type specification,"Component, String type, String type caps, Int type, Int type caps, Num type, Num type caps, Nan type, Missing type, Boolean type, Boolean type caps, Invalid type spec",,,FALSE,DataType,,,,
+TypeDefinitionComponent,Component to check type specification,,"Component, String type, String type caps, Int type, Int type caps, Num type, Num type caps, Nan type, Missing type, Boolean type, Boolean type caps, Invalid type spec",,FALSE,DataType,,,,
 String type,,,,,TRUE,DataProperty,,,,string
 String type caps,,,,,TRUE,DataProperty,,,,STRING
 Int type,,,,,TRUE,DataProperty,,,,integer

@@ -3,6 +3,8 @@ from typing import Optional, Union
 import pytest
 
 from schematic.schemas.constants import JSONSchemaType
+from schematic.schemas.data_model_relationships import JSONSchemaType
+from schematic.schemas.data_model_graph import create_data_model_graph_explorer
 from tests.conftest import Helpers
 
 DATA_MODEL_DICT = {"example.model.csv": "CSV", "example.model.jsonld": "JSONLD"}
@@ -142,3 +144,16 @@ class TestDataModelGraphExplorer:
             dmge.get_node_column_type(node_display_name=node_display_name)
             == expected_type
         )
+
+
+@pytest.mark.parametrize(
+    "data_model_path",
+    ["tests/data/example.model.csv", "tests/data/example.model.jsonld"],
+)
+def test_create_data_model_graph_explorer(data_model_path: str) -> None:
+    """
+    Tests for create_data_model_graph_explorer
+    Tests that the dmge is created
+    """
+    dmge = create_data_model_graph_explorer(data_model_path)
+    assert dmge
