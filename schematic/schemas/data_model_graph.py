@@ -10,6 +10,7 @@ from opentelemetry import trace
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes
 from schematic.schemas.data_model_relationships import DataModelRelationships
+from schematic.schemas.constants import JSONSchemaType
 from schematic.utils.general import unlist
 from schematic.utils.schema_utils import (
     DisplayLabelType,
@@ -940,7 +941,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
     def get_node_column_type(
         self, node_label: Optional[str] = None, node_display_name: Optional[str] = None
-    ) -> Optional[str]:
+    ) -> Optional[JSONSchemaType]:
         """Gets the column type of the node
 
         Args:
@@ -952,7 +953,10 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         """
         node_label = self._get_node_label(node_label, node_display_name)
         rel_node_label = self.dmr.get_relationship_value("columnType", "node_label")
-        return self.graph.nodes[node_label][rel_node_label]
+        type_string = self.graph.nodes[node_label][rel_node_label]
+        if type_string is None:
+            return type_string
+        return JSONSchemaType(type_string)
 
     def _get_node_label(
         self, node_label: Optional[str] = None, node_display_name: Optional[str] = None
