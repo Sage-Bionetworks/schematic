@@ -14,7 +14,7 @@
             "rdfs:label": "Component",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:TypeDefinitionComponent"
+                    "@id": "bts:Thing"
                 }
             ],
             "schema:isPartOf": {
@@ -2269,7 +2269,9 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "schema:rangeIncludes": [
+            "sms:displayName": "TypeDefinitionComponent",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
                 {
                     "@id": "bts:Component"
                 },
@@ -2304,8 +2306,6 @@
                     "@id": "bts:Booleantypecaps"
                 }
             ],
-            "sms:displayName": "TypeDefinitionComponent",
-            "sms:required": "sms:false",
             "sms:validationRules": []
         },
         {
@@ -2316,9 +2316,6 @@
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:DataProperty"
-                },
-                {
-                    "@id": "bts:TypeDefinitionComponent"
                 }
             ],
             "schema:isPartOf": {
@@ -2337,9 +2334,6 @@
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:DataProperty"
-                },
-                {
-                    "@id": "bts:TypeDefinitionComponent"
                 }
             ],
             "schema:isPartOf": {
@@ -2358,9 +2352,6 @@
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:DataProperty"
-                },
-                {
-                    "@id": "bts:TypeDefinitionComponent"
                 }
             ],
             "schema:isPartOf": {
@@ -2379,9 +2370,6 @@
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:DataProperty"
-                },
-                {
-                    "@id": "bts:TypeDefinitionComponent"
                 }
             ],
             "schema:isPartOf": {
@@ -2400,9 +2388,6 @@
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:DataProperty"
-                },
-                {
-                    "@id": "bts:TypeDefinitionComponent"
                 }
             ],
             "schema:isPartOf": {
@@ -2421,9 +2406,6 @@
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:DataProperty"
-                },
-                {
-                    "@id": "bts:TypeDefinitionComponent"
                 }
             ],
             "schema:isPartOf": {
@@ -2442,9 +2424,6 @@
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:DataProperty"
-                },
-                {
-                    "@id": "bts:TypeDefinitionComponent"
                 }
             ],
             "schema:isPartOf": {
@@ -2462,9 +2441,6 @@
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:DataProperty"
-                },
-                {
-                    "@id": "bts:TypeDefinitionComponent"
                 }
             ],
             "schema:isPartOf": {
@@ -2482,9 +2458,6 @@
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:DataProperty"
-                },
-                {
-                    "@id": "bts:TypeDefinitionComponent"
                 }
             ],
             "schema:isPartOf": {
@@ -2503,9 +2476,6 @@
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:DataProperty"
-                },
-                {
-                    "@id": "bts:TypeDefinitionComponent"
                 }
             ],
             "schema:isPartOf": {
