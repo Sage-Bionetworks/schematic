@@ -616,6 +616,58 @@ def test_create_json_schema_with_display_names(
     assert expected_json == test_json
 
 
+def test_create_json_schema_with_no_column_type(
+    dmge: DataModelGraphExplorer, test_directory: str
+) -> None:
+    """
+    Tests for JSONSchemaGenerator.create_json_schema
+    This tests where the data model does not have columnType attribute
+    """
+    datatype = "JSONSchemaComponent"
+    test_file = f"test.{datatype}.display_names_schema.json"
+    test_path = os.path.join(test_directory, test_file)
+    expected_path = f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
+    create_json_schema(
+        dmge=dmge,
+        datatype=datatype,
+        schema_name=f"{datatype}_validation",
+        schema_path=test_path,
+        use_property_display_names=False,
+    )
+    with open(expected_path, encoding="utf-8") as file1, open(
+        test_path, encoding="utf-8"
+    ) as file2:
+        expected_json = json.load(file1)
+        test_json = json.load(file2)
+    assert expected_json == test_json
+
+
+def test_create_json_schema_with_column_type(
+    dmge_column_type: DataModelGraphExplorer, test_directory: str
+) -> None:
+    """
+    Tests for JSONSchemaGenerator.create_json_schema
+    This tests where the data model does have the columnType attribute
+    """
+    datatype = "JSONSchemaComponent"
+    test_file = f"test.{datatype}.display_names_schema.json"
+    test_path = os.path.join(test_directory, test_file)
+    expected_path = f"tests/data/expected_jsonschemas/expected.{datatype}.schema.json"
+    create_json_schema(
+        dmge=dmge_column_type,
+        datatype=datatype,
+        schema_name=f"{datatype}_validation",
+        schema_path=test_path,
+        use_property_display_names=False,
+    )
+    with open(expected_path, encoding="utf-8") as file1, open(
+        test_path, encoding="utf-8"
+    ) as file2:
+        expected_json = json.load(file1)
+        test_json = json.load(file2)
+    assert expected_json == test_json
+
+
 @pytest.mark.parametrize(
     "instance_path, datatype",
     [

@@ -2,13 +2,8 @@ from typing import Optional, Union
 
 import pytest
 
-from schematic.schemas.data_model_relationships import JSONSchemaType
-from schematic.schemas.data_model_graph import (
-    DataModelGraph,
-    DataModelGraphExplorer,
-    create_data_model_graph_explorer,
-)
-from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.constants import JSONSchemaType
+from schematic.schemas.data_model_graph import create_data_model_graph_explorer
 from tests.conftest import Helpers
 
 DATA_MODEL_DICT = {"example.model.csv": "CSV", "example.model.jsonld": "JSONLD"}
@@ -99,11 +94,11 @@ class TestDataModelGraphExplorer:
     @pytest.mark.parametrize(
         "node_label, expected_type",
         [
-            ("Stringtype", "string"),
-            ("Numtype", "number"),
+            ("Stringtype", JSONSchemaType.STRING),
+            ("Numtype", JSONSchemaType.NUMBER),
             ("Missingtype", None),
         ],
-        ids=["Stringtype", "Numtpye", "Missingtype"],
+        ids=["String type", "Num type", "Missing type"],
     )
     @pytest.mark.parametrize(
         "data_model",
@@ -124,8 +119,8 @@ class TestDataModelGraphExplorer:
     @pytest.mark.parametrize(
         "node_display_name, expected_type",
         [
-            ("String type", "string"),
-            ("Num type", "number"),
+            ("String type", JSONSchemaType.STRING),
+            ("Num type", JSONSchemaType.NUMBER),
             ("Missing type", None),
         ],
         ids=["String type", "Num type", "Missing type"],

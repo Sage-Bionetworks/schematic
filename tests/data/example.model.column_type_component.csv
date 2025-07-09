@@ -56,19 +56,20 @@ MockFilename,,,"Component, Filename",,FALSE,DataType,,,,
 JSONSchemaComponent,Component to hold attributes for testing JSON Schemas,,"Component, No Rules, No Rules Not Required, String, String Not Required, Enum, Enum Not Required, Date, URL, InRange, Regex, List, List Not Required, List Enum, List Enum Not Required, List String, List InRange",,FALSE,DataType,,,,
 No Rules,,,,,TRUE,DataProperty,,,,
 No Rules Not Required,,,,,FALSE,DataProperty,,,,
-String,,,,,TRUE,DataProperty,,,str error,
-String Not Required,,,,,FALSE,DataProperty,,,str error,
+String,,,,,TRUE,DataProperty,,,str error,string
+String Not Required,,,,,FALSE,DataProperty,,,str error,string
 Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,,
 Enum Not Required,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,,
 Date,,,,,TRUE,DataProperty,,,date,string
 URL,,,,,TRUE,DataProperty,,,url,string
-Range,,,,,TRUE,DataProperty,,,inRange 50 100,
+InRange,,,,,TRUE,DataProperty,,,inRange 50 100,number
+Regex,,,,,TRUE,DataProperty,,,regex search [a-f],string
 List,,,,,TRUE,DataProperty,,,list,
 List Not Required,,,,,FALSE,DataProperty,,,list,
 List Enum,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list,
 List Enum Not Required,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,list,
-List String,,,,,TRUE,DataProperty,,,list::str,
-List InRange,,,,,TRUE,DataProperty,,,list::inRange 50 100,
+List String,,,,,TRUE,DataProperty,,,list::str,string
+List InRange,,,,,TRUE,DataProperty,,,list::inRange 50 100,number
 TypeDefinitionComponent,Component to check type specification,,"Component, String type, String type caps, Int type, Int type caps, Num type, Num type caps, Nan type, Missing type, Boolean type, Boolean type caps",,FALSE,DataType,,,,
 String type,,,,,TRUE,DataProperty,,,,string
 String type caps,,,,,TRUE,DataProperty,,,,STRING
