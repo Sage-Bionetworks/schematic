@@ -3,8 +3,6 @@ from typing import Optional, Union
 import pytest
 
 from schematic.schemas.data_model_relationships import JSONSchemaType
-from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.schemas.data_model_parser import DataModelParser
 from tests.conftest import Helpers
 
 DATA_MODEL_DICT = {"example.model.csv": "CSV", "example.model.jsonld": "JSONLD"}
@@ -109,7 +107,7 @@ class TestDataModelGraphExplorer:
     def test_get_node_column_type_with_node_labels(
         self,
         node_label: str,
-        expected_type: Optional[JSONSchemaType],
+        expected_type: Optional[str],
         data_model: str,
         helpers: Helpers,
     ) -> None:
@@ -134,7 +132,7 @@ class TestDataModelGraphExplorer:
     def test_get_node_column_type_with_node_display_names(
         self,
         node_display_name: str,
-        expected_type: Optional[JSONSchemaType],
+        expected_type: Optional[str],
         data_model: str,
         helpers: Helpers,
     ) -> None:
