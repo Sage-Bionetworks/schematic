@@ -1932,6 +1932,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
+            "sms:columnType": "string",
             "sms:displayName": "String",
             "sms:required": "sms:true",
             "sms:validationRules": [
@@ -1951,6 +1952,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
+            "sms:columnType": "string",
             "sms:displayName": "String Not Required",
             "sms:required": "sms:false",
             "sms:validationRules": [
@@ -2066,15 +2068,18 @@
             "rdfs:label": "InRange",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:Thing"
+                    "@id": "bts:DataProperty"
                 }
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
+            "sms:columnType": "number",
             "sms:displayName": "InRange",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
+            "sms:required": "sms:true",
+            "sms:validationRules": [
+                "inRange 50 100"
+            ]
         },
         {
             "@id": "bts:Regex",
@@ -2083,15 +2088,18 @@
             "rdfs:label": "Regex",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:Thing"
+                    "@id": "bts:DataProperty"
                 }
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
+            "sms:columnType": "string",
             "sms:displayName": "Regex",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
+            "sms:required": "sms:true",
+            "sms:validationRules": [
+                "regex search [a-f]"
+            ]
         },
         {
             "@id": "bts:List",
@@ -2210,6 +2218,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
+            "sms:columnType": "string",
             "sms:displayName": "List String",
             "sms:required": "sms:true",
             "sms:validationRules": [
@@ -2230,29 +2239,11 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
+            "sms:columnType": "number",
             "sms:displayName": "List InRange",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "list",
-                "inRange 50 100"
-            ]
-        },
-        {
-            "@id": "bts:Range",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "Range",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:DataProperty"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Range",
-            "sms:required": "sms:true",
-            "sms:validationRules": [
                 "inRange 50 100"
             ]
         },
@@ -2304,6 +2295,9 @@
                 },
                 {
                     "@id": "bts:Booleantypecaps"
+                },
+                {
+                    "@id": "bts:Invalidtypespec"
                 }
             ],
             "sms:validationRules": []
@@ -2484,6 +2478,23 @@
             "sms:columnType": "boolean",
             "sms:displayName": "Boolean type caps",
             "sms:required": "sms:true",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Invalidtypespec",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Invalidtypespec",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Thing"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Invalid type spec",
+            "sms:required": "sms:false",
             "sms:validationRules": []
         },
         {
