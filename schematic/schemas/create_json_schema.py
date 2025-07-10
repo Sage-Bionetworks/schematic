@@ -258,7 +258,7 @@ def _get_validation_rule_based_fields(
         - js_pattern: If the type is string the JSON Schema pattern
     """
     js_is_array = False
-    js_type = None
+    js_type = explicit_js_type
     js_format = None
     js_minimum = None
     js_maximum = None
@@ -291,8 +291,6 @@ def _get_validation_rule_based_fields(
                     f"derived from its validation rules: {validation_rules}"
                 )
                 raise ValueError(msg)
-            # otherwise the explicit type is used
-            js_type = explicit_js_type
         # If there is no explicit type...
         else:
             # and there is an implicit type...

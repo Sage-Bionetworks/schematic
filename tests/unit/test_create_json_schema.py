@@ -264,6 +264,16 @@ def test_get_validation_rule_based_fields_no_explicit_type(
     "validation_rules, explicit_type, expected_type, expected_is_array, expected_min, expected_max, expected_pattern, expected_format",
     [
         (
+            [],
+            JSONSchemaType.STRING,
+            JSONSchemaType.STRING,
+            False,
+            None,
+            None,
+            None,
+            None,
+        ),
+        (
             ["str"],
             JSONSchemaType.STRING,
             JSONSchemaType.STRING,
@@ -314,7 +324,7 @@ def test_get_validation_rule_based_fields_no_explicit_type(
             JSONSchemaFormat.URI,
         ),
     ],
-    ids=["String", "InRange", "Regex", "Date", "URL"],
+    ids=["No rules", "String", "InRange", "Regex", "Date", "URL"],
 )
 def test_get_validation_rule_based_fields_with_explicit_type(
     validation_rules: list[str],
