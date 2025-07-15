@@ -420,9 +420,7 @@ class SynapseStorage(BaseStorage):
                         f"The columns {missing_column} specified in the query do not exist in the fileview. Please make sure that the column names are correct and that all expected columns have been added to the fileview."
                     )
                 elif "The column size needs to be at least" in exception_text:
-                    raise ValueError(
-                      f"Error in the fileview schema. " + exception_text
-                    )
+                    raise ValueError(f"Error in the fileview schema. " + exception_text)
                 else:
                     raise AccessCredentialsError(self.storageFileview)
 
