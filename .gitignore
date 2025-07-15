@@ -178,6 +178,7 @@ tests/data/schema.gpickle
 Example*
 manifests/*
 https:*
+component_jsonschemas/*
 
 # schematic config file
 config.yml

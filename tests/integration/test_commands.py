@@ -55,10 +55,13 @@ class TestSubmitCommand:
                     "--no-file_annotations_upload",
                 ],
             )
-            assert os.path.isfile("tests/data/example.Biospecimen.schema.json")
 
         finally:
-            os.remove("tests/data/example.Biospecimen.schema.json")
+            # When running in parallel with other tests, the JSON Schema file will sometimes
+            #  be removed by other tests
+            json_schema_file = "tests/data/example.Biospecimen.schema.json"
+            if os.path.isfile(json_schema_file):
+                os.remove(json_schema_file)
 
         assert result.exit_code == 0
         assert "No validation errors occured during validation." in result.output

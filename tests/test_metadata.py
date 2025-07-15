@@ -25,6 +25,7 @@ def metadata_model(helpers, data_model_labels):
     return metadata_model
 
 
+@pytest.mark.single_process_execution
 class TestMetadataModel:
     @pytest.mark.parametrize("as_graph", [True, False], ids=["as_graph", "as_list"])
     @pytest.mark.parametrize(

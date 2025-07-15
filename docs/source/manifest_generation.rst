@@ -1,34 +1,39 @@
 .. _manifest_generation:
 
+####################
 Generate a manifest
-===================
+####################
 A **manifest** is a structured file containing metadata that adheres to a specific data model. This page covers different ways to generate a manifest.
 
+*************
 Prerequisites
--------------
+*************
 
 **Before Using the Schematic CLI**
+==================================
 
 - **Install and Configure Schematic**:
   Ensure you have installed `schematic` and set up its dependencies.
   See the :ref:`installation` section for more details.
 
 - **Understand Important Concepts**:
-  Understand Important Concepts: Familiarize yourself with key concepts outlined on the :ref:`index` of the documentation.
+  Understand Important Concepts: Familiarize yourself with key concepts outlined on the :ref:`Homepage <index>` of the documentation.
 
 - **Configuration File**:
   Learn more about each attribute in the configuration file by referring to the relevant documentation.
 
 
 **Using the Schematic API in Production**
+=========================================
 
 Visit the **Schematic API (Production Environment)**:
 `<https://schematic.api.sagebionetworks.org/v1/ui/#/>`_
 
 This will open the **Swagger UI**, where you can explore all available API endpoints.
 
+****************
 Run help command
-----------------
+****************
 
 You could run the following commands to learn about subcommands with manifest generation:
 
@@ -42,12 +47,14 @@ You could also run the following commands to learn about all the options with ma
 
     schematic manifest --config path/to/config.yml get -h
 
-
+**************************
 Generate an empty manifest
----------------------------
+**************************
+
+.. _empty_manifest_gen_cli:
 
 Option 1: Use the CLI
-~~~~~~~~~~~~~~~~~~~~~
+=====================
 
 You can generate a manifest by running the following command:
 
@@ -71,15 +78,19 @@ And if you want to generate a manifest as a csv file, you could do:
 
     schematic manifest -c /path/to/config.yml get -dt <your data type> --output-csv <your-output-manifest-path.csv>
 
+.. _empty_manifest_gen_api:
+
 Option 2: Use the API
-~~~~~~~~~~~~~~~~~~~~~
+======================
 
 1. Visit the `manifest/generate endpoint <https://schematic.api.sagebionetworks.org/v1/ui/#/Manifest%20Operations/schematic_api.api.routes.get_manifest_route>`_.
 2. Click "Try it out" to enable input fields.
 3. Enter the following parameters and execute the request:
 
    - **schema_url**: The URL of your data model.
-     - If your data model is hosted on **GitHub**, the URL should follow this format:
+
+    - If your data model is hosted on **GitHub**, the URL should follow this format:
+
        - JSON-LD: `https://raw.githubusercontent.com/<your-repo-path>/data-model.jsonld`
        - CSV: `https://raw.githubusercontent.com/<your-repo-path>/data-model.csv`
 
@@ -90,12 +101,14 @@ Option 2: Use the API
 
 This will generate a manifest directly from the API.
 
-
+**********************************************
 Generate a manifest using a dataset on synapse
-----------------------------------------------
+**********************************************
+
+.. _synapse_data_manifest_gen_cli:
 
 Option 1: Use the CLI
-~~~~~~~~~~~~~~~~~~~~~~
+=====================
 
 .. note::
 
@@ -138,9 +151,10 @@ Here you should use syn12345678 to generate a manifest
 - **-dt <your_data_type>**: Defines the data type/schema model for the manifest (e.g., `"Patient"`, `"Biospecimen"`).
 - **-d <your_dataset_id>**: Retrieves the existing manifest associated with a specific dataset on Synpase.
 
+.. _synapse_data_manifest_gen_api:
 
 Option 2: Use the API
-~~~~~~~~~~~~~~~~~~~~~~
+=====================
 
 To generate a manifest using the **Schematic API**, follow these steps:
 
@@ -164,8 +178,9 @@ To generate a manifest using the **Schematic API**, follow these steps:
 
    - **asset_view**: The **Synapse ID of the fileview** containing the top-level dataset for which you want to generate a manifest.
 
+********************************************************************
 Generate a manifest using a dataset on synapse and pull annotations
---------------------------------------------------------------------
+********************************************************************
 
 .. note::
     When you pull annotations from Synapse, the existing metadata (annotations) associated with files or folders in a Synapse dataset is automatically retrieved and pre-filled into the generated manifest.
@@ -196,9 +211,10 @@ Generate a manifest using a dataset on synapse and pull annotations
 
     The generated manifest will include the above annotations pulled from Synapse when enabled.
 
+.. _pull_annotations_manifest_gen_cli:
 
 Option 1: Use the CLI
-~~~~~~~~~~~~~~~~~~~~~~
+=====================
 
 .. note::
 
@@ -219,8 +235,10 @@ The **top-level dataset** can be either an empty folder or a folder containing f
    - **-d <your_dataset_id>**: Retrieves the existing manifest associated with a specific dataset on Synpase.
 
 
+.. _pull_annotations_manifest_gen_api:
+
 Option 2: Use the API
-~~~~~~~~~~~~~~~~~~~~~~
+======================
 
 To generate a manifest using the **Schematic API**, follow these steps:
 

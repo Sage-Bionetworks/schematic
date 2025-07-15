@@ -1,0 +1,80 @@
+import os
+from unittest.mock import patch
+
+import pytest
+from click.testing import CliRunner
+from typing import Optional
+
+from schematic.configuration.configuration import Configuration
+from schematic.schemas.commands import schema
+from tests.conftest import Helpers
+
+
+@pytest.fixture
+def runner() -> CliRunner:
+    """Fixture for invoking command-line interfaces."""
+
+    return CliRunner()
+
+
+@pytest.fixture
+def data_model_jsonld(helpers):
+    data_model_jsonld = helpers.get_data_path("example.model.jsonld")
+    yield data_model_jsonld
+
+
+class TestSchemaCli:
+    # TODO: change url target to develop branch
+    @pytest.mark.parametrize(
+        "data_model_source",
+        [
+            "example.model.jsonld",
+            "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/f49215d5a7968ceffde855907fa0128a309768fb/tests/data/example.model.jsonld",
+        ],
+        ids=["local", "remote"],
+    )
+    @pytest.mark.parametrize(
+        "data_type",
+        ["MockComponent", None],
+        ids=["component specified", "all components"],
+    )
+    @pytest.mark.parametrize(
+        "output_directory",
+        ["test/jsonschema_output/", None],
+        ids=["output directory specified", "no output directory specified"],
+    )
+    @pytest.mark.parametrize(
+        "data_model_labels",
+        ["class_label", "display_label", None],
+        ids=["class_label", "display_label", "no label specified"],
+    )
+    def test_json_schema_generation(
+        self,
+        runner: CliRunner,
+        helpers: Helpers,
+        config: Configuration,
+        data_model_source: str,
+        output_directory: str,
+        data_type: str,
+        data_model_labels: Optional[str],
+    ):
+        if data_model_source.startswith("example"):
+            data_model_source = helpers.get_data_path(data_model_source)
+
+        config.load_config("config_example.yml")
+
+        result = runner.invoke(
+            schema,
+            [
+                "generate-jsonschema",
+                "--data_model_source",
+                data_model_source,
+                "--output_directory",
+                output_directory,
+                "--data_type",
+                data_type,
+                "--data_model_labels",
+                data_model_labels,
+            ],
+        )
+        assert result.exit_code == 0

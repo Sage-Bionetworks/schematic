@@ -278,7 +278,14 @@ class TestDataModelCsvParser:
         assert "Attribute" in attr_rel_dictionary[attribute_key]["Relationships"]
 
 
-@pytest.mark.parametrize("data_model", ["example.model.jsonld"], ids=["jsonld"])
+@pytest.mark.parametrize(
+    "data_model",
+    [
+        "example.model.jsonld",
+        "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/f49215d5a7968ceffde855907fa0128a309768fb/tests/data/example.model.jsonld",
+    ],
+    ids=["file-jsonld", "url-jsonld"],
+)
 class TestDataModelJsonLdParser:
     def test_gather_jsonld_attributes_relationships(
         self,
@@ -286,8 +293,11 @@ class TestDataModelJsonLdParser:
         data_model: str,
         jsonld_parser: DataModelJSONLDParser,
     ):
+        path_to_data_model = data_model
+        if not data_model.startswith("http"):
+            path_to_data_model = helpers.get_data_path(path=path_to_data_model)
+
         """The output of the function is a attributes relationship dictionary, check that it is formatted properly."""
-        path_to_data_model = helpers.get_data_path(path=data_model)
         model_jsonld = load_json(path_to_data_model)
 
         # Get output of the function:
@@ -311,8 +321,10 @@ class TestDataModelJsonLdParser:
         data_model: str,
         jsonld_parser: DataModelJSONLDParser,
     ):
+        path_to_data_model = data_model
+        if not data_model.startswith("http"):
+            path_to_data_model = helpers.get_data_path(path=path_to_data_model)
         """The output of the function is a attributes relationship dictionary, check that it is formatted properly."""
-        path_to_data_model = helpers.get_data_path(path=data_model)
         model_jsonld = load_json(path_to_data_model)
 
         # Get output of the function:
@@ -374,10 +386,10 @@ class TestDataModelRelationships:
         ]
 
     @pytest.mark.parametrize("edge", [True, False], ids=["True", "False"])
-    def test_retreive_rel_headers_dict(self, DMR: DataModelRelationships, edge: bool):
+    def test_retrieve_rel_headers_dict(self, DMR: DataModelRelationships, edge: bool):
         """Tests method returns correct values"""
         if edge:
-            assert DMR.retreive_rel_headers_dict(edge=edge) == {
+            assert DMR.retrieve_rel_headers_dict(edge=edge) == {
                 "rangeIncludes": "Valid Values",
                 "requiresDependency": "DependsOn",
                 "requiresComponent": "DependsOn Component",
@@ -385,7 +397,8 @@ class TestDataModelRelationships:
                 "domainIncludes": "Properties",
             }
         else:
-            assert DMR.retreive_rel_headers_dict(edge=edge) == {
+            assert DMR.retrieve_rel_headers_dict(edge=edge) == {
+                "columnType": "ColumnType",
                 "displayName": "Attribute",
                 "label": None,
                 "comment": "Description",
@@ -1035,7 +1048,7 @@ class TestDataModelEdges:
 
     """
 
-    def test_skip_edge(self, helpers, DMR, data_model_edges):
+    def test_skip_edge(self, helpers, DMR: DataModelRelationships, data_model_edges):
         # Instantiate graph object and set node
         G = nx.MultiDiGraph()
         node = "Diagnosis"
@@ -1052,7 +1065,7 @@ class TestDataModelEdges:
         DMN = DataModelNodes(parsed_data_model)
 
         # Get edge relationships and all nodes from the parsed model
-        edge_relationships = DMR.retreive_rel_headers_dict(edge=True)
+        edge_relationships = DMR.retrieve_rel_headers_dict(edge=True)
         all_nodes = DMN.gather_all_nodes_in_model(attr_rel_dict=parsed_data_model)
 
         # Sanity check to ensure that the node we intend to test exists in the data model
@@ -1095,7 +1108,12 @@ class TestDataModelEdges:
         ids=["subClassOf", "Valid Value", "all others"],
     )
     def test_generate_edge(
-        self, helpers, DMR, data_model_edges, node_to_add, edge_relationship
+        self,
+        helpers,
+        DMR: DataModelRelationships,
+        data_model_edges,
+        node_to_add,
+        edge_relationship,
     ):
         # Instantiate graph object
         G = nx.MultiDiGraph()
@@ -1112,7 +1130,7 @@ class TestDataModelEdges:
         DMN = DataModelNodes(parsed_data_model)
 
         # Get edge relationships and all nodes from the parsed model
-        edge_relationships = DMR.retreive_rel_headers_dict(edge=True)
+        edge_relationships = DMR.retrieve_rel_headers_dict(edge=True)
         all_nodes = DMN.gather_all_nodes_in_model(attr_rel_dict=parsed_data_model)
 
         # Sanity check to ensure that the node we intend to test exists in the data model
@@ -1160,7 +1178,7 @@ class TestDataModelEdges:
     def test_generate_weights(
         self,
         helpers,
-        DMR,
+        DMR: DataModelRelationships,
         data_model_edges,
         node_to_add,
         other_node,
@@ -1182,7 +1200,7 @@ class TestDataModelEdges:
         DMN = DataModelNodes(parsed_data_model)
 
         # Get edge relationships and all nodes from the parsed model
-        edge_relationships = DMR.retreive_rel_headers_dict(edge=True)
+        edge_relationships = DMR.retrieve_rel_headers_dict(edge=True)
         all_nodes = DMN.gather_all_nodes_in_model(attr_rel_dict=parsed_data_model)
 
         # Sanity check to ensure that the node we intend to test exists in the data model

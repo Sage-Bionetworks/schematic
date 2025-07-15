@@ -28,6 +28,7 @@ def request_headers(syn_token: str) -> Dict[str, str]:
     return headers
 
 
+@pytest.mark.local_only
 class TestManifestSubmission:
     def validate_submitted_manifest_file(
         self,

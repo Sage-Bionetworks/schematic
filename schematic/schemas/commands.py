@@ -13,8 +13,12 @@ from schematic.schemas.data_model_graph import DataModelGraph
 from schematic.schemas.data_model_jsonld import convert_graph_to_jsonld
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_validator import DataModelValidator
-from schematic.utils.cli_utils import query_dict
+from schematic.schemas.json_schema_component_generator import (
+    JsonSchemaGeneratorDirector,
+)
+from schematic.utils.cli_utils import query_dict, parse_comma_str_to_list
 from schematic.utils.schema_utils import DisplayLabelType, export_schema
+
 
 # pylint: disable=logging-fstring-interpolation
 
@@ -150,3 +154,59 @@ def convert(
     # get the execution time
     elapsed_time = time.strftime("%M:%S", time.gmtime(end_time - start_time))
     click.echo(f"Execution time: {elapsed_time} (M:S)")
+
+
+@schema.command(
+    "generate-jsonschema",
+    options_metavar="<options>",
+    short_help=query_dict(
+        schema_commands, ("schema", "generate-jsonschema", "short_help")
+    ),
+)
+@click_log.simple_verbosity_option(logger)
+@click.option(
+    "--data_model_source",
+    "-dms",
+    help=query_dict(
+        schema_commands, ("schema", "generate-jsonschema", "data_model_source")
+    ),
+)
+@click.option(
+    "--output_directory",
+    "-od",
+    default=None,
+    help=query_dict(
+        schema_commands, ("schema", "generate-jsonschema", "output_directory")
+    ),
+)
+@click.option(
+    "--data_type",
+    "-dt",
+    default=None,
+    callback=parse_comma_str_to_list,
+    help=query_dict(schema_commands, ("schema", "generate-jsonschema", "data_type")),
+)
+@click.option(
+    "--data_model_labels",
+    "-dml",
+    default="class_label",
+    type=click.Choice(list(get_args(DisplayLabelType)), case_sensitive=True),
+    help=query_dict(schema_commands, ("schema", "convert", "data_model_labels")),
+)
+def generate_jsonschema(
+    data_model_source: str,
+    output_directory: str,
+    data_type: Optional[list[str]],
+    data_model_labels: DisplayLabelType,
+) -> None:
+    """
+    Command to generate jsonschema files for validation for component(s) of the data model.
+    """
+
+    generator = JsonSchemaGeneratorDirector(
+        data_model_source=data_model_source,
+        output_directory=output_directory,
+        components=data_type,
+    )
+
+    generator.generate_jsonschema(data_model_labels=data_model_labels)

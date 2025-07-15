@@ -2,9 +2,15 @@ from typing import Optional, Union
 
 import pytest
 
+from schematic.schemas.constants import JSONSchemaType
+from schematic.schemas.data_model_graph import create_data_model_graph_explorer
 from tests.conftest import Helpers
 
 DATA_MODEL_DICT = {"example.model.csv": "CSV", "example.model.jsonld": "JSONLD"}
+COLUMN_TYPE_DATA_MODEL_DICT = {
+    "example.model.column_type_component.csv": "CSV",
+    "example.model.column_type_component.jsonld": "JSONLD",
+}
 
 
 class TestDataModelGraphExplorer:
@@ -84,3 +90,69 @@ class TestDataModelGraphExplorer:
             DMGE.get_node_validation_rules(
                 node_label=node_label, node_display_name=node_display_name
             )
+
+    @pytest.mark.parametrize(
+        "node_label, expected_type",
+        [
+            ("Stringtype", JSONSchemaType.STRING),
+            ("Numtype", JSONSchemaType.NUMBER),
+            ("Missingtype", None),
+        ],
+        ids=["String type", "Num type", "Missing type"],
+    )
+    @pytest.mark.parametrize(
+        "data_model",
+        list(COLUMN_TYPE_DATA_MODEL_DICT.keys()),
+        ids=list(COLUMN_TYPE_DATA_MODEL_DICT.values()),
+    )
+    def test_get_node_column_type_with_node_labels(
+        self,
+        node_label: str,
+        expected_type: Optional[JSONSchemaType],
+        data_model: str,
+        helpers: Helpers,
+    ) -> None:
+        """Tests for DataModelGraphExplorer.get_node_column_type using node label"""
+        dmge = helpers.get_data_model_graph_explorer(path=data_model)
+        assert dmge.get_node_column_type(node_label=node_label) == expected_type
+
+    @pytest.mark.parametrize(
+        "node_display_name, expected_type",
+        [
+            ("String type", JSONSchemaType.STRING),
+            ("Num type", JSONSchemaType.NUMBER),
+            ("Missing type", None),
+        ],
+        ids=["String type", "Num type", "Missing type"],
+    )
+    @pytest.mark.parametrize(
+        "data_model",
+        list(COLUMN_TYPE_DATA_MODEL_DICT.keys()),
+        ids=list(COLUMN_TYPE_DATA_MODEL_DICT.values()),
+    )
+    def test_get_node_column_type_with_node_display_names(
+        self,
+        node_display_name: str,
+        expected_type: Optional[JSONSchemaType],
+        data_model: str,
+        helpers: Helpers,
+    ) -> None:
+        """Tests for DataModelGraphExplorer.get_node_column_type using node label"""
+        dmge = helpers.get_data_model_graph_explorer(path=data_model)
+        assert (
+            dmge.get_node_column_type(node_display_name=node_display_name)
+            == expected_type
+        )
+
+
+@pytest.mark.parametrize(
+    "data_model_path",
+    ["tests/data/example.model.csv", "tests/data/example.model.jsonld"],
+)
+def test_create_data_model_graph_explorer(data_model_path: str) -> None:
+    """
+    Tests for create_data_model_graph_explorer
+    Tests that the dmge is created
+    """
+    dmge = create_data_model_graph_explorer(data_model_path)
+    assert dmge

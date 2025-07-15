@@ -1,6 +1,5 @@
 "Data Model Json Schema"
 
-import json
 import logging
 import os
 from typing import Any, Optional
@@ -11,6 +10,7 @@ from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.schema_utils import get_json_schema_log_file_path
 from schematic.utils.validate_utils import rule_in_rule_list
+from schematic.utils.io_utils import export_json
 
 logger = logging.getLogger(__name__)
 
@@ -405,6 +405,7 @@ class DataModelJSONSchema:
             json_schema_dirname = os.path.dirname(json_schema_log_file_path)
             if json_schema_dirname != "":
                 os.makedirs(json_schema_dirname, exist_ok=True)
-            with open(json_schema_log_file_path, "w", encoding="UTF-8") as js_f:
-                json.dump(json_schema, js_f, indent=2)
+            export_json(
+                json_doc=json_schema, file_path=json_schema_log_file_path, indent=2
+            )
         return json_schema  # type: ignore

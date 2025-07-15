@@ -20,6 +20,7 @@ from schematic.configuration.configuration import CONFIG, Configuration
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import load_df
 from schematic.utils.general import create_temp_folder
@@ -238,6 +239,15 @@ def DMGE(helpers: Helpers) -> DataModelGraphExplorer:
     return dmge
 
 
+@pytest.fixture(name="dmge_column_type", scope="function")
+def DMGE_column_type(helpers: Helpers) -> DataModelGraphExplorer:
+    """Fixture to instantiate a DataModelGraphExplorer object using the data model with column types"""
+    dmge = helpers.get_data_model_graph_explorer(
+        path="example.model.column_type_component.csv"
+    )
+    return dmge
+
+
 @pytest.fixture(scope="function")
 def syn_token(config: Configuration):
     synapse_config_path = config.synapse_configuration_path
@@ -258,6 +268,48 @@ def syn(syn_token) -> Synapse:
     return syn
 
 
+@pytest.fixture(name="synapse_module_scope", scope="module")
+def fixture_synapse_module_scope() -> Generator[Synapse, None, None]:
+    """
+    This yields a Synapse instance that's been logged in.
+    This has a module scope.
+    The module scope is needed so that entity cleanup happens in the correct order.
+    This allows the schema entities created below to be created once at the beginning
+      of the module tests, and torn down at the end.
+    """
+    synapse_config_path = CONFIG.synapse_configuration_path
+    config_parser = configparser.ConfigParser()
+    config_parser.read(synapse_config_path)
+    if "SYNAPSE_ACCESS_TOKEN" in os.environ:
+        token = os.environ["SYNAPSE_ACCESS_TOKEN"]
+    else:
+        token = config_parser["authentication"]["authtoken"]
+    syn = Synapse()
+    syn.login(authToken=token, silent=True)
+    return syn
+
+
+@pytest.fixture(name="synapse_module_scope", scope="module")
+def fixture_synapse_module_scope() -> Synapse:
+    """
+    This returns a Synapse instance that's been logged in.
+    This has a module scope.
+    The module scope is needed so that entity cleanup happens in the correct order.
+    This allows the schema entities created below to be created once at the beginning
+      of the module tests, and torn down at the end.
+    """
+    synapse_config_path = CONFIG.synapse_configuration_path
+    config_parser = configparser.ConfigParser()
+    config_parser.read(synapse_config_path)
+    if "SYNAPSE_ACCESS_TOKEN" in os.environ:
+        token = os.environ["SYNAPSE_ACCESS_TOKEN"]
+    else:
+        token = config_parser["authentication"]["authtoken"]
+    synapse = Synapse()
+    synapse.login(authToken=token, silent=True)
+    return synapse
+
+
 @pytest.fixture(scope="session")
 def download_location() -> Generator[str, None, None]:
     download_location = create_temp_folder(path=tempfile.gettempdir())
@@ -276,6 +328,18 @@ def metadata_model(helpers, data_model_labels):
     )
 
     return metadata_model
+
+
+@pytest.fixture(name="metadata_model", scope="function")
+def fixture_metadata_model(helpers: Helpers) -> DataModelGraphExplorer:
+    """Fixture to instantiate a DataModelGraphExplorer object."""
+    return metadata_model(helpers, "class_label")
+
+
+@pytest.fixture(name="metadata_model", scope="function")
+def fixture_metadata_model(helpers: Helpers) -> DataModelGraphExplorer:
+    """Fixture to instantiate a DataModelGraphExplorer object."""
+    return metadata_model(helpers, "class_label")
 
 
 @pytest.fixture(scope="function")
@@ -320,3 +384,25 @@ def wrap_with_otel(request):
     """Start a new OTEL Span for each test function."""
     with tracer.start_as_current_span(request.node.name):
         yield
+
+
+@pytest.fixture(scope="function")
+def example_data_model_path(helpers):
+    example_data_model_path = helpers.get_data_path("example.model.jsonld")
+
+    yield example_data_model_path
+
+
+@pytest.fixture(scope="function")
+def parsed_example_model(helpers, example_data_model_path):
+    data_model_parser = DataModelParser(example_data_model_path)
+
+    parsed_example_model = data_model_parser.parse_model()
+
+    yield parsed_example_model
+
+
+@pytest.fixture(name="dmr")
+def fixture_dmr():
+    "Returns a DataModelRelationships instance"
+    return DataModelRelationships()
