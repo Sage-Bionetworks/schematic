@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "schematicpy"
-version = "25.4.1"
+version = "25.7.1"
 description = "Package for biomedical data model and metadata ingress management"
 authors = [
     "Milen Nikolov <milen.nikolov@sagebase.org>",
@@ -79,6 +79,7 @@ opentelemetry-instrumentation-flask = ">=0.48b0"
 python-dotenv = "^0.21.0"
 cryptography = ">=42.0.4"
 deprecated = "^1.0.0"
+werkzeug = "<3.0.0"
 
 [tool.poetry.extras]
 api = ["Jinja2", "pyopenssl", "opentelemetry-api", "opentelemetry-sdk", "opentelemetry-exporter-otlp-proto-http"]
