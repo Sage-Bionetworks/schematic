@@ -281,8 +281,8 @@ def _get_validation_rule_based_fields(
         # Schematic will use the implicit type if the explicit type isn't specified for now,
         #   but this behavior is deprecated and will be removed in the future by SCHEMATIC-326
         implicit_js_type = get_js_type_from_inputted_rules(validation_rules)
-        # If there is an explicit type set...
-        if explicit_js_type:
+        # If there is an explicit and implicit type set...
+        if explicit_js_type and implicit_js_type:
             # and the implicit type conflicts with the explicit type, then an exception is raised
             if explicit_js_type != implicit_js_type:
                 msg = (

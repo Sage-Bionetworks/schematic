@@ -284,6 +284,16 @@ def test_get_validation_rule_based_fields_no_explicit_type(
             None,
         ),
         (
+            ["list"],
+            JSONSchemaType.STRING,
+            JSONSchemaType.STRING,
+            True,
+            None,
+            None,
+            None,
+            None,
+        ),
+        (
             ["inRange 50 100"],
             JSONSchemaType.NUMBER,
             JSONSchemaType.NUMBER,
@@ -324,7 +334,7 @@ def test_get_validation_rule_based_fields_no_explicit_type(
             JSONSchemaFormat.URI,
         ),
     ],
-    ids=["No rules", "String", "InRange", "Regex", "Date", "URL"],
+    ids=["No rules", "String", "List string", "InRange", "Regex", "Date", "URL"],
 )
 def test_get_validation_rule_based_fields_with_explicit_type(
     validation_rules: list[str],
