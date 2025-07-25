@@ -281,30 +281,31 @@ def _get_validation_rule_based_fields(
         # Schematic will use the implicit type if the explicit type isn't specified for now,
         #   but this behavior is deprecated and will be removed in the future by SCHEMATIC-326
         implicit_js_type = get_js_type_from_inputted_rules(validation_rules)
-        # If there is an explicit and implicit type set...
-        if explicit_js_type and implicit_js_type:
-            # and the implicit type conflicts with the explicit type, then an exception is raised
-            if explicit_js_type != implicit_js_type:
-                msg = (
-                    f"Property: '{name}', has explicit type: '{explicit_js_type}' "
-                    f"that conflicts with the implicit type: '{implicit_js_type}' "
-                    f"derived from its validation rules: {validation_rules}"
-                )
-                raise ValueError(msg)
-        # If there is no explicit type...
-        else:
-            # and there is an implicit type...
-            if implicit_js_type:
-                # then the implicit type is used...
-                js_type = implicit_js_type
-                # and a warning is raised since this behavior is deprecated
-                msg = (
-                    f"No explicit type set for property: '{name}', "
-                    "using validation rules to set the type. "
-                    "Using validation rules to set type is deprecated. "
-                    "You should set the columnType for this property in your data model."
-                )
-                warnings.warn(msg)
+        # If there is an explicit and implicit type set and the implicit type conflicts with the
+        # explicit type, then an exception is raised
+        if (
+            explicit_js_type
+            and implicit_js_type
+            and explicit_js_type != implicit_js_type
+        ):
+            msg = (
+                f"Property: '{name}', has explicit type: '{explicit_js_type}' "
+                f"that conflicts with the implicit type: '{implicit_js_type}' "
+                f"derived from its validation rules: {validation_rules}"
+            )
+            raise ValueError(msg)
+        # If there is no explicit type and there is an implicit type...
+        if implicit_js_type:
+            # then the implicit type is used...
+            js_type = implicit_js_type
+            # and a warning is raised since this behavior is deprecated
+            msg = (
+                f"No explicit type set for property: '{name}', "
+                "using validation rules to set the type. "
+                "Using validation rules to set type is deprecated. "
+                "You should set the columnType for this property in your data model."
+            )
+            warnings.warn(msg)
 
         if ValidationRuleName.URL in validation_rule_names:
             js_format = JSONSchemaFormat.URI
