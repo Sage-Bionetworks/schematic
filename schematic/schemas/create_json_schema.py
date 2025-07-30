@@ -294,11 +294,8 @@ def _get_validation_rule_based_fields(
                 f"derived from its validation rules: {validation_rules}"
             )
             raise ValueError(msg)
-        # If there is no explicit type and there is an implicit type...
         if implicit_js_type:
-            # then the implicit type is used...
             js_type = implicit_js_type
-            # and a warning is raised since this behavior is deprecated
             msg = (
                 f"No explicit type set for property: '{name}', "
                 "using validation rules to set the type. "
