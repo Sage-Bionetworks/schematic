@@ -37,7 +37,7 @@ LABEL version=$TAG
 
 # run open ssl and generate certificate
 RUN apt update && \
-    apt-get install openssl && \
+    apt-get install -y openssl && \
     openssl req -x509 -nodes -days 365 \
     -subj  "/C=CA/ST=QC/O=Company" \
     -newkey rsa:2048 -keyout /etc/ssl/private/localhost.key \
