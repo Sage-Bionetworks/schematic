@@ -22,6 +22,7 @@ def main():
         - link: a link to the JSONschema version in the Synapse repo
     """
     syn = synapseclient.login()
+    # json_schema_organizations = ["sage.schemas.v2571", "sage.schemas.v2581"]
     json_schema_organizations = ["sage.schemas.v2571", "sage.schemas.v2581"]
     js = syn.service("json_schema")
     to_write_schemas = []
@@ -29,19 +30,35 @@ def main():
         org = js.JsonSchemaOrganization(organization_name)
         schemas = org.list_json_schemas()
         for schema in schemas:
+            print(schema)
             versions = schema.list_versions()
-            for version in versions:
-                to_write_schemas.append(
-                    {
-                        "org": organization_name,
-                        "name": version.name,
-                        "dcc": version.name.split(".")[0],
-                        "datatype": version.name.split(".")[1],
-                        "uri": version.uri,
-                        "version": version.semantic_version,
-                        "link": f"https://repo-prod.prod.sagebase.org/repo/v1/schema/type/registered/{version.uri}",
-                    }
-                )
+            try:
+                for version in versions:
+                    if (
+                        (
+                            version.name.startswith("ad")
+                            and version.semantic_version == "0.1.0"
+                        )
+                        or (
+                            version.name.startswith("el")
+                            and version.semantic_version == "0.0.1"
+                        )
+                        or ".validation." in version.name
+                    ):
+                        continue
+                    to_write_schemas.append(
+                        {
+                            "org": organization_name,
+                            "name": version.name,
+                            "dcc": version.name.split(".")[0],
+                            "datatype": version.name.split(".")[1],
+                            "uri": version.uri,
+                            "version": version.semantic_version,
+                            "link": f"https://repo-prod.prod.sagebase.org/repo/v1/schema/type/registered/{version.uri}",
+                        }
+                    )
+            except Exception as e:
+                print(e)
 
     df = pd.DataFrame(to_write_schemas)
     # exclude HTAN1, HTAN2, and NF schemas as they have their own JSONschema organizations
