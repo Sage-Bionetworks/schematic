@@ -1,5 +1,6 @@
 import synapseclient
 from synapseclient.models import Table
+from synapseclient.services.json_schema import JsonSchemaService
 
 import pandas as pd
 
@@ -31,30 +32,34 @@ def main():
         schemas = org.list_json_schemas()
         for schema in schemas:
             print(schema)
-            versions = schema.list_versions()
+            # versions = schema.list_versions()
+            versions = JsonSchemaService(syn).list_json_schema_versions(
+                organization_name, schema.name
+            )
             try:
                 for version in versions:
                     if (
                         (
-                            version.name.startswith("ad")
-                            and version.semantic_version == "0.1.0"
+                            version["schemaName"].startswith("ad")
+                            and version.get("semanticVersion")
+                            in ["0.1.0", "1.99.9999", "1.99.99", None]
                         )
                         or (
-                            version.name.startswith("el")
-                            and version.semantic_version == "0.0.1"
+                            version["schemaName"].startswith("el")
+                            and version.get("semanticVersion") == "0.0.1"
                         )
-                        or ".validation." in version.name
+                        or ".validation." in version["schemaName"]
                     ):
                         continue
                     to_write_schemas.append(
                         {
                             "org": organization_name,
-                            "name": version.name,
-                            "dcc": version.name.split(".")[0],
-                            "datatype": version.name.split(".")[1],
-                            "uri": version.uri,
-                            "version": version.semantic_version,
-                            "link": f"https://repo-prod.prod.sagebase.org/repo/v1/schema/type/registered/{version.uri}",
+                            "name": version["schemaName"],
+                            "dcc": version["schemaName"].split(".")[0],
+                            "datatype": version["schemaName"].split(".")[1],
+                            "uri": version["$id"],
+                            "version": version["semanticVersion"],
+                            "link": f"https://repo-prod.prod.sagebase.org/repo/v1/schema/type/registered/{version['$id']}",
                         }
                     )
             except Exception as e:
