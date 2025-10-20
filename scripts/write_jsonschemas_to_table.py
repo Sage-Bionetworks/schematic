@@ -24,7 +24,11 @@ def main():
     """
     syn = synapseclient.login()
     # json_schema_organizations = ["sage.schemas.v2571", "sage.schemas.v2581"]
-    json_schema_organizations = ["sage.schemas.v2571", "sage.schemas.v2581"]
+    json_schema_organizations = [
+        "sage.schemas.v2571",
+        "sage.schemas.v2581",
+        "MultiConsortiaCoordinatingCenter",
+    ]
     js = syn.service("json_schema")
     to_write_schemas = []
     for organization_name in json_schema_organizations:
@@ -38,6 +42,7 @@ def main():
             )
             try:
                 for version in versions:
+                    print(version)
                     if (
                         (
                             version["schemaName"].startswith("ad")
@@ -51,12 +56,20 @@ def main():
                         or ".validation." in version["schemaName"]
                     ):
                         continue
+                    if organization_name == "MultiConsortiaCoordinatingCenter":
+                        # only include the latest version of MCC schemas
+                        dcc = "MC2"
+                        datatype = version["schemaName"]
+                    else:
+                        dcc = version["schemaName"].split(".")[0]
+                        datatype = version["schemaName"].split(".")[1]
+
                     to_write_schemas.append(
                         {
                             "org": organization_name,
                             "name": version["schemaName"],
-                            "dcc": version["schemaName"].split(".")[0],
-                            "datatype": version["schemaName"].split(".")[1],
+                            "dcc": dcc,
+                            "datatype": datatype,
                             "uri": version["$id"],
                             "version": version["semanticVersion"],
                             "link": f"https://repo-prod.prod.sagebase.org/repo/v1/schema/type/registered/{version['$id']}",
