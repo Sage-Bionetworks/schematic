@@ -28,6 +28,7 @@ def main():
         "sage.schemas.v2571",
         "sage.schemas.v2581",
         "MultiConsortiaCoordinatingCenter",
+        "org.synapse.nf",
     ]
     js = syn.service("json_schema")
     to_write_schemas = []
@@ -59,6 +60,9 @@ def main():
                     if organization_name == "MultiConsortiaCoordinatingCenter":
                         # only include the latest version of MCC schemas
                         dcc = "MC2"
+                        datatype = version["schemaName"]
+                    elif organization_name == "org.synapse.nf":
+                        dcc = "NF-OSI"
                         datatype = version["schemaName"]
                     else:
                         dcc = version["schemaName"].split(".")[0]
