@@ -365,6 +365,7 @@ def test_get_validation_rule_based_fields_with_explicit_type(
     assert maximum == expected_max
     assert pattern == expected_pattern
 
+
 class TestGraphTraversalState:
     """Tests for GraphTraversalState class"""
 
