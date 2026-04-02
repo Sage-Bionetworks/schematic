@@ -1,6 +1,6 @@
 import synapseclient
 from synapseclient.models import Table
-from synapseclient.services.json_schema import JsonSchemaService
+from synapseclient.models import SchemaOrganization
 
 import pandas as pd
 
@@ -30,53 +30,52 @@ def main():
         "MultiConsortiaCoordinatingCenter",
         "org.synapse.nf",
     ]
-    js = syn.service("json_schema")
+    # js = syn.service("json_schema")
     to_write_schemas = []
     for organization_name in json_schema_organizations:
-        org = js.JsonSchemaOrganization(organization_name)
-        schemas = org.list_json_schemas()
+        org = SchemaOrganization(name=organization_name).get()
+        # org = js.JsonSchemaOrganization(organization_name)
+        schemas = org.get_json_schemas()
         for schema in schemas:
             print(schema)
             # versions = schema.list_versions()
-            versions = JsonSchemaService(syn).list_json_schema_versions(
-                organization_name, schema.name
-            )
+            versions = schema.get_versions()
             try:
                 for version in versions:
                     print(version)
                     if (
                         (
-                            version["schemaName"].startswith("ad")
-                            and version.get("semanticVersion")
+                            version.schema_name.startswith("ad")
+                            and version.semantic_version
                             in ["0.1.0", "1.99.9999", "1.99.99", None]
                         )
                         or (
-                            version["schemaName"].startswith("el")
-                            and version.get("semanticVersion") == "0.0.1"
+                            version.schema_name.startswith("el")
+                            and version.semantic_version == "0.0.1"
                         )
-                        or ".validation." in version["schemaName"]
+                        or ".validation." in version.schema_name
                     ):
                         continue
                     if organization_name == "MultiConsortiaCoordinatingCenter":
                         # only include the latest version of MCC schemas
                         dcc = "MC2"
-                        datatype = version["schemaName"]
+                        datatype = version.schema_name
                     elif organization_name == "org.synapse.nf":
                         dcc = "NF-OSI"
-                        datatype = version["schemaName"]
+                        datatype = version.schema_name
                     else:
-                        dcc = version["schemaName"].split(".")[0]
-                        datatype = version["schemaName"].split(".")[1]
+                        dcc = version.schema_name.split(".")[0]
+                        datatype = version.schema_name.split(".")[1]
 
                     to_write_schemas.append(
                         {
                             "org": organization_name,
-                            "name": version["schemaName"],
+                            "name": version.schema_name,
                             "dcc": dcc,
                             "datatype": datatype,
-                            "uri": version["$id"],
-                            "version": version["semanticVersion"],
-                            "link": f"https://repo-prod.prod.sagebase.org/repo/v1/schema/type/registered/{version['$id']}",
+                            "uri": version.id,
+                            "version": version.semantic_version,
+                            "link": f"https://repo-prod.prod.sagebase.org/repo/v1/schema/type/registered/{version.id}",
                         }
                     )
             except Exception as e:
