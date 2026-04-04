@@ -6,7 +6,8 @@
 >
 > The functionality provided by Schematic has been integrated directly into Synapse. For managing metadata at scale, please migrate to the native Synapse functionality:
 >
-> **[Managing Metadata with Curator](https://docs.synapse.org/synapse-docs/managing-metadata-with-curator)**
+> - **[Managing Metadata with Curator](https://docs.synapse.org/synapse-docs/managing-metadata-with-curator)**
+> - **[JSON Schema-based Metadata Curation (Synapse Python Client)](https://python-docs.synapse.org/en/stable/guides/extensions/curator/metadata_curation/)**
 
 ---
 
