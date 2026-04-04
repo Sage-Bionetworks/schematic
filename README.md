@@ -1,6 +1,15 @@
 # Schematic
 [![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop) [![Documentation Status](https://readthedocs.org/projects/sage-schematic/badge/?version=develop)](https://sage-schematic.readthedocs.io/en/develop/?badge=develop) [![PyPI version](https://badge.fury.io/py/schematicpy.svg)](https://badge.fury.io/py/schematicpy)
 
+> [!WARNING]
+> **Repository Deprecation Notice:** This repository will be **deprecated by the end of 2026** and will no longer be maintained.
+>
+> The functionality provided by Schematic has been integrated directly into Synapse. For managing metadata at scale, please migrate to the native Synapse functionality:
+>
+> **[Managing Metadata with Curator](https://docs.synapse.org/synapse-docs/managing-metadata-with-curator)**
+
+---
+
 # TL;DR
 
 * `schematic` (Schema Engine for Manifest Ingress and Curation) is a python-based software tool that streamlines the retrieval, validation, and submission of metadata for biomedical datasets hosted on Sage Bionetworks' Synapse platform.
