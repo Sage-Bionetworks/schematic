@@ -366,35 +366,6 @@ def test_get_validation_rule_based_fields_with_explicit_type(
     assert pattern == expected_pattern
 
 
-@pytest.mark.parametrize(
-    "validation_rules, explicit_type",
-    [
-        (["str"], JSONSchemaType.INTEGER),
-        (["inRange 50 100"], JSONSchemaType.STRING),
-        (["regex search [a-f]"], JSONSchemaType.INTEGER),
-        (["date"], JSONSchemaType.INTEGER),
-        (["url"], JSONSchemaType.INTEGER),
-    ],
-    ids=[
-        "String rule, integer type",
-        "InRange rule, string type",
-        "Regex rule, integer type",
-        "Date rule, integer type",
-        "Url rule, integer type",
-    ],
-)
-def test_get_validation_rule_based_fields_with_exception(
-    validation_rules: list[str],
-    explicit_type: JSONSchemaType,
-) -> None:
-    """
-    Test for _get_validation_rule_based_fields
-    Tests that output is expected based on the input validation rules, and explicit type
-    """
-    with pytest.raises(ValueError):
-        _get_validation_rule_based_fields(validation_rules, explicit_type, "name")
-
-
 class TestGraphTraversalState:
     """Tests for GraphTraversalState class"""
 

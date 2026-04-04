@@ -293,8 +293,8 @@ def _get_validation_rule_based_fields(
                 f"that conflicts with the implicit type: '{implicit_js_type}' "
                 f"derived from its validation rules: {validation_rules}"
             )
-            raise ValueError(msg)
-        if implicit_js_type:
+            warnings.warn(msg)
+        if not explicit_js_type and implicit_js_type:
             js_type = implicit_js_type
             msg = (
                 f"No explicit type set for property: '{name}', "
